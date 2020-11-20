@@ -1,0 +1,51 @@
+ \documentclass[rgb]{beamer}
+\usepackage{silence,lmodern}
+\usepackage[backend=biber, style=nature]{biblatex}
+\usepackage{csquotes}
+\usepackage{listings}
+\usepackage{svg}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{multicol}
+\usepackage{forest}
+\usepackage[format=plain, justification=justified, labelfont=bf, textfont=it, font=small, labelsep=space]{caption}
+\usepackage{appendixnumberbeamer}
+
+\WarningFilter{biblatex}{Patching footnotes failed}
+\WarningFilter{etex}{Extended allocation already in use}
+
+\renewcommand*{\bibfont}{\tiny}
+\bibliography{ressources.bib}
+
+\usetheme{Konstanz}
+\setcounter{secnumdepth}{3}
+\format{169}
+
+
+\title{Some New Topic}
+\titleCorporateDesign{Some}{New}{Interesting}{Topic}
+\author{Fabian Klopfer} 
+\date{10.03.2020}
+\institute{Modelling of Complex and Self-Organizing Systems \\ University of Konstanz}
+
+\AtBeginDocument{
+\usebeamerfont{normalfont}
+\begin{frame}
+	\titlepage
+\end{frame}
+}
+
+\begin{document}
+  \begin{frame}<beamer>
+    \frametitle{Outline}
+    \tableofcontents[subsectionstyle=hide]
+  \end{frame}
+  
+\section{Introduction}
+    \subsection{Motivation}
+    \begin{frame}{Motivation}
+        stubs
+    \end{frame}
+    
+   
+\end{document}

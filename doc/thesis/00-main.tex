@@ -1,0 +1,42 @@
+\documentclass[11pt, rgb, twoside]{scrreprt}
+\usepackage{themeKonstanz} % Muss immer verwendet werden (Standardpaket)
+\format{a4}
+
+% Thesis information        %
+\date{\today}
+\year{2020}
+\author{Fabian Klopfer}
+\title{[Draft] Probabilistic Automata}
+\subtitle{Semantics, Equivalence \& Minimization}
+\unisection{Faculty of Sciences}
+\department{Department of Computer and Information Science}
+\group{Modeling of Complex, Self-Organizing Systems Group}
+\supervisorOne{Prof. Dr. Tatjana Petrov}
+\supervisorTwo{Prof. Dr. Michael Grossniklaus}
+
+\headFoot{14}
+\bibliography{resources} 
+
+
+\begin{document}
+
+\newgeometry{left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=30pt}
+\thesistitlepage[language=english]{Master Thesis}
+\input{01-abstract.tex}
+\addtocounter{page}{-1}
+\tableofcontents
+\cleardoublepage
+\restoregeometry
+
+
+\rmfamily 
+\normalsize
+
+\include{02-introduction}
+\include{03-background}
+\include{04-minimization_complexity}
+\include{05-conclusions}
+
+\nocite{*}
+\printbibliography
+\end{document}
