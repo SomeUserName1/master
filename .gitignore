@@ -68,4 +68,6 @@ dkms.conf
 *.bcf
 *.synctex.gz
 
+literature/neo4j-apidocs
+
 
