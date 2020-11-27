@@ -86,7 +86,6 @@ A more detailed view on the high level architecture of the disk space and buffer
 
 In the next section the focus is set on the storage layer of Neo4J: How it handles allocations, read and writes and how it provides the notion of a page. After that I elaborate on the details of the page cache, the transformation it applies to nodes and relationships on loading, the caching and the page eviction strategies it employs. Finally the internals of the files and records layouts are discussed along with the special structures employed and the indexes that are (or may be ) created over the files.
 
-
 \section{Disk Space Management}
 \mintinline{bash}{
 neo4j/community/io/src/main/java/org/neo4j/io/fs/
@@ -103,7 +102,6 @@ neo4j/community/io/src/main/java/org/neo4j/io/fs/
 \href{Algorithms \& data structures}{https://www.youtube.com/watch?v=NlT21Ceg3y0}  \\
 
 \href{Reusing space}{https://neo4j.com/docs/operations-manual/current/performance/space-reuse/\#space-reuse} \\
-
 
 
 \section{Buffer Management}
@@ -195,6 +193,7 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
         \subsubsection{Schema}
         \subsubsection{Metadata}
 
+
 \mintinline{bash}{neo4j/community/record-storage-engine/.../kernel/impl/store/record/}
 
 \mintinline{bash}{neo4j/community/record-storage-engine/src/main/java/org/neo4j/kernel/impl/store/} \\
@@ -207,10 +206,6 @@ Ancient: \href{Slides: Internals Of N4J}{https://www.slideshare.net/thobe/an-ove
 \href{N4J Arch blog}{http://key-value-stories.blogspot.com/2015/02/neo4j-architecture.html} \\
 
 \href{Followup discussion w devs}{https://groups.google.com/g/neo4j/c/cxClivwF94k}
-
-
-
-
 
 
 \section{Example}
