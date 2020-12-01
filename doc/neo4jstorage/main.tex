@@ -114,27 +114,30 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
 
 
 \section{File, Record \& Index Structures}
-    \subsection{Nodes}
+\subsection{Files}
+    
+\subsection{Records}
+    \subsubsection{Nodes}
     The record format of nodes consist of a 15 byte structure. The IDs of nodes are stored implicitly as their address. If a node has ID 100 we know that its record starts at offset 1500 from the beginning of the file. The struct of a record looks like this:
     \begin{enumerate}
-     \item[Byte 1] The first byte contains the in-use flag .
-     \item[Bytes 2 - 5] The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
-     \item[Bytes 6 - 9] Again 4 bytes encode the ID to the first property of the node.
-     \item[Bytes 10 - 14] This 5 byte section points to the labels of this node, labels might also be inlined.
-     \item[Byte 15] The last byte is reserved for aditional flags.
+     \item Byte 1: The first byte contains the in-use flag .
+     \item Bytes 2 - 5: The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
+     \item Bytes 6 - 9: Again 4 bytes encode the ID to the first property of the node.
+     \item Bytes 10 - 14: This 5 byte section points to the labels of this node, labels might also be inlined.
+     \item Byte 15: The last byte is reserved for aditional flags.
     \end{enumerate}
-    This seems to be aligned with the following types. Taken from a comment from the source code:
-    \mintinline{Java}{// in_use(byte)+next_rel_id(int)+next_prop_id(int)+labels(5)+extra(byte)}. \\
-    
     \begin{figure}[htp]\label{node_layout}
     \begin{center}
-    \includegraphics[keepaspectratio,width=\textwidth]{img/node_layout.png}
+    \includegraphics[keepaspectratio,width=0.6\textwidth]{img/node_layout.png}
     \end{center}
-    \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
+    \caption{A visualization of the record structure of a node.} %TODO citation
     \end{figure}
     
-     But also the sizes seem to be odd in some sense when looking at the definition of the maximal address sizes. Also from the source code:
-     \begin{minted}{Java}
+    Yet, there seems to be a problem.
+    Taken from a comment from the source code: \\
+    \mintinline{Java}{// in_use(byte)+next_rel_id(int)+next_prop_id(int)+labels(5)+extra(byte)}. \\
+    Also from the source code:
+     \begin{minted}[autogobble]{Java}
         public static final int PROPERTY_TOKEN_MAXIMUM_ID_BITS = 24;
         static final int NODE_MAXIMUM_ID_BITS = 35;
         static final int RELATIONSHIP_MAXIMUM_ID_BITS = 35;
@@ -145,32 +148,42 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
         static final int RELATIONSHIP_GROUP_MAXIMUM_ID_BITS = 35;
         public static final int SCHEMA_RECORD_ID_BITS = 32;
      \end{minted}
-    To summarize: The records on disk are stored as in the enumeration above. In the database all IDs get mapped to long and their respective space is larger than the space representable by 4 byte integers. This means in between there needs to be some rearrangements, to be investigated.
+     How can one map 35 bits onto 32 bits without not using a region of addresses or not loosing information along the transformation?
+     
+    To summarize: The records on disk are stored as in the enumeration above. In the database all IDs get mapped to longs and their respective space is larger than the space representable by 35 bit --- what is perfectly fine.
+    On disk 4 byte integers are used which are only capable of mapping a smaller space than what is to be represented. This means in between there needs to be some rearrangements, to be investigated.
     
     \subsubsection{Node Labels}
+    Each node label record consists of an in use bit and a name ID, which in turn points to an entry in a dynamic store file, storing the label names. This is done in order to asure that the records are of fixed length.
+    \begin{enumerate}
+     \item Byte 1: In-use flag
+     \item Bytes 2-5: Pointer to the label name entry
+    \end{enumerate}
+
     
 
-    \subsection{Relationships}
+    \subsubsection{Relationships}
+    Relationship records are stored with implicit IDs too. Their fixed size records contain 34 bytes. Besides an in-use flag and the node IDs that are connected, and the relationship type, the record also contains two doubly linked list: One for the relationships of the first node and one for the relationship of the second node. Finally a link to the head of the properties linked list of this relationship and a marker if this relationship is the first element in the relationships linked list of one of the nodes.
     \begin{enumerate}
-     \item[Byte 1] In-use flag 
-     \item[Bytes 2 - 5] first node ID 
-     \item[Bytes 6 - 9] second node ID 
-     \item[Bytes 10 - 13] relationship type 
-     \item[Bytes 14 - 17] previous relationship ID for first node
-     \item[Bytes 18 - 21] next relationship ID for first node
-     \item[Bytes 22 - 25] previous relationship ID for second node
-     \item[Bytes 26 - 29] next relationship ID for second node
-     \item[Bytes 30 - 33] link to the first property of the relationship
-     \item[Bytes 34] next relationship ID for first node
+     \item Byte 1: In-use flag 
+     \item Bytes 2 - 5: first node ID 
+     \item Bytes 6 - 9: second node ID 
+     \item Bytes 10 - 13: relationship type 
+     \item Bytes 14 - 17: previous relationship ID for first node
+     \item Bytes 18 - 21: next relationship ID for first node
+     \item Bytes 22 - 25: previous relationship ID for second node
+     \item Bytes 26 - 29: next relationship ID for second node
+     \item Bytes 30 - 33: link to the first property of the relationship
+     \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes
     \end{enumerate}
 
     \begin{figure}[htp]\label{rel_layout}
- \begin{center}
-  \includegraphics[keepaspectratio,width=\textwidth]{img/relationship_layout.png}
- \end{center}
- \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
-\end{figure}
-    
+        \begin{center}
+            \includegraphics[keepaspectratio,width=\textwidth]{img/relationship_layout.png}
+        \end{center}
+        \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
+    \end{figure}
+    Also similar to the case with nodes, 35 bit addresses get mapped to an integer.
     \begin{minted}{java}
     // record header size
     // directed|in_use(byte)+first_node(int)+second_node(int)+rel_type(int)+
@@ -178,38 +191,46 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
     // second_next_rel_id+next_prop_id(int)+first-in-chain-markers(1)
     \end{minted}
     
-        \subsubsection{Relationship Types}
-        \subsubsection{Relationship Groups}
+    \subsubsection{Relationship Types}
+    \subsubsection{Relationship Groups}
 
-    \subsection{Properties}
+    \subsubsection{Properties}
     \begin{enumerate}
      \item 
     \end{enumerate}
     
-    \subsubsection{Strings \& Arrays}
+    \subsubsection{Dynamic Size Records: Strings \& Arrays}
     
+    \subsubsection{Indexes}
     
-    \subsection{Others}
+    \subsubsection{Others}
         \subsubsection{Schema}
         \subsubsection{Metadata}
 
-
-\mintinline{bash}{neo4j/community/record-storage-engine/.../kernel/impl/store/record/}
-
-\mintinline{bash}{neo4j/community/record-storage-engine/src/main/java/org/neo4j/kernel/impl/store/} \\
-
-\href{Layout N4J}{https://neo4j.com/developer/kb/understanding-data-on-disk/} \\
-
-Ancient: \href{Slides: Internals Of N4J}{https://www.slideshare.net/thobe/an-overview-of-neo4j-internals} \\
-\href{Video}{https://skillsmatter.com/skillscasts/2968-neo4j-internals} \\
-
-\href{N4J Arch blog}{http://key-value-stories.blogspot.com/2015/02/neo4j-architecture.html} \\
-
-\href{Followup discussion w devs}{https://groups.google.com/g/neo4j/c/cxClivwF94k}
+    
+    
+    
 
 
-\section{Example}
-% TODO adapt from Brendle
+\href{https://neo4j.com/developer/kb/understanding-data-on-disk/}{Layout N4J} \\
+\href{https://www.slideshare.net/thobe/an-overview-of-neo4j-internals}{Slides: Internals Of N4J} \\
+\href{https://skillsmatter.com/skillscasts/2968-neo4j-internals}{Video} \\
+\href{http://key-value-stories.blogspot.com/2015/02/neo4j-architecture.html}{N4J Arch blog} \\
+\href{https://groups.google.com/g/neo4j/c/cxClivwF94k}{Followup discussion w devs}
+
+
+\section{Examples}
+\subsection{Relationship-focused Disk Access}
+    \subsubsection{BFS Traversal}
+
+    \subsubsection{Dijkstra Traversal}
+
+    \subsubsection{A*-Traversal}
+
+\subsection{All-files Disk Access}
+
+\subsection{Caching-assisted Disk Access}
+
 
 \section{Conclusion}
 The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.

@@ -68,6 +68,9 @@ dkms.conf
 *.bcf
 *.synctex.gz
 
+*.kate-swp
+*.backup
+
 literature/neo4j-apidocs
 
 
