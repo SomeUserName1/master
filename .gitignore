@@ -71,6 +71,5 @@ dkms.conf
 *.kate-swp
 *.backup
 
-literature/neo4j-apidocs
 
 

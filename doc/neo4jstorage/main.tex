@@ -1,8 +1,10 @@
 \documentclass[a4paper,10pt]{article}
-\usepackage[utf8]{inputenc}
+
+\usepackage{adjustbox}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{minted}
+\usepackage{amsmath}
 %opening
 \title{The Memory \& Storage Design of Neo4J}
 \author{Fabian Klopfer}
@@ -23,19 +25,26 @@ Relational databases store tables of data. The links considered in this category
 
 However, in order to traverse the graph, one has either to do a lot of rather expensive look ups or store auxiliary structures to speed up the look up process. In particular when using B-trees as index structure, each look up takes $\mathcal{O}(\log(n))$ steps to locate a specific edge. Alternatively one could store an additional table that holds edge lists such that the look up of outgoing or incomming edges is only $\mathcal{O}(\log(n))$ which would speed up breadth first traversals. But still one has to compute joins in order to continue the traversal in terms of depth. Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins.
 
-In contrast to relational data base management systems, native graph databases use structures specialised for this kind of queries. In the remainder of the document I discuss based upon Michael Brendle's work what structures and mechanisms the graph database Neo4J uses in order to achieve this superior performance in the domain of graphs.
+In contrast to relational data base management systems, native graph data\-bases use structures specialised for this kind of queries. In the remainder of the document I discuss based upon Michael Brendle's work what structures and mechanisms the graph database Neo4J uses in order to achieve this superior performance in the domain of graphs.
 
 First of all, let us consider the high level architecture of a database management systems as shown in figure~\ref{dbms_arch} --- with a focus on the storage and loading elements.
 
 \begin{figure}[htp]\label{dbms_arch}
  \begin{center}
-  \includegraphics[keepaspectratio,width=0.7\textwidth]{img/RDBMS.png}
+  \includegraphics[keepaspectratio,width=0.7\textwidth]{img/intro/RDBMS.png}
  \end{center}
- \caption{The typical structure of a relational database management system } %TODO citation
+ \caption{The typical structure of a relational database management system.} %TODO citation
 \end{figure}
 
 Here The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a page: A disk block brought into memory. For that it needs to keep track of free blocks in the allocated file. Optimally both a disk block and a page are of the same size. One crucial task of a disk space manager is to store sequences of pages into continuous memory blocks in order to optimize data locality. Data locality has the upside, that one needs only one I/O operation to load multiple pages. To summarize the two most important objectives of a storage manager are to provide a locality-preserving mapping from pages to blocks based upon the information in the DBMS and to abstract physical storage to pages, taking care of allocation and access.
 A buffer manager is used to mediate between external storage and main memory. It maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory. It's objective is to minimize the number of disk reads to be executed by caching, pre-fetching and the usage of suitable replacement policies. It also needs to take care of allocating a certain fraction of pages to each transaction.
+
+\begin{figure}[htp]\label{dbms_memory}
+    \begin{center}
+    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/intro/RDBMS_memory_view.png}
+    \end{center}
+    \caption{A visualization of the interaction of a database with memory.} %TODO citation
+\end{figure}
 
 The final memory and storage model relevant component of the  of a database management system is the file layout and possible index structures. 
 In order to store data a DBMS may either store one single or multiple files to maintain records. 
@@ -54,7 +63,7 @@ In another view of database management systems architectures, this boils down to
 
 \begin{figure}[htp]\label{dbms_arch_layers}
  \begin{center}
-  \includegraphics[keepaspectratio,width=0.6\textwidth]{img/layered_RDBMS.png}
+  \includegraphics[keepaspectratio,width=0.6\textwidth]{img/intro/layered_RDBMS.png}
  \end{center}
  \caption{The architecture of a database management system from another point of view.} %TODO citation
 \end{figure}
@@ -70,7 +79,7 @@ To get an overview of the architecture let us consider figure~\ref{N4J_HLA_Emil}
 
 \begin{figure}[htp]\label{N4J_HLA_Emil}
  \begin{center}
-  \includegraphics[keepaspectratio,width=0.6\textwidth]{img/N4J_HLA_Emil.png}
+  \includegraphics[keepaspectratio,width=0.6\textwidth]{img/intro/N4J_HLA_Emil.png}
  \end{center}
  \caption{The high level architecture of Neo4J according to Emil Efrim, the co-founder of Neo technologies.} %TODO citation
 \end{figure}
@@ -80,65 +89,48 @@ A more detailed view on the high level architecture of the disk space and buffer
 
 \begin{figure}[htp]\label{N4J_Storage}
  \begin{center}
-  \includegraphics[keepaspectratio,width=0.5\textwidth]{img/N4J_Storage.png}
+  \includegraphics[keepaspectratio,width=0.5\textwidth]{img/intro/N4J_Storage.png}
  \end{center}
  \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
 \end{figure}
 
 In the next section the focus is set on the storage layer of Neo4J: How it handles allocations, read and writes and how it provides the notion of a page. After that I elaborate on the details of the page cache, the transformation it applies to nodes and relationships on loading, the caching and the page eviction strategies it employs. Finally the internals of the files and records layouts are discussed along with the special structures employed and the indexes that are (or may be ) created over the files.
 
+The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
+
+\begin{figure}[htp]\label{N4J_memory_view}
+ \begin{center}
+  \includegraphics[keepaspectratio,width=\textwidth]{img/intro/N4J_memory_view.png}
+ \end{center}
+ \caption{A sketch of how Neo4J occupies memory.} %TODO citation
+\end{figure}
+
+
 \section{Disk Space Management}
-\mintinline{bash}{
-neo4j/community/io/src/main/java/org/neo4j/io/fs/
-} \\
-
-\mintinline{bash}{neo4j/community/storage-engine-api/src/main/java/org/neo4j/storageengine/api/} \\
-
-\mintinline{bash}{neo4j/community/native/src/main/java/org/neo4j/internal/nativeimpl/LinuxNativeAccess.java} \\
-
-\href{Hpw delete works}{https://neo4j.com/developer/kb/how-deletes-workin-neo4j/} \\
-
-\href{G-Store}{http://g-store.sourceforge.net/th/index.htm} \\
-
-\href{Algorithms \& data structures}{https://www.youtube.com/watch?v=NlT21Ceg3y0}  \\
-
-\href{Reusing space}{https://neo4j.com/docs/operations-manual/current/performance/space-reuse/\#space-reuse} \\
+TODO later
+\mintinline{bash}{neo4j/community/io/src/main/java/org/neo4j/io/(fs|mem|memory)} \\
+\mintinline{bash}{neo4j/community/native} \\
+\href{http://g-store.sourceforge.net/th/index.htm}{G-Store} \\
 
 
 \section{Buffer Management}
-% TODO use michael brendles work
+TODO later
+
 \mintinline{bash}{
 neo4j/community/io/src/main/java/org/neo4j/io/pagecache
-}
-
-\href{Page Cache layout ??? Outdated ???}{https://www.slideshare.net/thobe/an-overview-of-neo4j-internals} \\
+} \\
+\href{https://www.slideshare.net/thobe/an-overview-of-neo4j-internals}{Page Cache record layout} \\
 
 
 \section{File, Record \& Index Structures}
-\subsection{Files}
+\subsection{File Layout}
     
-\subsection{Records}
-    \subsubsection{Nodes}
-    The record format of nodes consist of a 15 byte structure. The IDs of nodes are stored implicitly as their address. If a node has ID 100 we know that its record starts at offset 1500 from the beginning of the file. The struct of a record looks like this:
-    \begin{enumerate}
-     \item Byte 1: The first byte contains the in-use flag .
-     \item Bytes 2 - 5: The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
-     \item Bytes 6 - 9: Again 4 bytes encode the ID to the first property of the node.
-     \item Bytes 10 - 14: This 5 byte section points to the labels of this node, labels might also be inlined.
-     \item Byte 15: The last byte is reserved for aditional flags.
-    \end{enumerate}
-    \begin{figure}[htp]\label{node_record}
-    \begin{center}
-    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/node_record.png}
-    \end{center}
-    \caption{A visualization of the record structure of a node.} %TODO citation
-    \end{figure}
-    
-    Yet, there seems to be a problem.
-    Taken from a comment from the source code: \\
-    \mintinline{Java}{// in_use(byte)+next_rel_id(int)+next_prop_id(int)+labels(5)+extra(byte)}. \\
-    Also from the source code:
-     \begin{minted}[autogobble]{Java}
+\subsection{Record Structures}
+    \subsection{Address Translation}
+    Neo4j defines the following constants as the size of the addresses used.
+        \begin{figure}[H]\label{addrsize}
+    \adjustbox{varwidth=\textwidth, scale=0.9}{%
+    \begin{minted}[autogobble]{Java}
         public static final int PROPERTY_TOKEN_MAXIMUM_ID_BITS = 24;
         static final int NODE_MAXIMUM_ID_BITS = 35;
         static final int RELATIONSHIP_MAXIMUM_ID_BITS = 35;
@@ -148,11 +140,43 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
         public static final int RELATIONSHIP_TYPE_TOKEN_MAXIMUM_ID_BITS = 16;
         static final int RELATIONSHIP_GROUP_MAXIMUM_ID_BITS = 35;
         public static final int SCHEMA_RECORD_ID_BITS = 32;
-     \end{minted}\label{addr_size}
-     How can one map 35 bits onto 32 bits without not using a region of addresses or not loosing information along the transformation?
+     \end{minted}
+     }
+    \end{figure}
+    These are represented by the datatype \mintinline{java}{long} when loaded into main memory. On disk these values are stored as 32-bit \mintinline{java}{Integer}s with additional modifiers, that is the highest bits that do not fit into an int are stored to fields with additional space.
+    
+    For example the in-use bit consumes one byte of memory and the additional 7 bytes are used to stroe the highest bits that do not fit into an integer of another field.
+    
+    Finally the base and the modifer are aggregated into a long by shifting both appropriately, casting them to longs and applying the logical or \mintinline{java}{|} operation.
+    
+    
+    \subsubsection{Nodes}
+    The record format of nodes consist of a 15 byte structure. The IDs of nodes are stored implicitly as their address. If a node has ID 100 we know that its record starts at offset $15 \text{ Bytes} \cdot 100 = 1500$ from the beginning of the file. The struct of a record looks like this:
+    \begin{enumerate}
+     \item Byte 1: The first byte contains one bit for the in-use flag. The additional 7 bits are used to store the 3 highest bits of the relationship ID and the 4 highest bits of a property ID
+     \item Bytes 2 - 5: The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
+     \item Bytes 6 - 9: Again 4 bytes encode the ID to the first property of the node.
+     \item Bytes 10 - 14: This 5 byte section points to the labels of this node, labels might also be inlined.
+     \item Byte 15: The last byte stores if the node is dense, i.e. one node has an aweful lot of relationships and is treated a bit differently. That is a relationships are stored by type and direction for this node into groups, see~\ref{rel_group}.
+    \end{enumerate}
+    
+    \begin{figure}[htp]\label{node_record}
+    \begin{center}
+    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/node/node_record.png}
+    \end{center}
+    \caption{A visualization of the record structure of a node.} %TODO citation
+    \end{figure}
      
     To summarize: The records on disk are stored as in the enumeration above. In the database all IDs get mapped to longs and their respective space is larger than the space representable by 35 bit --- what is perfectly fine.
-    On disk 4 byte integers are used which are only capable of mapping a smaller space than what is to be represented. This means in between there needs to be some rearrangements, to be investigated.
+    
+    \begin{figure}[htp]\label{node_first_byte}
+        \begin{center}
+        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/node/node_first_byte.png}
+        \end{center}
+        \caption{A visualization of the information stored in the first byte of a node record.} %TODO citation
+    \end{figure}
+    
+    On disk 4 byte integers are used to store the 32 lowest bits of the respective addresses and the higher bits are stored in the first byte that also carries the in-use bit.
     
     \subsubsection{Node Labels}
     Each node label record consists of an in use bit and a name ID, which in turn points to an entry in a seperate file storing label names as dynamic records (see \ref{dynamic}), storing the label names. This is done in order to asure that the records are of fixed length.
@@ -163,40 +187,52 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
     
     \begin{figure}[htp]\label{label_record}
         \begin{center}
-            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/label_record.png}
+            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/node/label_record.png}
         \end{center}
-        \caption{A visualization of the record structure of a node.} %TODO citation
+        \caption{A visualization of the structure of a label record.} %TODO citation
     \end{figure}
-
+    
+    
+    
     \subsubsection{Relationships}
+    \begin{figure}[htp]\label{rel_record}
+        \begin{center}
+            \includegraphics[keepaspectratio,height=0.9\textheight,width=0.5\textwidth]{img/relationship/relationship_record.png}
+        \end{center}
+        \caption{A visualization of the record structure of a relationship in Neo4J.} %TODO citation
+    \end{figure}
+    
     Relationship records are stored with implicit IDs too. Their fixed size records contain 34 bytes. Besides an in-use flag and the node IDs that are connected, and the relationship type, the record also contains two doubly linked list: One for the relationships of the first node and one for the relationship of the second node. Finally a link to the head of the properties linked list of this relationship and a marker if this relationship is the first element in the relationships linked list of one of the nodes.
+    \newpage
     \begin{enumerate}
-     \item Byte 1: In-use flag 
+     \item Byte 1: In-use bit, first node high order bits (3 bits), first property high order bits (4 bits)
      \item Bytes 2 - 5: first node ID 
      \item Bytes 6 - 9: second node ID 
-     \item Bytes 10 - 13: relationship type 
+     \item Bytes 10 - 13: relationship type (16 bit), second node high order bits (3 bits), relationship previous and next ID higher bits for first and second node ($4 \cdot 3 = 12$ bits, one unused bit.
      \item Bytes 14 - 17: previous relationship ID for first node
      \item Bytes 18 - 21: next relationship ID for first node
      \item Bytes 22 - 25: previous relationship ID for second node
      \item Bytes 26 - 29: next relationship ID for second node
      \item Bytes 30 - 33: link to the first property of the relationship
-     \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes
+     \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes stored in the lowest two bits of the byte. The other 6 bits are unused.
     \end{enumerate}
 
-    \begin{figure}[htp]\label{rel_record}
-        \begin{center}
-            \includegraphics[keepaspectratio,height=0.9\textheight,width=0.5\textwidth]{img/relationship_record.png}
-        \end{center}
-        \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
-    \end{figure}
-    Also similar to the case with nodes, 35 bit addresses get mapped to an integer, see~\ref{addr_size}.
-    \begin{minted}{java}
-    // record header size
-    // directed|in_use(byte)+first_node(int)+second_node(int)+rel_type(int)+
-    // first_prev_rel_id(int)+first_next_rel_id+second_prev_rel_id(int)+
-    // second_next_rel_id+next_prop_id(int)+first-in-chain-markers(1)
-    \end{minted}
+
+\begin{figure}[htp]\label{rel_first_byte}
+ \begin{center}
+  \includegraphics[keepaspectratio,width=\textwidth]{img/relationship/relationship_first_byte.png}
+ \end{center}
+ \caption{A visualization of how information is stored in the first byte of a relationship record.} %TODO citation
+\end{figure}
+
+\begin{figure}[htp]\label{rel_type_bytes}
+ \begin{center}
+  \includegraphics[keepaspectratio,width=\textwidth]{img/relationship/relationship_type_bytes.png}
+ \end{center}
+ \caption{The structure of the bytes that are used to store the type of a relationship and high bits of a node and a relationship IDs.} %TODO citation
+\end{figure}
     
+
     \subsubsection{Relationship Types}
     Similarly to the node labels, the relationship type records posses an in-use flag and a type ID that points to a record in a file containing strings in the dynamic record format.
         \begin{enumerate}
@@ -204,14 +240,40 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
      \item Bytes 2-5: Pointer to the type string entry
     \end{enumerate}
     
-    \begin{figure}[htp]\label{rel_type_record}
+    \begin{figure}[H]\label{rel_type_record}
         \begin{center}
-            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/rel_type_record.png}
+            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/relationship/rel_type_record.png}
         \end{center}
-        \caption{A visualization of the record structure of a node.} %TODO citation
+        \caption{A visualization of the record structure of a relationship type.} %TODO citation
     \end{figure}
     
-    \subsubsection{Relationship Groups}
+    \subsubsection{Relationship Groups}~\label{rel_group}
+    The relationship group record is used for example for dense nodes in order not to iterate over all relationships but only over those of a specific type. Each record consists of 25 bytes where the first byte again contains the in-use flags and the high order bits of IDs that do not fit into integers. The next bytes again contains high bits of addresses and is followed by the relationship type. After that a reference (an ID) to the next relationship group record is given. Finally the first outgoing relation, the first incoming relation, the first looping relation and the node of interest are specified.
+    
+    \begin{figure}[H]\label{rel_group_record}
+        \begin{center}
+            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/relationship/relationship_group_record.png}
+        \end{center}
+        \caption{A visualization of the record structure of a relationship group.} %TODO citation
+    \end{figure}
+    
+    \begin{enumerate}
+     \item Byte 1: In-use flag, high bits for the next relationship group ID, high bits for the first entry of outgoing relationship list.
+     \item Byte 2: High bits for the first entry in the incoming relationship list, high bits for the first entry in the looping relationship list.
+     \item Bytes 3 and 4: Relationship type ID
+     \item Bytes 5 - 8: ID of the next relationship group record.
+     \item Bytes 9 - 12: ID of the first relationship in the linked list of outgoing relationships, i.e. those relationships which start at the record owning node.
+     \item Bytes 13 - 16: ID of the first relationship in the linked list of incoming relationships, i.e. those relationships which end at the record owning node.
+     \item Bytes 17 - 20: ID of the first relationship in the linked list of loops, i.e. relationships which start and end at the record owning node.
+     \item Bytes 21 - 25: ID of the node for which the relationship group was created, also called the owning node (in the source code).
+    \end{enumerate}
+    
+    \begin{figure}[H]\label{rel_group_first_bytes}
+        \begin{center}
+            \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/relationship/relationship_group_first_bytes.png}
+        \end{center}
+        \caption{The structure of the first two bytes of a relationship group record.} %TODO citation
+    \end{figure}
     
 
     \subsubsection{Properties}
@@ -220,12 +282,22 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
     \end{enumerate}
     
     \subsubsection{Dynamic Records: Strings \& Arrays}\label{dynamic}
-    
-    \subsubsection{Indexes}
-    
-    \subsubsection{Others}
+            
+    \subsubsection{Other Records}
+        TODO later
         \subsubsection{Schema}
         \subsubsection{Metadata}
+        
+        
+    \subsubsection{Record Allocation}
+        \href{https://neo4j.com/docs/operations-manual/current/performance/space-reuse/\#space-reuse}{Reusing space} \\
+\href{https://neo4j.com/developer/kb/how-deletes-workin-neo4j/}{How delete works} \\
+    
+    \subsection{Record Allocation}
+
+    \subsection{Indexes}
+        TODO later
+    
 
     
     
@@ -263,13 +335,6 @@ neo4j/community/io/src/main/java/org/neo4j/io/pagecache
 
 
 \section{Conclusion}
-The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
 
-\begin{figure}[htp]\label{N4J_memory_view}
- \begin{center}
-  \includegraphics[keepaspectratio,width=\textwidth]{img/N4J_memory_view.png}
- \end{center}
- \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
-\end{figure}
 
 \end{document}
