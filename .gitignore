@@ -70,6 +70,6 @@ dkms.conf
 
 *.kate-swp
 *.backup
-
+tags
 
 
