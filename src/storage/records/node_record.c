@@ -6,12 +6,12 @@ node_t* new_node() {
     return node;
 }
 
-int read(node_t* record, cursor_t* cursor) {
+int read(node_t* record, unsigned long int id) {
     // TODO
     return 0;
 }
 
-int write(const node_t* record, cursor_t* cursor) {
+int write(const node_t* record, unsigned long int id) {
     // TODO
     return 0;
 }

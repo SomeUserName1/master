@@ -3,8 +3,6 @@
 #include <errno.h>
 #include <stddef.h>
 
-#include "../io/cursor.h"
-
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
 
@@ -12,10 +10,6 @@
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
  * but a byte is used to align the struct to be a aligned.
- *
- * TODO consider making un_use a int and pack the highest byte of relationship,
- * property and node type into the in use int => 5 bytes address space, no
- * wasted space, alginment to 2^4 B
  *
  */
 typedef struct NodeRecord {
@@ -26,8 +20,8 @@ typedef struct NodeRecord {
     unsigned long int node_type;
 
     struct NodeRecord* (*new_node)();
-    int (*read)(struct NodeRecord*, cursor_t*);
-    int (*write)(const struct NodeRecord*, cursor_t*);
+    int (*read)(struct NodeRecord*, unsigned long int address);
+    int (*write)(const struct NodeRecord*, unsigned long int address);
     void (*clear)(struct NodeRecord*);
     void (*copy)(const struct NodeRecord*, struct NodeRecord*);
     bool (*equals)(const struct NodeRecord*, const struct NodeRecord*);
@@ -42,21 +36,20 @@ typedef struct NodeRecord {
 node_t* new_node(void);
 
 /*
- *  Reads the record from disk beginning at the cursors position into a
+ *  Reads the record from disk beginning at the given address/id into a
  *  struct.
  *
  *  @param record: The struct to read the record into.
- *  @param cursor: Holds file and offset to read from.
+ *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
 int read(node_t* record, unsigned long int id);
 
 /**
- *  Writes the contents of the given record struct to the position of a
- *  file encoded in the cursor.
+ *  Writes the contents of the given record struct to the given address/id.
  *
  *  @param record: The struct to read the record into.
- *  @param cursor: Holds file and offset to read from.
+ *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
 int write(const node_t* record, unsigned long int id);

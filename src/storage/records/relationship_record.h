@@ -3,8 +3,6 @@
 #include <stddef.h>
 #include <errno.h>
 
-#include "../io/cursor.h"
-
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
 
@@ -28,8 +26,8 @@ typedef struct RelationshipRecord {
     unsigned long int first_property;
 
     struct RelationshipRecord* (*new_relationship)();
-    int (*read)(struct RelationshipRecord*, cursor_t*);
-    int (*write)(const struct RelationshipRecord*, cursor_t*);
+    int (*read)(struct RelationshipRecord*, unsigned long int id);
+    int (*write)(const struct RelationshipRecord*, unsigned long int id);
     void (*clear)(struct RelationshipRecord*);
     void (*copy)(const struct RelationshipRecord*, struct RelationshipRecord*);
     bool (*equals)(const struct RelationshipRecord*, const struct RelationshipRecord*);
@@ -44,21 +42,20 @@ typedef struct RelationshipRecord {
 relationship_t* new_relationship(void);
 
 /*
- *  Reads the relationship relationship from disk beginning at the cursors position
+ *  Reads the relationship relationship from disk beginning at the given address/id 
  *  into a struct.
  *
  *  @param relationship: The struct to read the relationship into.
- *  @param cursor: Holds file and offset to read from.
+ *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
 int read(relationship_t* relationship, unsigned long int id);
 
 /**
- *  Writes the contents of the given relationship struct to the position of a
- *  file encoded in the cursor.
+ *  Writes the contents of the given relationship struct to the given address/id.
  *
  *  @param relationship: The struct to read the relationship into.
- *  @param cursor: Holds file and offset to read from.
+ *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
 int write(const relationship_t* relationship, unsigned long int id);
