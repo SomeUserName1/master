@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const size_t list_block_size = 32;
 
@@ -16,7 +18,7 @@ typedef struct {
     list_free_cb lfree;
 } list_cbs_t;
 
-typedef struct list {
+    typedef struct list {
     void**          elements;
     size_t          alloced;
     size_t          len;
@@ -38,9 +40,9 @@ list_t *create_list(const list_cbs_t* cbs);
 void list_destroy(list_t* l);
 size_t list_size(list_t* l);
 
-bool list_add(list_t* l, void *v);
-bool list_insert(list_t* l, void *v, size_t idx);
-bool list_remove(list_t* l, size_t idx);
+int list_add(list_t* l, void *v);
+int list_insert(list_t* l, void *v, size_t idx);
+int list_remove(list_t* l, size_t idx);
 
 int list_index_of(list_t* l, void* v, size_t* idx);
 int list_contains(list_t* l, void* v);

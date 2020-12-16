@@ -1,16 +1,34 @@
 # master
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Dynamic data locality optimizing storage scheme for graph databases.  
 
-TODO List:
-- [x] Master Thesis Registration: Last handing in date is the 24th of May 2021  
-- [x] Write Neo4J Storage & Memory Design doc: Intro, Record Formats, BFS example   
-- [ ] Record structures
-- [ ] Cache  
-- [ ] IO & Files
-- [ ] Read related literature  
-- [ ] Impl. 2 examples from literature  
-- [ ] Write Neo4J Storage & Memory Design doc: Property Graph Model, Page Cache, IO parts, Dijkstra & A* example   
-- [ ] Use History data access graph to update order (or similar)  
+## Formalities
+- [x] Master Thesis Registration: Last handing in date is the 25th of May 2021  
 
-Problems List:  
-- Keep up implicit indexing to preserve join-free traversals  
+
+## Documentation
+- [x] Write Neo4J Storage & Memory Design doc: Intro, Record Formats, BFS example   
+- [ ] Write Neo4J Storage & Memory Design doc: Property Graph Model, Page Cache, IO parts, Dijkstra & A* example  
+- Thesis  
+	- [ ] Introduction
+	- [ ] Background & Related Word
+	- [ ] Our Method
+	- [ ] Evaluation
+	- [ ] Conclusion
+
+## Implementation
+- [ ] Record structures (WIP)  
+- [ ] Cache  
+- [ ] IO & Files  
+- [ ] 2 methods from literature
+
+## Cost model
+- [ ] Setup theoretical cost model  
+
+### Meeting
+Thursday, 2'oclock
+Prepare: Explain model, explain what we re trying to do s.t. input on the cost model can be provided by MG
+
+## Locality improving ordering
+- [ ] Read related literature  
+- [ ] Pick 2 examples from literature  
+- [ ] Use initial community detection + data access history graph to update order (or similar)  
