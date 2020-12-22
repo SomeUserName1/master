@@ -23,7 +23,6 @@ typedef struct {
     size_t          alloced;
     size_t          len;
     list_cbs_t      cbs;
-    bool            inbulk;
 
     void (*destroy)(struct list* self);
     size_t (*size)(struct list* self);
@@ -37,7 +36,7 @@ typedef struct {
     void* (*take)(struct list* self, size_t idx);
 } list_t;
 
-list_t *create_list(const list_cbs_t* cbs);
+list_t* create_list(const list_cbs_t* cbs);
 void list_destroy(list_t* l);
 size_t list_size(list_t* l);
 

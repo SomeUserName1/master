@@ -132,15 +132,15 @@ htable_t* create_htable(htable_hash fn, htable_keq keq, htable_cbs_t *cbs) {
     ht->hash_fn = fn;
     ht->keq = keq;
 
-    ht->cbs.key_copy = cbs->key_copy == NULL ?
+    ht->cbs.key_copy = cbs == NULL || cbs->key_copy == NULL ?
         htable_passthrough_copy : cbs->key_copy;
-    ht->cbs.key_free = cbs->key_free == NULL ?
+    ht->cbs.key_free = cbs == NULL || cbs->key_free == NULL ?
         htable_passthrough_free : cbs->key_free;
-    ht->cbs.value_eq = cbs->value_eq == NULL ?
+    ht->cbs.value_eq = cbs == NULL || cbs->value_eq == NULL ?
         htable_passthrough_eq : cbs->value_eq;
-    ht->cbs.value_copy = cbs->value_copy == NULL ?
+    ht->cbs.value_copy = cbs == NULL || cbs->value_copy == NULL ?
         htable_passthrough_copy : cbs->value_copy;
-    ht->cbs.value_free = cbs->value_free == NULL ?
+    ht->cbs.value_free = cbs == NULL || cbs->value_free == NULL ?
         htable_passthrough_free : cbs->value_free;
 
     ht->num_buckets = BUCKET_START;

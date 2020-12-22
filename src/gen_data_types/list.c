@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO check all copies return value
-
 static bool list_passthrough_eq(const void* first, const void* second) {
     return (*(void**) first) - (*(void**) second) == 0 ? true : false;
 }
@@ -44,8 +42,8 @@ void list_destroy(list_t* self) {
         return;
     }
 
-    if (self->cbs.lfree != NULL) {
-        for (size_t i = 0; i < self->len; ++i) {
+    if (self->cbs.lfree != NULL) { 
+        for (size_t i = 0; i < self->len; ++i)  {
             self->cbs.lfree(self->elements[i]);
         }
     }
@@ -84,6 +82,9 @@ int list_insert(list_t* self, void* elem, size_t idx) {
 
     if (self->cbs.lcopy != NULL) {
         elem = self->cbs.lcopy(elem);
+        if (elem == NULL) {
+            return -1;
+        }
     }
 
     if (idx > self->len) {
