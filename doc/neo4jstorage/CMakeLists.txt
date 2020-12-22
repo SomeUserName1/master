@@ -3,4 +3,5 @@ set(TEX_MAIN_FILE main.tex)
 SET(BIBER_FILE main.bcf)
 # add compile commands for the targe# add compile commands for the targett
 
-add_custom_command(neo4j-storage.pdf ${BUILD_TEX_CUSTOM_COMMAND})
+add_custom_command(OUTPUT neo4j-storage.pdf 
+                   COMMAND "${BUILD_TEX_CUSTOM_COMMAND}")

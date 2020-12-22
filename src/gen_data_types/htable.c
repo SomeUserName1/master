@@ -89,7 +89,7 @@ static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
 static int htable_rehash(htable_t* ht) {
    if (ht->num_used + 1 < (size_t) (ht->num_buckets*0.8)
            || ht->num_buckets >= 1 << 31) {
-       return -1;
+       return 0;
    }
 
    size_t num_buckets = ht->num_buckets;
@@ -132,11 +132,11 @@ htable_t* create_htable(htable_hash fn, htable_keq keq, htable_cbs_t *cbs) {
     ht->hash_fn = fn;
     ht->keq = keq;
 
-    ht->cbs.key_copy = cbs->key_copy == NULL ? 
+    ht->cbs.key_copy = cbs->key_copy == NULL ?
         htable_passthrough_copy : cbs->key_copy;
     ht->cbs.key_free = cbs->key_free == NULL ?
         htable_passthrough_free : cbs->key_free;
-    ht->cbs.value_eq = cbs->value_eq == NULL ? 
+    ht->cbs.value_eq = cbs->value_eq == NULL ?
         htable_passthrough_eq : cbs->value_eq;
     ht->cbs.value_copy = cbs->value_copy == NULL ?
         htable_passthrough_copy : cbs->value_copy;
@@ -147,7 +147,7 @@ htable_t* create_htable(htable_hash fn, htable_keq keq, htable_cbs_t *cbs) {
     ht->buckets = calloc(BUCKET_START, sizeof(*ht->buckets));
     ht->num_used = 0;
 
-    srand(time(NULL)); 
+    srand(time(NULL));
     ht->seed = rand();
 
     return ht;
@@ -179,4 +179,139 @@ int htable_destroy(htable_t* ht) {
     free(ht);
 
     return 0;
+}
+
+int htable_insert(htable_t* ht, void* key, void* value) {
+    if (key == NULL || ht == NULL) {
+        return -1;
+    }
+    htable_rehash(ht);
+    return htable_add_to_bucket(ht, key, value, false);
+}
+
+int htable_remove(htable_t* ht, void* key) {
+   if (ht == NULL || key == NULL) {
+        return -1;
+   }
+
+    size_t idx = htable_bucket_idx(ht, key);
+    if (ht->buckets[idx].key == NULL) {
+        return -1;
+    }
+
+    htable_bucket_t* cur;
+    if (ht->keq(ht->buckets[idx].key, key)) {
+        ht->cbs.key_free(ht->buckets[idx].key);
+        ht->cbs.value_free(ht->buckets[idx].value);
+        ht->buckets[idx].key = NULL;
+
+        cur = ht->buckets[idx].next;
+        if (cur != NULL) {
+           ht->buckets[idx].key = cur->key;
+           ht->buckets[idx].value = cur->value;
+           ht->buckets[idx].next = cur->next;
+           free(cur);
+       }
+        ht->num_used--;
+        return 0;
+    }
+
+    htable_bucket_t* last = ht->buckets + idx;
+    cur = last->next;
+    while (cur != NULL) {
+        if (ht->keq(cur->key, key)) {
+            last->next = cur->next;
+            ht->cbs.key_free(cur->key);
+            ht->cbs.value_free(cur->value);
+            free(cur);
+            return 0;
+        }
+        last = cur;
+        cur = cur->next;
+    }
+    return -1;
+}
+
+int htable_get(htable_t* ht, void* key, void** value) {
+    if (ht == NULL || key == NULL) {
+        return -1;
+    }
+
+    size_t idx = htable_bucket_idx(ht, key);
+    if (ht->buckets[idx].key == NULL) {
+        return -1;
+    }
+
+    htable_bucket_t* cur = ht->buckets + idx;
+    while (cur != NULL) {
+        if (ht->keq(cur->key, key)) {
+            if (value == NULL) {
+                return -1;
+            }
+
+            *value = cur->value;
+
+            return 0;
+        }
+        cur = cur->next;
+    }
+    return -1;
+}
+
+void* htable_get_direct(htable_t* ht, void* key) {
+    void* value = NULL;
+    htable_get(ht, key, &value);
+    return value;
+}
+
+
+ htable_iterator_t* create_htable_iterator(htable_t* ht) {
+    if (ht == NULL) {
+        return NULL;
+    }
+
+     htable_iterator_t* hi = calloc(1, sizeof(*hi));
+     hi->ht = ht;
+
+     return hi;
+ }
+
+int htable_iterator_next(htable_iterator_t* hi, void** key, void** value) {
+    if (hi == NULL || hi->idx >= hi->ht->num_buckets) {
+        return -1;
+    }
+
+    if (key == NULL) {
+        void* mkey;
+        key = &mkey;
+    }
+    if (value == NULL) {
+        void* mvalue;
+        value = &mvalue;
+    }
+
+    if (hi->cur == NULL) {
+        while (hi->idx < hi->ht->num_buckets
+                && hi->ht->buckets[hi->idx].key == NULL) {
+            hi->idx++;
+        }
+        if (hi->idx >= hi->ht->num_buckets) {
+            return -1;
+        }
+        hi->cur = hi->ht->buckets + hi->idx;
+        hi->idx++;
+    }
+
+    *key = hi->cur->key;
+    *value = hi->cur->value;
+    hi->cur = hi->cur->next;
+
+    return 0;
+}
+
+void htable_iterator_destroy(htable_iterator_t* hi) {
+    if (hi == NULL) {
+        return;
+    }
+    free(hi);
 }

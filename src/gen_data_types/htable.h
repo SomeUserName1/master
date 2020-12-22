@@ -40,11 +40,14 @@ typedef struct htable {
     unsigned int seed;
 } htable_t;
 
-typedef struct htable_enum {
+typedef struct htable_iterator {
     htable_t* ht;
     htable_bucket_t* cur;
     size_t idx;
-} htable_enum_t;
+
+    int (*next)(struct htable_iterator* hi, void** key, void** value);
+    void (*destroy)(struct htable_iterator* hi);
+} htable_iterator_t;
 
 htable_t* create_htable(htable_hash fn, htable_keq, htable_cbs_t* cbs);
 int htable_destroy(htable_t* ht);
@@ -55,8 +58,7 @@ int htable_remove(htable_t* ht, void* key);
 int htable_get(htable_t* ht, void* key, void** value);
 void* htable_get_direct(htable_t* ht, void* key);
 
-htable_enum_t* htable_enum_create(htable_t* ht);
-int htable_enum_next(htable_enum_t* he, void** key, void** value);
-int htable_enum_destroy(htable_enum_t* he);
-
+htable_iterator_t* create_htable_iterator(htable_t* ht);
+int htable_iterator_next(htable_iterator_t* hi, void** key, void** value);
+void htable_iterator_destroy(htable_iterator_t* hi);
 #endif
