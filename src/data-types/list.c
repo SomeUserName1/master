@@ -6,12 +6,13 @@ static bool list_passthrough_eq(const void* first, const void* second) {
     return (*(void**) first) - (*(void**) second) == 0 ? true : false;
 }
 
-list_t* create_list(const list_cbs_t *cbs) {
+list_t* create_list(list_cbs_t *cbs, list_flags_t flags) {
     list_t* list;
     list = malloc(sizeof(*list));
     list->elements = malloc(sizeof(*list->elements) * list_block_size);
     list->alloced = list_block_size;
     list->len = 0;
+    list->inbulk = false;
 
     memset(&(list->cbs), 0, sizeof(list->cbs));
     if (cbs != NULL) {
@@ -26,13 +27,15 @@ list_t* create_list(const list_cbs_t *cbs) {
 
     list->destroy = list_destroy;
     list->size = list_size;
-    list->add = list_add;
+    list->append = list_append;
     list->insert = list_insert;
     list->remove = list_remove;
     list->index_of = list_index_of;
     list->contains = list_contains;
     list->get = list_get;
     list->take = list_take;
+
+    list->flags = flags;
 
     return list;
 }
@@ -42,7 +45,7 @@ void list_destroy(list_t* self) {
         return;
     }
 
-    if (self->cbs.lfree != NULL) { 
+    if (self->cbs.lfree != NULL) {
         for (size_t i = 0; i < self->len; ++i)  {
             self->cbs.lfree(self->elements[i]);
         }
@@ -57,6 +60,79 @@ size_t list_size(list_t* self) {
         return 0;
     }
     return self->len;
+}
+
+bool __binary_search_insert(const void *base, size_t nel, size_t width,
+        const void *key, size_t *idx, bool is_insert,
+        bool (*cmp)(const void *, const void *)) {
+    size_t mid = 0;
+    size_t left;
+    size_t right;
+    int    eq  = -1;
+
+    if (base == NULL || nel == 0 || key == NULL || idx == NULL || cmp == NULL)
+        return false;
+
+    left  = 0;
+    right = nel;
+
+    while (left < right) {
+        mid = (left + right) / 2;
+        eq  = cmp(&key, base + (mid * width));
+        if (eq < 0) {
+            right = mid;
+        } else if (eq > 0) {
+            left = mid+1;
+        } else {
+            break;
+        }
+    }
+
+    if (is_insert) {
+        if (eq > 0) {
+            mid++;
+        }
+
+        while (mid < right && eq == 0) {
+            mid++;
+            eq = cmp(&key, base + (mid * width));
+        }
+    } else {
+        if (eq != 0) {
+            return false;
+        }
+
+        while (mid > 0 && mid >= left) {
+            eq = cmp(&key, base + ((mid - 1) * width));
+            if (eq != 0) {
+                break;
+            }
+            mid--;
+        }
+    }
+
+    *idx = mid;
+    return true;
+}
+
+void* binary_search(const void* base, size_t nel, size_t width,
+        const void* key, size_t* idx, bool (*cmp)(const void*, const void*)) {
+    size_t  myidx;
+
+    if (idx == NULL)
+        idx = &myidx;
+
+    if (!__binary_search_insert(base, nel, width, key, idx, false, cmp))
+        return NULL;
+    return (void *) base + (*idx * width);
+}
+
+int binary_insert(const void* base, size_t nel, size_t width,
+        const void* key, size_t* idx, bool (*cmp)(const void*, const void*)) {
+
+    if (!__binary_search_insert(base, nel, width, key, idx, true, cmp))
+        return -1;
+    return 0;
 }
 
 int list_append(list_t* self, void *elem) {
@@ -85,6 +161,11 @@ int list_insert(list_t* self, void* elem, size_t idx) {
         if (elem == NULL) {
             return -1;
         }
+    }
+
+    if (self->flags & LIST_NONE && !self->inbulk) {
+        binary_insert(self->elements, self->len, sizeof(*self->elements), elem,
+                &idx, self->cbs.leq);
     }
 
     if (idx > self->len) {
@@ -126,6 +207,14 @@ int list_index_of(list_t* self, void* elem, size_t* idx) {
         return -1;
     }
 
+    if (self->flags & LIST_SORT && !self->inbulk) {
+       if (binary_search(self->elements, self->len, sizeof(*self->elements),
+                   elem, idx, self->cbs.leq) < 0) {
+        return -1;
+       }
+       return 0;
+    }
+
     for (size_t i = 0; i < self->len; ++i) {
         if (self->cbs.leq(&elem, &self->elements[i]) == true) {
             *idx = i;
@@ -161,3 +250,91 @@ void* list_take(list_t* self, size_t idx) {
     return elem;
 }
 
+int list_start_bulk_add(list_t* self) {
+    if (self == NULL) {
+        return -1;
+    }
+    self->inbulk = true;
+    return 0;
+}
+
+int list_end_bulk_add(list_t* self) {
+    if (self == NULL) {
+        return -1;
+    }
+    self->inbulk = false;
+    list_sort(self, NULL);
+    return 0;
+}
+
+int merge_sort(void *base, size_t nel, size_t width, 
+        bool (*cmp)(const void *, const void *)) {
+    if (base == NULL || nel < 2 || width == 0 || cmp == NULL) {
+        return -1;
+    }
+
+    size_t mid = nel / 2;
+    size_t ls  = mid;
+    size_t rs  = mid;
+
+    if (nel > 2 && nel % 2 != 0) {
+        ls++;
+    }
+
+    char* left  = malloc(ls * width);
+    char* right = malloc(rs * width);
+    memcpy(left, base, ls * width);
+    memcpy(right, base+(ls * width), rs * width);
+
+    merge_sort(left, ls, width, cmp);
+    merge_sort(right, rs, width, cmp);
+
+    size_t i = 0;
+    size_t j = 0;
+    size_t k = 0;
+    while (i < ls && j < rs) {
+        if (cmp(left + (i * width), right + (j * width)) <= 0) {
+            memcpy(base + (k * width), left + (i * width), width);
+            i++;
+        } else {
+            memcpy(base + (k * width), right + (j * width), width);
+            j++;
+        }
+        k++;
+    }
+
+    while (i < ls) {
+        memcpy(base + (k * width), left + (i * width), width);
+        i++;
+        k++;
+    }
+
+    while (j < rs) {
+        memcpy(base + (k * width), right + (j * width), width);
+        j++;
+        k++;
+    }
+
+    free(right);
+    free(left);
+    return 0;
+}
+
+int list_sort(list_t* self , list_eq e) {
+    if (self == NULL)
+        return -1;
+
+    if (self->flags & LIST_SORT) {
+        if (e != NULL) {
+            self->cbs.leq = e;
+        } else {
+            e = self->cbs.leq;
+        }
+    }
+
+    if (e == NULL)
+        return -1;
+
+    merge_sort(self->elements, self->len, sizeof(*self->elements), e);
+    return 0;
+}
