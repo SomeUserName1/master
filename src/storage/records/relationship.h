@@ -49,7 +49,7 @@ relationship_t* new_relationship(void);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int read(relationship_t* relationship, unsigned long int id);
+int relationship_read(relationship_t* relationship, unsigned long int id);
 
 /**
  *  Writes the contents of the given relationship struct to the given address/id.
@@ -58,7 +58,7 @@ int read(relationship_t* relationship, unsigned long int id);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int write(const relationship_t* relationship, unsigned long int id);
+int relationship_write(const relationship_t* relationship, unsigned long int id);
 
 /**
  * Clears the current relationship struct.
@@ -67,7 +67,7 @@ int write(const relationship_t* relationship, unsigned long int id);
  *
  *  @return: 0 on success, negative value otherwise.
  */
-void clear(relationship_t* relationship);
+void relationship_clear(relationship_t* relationship);
 
 /**
  * Copies the contents of the relationship.
@@ -77,7 +77,7 @@ void clear(relationship_t* relationship);
  *
  * @return: 0 on success, negative value otherwise.
  */
-void copy(const relationship_t* original, relationship_t* copy);
+void relationship_copy(const relationship_t* original, relationship_t* copy);
 
 /**
  * Checks if two relationship structs have the same contents.
@@ -85,7 +85,7 @@ void copy(const relationship_t* original, relationship_t* copy);
  *  @param first: First node to compare against second.
  *  @param second: Other node to compare against first.
  */
-bool equals(const relationship_t* first, const relationship_t* second);
+bool relationship_equals(const relationship_t* first, const relationship_t* second);
 
 /**
  *  Writes a string representation of the node relationship to a char buffer.
@@ -95,5 +95,5 @@ bool equals(const relationship_t* first, const relationship_t* second);
  *
  *  @return: 0 on success, negative value on error.
  */
-int to_string(const relationship_t* relationship, char* buffer, size_t buffer_size);
+int relationship_to_string(const relationship_t* relationship, char* buffer, size_t buffer_size);
 #endif

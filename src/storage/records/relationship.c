@@ -1,4 +1,4 @@
-#include "relationship_record.h"
+#include "relationship.h"
 
 relationship_t* new_relationship() {
    relationship_t *rel;
@@ -6,17 +6,17 @@ relationship_t* new_relationship() {
     return rel;
 }
 
-int read(relationship_t* record, unsigned long int id) {
+int relationship_read(relationship_t* record, unsigned long int id) {
     // TODO
     return 0;
 }
 
-int write(const relationship_t* record, unsigned long int id) {
+int relationship_write(const relationship_t* record, unsigned long int id) {
     // TODO
     return 0;
 }
 
-void clear(relationship_t *rel) {
+void relationship_clear(relationship_t *rel) {
     rel->id = UNINITIALIZED_LONG;
     rel->flags = UNINITIALIZED_BYTE;
     rel->source_node = UNINITIALIZED_LONG;
@@ -29,7 +29,7 @@ void clear(relationship_t *rel) {
     rel->first_property = UNINITIALIZED_LONG;
 }
 
-void copy(const relationship_t* original, relationship_t *copy) {
+void relationship_copy(const relationship_t* original, relationship_t *copy) {
     copy->id = original->id;
     copy->flags = original->flags;
     copy->source_node = original->source_node;
@@ -42,7 +42,7 @@ void copy(const relationship_t* original, relationship_t *copy) {
     copy->first_property = original->first_property;
 }
 
-bool equals(const relationship_t* first, const relationship_t* second) {
+bool relationship_equals(const relationship_t* first, const relationship_t* second) {
     return ((first->id == second->id)
             && (first->flags == second->flags)
             && (first->source_node == second->source_node)
@@ -54,7 +54,7 @@ bool equals(const relationship_t* first, const relationship_t* second) {
             && (first->first_property == second->first_property));
 } 
 
-int to_string(const relationship_t* record, char* buffer, size_t buffer_size) {
+int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size) {
    int result = sprintf(buffer, "Relationship ID: %#lX\n"
                     "Flags: %#hhX\n"
                     "Source Node: %#lX\n"
