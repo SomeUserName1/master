@@ -71,7 +71,7 @@ int queue_add(queue_t* queue, void* elem) {
         return -1;
     }
    
-    queue_node_t* node;
+    queue_node_t* node = malloc(sizeof(*node));
     node->element = elem;
     node -> next = NULL;
     node->prev = NULL;
@@ -95,7 +95,7 @@ int queue_insert(queue_t* queue, void* elem, size_t idx) {
         return -1;
     }
 
-    queue_node_t* new;
+    queue_node_t* new = malloc(sizeof(*new));
     new->element = elem;
 
     if (queue->len == 0 && idx == 0) {
