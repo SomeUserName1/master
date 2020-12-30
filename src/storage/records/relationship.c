@@ -1,8 +1,9 @@
 #include "relationship.h"
+#include <stdlib.h>
 
 relationship_t* new_relationship() {
-   relationship_t *rel;
-   clear(rel);
+   relationship_t *rel = malloc(sizeof(*rel));
+   rel->clear(rel);
     return rel;
 }
 
@@ -29,7 +30,13 @@ void relationship_clear(relationship_t *rel) {
     rel->first_property = UNINITIALIZED_LONG;
 }
 
-void relationship_copy(const relationship_t* original, relationship_t *copy) {
+relationship_t* relationship_copy(const relationship_t* original) {
+    relationship_t* copy = malloc(sizeof(*copy));
+    
+    if (copy == NULL) {
+        return NULL;
+    }
+
     copy->id = original->id;
     copy->flags = original->flags;
     copy->source_node = original->source_node;
@@ -40,6 +47,8 @@ void relationship_copy(const relationship_t* original, relationship_t *copy) {
     copy->prev_rel_target = original->prev_rel_target;
     copy->next_rel_target = original->next_rel_target;
     copy->first_property = original->first_property;
+
+    return copy;
 }
 
 bool relationship_equals(const relationship_t* first, const relationship_t* second) {
@@ -52,7 +61,7 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
             && (first->next_rel_source == second->next_rel_source)
             && (first->prev_rel_target == second->prev_rel_target)
             && (first->first_property == second->first_property));
-} 
+}
 
 int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size) {
    int result = sprintf(buffer, "Relationship ID: %#lX\n"
@@ -64,8 +73,8 @@ int relationship_to_string(const relationship_t* record, char* buffer, size_t bu
                     "Source node's next relationship: %#lX\n"
                     "Target node's previous relationship: %#lX\n"
                     "Target node's next relationship: %#lX\n"
-                    "First Property: %#lX\n"
-                    ,
+                    "First Property: %#lX\n",
+                    record->id,
                     record->flags,
                     record->source_node,
                     record->target_node,

@@ -1,8 +1,8 @@
 #include "node.h"
 
 node_t* new_node() {
-    node_t *node;
-    clear(node);
+    node_t *node = malloc(sizeof(*node));
+    node_clear(node);
     return node;
 }
 
@@ -24,12 +24,15 @@ void node_clear(node_t *record) {
     record->node_type = UNINITIALIZED_LONG;
 }
 
-void node_copy(const node_t* original, node_t *copy) {
+node_t* node_copy(const node_t* original) {
+    node_t* copy = malloc(sizeof(*copy));
     copy->id = original->id;
     copy->flags = original->flags;
     copy->first_relationship = original->first_relationship;
     copy->first_property = original->first_property;
     copy->node_type = original->node_type;
+
+    return copy;
 }
 
 bool node_equals(const node_t* first, const node_t* second) {
@@ -53,7 +56,7 @@ int node_to_string(const node_t* record, char* buffer, size_t buffer_size) {
                     record->node_type);
 
    if (result > buffer_size) {
-       printf("Wrote relationship string representation to a buffer that was too small!");
+       printf("Wrote node string representation to a buffer that was too small!");
        return EOVERFLOW;
    } else if (result < 0) {
        return result;

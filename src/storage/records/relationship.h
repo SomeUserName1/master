@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
@@ -25,11 +27,10 @@ typedef struct RelationshipRecord {
     unsigned long int next_rel_target;
     unsigned long int first_property;
 
-    struct RelationshipRecord* (*new_relationship)();
     int (*read)(struct RelationshipRecord*, unsigned long int id);
     int (*write)(const struct RelationshipRecord*, unsigned long int id);
     void (*clear)(struct RelationshipRecord*);
-    void (*copy)(const struct RelationshipRecord*, struct RelationshipRecord*);
+    struct RelationshipRecord* (*copy)(const struct RelationshipRecord*);
     bool (*equals)(const struct RelationshipRecord*, const struct RelationshipRecord*);
     int (*to_string)(const struct RelationshipRecord*, char*, size_t);
 } relationship_t;
@@ -77,7 +78,7 @@ void relationship_clear(relationship_t* relationship);
  *
  * @return: 0 on success, negative value otherwise.
  */
-void relationship_copy(const relationship_t* original, relationship_t* copy);
+relationship_t* relationship_copy(const relationship_t* original);
 
 /**
  * Checks if two relationship structs have the same contents.
