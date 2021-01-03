@@ -9,7 +9,7 @@
 
 typedef struct relationship_list relationship_list_t;
 
-typedef enum { 
+typedef enum {
     REL_LIST_NONE = 0,
     REL_LIST_ID = 1 << 0,
     REL_LIST_ALL = 1 << 1

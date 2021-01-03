@@ -6,7 +6,7 @@
 
 
 typedef bool (*queue_eq)(const void* a, const void* b);
-typedef void* (*queue_copy)(void* original);
+typedef void* (*queue_copy)(const void* original);
 typedef void (*queue_free)(void* elem);
 
 typedef struct {

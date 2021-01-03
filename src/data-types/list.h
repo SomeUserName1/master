@@ -52,7 +52,7 @@ size_t list_size(list_t* l);
 
 void* binary_search(const void* base, size_t nel, size_t width,
         const void* key, size_t* idx, bool (*cmp)(const void*, const void*));
-size_t binary_insert(const void* base, size_t nel, size_t width,
+int binary_insert(const void* base, size_t nel, size_t width,
         const void* key, size_t* idx, bool (*cmp)(const void*, const void*));
 
 int list_append(list_t* l, void *v);
