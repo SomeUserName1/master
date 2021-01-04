@@ -3,13 +3,11 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 static const size_t list_block_size = 4;
 
 typedef bool (*list_eq)(const void* a, const void* b);
-typedef void* (*list_copy_cb)(void*);
+typedef void* (*list_copy_cb)(const void*);
 typedef void (*list_free_cb)(void*);
 
 typedef struct {
@@ -30,20 +28,6 @@ typedef enum {
     list_cbs_t      cbs;
     list_flags_t    flags;
     bool            inbulk;
-
-    void (*destroy)(struct list* self);
-    size_t (*size)(struct list* self);
-    int (*append)(struct list* self, void* elem);
-    int (*insert)(struct list* self, void* elem, size_t idx);
-    int (*remove)(struct list* self, size_t idx);
-    int (*remove_elem)(struct list* self, void* elem);
-    int (*index_of)(struct list* self, void* elem, size_t* idx);
-    bool (*contains)(struct list* self, void* elem);
-    void* (*get)(struct list* self, size_t idx);
-    void* (*take)(struct list* self, size_t idx);
-    int (*start_bulk_add)(struct list* self);
-    int (*end_bulk_add)(struct list* self);
-    int (*sort)(struct list* self, list_eq eq);
 } list_t;
 
 list_t* create_list(list_cbs_t* cbs, list_flags_t flags);

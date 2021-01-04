@@ -1,4 +1,6 @@
-#ifndef RELATIONSHIP_RECORD_H
+#ifndef __RELATIONSHIP_H__
+#define __RELATIONSHIP_H__
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <errno.h>
@@ -97,4 +99,5 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
  *  @return: 0 on success, negative value on error.
  */
 int relationship_to_string(const relationship_t* relationship, char* buffer, size_t buffer_size);
+
 #endif

@@ -26,18 +26,7 @@ typedef struct queue {
     queue_node_t* tail;
     size_t len;
     queue_cbs_t cbs;
-
-    void (*destroy)(struct queue* queue);
-    size_t (*size)(struct queue* queue);
-    int (*add)(struct queue* queue, void* elem);
-    int (*insert)(struct queue* queue, void* elem, size_t idx);
-    int (*remove)(struct queue*, size_t idx);
-    int (*remove_elem)(struct queue* queue, void* elem);
-    int (*index_of)(struct queue* queue, void* elem, size_t* idx);
-    bool (*contains)(struct queue* queue, void* elem);
-    void* (*get)(struct queue* queue, size_t idx);
-    void* (*take)(struct queue* queue);
-} queue_t;
+   } queue_t;
 
 queue_t* create_queue(const queue_cbs_t* cbs);
 void queue_destroy(queue_t* queue);

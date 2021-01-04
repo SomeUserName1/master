@@ -1,4 +1,6 @@
-#ifndef NODE_RECORD_H
+#ifndef __NODE_H__
+#define __NODE_H__
+
 #include <stdbool.h>
 #include <errno.h>
 #include <stddef.h>

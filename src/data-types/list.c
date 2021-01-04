@@ -1,4 +1,5 @@
 #include "list.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,16 +25,6 @@ list_t* create_list(list_cbs_t *cbs, list_flags_t flags) {
     if (list->cbs.leq == NULL) {
         list->cbs.leq = list_passthrough_eq;
     }
-
-    list->destroy = list_destroy;
-    list->size = list_size;
-    list->append = list_append;
-    list->insert = list_insert;
-    list->remove = list_remove;
-    list->index_of = list_index_of;
-    list->contains = list_contains;
-    list->get = list_get;
-    list->take = list_take;
 
     list->flags = flags;
 
@@ -267,7 +258,7 @@ int list_end_bulk_add(list_t* self) {
     return 0;
 }
 
-int merge_sort(void *base, size_t nel, size_t width, 
+int merge_sort(void *base, size_t nel, size_t width,
         bool (*cmp)(const void *, const void *)) {
     if (base == NULL || nel < 2 || width == 0 || cmp == NULL) {
         return -1;

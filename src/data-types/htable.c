@@ -1,7 +1,10 @@
 #include "htable.h"
 
-static void* htable_passthrough_copy(void* elem) {
-    return elem;
+#include <stdlib.h>
+#include <time.h>
+
+static void* htable_passthrough_copy(const void* elem) {
+    return (void*) elem;
 }
 
 static void htable_passthrough_free(void* elem) {
@@ -245,10 +248,6 @@ int htable_get(htable_t* ht, void* key, void** value) {
     htable_bucket_t* cur = ht->buckets + idx;
     while (cur != NULL) {
         if (ht->keq(cur->key, key)) {
-            if (value == NULL) {
-                return -1;
-            }
-
             *value = cur->value;
 
             return 0;
@@ -264,6 +263,10 @@ void* htable_get_direct(htable_t* ht, void* key) {
     return value;
 }
 
+bool htable_contains(htable_t* ht, void* key) {
+    void* val;
+    return htable_get(ht, key, &val) > 0;
+}
 
  htable_iterator_t* create_htable_iterator(htable_t* ht) {
     if (ht == NULL) {

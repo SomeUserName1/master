@@ -1,4 +1,5 @@
 #include "queue.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -22,24 +23,12 @@ queue_t* create_queue(const queue_cbs_t* cbs) {
     queue->tail = NULL;
 
     memset(&(queue->cbs), 0, sizeof(queue->cbs));
-    queue->cbs.qeq = cbs == NULL || cbs->qeq == NULL 
+    queue->cbs.qeq = cbs == NULL || cbs->qeq == NULL
         ? queue_passthrough_eq : cbs->qeq;
-    queue->cbs.qcopy = cbs == NULL || cbs->qcopy == NULL 
+    queue->cbs.qcopy = cbs == NULL || cbs->qcopy == NULL
         ? queue_passthrough_copy : cbs->qcopy;
-    queue->cbs.qfree = cbs == NULL || cbs->qfree == NULL 
+    queue->cbs.qfree = cbs == NULL || cbs->qfree == NULL
         ? queue_passthrough_free : cbs->qfree;
-    
-
-    queue->destroy = queue_destroy;
-    queue->size = queue_size;
-    queue->add = queue_add;
-    queue->insert = queue_insert;
-    queue->remove = queue_remove;
-    queue->remove_elem = queue_remove_elem;
-    queue->index_of = queue_index_of;
-    queue->contains = queue_contains;
-    queue->get = queue_get;
-    queue->take = queue_take;
 
     return queue;
 }
@@ -56,7 +45,7 @@ void queue_destroy(queue_t* queue) {
         return;
     }
     queue_node_t* cur;
-    queue_node_t* next = queue->head; 
+    queue_node_t* next = queue->head;
     while (next != NULL) {
         cur = next;
         queue->cbs.qfree(cur->element);
@@ -70,12 +59,12 @@ int queue_add(queue_t* queue, void* elem) {
     if (queue == NULL || elem == NULL) {
         return -1;
     }
-   
-    queue_node_t* node;
+
+    queue_node_t* node = (queue_node_t*) malloc(sizeof(*node));
     node->element = elem;
     node -> next = NULL;
     node->prev = NULL;
- 
+
     if (queue->tail == NULL) {
        queue->head = node;
         queue->tail = node;
