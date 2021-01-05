@@ -1,10 +1,9 @@
 #include "list_ul.h"
-#include "list.h"
-#include "ul_helpers.h"
+#include "cbs.h"
 
 #include <stdlib.h>
 
-list_ul_t* create_relationship_list(rel_list_flags_t flags) {
+list_ul_t* create_relationship_list(list_flags_t flags) {
     list_flags_t lflags = LIST_NONE;
     list_cbs_t cbs = {
         unsigned_long_eq,

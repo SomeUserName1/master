@@ -42,9 +42,6 @@ typedef struct htable_iterator {
     htable_t* ht;
     htable_bucket_t* cur;
     size_t idx;
-
-    int (*next)(struct htable_iterator* hi, void** key, void** value);
-    void (*destroy)(struct htable_iterator* hi);
 } htable_iterator_t;
 
 htable_t* create_htable(htable_hash fn, htable_keq, htable_cbs_t* cbs);
