@@ -3,13 +3,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
-
 
 /**
  * The flags field is structured the floowoing way:
@@ -28,13 +24,6 @@ typedef struct RelationshipRecord {
     unsigned long int prev_rel_target;
     unsigned long int next_rel_target;
     unsigned long int first_property;
-
-    int (*read)(struct RelationshipRecord*, unsigned long int id);
-    int (*write)(const struct RelationshipRecord*, unsigned long int id);
-    void (*clear)(struct RelationshipRecord*);
-    struct RelationshipRecord* (*copy)(const struct RelationshipRecord*);
-    bool (*equals)(const struct RelationshipRecord*, const struct RelationshipRecord*);
-    int (*to_string)(const struct RelationshipRecord*, char*, size_t);
 } relationship_t;
 
 /**
@@ -45,14 +34,14 @@ typedef struct RelationshipRecord {
 relationship_t* new_relationship(void);
 
 /*
- *  Reads the relationship relationship from disk beginning at the given address/id 
+ *  Reads the relationship relationship from disk beginning at the given address/id
  *  into a struct.
  *
  *  @param relationship: The struct to read the relationship into.
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int relationship_read(relationship_t* relationship, unsigned long int id);
+int relationship_read(relationship_t* record, const unsigned char* bytes);
 
 /**
  *  Writes the contents of the given relationship struct to the given address/id.
@@ -61,7 +50,7 @@ int relationship_read(relationship_t* relationship, unsigned long int id);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int relationship_write(const relationship_t* relationship, unsigned long int id);
+int relationship_write(const relationship_t* record);
 
 /**
  * Clears the current relationship struct.
@@ -70,7 +59,7 @@ int relationship_write(const relationship_t* relationship, unsigned long int id)
  *
  *  @return: 0 on success, negative value otherwise.
  */
-void relationship_clear(relationship_t* relationship);
+void relationship_clear(relationship_t* record);
 
 /**
  * Copies the contents of the relationship.
@@ -98,6 +87,6 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
  *
  *  @return: 0 on success, negative value on error.
  */
-int relationship_to_string(const relationship_t* relationship, char* buffer, size_t buffer_size);
+int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size);
 
 #endif

@@ -1,17 +1,12 @@
 #include "snap_importer.h"
 
-#include <math.h>
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
-#ifdef WIN
-    #include <io.h>
-#else
-    #include <unistd.h>
-#endif
+#include <string.h>
 
-#include "zlib.h"
+#include <zlib.h>
+#include <zconf.h>
 #include <curl/curl.h>
 
 #include "../access/in_memory_file.h"
@@ -75,8 +70,6 @@ int uncompress_dataset(const char* gz_path, const char* out_path) {
     FILE* in_gz_file;
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
-    int err_no = 0;
-    const char* emsg;
 
     stream.zalloc = Z_NULL;
     stream.zfree = Z_NULL;
@@ -90,13 +83,13 @@ int uncompress_dataset(const char* gz_path, const char* out_path) {
     }
 
     out_file = fopen(out_path, "wb");
-    in_gz_file = fopen(gz_path, "rb");
-
     if (out_file == NULL) {
         printf("%s", "couldn't open the output file");
         inflateEnd(&stream);
         return -1;
     }
+
+    in_gz_file = fopen(gz_path, "rb");
     if (in_gz_file == NULL) {
         printf("%s", "couldn't open the input file as gzipped");
         fclose(out_file);
@@ -263,10 +256,10 @@ unsigned long int get_no_rels(dataset_t data) {
 
 }
 
-int import_from_txt(const char* path) {
+int import_from_txt(in_memory_file_t* db, const char* path) {
     char in[MAX_LINE_LENGTH];
     unsigned long int fromTo[2];
-    char* end;
+    char* end = NULL;
     int j = 0;
 
     FILE* in_file = fopen(path, "r");
@@ -275,14 +268,21 @@ int import_from_txt(const char* path) {
         return -1;
     }
 
+    memset(in, '\0', sizeof(in));
     while(fgets(in, MAX_LINE_LENGTH - 1, in_file)) {
         for (unsigned long i = strtoul(in, &end, 10); in != end; i = strtoul(in, &end, 10)) {
- //           create_node(i);
+            if (create_node(db, i) < 0) {
+                printf("%s", "Failed to create node!");
+                return -1;
+            }
             fromTo[j] = i;
             ++j;
         }
-//        create_relationship(fromTo[0], fromTo[1]);
+        if (create_relationship(db, fromTo[0], fromTo[1]) < 0) {
+            printf("%s", "Failed to create relationship!");
+        }
         j = 0;
+        memset(in, '\0', sizeof(in));
     }
 
     fclose(in_file);

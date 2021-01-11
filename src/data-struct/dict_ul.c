@@ -1,20 +1,18 @@
 #include "dict_ul.h"
-#include "htable.h"
-#include "cbs.h"
 
 #include <stdlib.h>
 
-static unsigned int fnv_hash_ul(const void* in, unsigned int seed) {
-    unsigned int h = seed;
+#include "htable.h"
+#include "cbs.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
+
+static size_t fnv_hash_ul(const void* in, unsigned int seed) {
+    size_t h = seed;
     unsigned int prime = 0xFDCFB7;
     unsigned long ul = *((unsigned long*) in);
-    unsigned int low = ul & 0xFFFFFFFF;
-    unsigned int high = ul >> 32;
 
-    h = (h ^ high) * prime;
-    h = (h ^ low) * prime;
-
-    return h;
+    return (h ^ ul) * prime;
 }
 
 dict_ul_ul_t* create_dict_ul_ul() {
@@ -33,6 +31,10 @@ dict_ul_ul_t* create_dict_ul_ul() {
 
 int dict_ul_ul_destroy(dict_ul_ul_t* ht) {
     return htable_destroy((htable_t*) ht);
+}
+
+size_t dict_ul_ul_size(dict_ul_ul_t* ht) {
+    return htable_size((htable_t*) ht);
 }
 
 int dict_ul_ul_insert(dict_ul_ul_t* ht, unsigned long key, unsigned long value) {
@@ -82,6 +84,10 @@ int dict_ul_int_destroy(dict_ul_int_t* ht) {
     return htable_destroy((htable_t*) ht);
 }
 
+size_t dict_ul_int_size(dict_ul_int_t* ht) {
+    return htable_size((htable_t*) ht);
+}
+
 int dict_ul_int_insert(dict_ul_int_t* ht, unsigned long key, int value) {
     return htable_insert((htable_t*) ht, (void*) &key, (void*) &value);
 }
@@ -127,6 +133,10 @@ dict_ul_node_t* create_dict_ul_node(void) {
 
 int dict_ul_node_destroy(dict_ul_node_t* ht) {
     return htable_destroy((htable_t*) ht);
+}
+
+size_t dict_ul_node_size(dict_ul_node_t* ht) {
+    return htable_size((htable_t*) ht);
 }
 
 int dict_ul_node_insert(dict_ul_node_t* ht, unsigned long key, node_t* value) {
@@ -181,6 +191,10 @@ dict_ul_rel_t* create_dict_ul_rel(void) {
 
 int dict_ul_rel_destroy(dict_ul_rel_t* ht) {
     return htable_destroy((htable_t*) ht);
+}
+
+size_t dict_ul_rel_size(dict_ul_rel_t* ht) {
+    return htable_size((htable_t*) ht);
 }
 
 int dict_ul_rel_insert(dict_ul_rel_t* ht, unsigned long key, relationship_t* value) {

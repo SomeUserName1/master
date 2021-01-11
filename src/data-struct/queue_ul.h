@@ -1,7 +1,8 @@
 #ifndef __QUEUE_UL_H__
 #define __QUEUE_UL_H__
 
-#include "queue.h"
+#include <stdbool.h>
+#include <stddef.h>
 
 typedef struct queue_ul queue_ul_t;
 

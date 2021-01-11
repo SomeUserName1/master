@@ -1,18 +1,22 @@
 #include "node.h"
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 node_t* new_node() {
     node_t *node = malloc(sizeof(*node));
     node_clear(node);
     return node;
 }
 
-int node_read(node_t* record, unsigned long int id) {
-    // TODO
+int node_read(node_t* record, const unsigned char* bytes) {
+    printf("%lu, %c", record->id, *bytes);
     return 0;
 }
 
-int node_write(const node_t* record, unsigned long int id) {
-    // TODO
+int node_write(const node_t* record) {
+    printf("%lu", record->id);
     return 0;
 }
 
@@ -55,12 +59,9 @@ int node_to_string(const node_t* record, char* buffer, size_t buffer_size) {
                     record->first_property,
                     record->node_type);
 
-   if (result > buffer_size) {
+   if (result < 0 || (size_t) result > buffer_size)  {
        printf("Wrote node string representation to a buffer that was too small!");
        return EOVERFLOW;
-   } else if (result < 0) {
-       return result;
    }
     return 0;
 }
-

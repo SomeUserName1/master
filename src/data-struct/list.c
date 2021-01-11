@@ -4,12 +4,11 @@
 #include <string.h>
 
 static bool list_passthrough_eq(const void* first, const void* second) {
-    return (*(void**) first) - (*(void**) second) == 0 ? true : false;
+    return first == second;
 }
 
 list_t* create_list(list_cbs_t *cbs, list_flags_t flags) {
-    list_t* list;
-    list = malloc(sizeof(*list));
+    list_t* list = malloc(sizeof(*list));
     list->elements = malloc(sizeof(*list->elements) * list_block_size);
     list->alloced = list_block_size;
     list->len = 0;
@@ -57,12 +56,13 @@ bool __binary_search_insert(const void *base, size_t nel, size_t width,
         const void *key, size_t *idx, bool is_insert,
         bool (*cmp)(const void *, const void *)) {
     size_t mid = 0;
-    size_t left;
-    size_t right;
-    int    eq  = -1;
+    size_t left = 0;
+    size_t right = 0;
+    int eq  = -1;
 
-    if (base == NULL || nel == 0 || key == NULL || idx == NULL || cmp == NULL)
+    if (base == NULL || nel == 0 || key == NULL || idx == NULL || cmp == NULL) {
         return false;
+    }
 
     left  = 0;
     right = nel;
@@ -108,21 +108,24 @@ bool __binary_search_insert(const void *base, size_t nel, size_t width,
 
 void* binary_search(const void* base, size_t nel, size_t width,
         const void* key, size_t* idx, bool (*cmp)(const void*, const void*)) {
-    size_t  myidx;
+    size_t  myidx = 0;
 
-    if (idx == NULL)
+    if (idx == NULL) {
         idx = &myidx;
+    }
 
-    if (!__binary_search_insert(base, nel, width, key, idx, false, cmp))
+    if (!__binary_search_insert(base, nel, width, key, idx, false, cmp)) {
         return NULL;
+    }
     return (void *) base + (*idx * width);
 }
 
 int binary_insert(const void* base, size_t nel, size_t width,
         const void* key, size_t* idx, bool (*cmp)(const void*, const void*)) {
 
-    if (!__binary_search_insert(base, nel, width, key, idx, true, cmp))
+    if (!__binary_search_insert(base, nel, width, key, idx, true, cmp)) {
         return -1;
+    }
     return 0;
 }
 
@@ -154,7 +157,7 @@ int list_insert(list_t* self, void* elem, size_t idx) {
         }
     }
 
-    if (self->flags & LIST_NONE && !self->inbulk) {
+    if (self->flags != LIST_NONE && !self->inbulk) {
         binary_insert(self->elements, self->len, sizeof(*self->elements), elem,
                 &idx, self->cbs.leq);
     }
@@ -198,7 +201,7 @@ int list_index_of(list_t* self, void* elem, size_t* idx) {
         return -1;
     }
 
-    if (self->flags & LIST_SORT && !self->inbulk) {
+    if (self->flags != LIST_SORT && !self->inbulk) {
        if (binary_search(self->elements, self->len, sizeof(*self->elements),
                    elem, idx, self->cbs.leq) < 0) {
         return -1;
@@ -216,7 +219,7 @@ int list_index_of(list_t* self, void* elem, size_t* idx) {
 }
 
 int list_remove_elem(list_t* self, void* elem) {
-    size_t idx;
+    size_t idx = 0;
     if (list_index_of(self, elem, &idx) != 0) {
         return -1;
     }

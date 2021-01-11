@@ -1,16 +1,15 @@
 #include "list_node.h"
+
 #include "cbs.h"
+#include "../record/node.h"
 
-#include <stdlib.h>
-
-list_node_t* create_relationship_list(list_flags_t flags) {
-    list_flags_t lflags = LIST_NONE;
+list_node_t* create_list_node(list_flags_t flags) {
     list_cbs_t cbs = {
         node_eq,
         NULL,
         NULL
     };
-    list_t* lst =  create_list(&cbs, lflags);
+    list_t* lst =  create_list(&cbs, flags);
 
     return (list_node_t*) lst;
 }

@@ -2,10 +2,7 @@
 #define __NODE_H__
 
 #include <stdbool.h>
-#include <errno.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
@@ -22,13 +19,6 @@ typedef struct NodeRecord {
     unsigned long int first_relationship;
     unsigned long int first_property;
     unsigned long int node_type;
-
-    int (*read)(struct NodeRecord*, unsigned long int address);
-    int (*write)(const struct NodeRecord*, unsigned long int address);
-    void (*clear)(struct NodeRecord*);
-    void (*copy)(const struct NodeRecord*, struct NodeRecord*);
-    bool (*equals)(const struct NodeRecord*, const struct NodeRecord*);
-    int (*to_string)(const struct NodeRecord*, char*, size_t);
 } node_t;
 
 /**
@@ -46,7 +36,7 @@ node_t* new_node(void);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int node_read(node_t* record, unsigned long int id);
+int node_read(node_t* record, const unsigned char* bytes);
 
 /**
  *  Writes the contents of the given record struct to the given address/id.
@@ -55,7 +45,7 @@ int node_read(node_t* record, unsigned long int id);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int node_write(const node_t* record, unsigned long int id);
+int node_write(const node_t* record);
 
 /**
  * Clears the current record struct.

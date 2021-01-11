@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 static bool queue_passthrough_eq(const void* first, const void* second) {
-    return (*(void**) first) - (*(void**) second) == 0 ? true : false;
+    return first == second;
 }
 
 static void* queue_passthrough_copy(const void* elem) {
@@ -12,6 +12,7 @@ static void* queue_passthrough_copy(const void* elem) {
 }
 
 static void queue_passthrough_free(void* elem) {
+    elem = NULL;
     return;
 }
 
@@ -84,7 +85,7 @@ int queue_insert(queue_t* queue, void* elem, size_t idx) {
         return -1;
     }
 
-    queue_node_t* new;
+    queue_node_t* new = (queue_node_t*) malloc(sizeof(*new));
     new->element = elem;
 
     if (queue->len == 0 && idx == 0) {
@@ -95,6 +96,7 @@ int queue_insert(queue_t* queue, void* elem, size_t idx) {
     }
 
     if (idx >= queue->len) {
+        free(new);
         return -1;
     }
 

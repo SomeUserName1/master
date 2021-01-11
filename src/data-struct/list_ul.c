@@ -4,13 +4,12 @@
 #include <stdlib.h>
 
 list_ul_t* create_relationship_list(list_flags_t flags) {
-    list_flags_t lflags = LIST_NONE;
     list_cbs_t cbs = {
         unsigned_long_eq,
         unsigned_long_copy,
         free
     };
-    list_t* lst =  create_list(&cbs, lflags);
+    list_t* lst =  create_list(&cbs, flags);
 
     return (list_ul_t*) lst;
 }

@@ -1,8 +1,12 @@
 #ifndef __LIST_NODE_H__
 #define __LIST_NODE_H__
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "list.h"
-#include "../access/records/node.h"
+#include "../record/node.h"
+
 
 typedef struct list_node list_node_t;
 

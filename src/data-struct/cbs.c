@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-#include "../access/records/node.h"
-#include "../access/records/relationship.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
 
 bool unsigned_long_eq(const void* a, const void* b) {
     return *((unsigned long*) a) == *((unsigned long*) b);

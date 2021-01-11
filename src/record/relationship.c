@@ -1,38 +1,41 @@
 #include "relationship.h"
+
+#include <stdio.h>
 #include <stdlib.h>
+
 
 relationship_t* new_relationship() {
    relationship_t *rel = malloc(sizeof(*rel));
-   rel->clear(rel);
+   relationship_clear(rel);
     return rel;
 }
 
-int relationship_read(relationship_t* record, unsigned long int id) {
-    // TODO
+int relationship_read(relationship_t* record, const unsigned char* bytes) {
+    printf("%lu, %c", record->id, *bytes);
     return 0;
 }
 
-int relationship_write(const relationship_t* record, unsigned long int id) {
-    // TODO
+int relationship_write(const relationship_t* record) {
+    printf("%lu", record->id);
     return 0;
 }
 
-void relationship_clear(relationship_t *rel) {
-    rel->id = UNINITIALIZED_LONG;
-    rel->flags = UNINITIALIZED_BYTE;
-    rel->source_node = UNINITIALIZED_LONG;
-    rel->target_node =  UNINITIALIZED_LONG;
-    rel->relationship_type = UNINITIALIZED_LONG;
-    rel->prev_rel_source = UNINITIALIZED_LONG;
-    rel->next_rel_source = UNINITIALIZED_LONG;
-    rel->prev_rel_target = UNINITIALIZED_LONG;
-    rel->next_rel_target = UNINITIALIZED_LONG;
-    rel->first_property = UNINITIALIZED_LONG;
+void relationship_clear(relationship_t *record) {
+    record->id = UNINITIALIZED_LONG;
+    record->flags = UNINITIALIZED_BYTE;
+    record->source_node = UNINITIALIZED_LONG;
+    record->target_node =  UNINITIALIZED_LONG;
+    record->relationship_type = UNINITIALIZED_LONG;
+    record->prev_rel_source = UNINITIALIZED_LONG;
+    record->next_rel_source = UNINITIALIZED_LONG;
+    record->prev_rel_target = UNINITIALIZED_LONG;
+    record->next_rel_target = UNINITIALIZED_LONG;
+    record->first_property = UNINITIALIZED_LONG;
 }
 
 relationship_t* relationship_copy(const relationship_t* original) {
     relationship_t* copy = malloc(sizeof(*copy));
-    
+
     if (copy == NULL) {
         return NULL;
     }
@@ -85,11 +88,9 @@ int relationship_to_string(const relationship_t* record, char* buffer, size_t bu
                     record->next_rel_target,
                     record->first_property
           );
-   if (result > buffer_size) {
+   if (result < 0 || (size_t) result > buffer_size) {
        printf("Wrote relationship string representation to a buffer that was too small!");
-       return EOVERFLOW;
-   } else if (result < 0) {
-       return result;
+       return -1;
    }
 
     return 0;

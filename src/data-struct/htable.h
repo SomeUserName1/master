@@ -4,9 +4,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-const size_t BUCKET_START = 8;
+#define REHASH_FILLING_RATIO 0.8
+#define BUCKET_START 8
+#define TOO_MANY_BUCKETS_BITS 32U
 
-typedef unsigned int (*htable_hash)(const void* in, unsigned int seed);
+typedef size_t (*htable_hash)(const void* in, unsigned int seed);
 typedef bool (*htable_keq)(const void* first, const void* second);
 typedef void* (*htable_kcopy)(const void* in);
 typedef void (*htable_kfree)(void* in);
@@ -44,8 +46,9 @@ typedef struct htable_iterator {
     size_t idx;
 } htable_iterator_t;
 
-htable_t* create_htable(htable_hash fn, htable_keq, htable_cbs_t* cbs);
+htable_t* create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs);
 int htable_destroy(htable_t* ht);
+size_t htable_size(htable_t* ht);
 
 int htable_insert(htable_t* ht, void* key, void* value);
 int htable_remove(htable_t* ht, void* key);

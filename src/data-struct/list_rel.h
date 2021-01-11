@@ -1,9 +1,11 @@
-
 #ifndef __LIST_REL_H__
-#define __LIST_REl_H__
+#define __LIST_REL_H__
+
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "list.h"
-#include "../access/records/relationship.h"
+#include "../record/relationship.h"
 
 typedef struct list_relationship list_relationship_t;
 

@@ -1,6 +1,9 @@
 #ifndef __LIST_UL_H__
 #define __LIST_UL_H__
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "list.h"
 
 typedef struct list_ul list_ul_t;

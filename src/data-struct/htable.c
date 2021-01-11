@@ -8,15 +8,15 @@ static void* htable_passthrough_copy(const void* elem) {
 }
 
 static void htable_passthrough_free(void* elem) {
-    return;
+    elem = NULL;
 }
 
 static bool htable_passthrough_eq(const void* first, const void* second) {
-    return (*(void**) first) - (*(void**) second) == 0 ? true : false;
+    return  first == second;
 }
 
 static size_t htable_bucket_idx(htable_t* ht, void* key) {
-    return ht->hash_fn(key, ht->seed) % ht->num_buckets;
+    return (ht->hash_fn(key, ht->seed) % ht->num_buckets);
 }
 
 static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
@@ -40,8 +40,8 @@ static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
             ht->num_used++;
         }
     } else {
-       htable_bucket_t* cur;
-       htable_bucket_t* last;
+       htable_bucket_t* cur = ht->buckets + idx;
+       htable_bucket_t* last = NULL;
        do {
             if (ht->keq(key, cur->key)) {
                 if (cur->value != NULL) {
@@ -69,11 +69,14 @@ static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
             if (!rehash) {
                 key = ht->cbs.key_copy(key);
                 if (key == NULL) {
+                    free(cur);
                     return -1;
                 }
                 if (value != NULL) {
                     value = ht->cbs.value_copy(value);
                     if (value == NULL) {
+                        free(cur);
+                        free(key);
                         return -1;
                     }
                 }
@@ -90,22 +93,22 @@ static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
 }
 
 static int htable_rehash(htable_t* ht) {
-   if (ht->num_used + 1 < (size_t) (ht->num_buckets*0.8)
-           || ht->num_buckets >= 1 << 31) {
+   if (ht->num_used + 1 < (size_t) (ht->num_buckets * REHASH_FILLING_RATIO)
+           || ht->num_buckets >= 1UL << TOO_MANY_BUCKETS_BITS) {
        return 0;
    }
 
    size_t num_buckets = ht->num_buckets;
    htable_bucket_t* buckets = ht->buckets;
 
-   ht->num_buckets <<= 1;
+   ht->num_buckets <<= 1UL;
    ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
     if (ht->buckets == NULL) {
         return -1;
     }
 
-    htable_bucket_t* cur;
-    htable_bucket_t* next;
+    htable_bucket_t* cur = NULL;
+    htable_bucket_t* next = NULL;
    for (size_t i = 0; i < num_buckets; ++i) {
         if (buckets[i].key == NULL) {
             continue;
@@ -160,8 +163,8 @@ int htable_destroy(htable_t* ht) {
     if (ht == NULL) {
         return -1;
     }
-    htable_bucket_t* cur;
-    htable_bucket_t* next;
+    htable_bucket_t* cur = NULL;
+    htable_bucket_t* next = NULL;
     for (size_t i = 0; i < ht->num_buckets; ++i) {
         if (ht->buckets[i].key == NULL) {
             continue;
@@ -184,6 +187,10 @@ int htable_destroy(htable_t* ht) {
     return 0;
 }
 
+size_t htable_size(htable_t* ht) {
+    return ht->num_used;
+}
+
 int htable_insert(htable_t* ht, void* key, void* value) {
     if (key == NULL || ht == NULL) {
         return -1;
@@ -202,7 +209,7 @@ int htable_remove(htable_t* ht, void* key) {
         return -1;
     }
 
-    htable_bucket_t* cur;
+    htable_bucket_t* cur = NULL;
     if (ht->keq(ht->buckets[idx].key, key)) {
         ht->cbs.key_free(ht->buckets[idx].key);
         ht->cbs.value_free(ht->buckets[idx].value);
@@ -264,7 +271,7 @@ void* htable_get_direct(htable_t* ht, void* key) {
 }
 
 bool htable_contains(htable_t* ht, void* key) {
-    void* val;
+    void* val = NULL;
     return htable_get(ht, key, &val) > 0;
 }
 
@@ -285,11 +292,11 @@ int htable_iterator_next(htable_iterator_t* hi, void** key, void** value) {
     }
 
     if (key == NULL) {
-        void* mkey;
+        void* mkey = NULL;
         key = &mkey;
     }
     if (value == NULL) {
-        void* mvalue;
+        void* mvalue = NULL;
         value = &mvalue;
     }
 

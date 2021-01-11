@@ -1,16 +1,15 @@
 #include "list_rel.h"
+
 #include "cbs.h"
+#include "../record/relationship.h"
 
-#include <stdlib.h>
-
-list_relationship_t* create_relationship_list(list_flags_t flags) {
-    list_flags_t lflags = LIST_NONE;
+list_relationship_t* create_list_relationship(list_flags_t flags) {
     list_cbs_t cbs = {
         rel_eq,
         NULL,
         NULL
     };
-    list_t* lst =  create_list(&cbs, lflags);
+    list_t* lst =  create_list(&cbs, flags);
 
     return (list_relationship_t*) lst;
 }
