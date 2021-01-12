@@ -25,21 +25,27 @@ list_ul_t* bfs(in_memory_file_t* db, unsigned long sourceNodeID, unsigned long t
     dict_ul_ul_t* parents = create_dict_ul_ul();
     dict_ul_int_t* bfs = create_dict_ul_int();
     queue_ul_t* nodes_queue = create_queue_ul();
+    //dict_ul_ul_t* visited_rels = create_dict_ul_ul();
 
-    relationship_t* current_rel;
-    node_t* current_node;
+    relationship_t* current_rel = NULL;
+    node_t* current_node = NULL;
     unsigned long temp;
     unsigned long node_id;
     unsigned long rel_id;
-    queue_ul_add(nodes_queue, sourceNodeID);
-    dict_ul_int_insert(bfs, sourceNodeID, 0);
+    if (queue_ul_add(nodes_queue, sourceNodeID < 0)) {
+        printf("Failed to insert node!\n");
+        return NULL;
+    }
+    if (dict_ul_int_insert(bfs, sourceNodeID, 0) < 0) {
+        printf("failed to insert bfs number for node\n");
+    }
 
     while (queue_ul_size(nodes_queue) > 0) {
         node_id = queue_ul_take(nodes_queue);
         current_node = in_memory_get_node(db, node_id);
         printf("%s %lu\n", "Accessing node with ID: ", node_id);
 
-        if (current_rel->target_node == targetNodeID) {
+        if (current_node->id == targetNodeID) {
                     list_ul_t* result = construct_path(db, sourceNodeID, targetNodeID, parents);
                     dict_ul_ul_destroy(parents);
                     dict_ul_int_destroy(bfs);
@@ -48,9 +54,10 @@ list_ul_t* bfs(in_memory_file_t* db, unsigned long sourceNodeID, unsigned long t
          }
 
         rel_id = current_node->first_relationship;
-
-        while (current_rel->id != UNINITIALIZED_LONG) {
+        while (rel_id != UNINITIALIZED_LONG ) {
+            //&& !dict_ul_ul_contains(visited_rels, rel_id)
             printf("%s %lu\n", "Accessing edge with ID: ", rel_id);
+            // dict_ul_ul_insert(visited_rels, rel_id, 1);
             current_rel = in_memory_get_relationship(db, rel_id);
             temp = current_rel->target_node;
             if (!dict_ul_ul_contains(parents, temp)) {

@@ -61,9 +61,9 @@ int queue_add(queue_t* queue, void* elem) {
         return -1;
     }
 
-    queue_node_t* node = (queue_node_t*) malloc(sizeof(*node));
-    node->element = elem;
-    node -> next = NULL;
+    queue_node_t* node = (queue_node_t*) calloc(1, sizeof(*node));
+    node->element = queue->cbs.qcopy(elem);
+    node->next = NULL;
     node->prev = NULL;
 
     if (queue->tail == NULL) {
@@ -80,13 +80,13 @@ int queue_add(queue_t* queue, void* elem) {
     return 0;
 }
 
-int queue_insert(queue_t* queue, void* elem, size_t idx) {
+int queue_insert(queue_t* queue , void* elem, size_t idx) {
     if (queue == NULL || elem == NULL) {
         return -1;
     }
 
-    queue_node_t* new = (queue_node_t*) malloc(sizeof(*new));
-    new->element = elem;
+    queue_node_t* new = (queue_node_t*) calloc(1, sizeof(*new));
+    new->element = queue->cbs.qcopy(elem);
 
     if (queue->len == 0 && idx == 0) {
         queue->head = new;
@@ -120,7 +120,7 @@ static int __queue_remove(queue_t* queue, size_t idx, bool free_flag) {
         return -1;
     }
 
-     if (queue->len == 1) {
+     if (queue->len == 1 && idx == 0) {
         if (free_flag) {
             queue->cbs.qfree(queue->head->element);
         }

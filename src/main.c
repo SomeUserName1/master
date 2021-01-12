@@ -31,7 +31,7 @@ int main(void) {
         printf(" %lu", list_ul_get(path, i));
     }
 
-    printf("Success\n");
+    printf("\nSuccess!\n");
     list_ul_destroy(path);
     in_memory_file_destroy(db);
     return 0;

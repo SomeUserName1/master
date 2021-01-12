@@ -266,7 +266,7 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
     result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
     while (result == 2) {
-        if (lines % 100 == 0) {
+        if (lines % 10000 == 0) {
             printf("%s %lu\n","Processed", lines);
         }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
