@@ -272,7 +272,7 @@ void* htable_get_direct(htable_t* ht, void* key) {
 
 bool htable_contains(htable_t* ht, void* key) {
     void* val = NULL;
-    return htable_get(ht, key, &val) > 0;
+    return htable_get(ht, key, &val) > -1;
 }
 
  htable_iterator_t* create_htable_iterator(htable_t* ht) {

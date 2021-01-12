@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include <zlib.h>
 #include <zconf.h>
@@ -14,9 +12,7 @@
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
 #define CHUNK 524288
-/* max Line Size 255 chars */
-#define MAX_LINE_LENGTH 255
-
+#define IMPORT_FIELDS 2
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -257,35 +253,35 @@ unsigned long int get_no_rels(dataset_t data) {
 }
 
 int import_from_txt(in_memory_file_t* db, const char* path) {
-    char in[MAX_LINE_LENGTH];
-    unsigned long int fromTo[2];
-    char* end = NULL;
-    int j = 0;
-
+    unsigned long int fromTo[IMPORT_FIELDS];
+    int result;
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
         perror("Failed to open file to read from");
         return -1;
     }
 
-    memset(in, '\0', sizeof(in));
-    while(fgets(in, MAX_LINE_LENGTH - 1, in_file)) {
-        for (unsigned long i = strtoul(in, &end, 10); in != end; i = strtoul(in, &end, 10)) {
-            if (create_node(db, i) < 0) {
-                printf("%s", "Failed to create node!");
+    result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
+    while (result == 2) {
+        for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
+            if (create_node(db, fromTo[i]) < 0) {
+                printf("%s", "Failed to create node!\n");
                 return -1;
             }
-            fromTo[j] = i;
-            ++j;
         }
         if (create_relationship(db, fromTo[0], fromTo[1]) < 0) {
-            printf("%s", "Failed to create relationship!");
+            printf("%s", "Failed to create relationship!\n");
         }
-        j = 0;
-        memset(in, '\0', sizeof(in));
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
     }
 
     fclose(in_file);
+
+    if (result != EOF) {
+        printf("%s", "Failed to read line from file");
+        return -1;
+    }
 
     return 0;
 }

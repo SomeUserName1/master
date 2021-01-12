@@ -38,19 +38,29 @@ size_t dict_ul_ul_size(dict_ul_ul_t* ht) {
 }
 
 int dict_ul_ul_insert(dict_ul_ul_t* ht, unsigned long key, unsigned long value) {
-    return htable_insert((htable_t*) ht, (void*) &key, (void*) &value);
+    unsigned long temp_k = key;
+    unsigned long temp_v = value;
+    return htable_insert((htable_t*) ht, (void*) &temp_k, (void*) &temp_v);
 }
 
 int dict_ul_ul_remove(dict_ul_ul_t* ht, unsigned long key) {
-    return  htable_remove((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return  htable_remove((htable_t*) ht, (void*) &t_key);
 }
 
-int dict_ul_ul_get(dict_ul_ul_t* ht, unsigned long key, unsigned long* value) {
-    return htable_get((htable_t*) ht, (void*) &key, (void**) &value);
+int dict_ul_ul_get(dict_ul_ul_t* ht, unsigned long key, unsigned long** value) {
+    unsigned long t_key = key;
+    return htable_get((htable_t*) ht, (void*) &t_key, (void**) value);
 }
 
 unsigned long dict_ul_ul_get_direct(dict_ul_ul_t* ht, unsigned long key) {
-    return *((unsigned long*) htable_get_direct((htable_t*) ht, (void*) &key));
+    unsigned long t_key = key;
+    return *((unsigned long*) htable_get_direct((htable_t*) ht, (void*) &t_key));
+}
+
+bool dict_ul_ul_contains(dict_ul_ul_t* ht, unsigned long key) {
+    unsigned long t_key = key;
+    return htable_contains((htable_t*) ht, (void*) &t_key);
 }
 
 dict_ul_ul_iterator_t* create_dict_ul_ul_iterator(dict_ul_ul_t* ht) {
@@ -89,19 +99,29 @@ size_t dict_ul_int_size(dict_ul_int_t* ht) {
 }
 
 int dict_ul_int_insert(dict_ul_int_t* ht, unsigned long key, int value) {
-    return htable_insert((htable_t*) ht, (void*) &key, (void*) &value);
+    unsigned long t_key = key;
+    unsigned long t_value = value;
+    return htable_insert((htable_t*) ht, (void*) &t_key, (void*) &t_value);
 }
 
 int dict_ul_int_remove(dict_ul_int_t* ht, unsigned long key) {
-    return htable_remove((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return htable_remove((htable_t*) ht, (void*) &t_key);
 }
 
-int dict_ul_int_get(dict_ul_int_t* ht, unsigned long key, int* value) {
-    return htable_get((htable_t*) ht, (void*) &key, (void**) &value);
+int dict_ul_int_get(dict_ul_int_t* ht, unsigned long key, int** value) {
+    unsigned long t_key = key;
+    return htable_get((htable_t*) ht, (void*) &t_key, (void**) value);
 }
 
 int dict_ul_int_get_direct(dict_ul_int_t* ht, unsigned long key) {
-    return *((int*) htable_get_direct((htable_t*) ht, (void*) &key));
+    unsigned long t_key = key;
+    return *((int*) htable_get_direct((htable_t*) ht, (void*) &t_key));
+}
+
+bool dict_ul_int_contains(dict_ul_int_t* ht, unsigned long key) {
+    unsigned long t_key = key;
+    return htable_contains((htable_t*) ht, (void*) &t_key);
 }
 
 dict_ul_int_iterator_t* create_dict_ul_int_iterator(htable_t* ht) {
@@ -140,23 +160,28 @@ size_t dict_ul_node_size(dict_ul_node_t* ht) {
 }
 
 int dict_ul_node_insert(dict_ul_node_t* ht, unsigned long key, node_t* value) {
-    return htable_insert((htable_t*) ht, (void*) &key, (void*) value);
+    unsigned long t_key = key;
+    return htable_insert((htable_t*) ht, (void*) &t_key, (void*) value);
 }
 
 int dict_ul_node_remove(dict_ul_node_t* ht, unsigned long key) {
-    return htable_remove((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return htable_remove((htable_t*) ht, (void*) &t_key);
 }
 
 int dict_ul_node_get(dict_ul_node_t* ht, unsigned long key, node_t** value) {
-    return  htable_get((htable_t*) ht, (void*) &key, (void**) value);
+    unsigned long t_key = key;
+    return  htable_get((htable_t*) ht, (void*) &t_key, (void**) value);
 }
 
 node_t* dict_ul_node_get_direct(dict_ul_node_t* ht, unsigned long key) {
-    return (node_t*) htable_get_direct((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return (node_t*) htable_get_direct((htable_t*) ht, (void*) &t_key);
 }
 
 bool dict_ul_node_contains(dict_ul_node_t* ht, unsigned long key) {
-    return htable_contains((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return htable_contains((htable_t*) ht, (void*) &t_key);
 }
 
 dict_ul_node_iterator_t* create_dict_ul_node_iterator(dict_ul_node_t* ht) {
@@ -198,23 +223,28 @@ size_t dict_ul_rel_size(dict_ul_rel_t* ht) {
 }
 
 int dict_ul_rel_insert(dict_ul_rel_t* ht, unsigned long key, relationship_t* value) {
-    return htable_insert((htable_t*) ht, (void*) &key, (void*) value);
+    unsigned long t_key = key;
+    return htable_insert((htable_t*) ht, (void*) &t_key, (void*) value);
 }
 
 int dict_ul_rel_remove(dict_ul_rel_t* ht, unsigned long key) {
-    return htable_remove((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return htable_remove((htable_t*) ht, (void*) &t_key);
 }
 
 int dict_ul_rel_get(dict_ul_rel_t* ht, unsigned long key, relationship_t** value) {
-    return htable_get((htable_t*) ht, (void*) &key, (void**) value);
+    unsigned long t_key = key;
+    return htable_get((htable_t*) ht, (void*) &t_key, (void**) value);
 }
 
 relationship_t* dict_ul_rel_get_direct(dict_ul_rel_t* ht, unsigned long key) {
-    return (relationship_t*) htable_get_direct((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return (relationship_t*) htable_get_direct((htable_t*) ht, (void*) &t_key);
 }
 
 bool dict_ul_rel_contains(dict_ul_rel_t* ht, unsigned long key) {
-    return htable_contains((htable_t*) ht, (void*) &key);
+    unsigned long t_key = key;
+    return htable_contains((htable_t*) ht, (void*) &t_key);
 }
 
 dict_ul_rel_iterator_t* create_dict_ul_rel_iterator(dict_ul_rel_t* ht) {
@@ -228,6 +258,4 @@ int dict_ul_rel_iterator_next(dict_ul_rel_iterator_t* hi, unsigned long* key, re
 void dict_ul_rel_iterator_destroy(dict_ul_rel_iterator_t* hi) {
     return htable_iterator_destroy((htable_iterator_t*) hi);
 }
-
-
 

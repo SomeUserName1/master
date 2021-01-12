@@ -46,10 +46,43 @@ int create_node(in_memory_file_t* db, unsigned long id) {
     return 0;
 }
 
+node_t* in_memory_get_node(in_memory_file_t* db, unsigned long id) {
+    return  dict_ul_node_get_direct(db->cache_nodes, id);
+}
+
+list_node_t* in_memory_get_nodes(in_memory_file_t* db) {
+    list_node_t* nodes = create_list_node(LIST_NONE);
+    node_t* node = NULL;
+    dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
+
+    while(dict_ul_node_iterator_next(it, NULL, &node) > -1) {
+           list_node_append(nodes, node);
+    }
+    return nodes;
+}
+
+relationship_t* in_memory_get_relationship(in_memory_file_t* db, unsigned long id) {
+    return dict_ul_rel_get_direct(db->cache_rels, id);
+}
+
+list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
+    list_relationship_t* rels = create_list_relationship(LIST_NONE);
+    relationship_t* rel = NULL;
+    dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
+
+    while(dict_ul_rel_iterator_next(it, NULL, &rel) > -1) {
+           list_relationship_append(rels, rel);
+    }
+    return rels;
+}
+
 int create_relationship(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo) {
     if (!dict_ul_node_contains(db->cache_nodes, nodeFrom)
             || !dict_ul_node_contains(db->cache_nodes, nodeTo)) {
-        printf("%s", "One of the nodes which are refered to by the relationship to create do not exist!\n");
+        printf("%s: %lu, %lu",
+                "One of the nodes which are refered to by the relationship to create do not exist!\n",
+                nodeFrom,
+                nodeTo);
         return -1;
     }
 
@@ -96,35 +129,3 @@ int create_relationship(in_memory_file_t* db, unsigned long nodeFrom, unsigned l
 
     return 0;
 }
-
-
-node_t* in_memory_get_node(in_memory_file_t* db, unsigned long id) {
-    return  dict_ul_node_get_direct(db->cache_nodes, id);
-}
-
-list_node_t* in_memory_get_nodes(in_memory_file_t* db) {
-    list_node_t* nodes = create_list_node(LIST_NONE);
-    node_t* node = NULL;
-    dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
-
-    while(dict_ul_node_iterator_next(it, NULL, &node) > -1) {
-           list_node_append(nodes, node);
-    }
-    return nodes;
-}
-
-relationship_t* in_memory_get_relationship(in_memory_file_t* db, unsigned long id) {
-    return dict_ul_rel_get_direct(db->cache_rels, id);
-}
-
-list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
-    list_relationship_t* rels = create_list_relationship(LIST_NONE);
-    relationship_t* rel = NULL;
-    dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
-
-    while(dict_ul_rel_iterator_next(it, NULL, &rel) > -1) {
-           list_relationship_append(rels, rel);
-    }
-    return rels;
-}
-

@@ -1,13 +1,12 @@
-#include "../src/import/snap_importer.h" 
+#include "../../src/import/snap_importer.h"
 
 #include <stdio.h>
 #include <assert.h>
 
-#include "../src/access/in_memory_file.h"
-#include "../src/data-struct/dict_ul.h"
+#include "../../src/access/in_memory_file.h"
+#include "../../src/data-struct/dict_ul.h"
 
 int main(void) {
-    printf("At least the entry point is right\n");
    dataset_t dataset = EMAIL_EU_CORE;
 
     printf("Start downloading\n");
