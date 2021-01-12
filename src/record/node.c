@@ -65,3 +65,16 @@ int node_to_string(const node_t* record, char* buffer, size_t buffer_size) {
    }
     return 0;
 }
+
+void node_pretty_print(const node_t* record) {
+   printf("Node ID: %#lX\n"
+                    "In-Use: %#hhX\n"
+                    "First Relationship: %#lX\n"
+                    "First Property: %#lX\n"
+                    "Node Type: %#lX\n",
+                    record->id,
+                    record->flags,
+                    record->first_relationship,
+                    record->first_property,
+                    record->node_type);
+}

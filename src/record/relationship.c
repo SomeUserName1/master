@@ -96,3 +96,27 @@ int relationship_to_string(const relationship_t* record, char* buffer, size_t bu
     return 0;
 }
 
+void relationship_pretty_print(const relationship_t* record) {
+    printf("Relationship ID: %#lX\n"
+                    "Flags: %#hhX\n"
+                    "Source Node: %#lX\n"
+                    "Target Node: %#lX\n"
+                    "Relationship Type: %#lX\n"
+                    "Source node's previous relationship: %#lX\n"
+                    "Source node's next relationship: %#lX\n"
+                    "Target node's previous relationship: %#lX\n"
+                    "Target node's next relationship: %#lX\n"
+                    "First Property: %#lX\n",
+                    record->id,
+                    record->flags,
+                    record->source_node,
+                    record->target_node,
+                    record->relationship_type,
+                    record->prev_rel_source,
+                    record->next_rel_source,
+                    record->prev_rel_target,
+                    record->next_rel_target,
+                    record->first_property
+          );
+
+}

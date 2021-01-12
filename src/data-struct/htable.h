@@ -12,16 +12,20 @@ typedef size_t (*htable_hash)(const void* in, unsigned int seed);
 typedef bool (*htable_keq)(const void* first, const void* second);
 typedef void* (*htable_kcopy)(const void* in);
 typedef void (*htable_kfree)(void* in);
+typedef void (*htable_kprint)(const void* in);
 typedef bool (*htable_veq)(const void* first, const void* second);
 typedef void* (*htable_vcopy)(const void* in);
 typedef void (*htable_vfree)(void* in);
+typedef void (*htable_vprint)(const void* in);
 
 typedef struct htable_cbs {
     htable_kcopy key_copy;
     htable_kfree key_free;
+    htable_kprint key_print;
     htable_veq value_eq;
     htable_vcopy value_copy;
     htable_vfree value_free;
+    htable_vprint value_print;
 } htable_cbs_t;
 
 typedef struct htable_bucket {
@@ -60,4 +64,5 @@ bool htable_contains(htable_t* ht, void* key);
 htable_iterator_t* create_htable_iterator(htable_t* ht);
 int htable_iterator_next(htable_iterator_t* hi, void** key, void** value);
 void htable_iterator_destroy(htable_iterator_t* hi);
+void htable_print(htable_t* ht);
 #endif

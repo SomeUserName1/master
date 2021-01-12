@@ -1,5 +1,6 @@
 #include "htable.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -13,6 +14,10 @@ static void htable_passthrough_free(void* elem) {
 
 static bool htable_passthrough_eq(const void* first, const void* second) {
     return  first == second;
+}
+
+static void htable_pasthrough_print(const void* in) {
+    printf("%p\n", in);
 }
 
 static size_t htable_bucket_idx(htable_t* ht, void* key) {
@@ -142,12 +147,16 @@ htable_t* create_htable(htable_hash fn, htable_keq keq, htable_cbs_t *cbs) {
         htable_passthrough_copy : cbs->key_copy;
     ht->cbs.key_free = cbs == NULL || cbs->key_free == NULL ?
         htable_passthrough_free : cbs->key_free;
+    ht->cbs.key_print = cbs == NULL || cbs->key_print == NULL ?
+        htable_pasthrough_print : cbs->key_print;
     ht->cbs.value_eq = cbs == NULL || cbs->value_eq == NULL ?
         htable_passthrough_eq : cbs->value_eq;
     ht->cbs.value_copy = cbs == NULL || cbs->value_copy == NULL ?
         htable_passthrough_copy : cbs->value_copy;
     ht->cbs.value_free = cbs == NULL || cbs->value_free == NULL ?
         htable_passthrough_free : cbs->value_free;
+    ht->cbs.value_print = cbs == NULL || cbs->value_print == NULL ?
+        htable_pasthrough_print : cbs->value_print;
 
     ht->num_buckets = BUCKET_START;
     ht->buckets = calloc(BUCKET_START, sizeof(*ht->buckets));
@@ -275,7 +284,7 @@ bool htable_contains(htable_t* ht, void* key) {
     return htable_get(ht, key, &val) > -1;
 }
 
- htable_iterator_t* create_htable_iterator(htable_t* ht) {
+ htable_iterator_t* create_htable_iterator(htable_t* ht)  {
     if (ht == NULL) {
         return NULL;
     }
@@ -324,4 +333,17 @@ void htable_iterator_destroy(htable_iterator_t* hi) {
         return;
     }
     free(hi);
+}
+
+void htable_print(htable_t* ht) {
+    htable_iterator_t* hi = create_htable_iterator(ht);
+
+    void* key = NULL;
+    void* value = NULL;
+    while(htable_iterator_next(hi, &key, &value) != -1) {
+        printf("%s", "\n_______Next Entry:________ \n");
+        hi->ht->cbs.key_print(key);
+        hi->ht->cbs.value_print(value);
+        printf("%s", "_______________________");
+    }
 }

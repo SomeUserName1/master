@@ -16,8 +16,8 @@ message("-- Compiler: " ${CMAKE_C_COMPILER})
 set(CMAKE_C_STANDARD 11)
 set(__STDC_LIB_EXT1__)
 set(__STDC_WANT_LIB_EXT1__ 1)
-
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=undefined,address -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security")
+# -fsanitize=address,undefined 
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fPIC -march=native -m64 -O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 

@@ -179,11 +179,11 @@ static int __queue_remove(queue_t* queue, size_t idx, bool free_flag) {
     return 0;
 }
 
-int remove(queue_t* queue, size_t idx) {
+int queue_remove(queue_t* queue, size_t idx) {
     return __queue_remove(queue, idx, true);
 }
 
-int remove_elem(queue_t* queue, void* elem) {
+int queue_remove_elem(queue_t* queue, void* elem) {
     size_t idx;
     if (queue_index_of(queue, elem, &idx) < 0) {
         return -1;
@@ -213,7 +213,7 @@ bool queue_contains(queue_t* queue, void* elem) {
     return (queue_index_of(queue, elem, &idx) > 0);
 }
 
-void* get(queue_t* queue, size_t idx) {
+void* queue_get(queue_t* queue, size_t idx) {
     if (queue == NULL || idx >= queue->len) {
         return NULL;
     }
@@ -225,7 +225,7 @@ void* get(queue_t* queue, size_t idx) {
     return cur->element;
 }
 
-void* take(queue_t* queue) {
+void* queue_take(queue_t* queue) {
     void* result = queue->head->element;
     if (__queue_remove(queue, 0, false) < 0) {
         return NULL;

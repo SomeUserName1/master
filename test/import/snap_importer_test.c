@@ -27,7 +27,8 @@ int main(void) {
 
     assert(dict_ul_node_size(db->cache_nodes) == EMAIL_EU_CORE_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == EMAIL_EU_CORE_NO_RELS);
-
     printf("Success\n");
+
+    in_memory_file_destroy(db);
     return 0;
 }

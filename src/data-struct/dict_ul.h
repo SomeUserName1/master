@@ -28,6 +28,7 @@ bool dict_ul_ul_contains(dict_ul_ul_t* ht, unsigned long key);
 dict_ul_ul_iterator_t* create_dict_ul_ul_iterator(dict_ul_ul_t* ht);
 int dict_ul_ul_iterator_next(dict_ul_ul_iterator_t* hi, unsigned long* key, unsigned long* value);
 void dict_ul_ul_iterator_destroy(dict_ul_ul_iterator_t* hi);
+void dict_ul_ul_print(dict_ul_ul_t* dict);
 
 dict_ul_int_t* create_dict_ul_int(void);
 int dict_ul_int_destroy(dict_ul_int_t* ht);
@@ -40,6 +41,7 @@ bool dict_ul_int_contains(dict_ul_int_t* ht, unsigned long key);
 dict_ul_int_iterator_t* create_dict_ul_int_iterator(htable_t* ht);
 int dict_ul_int_iterator_next(dict_ul_int_iterator_t* hi, unsigned long* key, int* value);
 void dict_ul_int_iterator_destroy(dict_ul_int_iterator_t* hi);
+void dict_ul_int_print(dict_ul_int_t* dict);
 
 dict_ul_node_t* create_dict_ul_node(void);
 int dict_ul_node_destroy(dict_ul_node_t* ht);
@@ -52,6 +54,7 @@ bool dict_ul_node_contains(dict_ul_node_t* ht, unsigned long key);
 dict_ul_node_iterator_t* create_dict_ul_node_iterator(dict_ul_node_t* ht);
 int dict_ul_node_iterator_next(dict_ul_node_iterator_t* hi, unsigned long* key, node_t** value);
 void dict_ul_node_iterator_destroy(dict_ul_node_iterator_t* hi);
+void dict_ul_node_print(dict_ul_node_t* dict);
 
 dict_ul_rel_t* create_dict_ul_rel(void);
 int dict_ul_rel_destroy(dict_ul_rel_t* ht);
@@ -64,5 +67,6 @@ bool dict_ul_rel_contains(dict_ul_rel_t* ht, unsigned long key);
 dict_ul_rel_iterator_t* create_dict_ul_rel_iterator(dict_ul_rel_t* ht);
 int dict_ul_rel_iterator_next(dict_ul_rel_iterator_t* hi, unsigned long* key, relationship_t** value);
 void dict_ul_rel_iterator_destroy(dict_ul_rel_iterator_t* hi);
+void dict_ul_rel_print(dict_ul_rel_t* dict);
 
 #endif

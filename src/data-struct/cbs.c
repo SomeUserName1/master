@@ -1,5 +1,6 @@
 #include "cbs.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "../record/node.h"
@@ -15,6 +16,10 @@ void* unsigned_long_copy(const void* orig) {
     return (void*) copy;
 }
 
+void unsigned_long_print(const void* in) {
+   printf("%lu", *((unsigned long*) in));
+}
+
 bool int_eq(const void* first, const void* second) {
     return (*((int*) first) == *((int*) second));
 }
@@ -25,12 +30,16 @@ void* int_copy(const void* original) {
     return copy;
 }
 
+void int_print(const void* in) {
+   printf("%i", *((int*) in));
+}
+
 bool node_eq(const void* first, const void* second) {
     return node_equals((node_t*) first, (node_t*) second);
 }
 
-void* node_cpy(const void* original) {
-    return node_copy((node_t*) original);
+void node_print(const void* in) {
+    node_pretty_print((node_t*) in);
 }
 
 bool rel_eq(const void* first, const void* second) {
@@ -40,7 +49,6 @@ bool rel_eq(const void* first, const void* second) {
             );
 }
 
-void* rel_copy(const void* original) {
-    return relationship_copy((relationship_t*) original);
+void rel_print(const void* in) {
+    relationship_pretty_print((relationship_t*) in);
 }
-

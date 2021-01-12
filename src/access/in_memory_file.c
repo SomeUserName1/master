@@ -1,5 +1,6 @@
 #include "in_memory_file.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,6 +16,7 @@ in_memory_file_t* create_in_memory_file() {
 
     file->cache_nodes = create_dict_ul_node();
     file->cache_rels = create_dict_ul_rel();
+    file->rel_id_counter = 0;
 
     return file;
 }
@@ -86,46 +88,68 @@ int create_relationship(in_memory_file_t* db, unsigned long nodeFrom, unsigned l
         return -1;
     }
 
-    relationship_t* next;
+    unsigned long next_id;
+    relationship_t* rel_source = NULL;
+    relationship_t* rel_target = NULL;
     relationship_t* rel = new_relationship();
-    node_t* firstNode;
-    node_t* secondNode;
+    node_t* source_node;
+    node_t* target_node;
+    bool first_rel_source = false;
+    bool first_rel_target = false;
 
     rel->source_node = nodeFrom;
     rel->target_node = nodeTo;
     rel->id = db->rel_id_counter++;
     rel->flags = 1;
 
-    firstNode = dict_ul_node_get_direct(db->cache_nodes, nodeFrom);
-    if (firstNode->first_relationship == UNINITIALIZED_LONG) {
-        dict_ul_rel_insert(db->cache_rels, rel->id, rel);
-        firstNode->first_relationship = rel->id;
+    source_node = dict_ul_node_get_direct(db->cache_nodes, nodeFrom);
+    if (source_node->first_relationship == UNINITIALIZED_LONG) {
+        first_rel_source = true;
     } else {
-        next = dict_ul_rel_get_direct(db->cache_rels, firstNode->first_relationship);
+        next_id = source_node->first_relationship;
 
-        do {
-            if (next->source_node == nodeFrom && next->target_node == nodeTo) {
+        while (next_id != UNINITIALIZED_LONG) {
+            rel_source = dict_ul_rel_get_direct(db->cache_rels, next_id);
+            if (rel_source->source_node == nodeFrom && rel_source->target_node == nodeTo) {
                 return 0;
+            } else if (source_node->id == rel_source->source_node) {
+                next_id = rel_source->next_rel_source;
+            } else {
+                next_id = rel_source->next_rel_target;
             }
-            next = dict_ul_rel_get_direct(db->cache_rels, next->next_rel_source);
-        } while(next->next_rel_source != UNINITIALIZED_LONG);
-
-        dict_ul_rel_insert(db->cache_rels, rel->id, rel);
-        next->next_rel_source = rel->id;
-        rel->prev_rel_source = next->id;
+        }
+        rel->prev_rel_source = rel_source->id;
     }
 
-    secondNode = dict_ul_node_get_direct(db->cache_nodes, nodeTo);
-    if (secondNode->first_relationship == UNINITIALIZED_LONG) {
-        secondNode->first_relationship = rel->id;
+    target_node = dict_ul_node_get_direct(db->cache_nodes, nodeTo);
+    if (target_node->first_relationship == UNINITIALIZED_LONG) {
+        first_rel_target = true;
     } else {
-        do {
-            next = dict_ul_rel_get_direct(db->cache_rels, next->next_rel_source);
-        } while(next->next_rel_source != UNINITIALIZED_LONG);
+        next_id = target_node->first_relationship;
 
-        next->next_rel_target = rel->id;
-        rel->prev_rel_target = next->id;
+        while (next_id != UNINITIALIZED_LONG) {
+            rel_target = dict_ul_rel_get_direct(db->cache_rels, next_id);
+            if (target_node->id == rel_target->source_node) {
+                next_id = rel_target->next_rel_source;
+            } else {
+                next_id = rel_target->next_rel_target;
+            }
+        }
+        rel->prev_rel_target = rel_target->id;
     }
+
+    if (first_rel_source) {
+        source_node->first_relationship = rel->id;
+    } else {
+        rel_source->next_rel_source = rel->id;
+    }
+
+    if (first_rel_target) {
+       target_node->first_relationship = rel->id;
+    } else {
+        rel_target->next_rel_target = rel->id;
+    }
+    dict_ul_rel_insert(db->cache_rels, rel->id, rel);
 
     return 0;
 }

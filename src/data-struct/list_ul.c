@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-list_ul_t* create_relationship_list(list_flags_t flags) {
+list_ul_t* create_list_ul(list_flags_t flags) {
     list_cbs_t cbs = {
         unsigned_long_eq,
         unsigned_long_copy,

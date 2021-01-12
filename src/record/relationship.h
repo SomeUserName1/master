@@ -89,4 +89,6 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
  */
 int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size);
 
+void relationship_pretty_print(const relationship_t* record);
+
 #endif

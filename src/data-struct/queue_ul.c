@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 
-queue_ul_t* create_queue_node(void) {
+queue_ul_t* create_queue_ul(void) {
     queue_cbs_t cbs = {
         unsigned_long_eq,
         unsigned_long_copy,

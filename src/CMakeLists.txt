@@ -9,7 +9,7 @@ add_subdirectory(import/)
 
 
 # Add executable
-# add_executable(gndb main.c)
+ add_executable(gndb main.c)
 
 # Link executable
-# target_link_libraries(gndb records data-types io cache access importer)
+ target_link_libraries(gndb -lcurl -lz import query access data-struct)

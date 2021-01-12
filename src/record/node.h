@@ -83,4 +83,7 @@ bool node_equals(const node_t* first, const node_t* second);
  *  @return: 0 on success, negative value on error.
  */
 int node_to_string(const node_t* record, char* buffer, size_t buffer_size);
+
+void node_pretty_print(const node_t* record);
+
 #endif

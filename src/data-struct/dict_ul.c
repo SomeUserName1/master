@@ -21,9 +21,11 @@ dict_ul_ul_t* create_dict_ul_ul() {
     htable_cbs_t cbs = {
         unsigned_long_copy,
         free,
+        unsigned_long_print,
         unsigned_long_eq,
         unsigned_long_copy,
-        free
+        free,
+        unsigned_long_print
     };
 
     return (dict_ul_ul_t*) create_htable(hash, keq, &cbs);
@@ -75,6 +77,9 @@ void dict_ul_ul_iterator_destroy(dict_ul_ul_iterator_t* hi) {
     return htable_iterator_destroy((htable_iterator_t*) hi);
 }
 
+void dict_ul_ul_print(dict_ul_ul_t* dict) {
+    htable_print((htable_t*) dict);
+}
 
 dict_ul_int_t* create_dict_ul_int() {
     htable_hash hash = fnv_hash_ul;
@@ -82,9 +87,11 @@ dict_ul_int_t* create_dict_ul_int() {
     htable_cbs_t cbs = {
         unsigned_long_copy,
         free,
+        unsigned_long_print,
         int_eq,
         int_copy,
-        free
+        free,
+        int_print
     };
 
     return (dict_ul_int_t*) create_htable(hash, keq, &cbs);
@@ -136,6 +143,9 @@ void dict_ul_int_iterator_destroy(dict_ul_int_iterator_t* hi) {
     return htable_iterator_destroy((htable_iterator_t*) hi);
 }
 
+void dict_ul_int_print(dict_ul_int_t* dict) {
+    htable_print((htable_t*) dict);
+}
 
 dict_ul_node_t* create_dict_ul_node(void) {
     htable_hash hash = fnv_hash_ul;
@@ -143,9 +153,11 @@ dict_ul_node_t* create_dict_ul_node(void) {
     htable_cbs_t cbs = {
         unsigned_long_copy,
         free,
+        unsigned_long_print,
         node_eq,
-        node_cpy,
-        free
+        NULL,
+        free,
+        node_print
     };
 
     return (dict_ul_node_t*) create_htable(hash, keq, &cbs);
@@ -198,6 +210,9 @@ void dict_ul_node_iterator_destroy(dict_ul_node_iterator_t* hi) {
     return htable_iterator_destroy((htable_iterator_t*) hi);
 }
 
+void dict_ul_node_print(dict_ul_node_t* dict) {
+    htable_print((htable_t*) dict);
+}
 
 dict_ul_rel_t* create_dict_ul_rel(void) {
  htable_hash hash = fnv_hash_ul;
@@ -205,9 +220,11 @@ dict_ul_rel_t* create_dict_ul_rel(void) {
     htable_cbs_t cbs = {
         unsigned_long_copy,
         free,
+        unsigned_long_print,
         rel_eq,
-        rel_copy,
-        free
+        NULL, 
+        free,
+        rel_print
     };
 
     return (dict_ul_rel_t*) create_htable(hash, keq, &cbs);
@@ -259,3 +276,6 @@ void dict_ul_rel_iterator_destroy(dict_ul_rel_iterator_t* hi) {
     return htable_iterator_destroy((htable_iterator_t*) hi);
 }
 
+void dict_ul_rel_print(dict_ul_rel_t* dict) {
+    htable_print((htable_t*) dict);
+}

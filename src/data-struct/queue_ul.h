@@ -6,7 +6,7 @@
 
 typedef struct queue_ul queue_ul_t;
 
-queue_ul_t* create_queue_node(void);
+queue_ul_t* create_queue_ul(void);
 void queue_ul_destroy(queue_ul_t* queue);
 size_t queue_ul_size(queue_ul_t* queue);
 

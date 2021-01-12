@@ -255,15 +255,20 @@ unsigned long int get_no_rels(dataset_t data) {
 int import_from_txt(in_memory_file_t* db, const char* path) {
     unsigned long int fromTo[IMPORT_FIELDS];
     int result;
+    size_t lines = 1;
+
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
         perror("Failed to open file to read from");
         return -1;
     }
-
+    printf("Starting to import\n");
     result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
     while (result == 2) {
+        if (lines % 100 == 0) {
+            printf("%s %lu\n","Processed", lines);
+        }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
             if (create_node(db, fromTo[i]) < 0) {
                 printf("%s", "Failed to create node!\n");
@@ -274,6 +279,7 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
             printf("%s", "Failed to create relationship!\n");
         }
         result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+        lines++;
     }
 
     fclose(in_file);
