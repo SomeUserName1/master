@@ -75,6 +75,40 @@ void test_dict_ul_ul_contains(void) {
     dict_ul_ul_destroy(dict);
 }
 
+// Used to check for memory leaks
+void test_dict_ul_ul_destroy(void) {
+    dict_ul_ul_t* dict = create_dict_ul_ul();
+    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long int fromTo[2];
+    int result;
+    size_t lines = 1;
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("Failed to open file to read from");
+        return;
+    }
+    result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
+    while (result == 2) {
+        if (lines % 10000 == 0) {
+            printf("%s %lu\n","Processed", lines);
+        }
+
+        if (dict_ul_ul_insert(dict, fromTo[0], fromTo[1])) {
+            printf("Failes to insert\n");
+            return;
+        }
+
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+        lines++;
+    }
+
+    fclose(in_file);
+
+    dict_ul_ul_destroy(dict);
+}
+
 int main(void) {
     test_create_dict_ul_ul();
     test_dict_ul_ul_size();
@@ -83,5 +117,6 @@ int main(void) {
     test_dict_ul_ul_get();
     test_dict_ul_ul_get_direct();
     test_dict_ul_ul_contains();
+    test_dict_ul_ul_destroy();
     printf("%s", "All tests for dict_ul_ul successfull\n");
 }

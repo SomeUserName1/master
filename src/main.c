@@ -24,7 +24,7 @@ int main(void) {
         printf("Importing failed!\n");
     }
     printf("Start a BFS\n");
-    list_ul_t* path = bfs(db, 0, 999);
+    list_ul_t* path = bfs(db, 0, 999, "/home/someusername/workspace_local/accessed_records.txt");
 
     printf("Shortest path:");
     for (size_t i = 0; i < list_ul_size(path); i++) {
