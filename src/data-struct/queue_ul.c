@@ -50,6 +50,6 @@ unsigned long queue_ul_get(queue_ul_t* queue, size_t idx) {
     return *((unsigned long*) queue_get((queue_t*) queue, idx));
 }
 
-unsigned long queue_ul_take(queue_ul_t* queue) {
-    return *((unsigned long*) queue_take((queue_t*) queue));
+unsigned long* queue_ul_take(queue_ul_t* queue) {
+    return (unsigned long*) queue_take((queue_t*) queue);
 }

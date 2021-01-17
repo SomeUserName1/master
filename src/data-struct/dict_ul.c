@@ -222,7 +222,7 @@ dict_ul_rel_t* create_dict_ul_rel(void) {
         free,
         unsigned_long_print,
         rel_eq,
-        NULL, 
+        NULL,
         free,
         rel_print
     };

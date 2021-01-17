@@ -195,27 +195,35 @@ unsigned long int get_no_nodes(dataset_t data) {
     switch (data) {
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_NO_NODES;
+            break;
 
         case DBLP:
             result = DBLP_NO_NODES;
+            break;
 
         case AMAZON:
             result = AMAZON_NO_NODES;
+            break;
 
         case YOUTUBE:
             result = YOUTUBE_NO_NODES;
+            break;
 
         case WIKIPEDIA:
             result = WIKIPEDIA_NO_NODES;
+            break;
 
         case LIVE_JOURNAL:
             result = LIVE_JOURNAL_NO_NODES;
+            break;
 
         case ORKUT:
             result = ORKUT_NO_NODES;
+            break;
 
         case FRIENDSTER:
             result = FRIENDSTER_NO_NODES;
+            break;
     }
     return result;
 
@@ -226,27 +234,35 @@ unsigned long int get_no_rels(dataset_t data) {
     switch (data) {
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_NO_RELS;
+            break;
 
         case DBLP:
             result = DBLP_NO_RELS;
+            break;
 
         case AMAZON:
             result = AMAZON_NO_RELS;
+            break;
 
         case YOUTUBE:
             result = YOUTUBE_NO_RELS;
+            break;
 
         case WIKIPEDIA:
             result = WIKIPEDIA_NO_RELS;
+            break;
 
         case LIVE_JOURNAL:
             result = LIVE_JOURNAL_NO_RELS;
+            break;
 
         case ORKUT:
             result = ORKUT_NO_RELS;
+            break;
 
         case FRIENDSTER:
             result = FRIENDSTER_NO_RELS;
+            break;
     }
     return result;
 
@@ -270,12 +286,12 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
             printf("%s %lu\n","Processed", lines);
         }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
-            if (create_node(db, fromTo[i]) < 0) {
+            if (in_memory_create_node(db, fromTo[i]) < 0) {
                 printf("%s", "Failed to create node!\n");
                 return -1;
             }
         }
-        if (create_relationship(db, fromTo[0], fromTo[1]) < 0) {
+        if (in_memory_create_relationship(db, fromTo[0], fromTo[1]) < 0) {
             printf("%s", "Failed to create relationship!\n");
         }
         result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);

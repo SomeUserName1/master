@@ -29,14 +29,16 @@ static int htable_add_to_bucket(htable_t* ht, void* key, void* value,
     size_t idx = htable_bucket_idx(ht, key);
 
     if (ht->buckets[idx].key == NULL) {
-        key = ht->cbs.key_copy(key);
-        if (key == NULL) {
-            return -1;
-        }
-        if (value != NULL) {
-            value = ht->cbs.value_copy(value);
-            if (value == NULL) {
+        if (!rehash) {
+            key = ht->cbs.key_copy(key);
+            if (key == NULL) {
                 return -1;
+            }
+            if (value != NULL) {
+                value = ht->cbs.value_copy(value);
+                if (value == NULL) {
+                    return -1;
+                }
             }
         }
         ht->buckets[idx].key = key;

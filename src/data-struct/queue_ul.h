@@ -19,5 +19,5 @@ int queue_ul_index_of(queue_ul_t* queue, unsigned long elem, size_t* idx);
 bool queue_ul_contains(queue_ul_t* queue, unsigned long elem);
 
 unsigned long queue_ul_get(queue_ul_t* queue, size_t idx);
-unsigned long queue_ul_take(queue_ul_t* queue);
+unsigned long* queue_ul_take(queue_ul_t* queue);
 #endif
