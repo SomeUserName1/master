@@ -6,6 +6,14 @@
 #include "../record/node.h"
 #include "../record/relationship.h"
 
+size_t fnv_hash_ul(const void* in, unsigned int seed) {
+    size_t h = seed;
+    unsigned int prime = 0xFDCFB7;
+    unsigned long ul = *((unsigned long*) in);
+
+    return (h ^ ul) * prime;
+}
+
 bool unsigned_long_eq(const void* a, const void* b) {
     return *((unsigned long*) a) == *((unsigned long*) b);
 }

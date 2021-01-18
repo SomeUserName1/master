@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "access/in_memory_file.h"
-#include "data-struct/list_ul.h"
 #include "import/snap_importer.h"
 #include "query/bfs.h"
+#include "analyze/ids_to_io.h"
 
 int main(void) {
    dataset_t dataset = EMAIL_EU_CORE;
@@ -23,16 +24,19 @@ int main(void) {
     if (import_from_txt(db, "/home/someusername/workspace_local/email_eu.txt") < 0) {
         printf("Importing failed!\n");
     }
-    printf("Start a BFS\n");
-    list_ul_t* path = bfs(db, 0, 999, "/home/someusername/workspace_local/accessed_records.txt");
+    printf("BFS\n");
+    bfs_result_t* result = bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
 
-    printf("Shortest path:");
-    for (size_t i = 0; i < list_ul_size(path); i++) {
-        printf(" %lu", list_ul_get(path, i));
+    printf("Analyze IOs from IDs\n");
+    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", 4096, 512, REL);
+    if (res == NULL) {
+        return -1;
     }
+    printf("%s %lu %s %lu %s %d\n", "Loaded", res->read_pages, "Pages and accessed thereby", res->read_blocks, "Blocks.\nAs reads are performed page-wise blocks are loaded sequentially in groups of", 4096 / 512);
 
     printf("\nSuccess!\n");
-    list_ul_destroy(path);
+    bfs_result_destroy(result);
+    free(res);
     in_memory_file_destroy(db);
     return 0;
 }
