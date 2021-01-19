@@ -1,0 +1,3 @@
+[submodule "third-party/louvain"]
+	path = third-party/louvain
+	url = git@github.com:jlguillaume/louvain.git
