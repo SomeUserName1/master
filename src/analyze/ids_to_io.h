@@ -18,5 +18,5 @@ typedef struct io_stats {
 
 unsigned long id_to_page(unsigned long id, size_t page_size, record_id_t type);
 
-io_stats_t* ids_to_io(const char* path, size_t page_size, size_t block_size, record_id_t type);
+io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_size, size_t block_size, record_id_t type);
 #endif

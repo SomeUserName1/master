@@ -28,11 +28,11 @@ int main(void) {
     bfs_result_t* result = bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
 
     printf("Analyze IOs from IDs\n");
-    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", 4096, 512, REL);
+    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", "/home/someusername/workspace_local/block_access_sequence.txt", 512, 512, REL);
     if (res == NULL) {
         return -1;
     }
-    printf("%s %lu %s %lu %s %d\n", "Loaded", res->read_pages, "Pages and accessed thereby", res->read_blocks, "Blocks.\nAs reads are performed page-wise blocks are loaded sequentially in groups of", 4096 / 512);
+    printf("%s %lu %s %lu %s", "Loaded", res->read_pages, "Pages and accessed thereby", res->read_blocks, "Blocks.\n");
 
     printf("\nSuccess!\n");
     bfs_result_destroy(result);
