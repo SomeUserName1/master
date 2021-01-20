@@ -1,5 +1,5 @@
-#ifndef __RELATIONSHIP_H__
-#define __RELATIONSHIP_H__
+#ifndef RELATIONSHIP_H
+#define RELATIONSHIP_H
 
 #include <stdbool.h>
 #include <stddef.h>

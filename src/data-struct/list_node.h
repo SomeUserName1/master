@@ -1,5 +1,5 @@
-#ifndef __LIST_NODE_H__
-#define __LIST_NODE_H__
+#ifndef LIST_NODE_H
+#define LIST_NODE_H
 
 #include <stdbool.h>
 #include <stddef.h>

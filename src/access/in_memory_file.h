@@ -1,5 +1,5 @@
-#ifndef __IN_MEMORY_FILE__
-#define __IN_MEMORY_FILE__
+#ifndef IN_MEMORY_FILE
+#define IN_MEMORY_FILE
 
 #include "../data-struct/dict_ul.h"
 #include "../data-struct/list_node.h"
@@ -32,6 +32,6 @@ relationship_t* in_memory_get_relationship(in_memory_file_t* db, unsigned long i
 list_relationship_t* in_memory_get_relationships(in_memory_file_t* db);
 
 unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long node_id, relationship_t* rel, direction_t direction);
-list_relationship_t* in_memory__expand(in_memory_file_t* db, node_t* node, direction_t direction);
+list_relationship_t* in_memory_expand(in_memory_file_t* db, node_t* node, direction_t direction);
 
 #endif

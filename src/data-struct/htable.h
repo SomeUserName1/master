@@ -1,5 +1,5 @@
-#ifndef __HTABLE_H__
-#define __HTABLE_H__
+#ifndef HTABLE_H
+#define HTABLE_H
 
 #include <stdbool.h>
 #include <stddef.h>

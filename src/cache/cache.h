@@ -1,5 +1,5 @@
-#ifndef __CACHE_H__
-#define __CACHE_H__
+#ifndef CACHE_H
+#define CACHE_H
 
 #include "../data-types/dict_ul.h"
 

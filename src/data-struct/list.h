@@ -1,5 +1,5 @@
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef LIST_H
+#define LIST_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -57,4 +57,4 @@ int merge_sort(void* base, size_t nel, size_t width,
         bool (*cmp)(const void*, const void*));
 int list_sort(list_t* l, list_eq e);
 
-#endif /* __LIST_H__ */
+#endif

@@ -17,7 +17,7 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
         printf("ids_to_io: Can't open file with path %s", in_path);
         return NULL;
     }
-    FILE* page_accesses_file = fopen("out_path", "w");
+    FILE* page_accesses_file = fopen(out_path, "w");
     if (page_accesses_file == NULL) {
         fclose(log_file);
         printf("ids_to_io: Can't open file with path %s", out_path);
@@ -43,7 +43,7 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
                 num_pages_loaded++;
             }
 
-            fprintf(page_accesses_file, "%s%lu%s", "Node: PageOffset: ", page_node, "BlockOffset:");
+            fprintf(page_accesses_file, "%s%lu%s", "Node: PageOffset: ", page_node, " BlockOffset:");
             for (size_t i = 0; i < pages_to_blocks; ++i) {
                 fprintf(page_accesses_file, " %lu", page_node * pages_to_blocks + i);
             }
@@ -55,9 +55,9 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
                 num_pages_loaded++;
             }
 
-            fprintf(page_accesses_file, "%s%lu%s", "Relationship: PageOffset: ", page_node, "BlockOffset:");
+            fprintf(page_accesses_file, "%s%lu%s", "Relationship: PageOffset: ", page_rel, " BlockOffset:");
             for (size_t i = 0; i < pages_to_blocks; ++i) {
-                fprintf(page_accesses_file, " %lu", page_node * pages_to_blocks + i);
+                fprintf(page_accesses_file, " %lu", page_rel * pages_to_blocks + i);
             }
             fprintf(page_accesses_file, "\n");
        }

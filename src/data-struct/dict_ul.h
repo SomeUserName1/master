@@ -1,5 +1,5 @@
-#ifndef __DICT_UL_H__
-#define __DICT_UL_H__
+#ifndef DICT_UL_H
+#define DICT_UL_H
 
 #include "htable.h"
 #include "../record/node.h"

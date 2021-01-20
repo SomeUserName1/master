@@ -1,5 +1,5 @@
-#ifndef __CBS_H__
-#define __CBS_H__
+#ifndef CBS_H
+#define CBS_H
 
 #include <stdbool.h>
 #include <stddef.h>
