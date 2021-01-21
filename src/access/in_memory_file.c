@@ -58,7 +58,7 @@ list_node_t* in_memory_get_nodes(in_memory_file_t* db) {
     dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
 
     while(dict_ul_node_iterator_next(it, NULL, &node) > -1) {
-           list_node_append(nodes, node);
+        list_node_append(nodes, node);
     }
     return nodes;
 }
@@ -73,7 +73,7 @@ list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
     dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
 
     while(dict_ul_rel_iterator_next(it, NULL, &rel) > -1)  {
-           list_relationship_append(rels, rel);
+        list_relationship_append(rels, rel);
     }
     return rels;
 }
@@ -137,7 +137,7 @@ int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom,
     }
 
     if (first_rel_target) {
-       target_node->first_relationship = rel->id;
+        target_node->first_relationship = rel->id;
     } else {
         rel_target->next_rel_target = rel->id;
         rel->prev_rel_target = rel_target->id;
