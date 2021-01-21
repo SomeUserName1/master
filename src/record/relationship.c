@@ -5,8 +5,8 @@
 
 
 relationship_t* new_relationship() {
-   relationship_t *rel = malloc(sizeof(*rel));
-   relationship_clear(rel);
+    relationship_t *rel = malloc(sizeof(*rel));
+    relationship_clear(rel);
     return rel;
 }
 
@@ -30,7 +30,7 @@ void relationship_clear(relationship_t *record) {
     record->next_rel_source = UNINITIALIZED_LONG;
     record->prev_rel_target = UNINITIALIZED_LONG;
     record->next_rel_target = UNINITIALIZED_LONG;
-    record->first_property = UNINITIALIZED_LONG;
+    record->weight = UNINITIALIZED_WEIGHT;
 }
 
 relationship_t* relationship_copy(const relationship_t* original) {
@@ -49,7 +49,7 @@ relationship_t* relationship_copy(const relationship_t* original) {
     copy->next_rel_source = original->next_rel_source;
     copy->prev_rel_target = original->prev_rel_target;
     copy->next_rel_target = original->next_rel_target;
-    copy->first_property = original->first_property;
+    copy->weight = original->weight;
 
     return copy;
 }
@@ -63,60 +63,59 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
             && (first->prev_rel_source == second->prev_rel_source)
             && (first->next_rel_source == second->next_rel_source)
             && (first->prev_rel_target == second->prev_rel_target)
-            && (first->first_property == second->first_property));
+            && (first->weight == second->weight));
 }
 
 int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size) {
-   int result = sprintf(buffer, "Relationship ID: %#lX\n"
-                    "Flags: %#hhX\n"
-                    "Source Node: %#lX\n"
-                    "Target Node: %#lX\n"
-                    "Relationship Type: %#lX\n"
-                    "Source node's previous relationship: %#lX\n"
-                    "Source node's next relationship: %#lX\n"
-                    "Target node's previous relationship: %#lX\n"
-                    "Target node's next relationship: %#lX\n"
-                    "First Property: %#lX\n",
-                    record->id,
-                    record->flags,
-                    record->source_node,
-                    record->target_node,
-                    record->relationship_type,
-                    record->prev_rel_source,
-                    record->next_rel_source,
-                    record->prev_rel_target,
-                    record->next_rel_target,
-                    record->first_property
-          );
-   if (result < 0 || (size_t) result > buffer_size) {
-       printf("Wrote relationship string representation to a buffer that was too small!");
-       return -1;
-   }
+    int result = sprintf(buffer, "Relationship ID: %#lX\n"
+            "Flags: %#hhX\n"
+            "Source Node: %#lX\n"
+            "Target Node: %#lX\n"
+            "Relationship Type: %#lX\n"
+            "Source node's previous relationship: %#lX\n"
+            "Source node's next relationship: %#lX\n"
+            "Target node's previous relationship: %#lX\n"
+            "Target node's next relationship: %#lX\n"
+            "First Property: %#lX\n",
+            record->id,
+            record->flags,
+            record->source_node,
+            record->target_node,
+            record->relationship_type,
+            record->prev_rel_source,
+            record->next_rel_source,
+            record->prev_rel_target,
+            record->next_rel_target,
+            record->weight
+            );
+    if (result < 0 || (size_t) result > buffer_size) {
+        printf("Wrote relationship string representation to a buffer that was too small!");
+        return -1;
+    }
 
     return 0;
 }
 
 void relationship_pretty_print(const relationship_t* record) {
     printf("Relationship ID: %#lX\n"
-                    "Flags: %#hhX\n"
-                    "Source Node: %#lX\n"
-                    "Target Node: %#lX\n"
-                    "Relationship Type: %#lX\n"
-                    "Source node's previous relationship: %#lX\n"
-                    "Source node's next relationship: %#lX\n"
-                    "Target node's previous relationship: %#lX\n"
-                    "Target node's next relationship: %#lX\n"
-                    "First Property: %#lX\n",
-                    record->id,
-                    record->flags,
-                    record->source_node,
-                    record->target_node,
-                    record->relationship_type,
-                    record->prev_rel_source,
-                    record->next_rel_source,
-                    record->prev_rel_target,
-                    record->next_rel_target,
-                    record->first_property
+            "Flags: %#hhX\n"
+            "Source Node: %#lX\n"
+            "Target Node: %#lX\n"
+            "Relationship Type: %#lX\n"
+            "Source node's previous relationship: %#lX\n"
+            "Source node's next relationship: %#lX\n"
+            "Target node's previous relationship: %#lX\n"
+            "Target node's next relationship: %#lX\n"
+            "First Property: %#lX\n",
+            record->id,
+            record->flags,
+            record->source_node,
+            record->target_node,
+            record->relationship_type,
+            record->prev_rel_source,
+            record->next_rel_source,
+            record->prev_rel_target,
+            record->next_rel_target,
+            record->weight
           );
-
 }

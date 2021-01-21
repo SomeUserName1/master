@@ -6,6 +6,7 @@
 
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
+#define UNINITIALIZED_WEIGHT 1L
 
 /**
  * The flags field is structured the floowoing way:
@@ -23,7 +24,8 @@ typedef struct RelationshipRecord {
     unsigned long int next_rel_source;
     unsigned long int prev_rel_target;
     unsigned long int next_rel_target;
-    unsigned long int first_property;
+    long int weight;
+    // first_property; properties not impelemented yet
 } relationship_t;
 
 /**
