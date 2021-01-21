@@ -79,6 +79,10 @@ list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
 }
 
 int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo) {
+    return in_memory_create_relationship_weighted(db, nodeFrom, nodeTo, 1.0f);
+}
+
+int in_memory_create_relationship_weighted(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo, long double weight) {
     if (!dict_ul_node_contains(db->cache_nodes, nodeFrom)
             || !dict_ul_node_contains(db->cache_nodes, nodeTo)) {
         printf("%s: %lu, %lu",
@@ -101,6 +105,7 @@ int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom,
     rel->target_node = nodeTo;
     rel->id = db->rel_id_counter++;
     rel->flags = 1;
+    rel->weight = weight;
 
     source_node = dict_ul_node_get_direct(db->cache_nodes, nodeFrom);
     if (source_node->first_relationship == UNINITIALIZED_LONG) {
@@ -130,6 +135,7 @@ int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom,
     }
 
     if (first_rel_source) {
+        relationship_set_first_source(rel);
         source_node->first_relationship = rel->id;
     } else {
         rel_source->next_rel_source = rel->id;
@@ -137,6 +143,7 @@ int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom,
     }
 
     if (first_rel_target) {
+        relationship_set_first_source(rel);
         target_node->first_relationship = rel->id;
     } else {
         rel_target->next_rel_target = rel->id;
@@ -169,7 +176,8 @@ unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long no
     return UNINITIALIZED_LONG;
 }
 
-list_relationship_t* in_memory_expand(in_memory_file_t* db, node_t* node, direction_t direction) {
+list_relationship_t* in_memory_expand(in_memory_file_t* db, unsigned long node_id, direction_t direction) {
+    node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
     if (node == NULL || db == NULL) {
         printf("Arguments must be not NULL!");
         return NULL;

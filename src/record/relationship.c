@@ -119,3 +119,11 @@ void relationship_pretty_print(const relationship_t* record) {
             record->weight
           );
 }
+
+void relationship_set_first_source(relationship_t* rel) {
+    rel->flags = rel->flags | 000000010;
+}
+
+void relationship_set_first_target(relationship_t* rel) {
+    rel->flags = rel->flags | 000000100;
+}

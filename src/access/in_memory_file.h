@@ -24,6 +24,7 @@ void in_memory_file_destroy(in_memory_file_t* db);
 
 int in_memory_create_node(in_memory_file_t* db, unsigned long id);
 int in_memory_create_relationship(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo);
+int in_memory_create_relationship_weighted(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo, long double weight);
 
 node_t* in_memory_get_node(in_memory_file_t* db, unsigned long id);
 list_node_t* in_memory_get_nodes(in_memory_file_t* db);
@@ -32,6 +33,6 @@ relationship_t* in_memory_get_relationship(in_memory_file_t* db, unsigned long i
 list_relationship_t* in_memory_get_relationships(in_memory_file_t* db);
 
 unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long node_id, relationship_t* rel, direction_t direction);
-list_relationship_t* in_memory_expand(in_memory_file_t* db, node_t* node, direction_t direction);
+list_relationship_t* in_memory_expand(in_memory_file_t* db, unsigned long node_id, direction_t direction);
 
 #endif

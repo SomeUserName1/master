@@ -6,7 +6,7 @@
 
 #define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
 #define UNINITIALIZED_BYTE 0xFF
-#define UNINITIALIZED_WEIGHT 1L
+#define UNINITIALIZED_WEIGHT 1.0f;
 
 /**
  * The flags field is structured the floowoing way:
@@ -24,7 +24,7 @@ typedef struct RelationshipRecord {
     unsigned long int next_rel_source;
     unsigned long int prev_rel_target;
     unsigned long int next_rel_target;
-    long int weight;
+    long double weight;
     // first_property; properties not impelemented yet
 } relationship_t;
 
@@ -92,5 +92,9 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
 int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size);
 
 void relationship_pretty_print(const relationship_t* record);
+
+void relationship_set_first_source(relationship_t* rel);
+
+void relationship_set_first_target(relationship_t* rel);
 
 #endif
