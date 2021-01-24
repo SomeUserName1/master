@@ -27,25 +27,17 @@ void in_memory_file_destroy(in_memory_file_t* db) {
     free(db);
 }
 
-int in_memory_create_node(in_memory_file_t* db, unsigned long id) {
-    if (id == UNINITIALIZED_LONG) {
-        printf("%s", "Node ID out of range: can only store 2^64 - 1 nodes\n");
-        return -1;
-    }
-    if (dict_ul_node_contains(db->cache_nodes, id)) {
-        return 0;
-    }
-
+unsigned long in_memory_create_node(in_memory_file_t* db) {
     node_t* node = new_node();
-    node->id = id;
+    node->id = db->node_id_counter++;
     node->flags = 1;
 
-    if (dict_ul_node_insert(db->cache_nodes, id, node) < 0) {
+    if (dict_ul_node_insert(db->cache_nodes, node->id, node) < 0) {
         printf("%s", "Inserting the new node failed\n");
-        return -1;
+        exit(-1);
     }
 
-    return 0;
+    return node->id;
 }
 
 node_t* in_memory_get_node(in_memory_file_t* db, unsigned long id) {
@@ -78,18 +70,18 @@ list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
     return rels;
 }
 
-int in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo) {
+unsigned long in_memory_create_relationship(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo) {
     return in_memory_create_relationship_weighted(db, nodeFrom, nodeTo, 1.0f);
 }
 
-int in_memory_create_relationship_weighted(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo, long double weight) {
+unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo, long double weight) {
     if (!dict_ul_node_contains(db->cache_nodes, nodeFrom)
             || !dict_ul_node_contains(db->cache_nodes, nodeTo)) {
         printf("%s: %lu, %lu",
                 "One of the nodes which are refered to by the relationship to create do not exist!\n",
                 nodeFrom,
                 nodeTo);
-        return -1;
+        exit(-1);
     }
 
     unsigned long next_id;
@@ -151,7 +143,7 @@ int in_memory_create_relationship_weighted(in_memory_file_t * db, unsigned long 
     }
     dict_ul_rel_insert(db->cache_rels, rel->id, rel);
 
-    return 0;
+    return rel->id;
 }
 
 unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long node_id, relationship_t* rel, direction_t direction) {

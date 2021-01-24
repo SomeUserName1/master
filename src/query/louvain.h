@@ -121,7 +121,7 @@ inline void louvain_part_insert_node(louvain_partition_t* p, louvain_graph_t* g,
   @param nodeDegree The weighted degree of the node
   @return nothing
   */
-inline long double gain(louvain_partition_t* p, adjlist* g, unsigned long comm, long double dnodecomm, long double d_node);
+inline long double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm, long double dnodecomm, long double d_node);
 /**
   Computes modularity of the given partition
   @param p The Louvain partition
@@ -151,14 +151,18 @@ void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g
   @param minImprovement The minimal improvement under which the process stops
   @return the increase of modularity during the level
   */
-long double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g);
 
+louvain_graph_t* louvain_graph_init(in_memory_file_t* db);
+
+void louvain_graph_destroy(louvain_graph_t* g);
+
+long double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g);
 /**
   Computes a partition with the Louvain method
   @param g The graph to be partitionned
   @param part The final partition
   @return nothing
   */
-unsigned long louvain(louvain_graph_t* g, unsigned long *part);
+unsigned long* louvain(in_memory_file_t* db);
 
 #endif

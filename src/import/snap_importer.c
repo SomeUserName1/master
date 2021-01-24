@@ -16,8 +16,8 @@
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
-  return written;
+    size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+    return written;
 }
 
 int download_dataset(dataset_t data, const char* gz_path) {
@@ -142,21 +142,21 @@ int uncompress_dataset(const char* gz_path, const char* out_path) {
 void zlib_error(int ret) {
     fputs("Uncompressing failed: ", stderr);
     switch (ret) {
-    case Z_ERRNO:
+        case Z_ERRNO:
             fputs("error reading the input or writing the outputfile\n",
                     stderr);
-        break;
-    case Z_STREAM_ERROR:
-        fputs("invalid compression level\n", stderr);
-        break;
-    case Z_DATA_ERROR:
-        fputs("invalid or incomplete deflate data\n", stderr);
-        break;
-    case Z_MEM_ERROR:
-        fputs("out of memory\n", stderr);
-        break;
-    case Z_VERSION_ERROR:
-        fputs("zlib version mismatch!\n", stderr);
+            break;
+        case Z_STREAM_ERROR:
+            fputs("invalid compression level\n", stderr);
+            break;
+        case Z_DATA_ERROR:
+            fputs("invalid or incomplete deflate data\n", stderr);
+            break;
+        case Z_MEM_ERROR:
+            fputs("out of memory\n", stderr);
+            break;
+        case Z_VERSION_ERROR:
+            fputs("zlib version mismatch!\n", stderr);
     }
 }
 
@@ -272,6 +272,8 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
     unsigned long int fromTo[IMPORT_FIELDS];
     int result;
     size_t lines = 1;
+    dict_ul_ul_t* txt_to_db_id = create_dict_ul_ul();
+    unsigned long db_id = 0;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -286,14 +288,16 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
             printf("%s %lu\n","Processed", lines);
         }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
-            if (in_memory_create_node(db, fromTo[i]) < 0) {
-                printf("%s", "Failed to create node!\n");
-                return -1;
+            if (dict_ul_ul_contains(txt_to_db_id, fromTo[i])) {
+                fromTo[i] = dict_ul_ul_get_direct(txt_to_db_id, fromTo[i]);
+            } else {
+                db_id = in_memory_create_node(db);
+                dict_ul_ul_insert(txt_to_db_id, fromTo[i], db_id);
+                fromTo[i] = db_id;
             }
         }
-        if (in_memory_create_relationship(db, fromTo[0], fromTo[1]) < 0) {
-            printf("%s", "Failed to create relationship!\n");
-        }
+        in_memory_create_relationship(db, fromTo[0], fromTo[1]);
+
         result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
         lines++;
     }
