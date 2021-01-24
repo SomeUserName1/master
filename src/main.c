@@ -7,7 +7,7 @@
 #include "analyze/ids_to_io.h"
 
 int main(void) {
-   dataset_t dataset = EMAIL_EU_CORE;
+    dataset_t dataset = EMAIL_EU_CORE;
 
     printf("Start downloading\n");
     if (download_dataset(dataset, "/home/someusername/workspace_local/dataset.txt.gz") < 0) {
