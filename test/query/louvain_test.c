@@ -1,9 +1,12 @@
 #include "../../src/query/louvain.h"
-#include "../../src/import/snap_importer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#include "../../src/access/in_memory_file.h"
+#include "../../src/data-struct/dict_ul.h"
+#include "../../src/import/snap_importer.h"
 
 int main(void) {
     dataset_t dataset = EMAIL_EU_CORE;

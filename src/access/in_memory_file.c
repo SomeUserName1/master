@@ -16,6 +16,7 @@ in_memory_file_t* create_in_memory_file() {
 
     file->cache_nodes = create_dict_ul_node();
     file->cache_rels = create_dict_ul_rel();
+    file->node_id_counter = 0;
     file->rel_id_counter = 0;
 
     return file;
@@ -151,7 +152,7 @@ unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long no
 
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
         printf("Arguments must be not NULL!");
-        return UNINITIALIZED_LONG;
+        exit(-1);
     }
 
     while (rel_id != UNINITIALIZED_LONG) {
@@ -172,7 +173,7 @@ list_relationship_t* in_memory_expand(in_memory_file_t* db, unsigned long node_i
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
     if (node == NULL || db == NULL) {
         printf("Arguments must be not NULL!");
-        return NULL;
+        exit(-1);
     }
     list_relationship_t* result = create_list_relationship(LIST_NONE);
     relationship_t* rel = NULL;

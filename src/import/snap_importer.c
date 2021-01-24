@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 
 #include "../access/in_memory_file.h"
+#include "../data-struct/dict_ul.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
@@ -280,7 +281,6 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
         perror("Failed to open file to read from");
         return -1;
     }
-    printf("Starting to import\n");
     result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
     while (result == 2) {
@@ -302,6 +302,7 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
         lines++;
     }
 
+    dict_ul_ul_destroy(txt_to_db_id);
     fclose(in_file);
 
     if (result != EOF) {

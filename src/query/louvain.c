@@ -1,10 +1,14 @@
 #include "louvain.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "../access/in_memory_file.h"
 #include "../data-struct/list_rel.h"
+#include "../data-struct/dict_ul.h"
+#include "../record/relationship.h"
 
-// FIXME Implementation currently assumes undirected graphs with nodes enumerated from 0 to n-1
-
-
+// FIXME Implementation currently assumes undirected graphs
 
 unsigned long update_partition(louvain_partition_t* p, unsigned long *part,
         unsigned long size) {
@@ -57,14 +61,14 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
     res->graph = create_in_memory_file();
 
     for (i = 0; i < last; ++i) {
-        in_memory_create_node(res->graph, i);
+        in_memory_create_node(res->graph);
     }
 
     // for each node (in community order), extract all edges to other communities
     // and build the graph
     init_neighbouring_communities(p);
     unsigned long old_com = p->node_to_com[order[0]];
-    unsigned long cur_com;
+    unsigned long cur_com = 0;
     long double neigh_com_weight = 0;
     for (i = 0; i <= p->size; i++) {
         // current node and current community with dummy values if out of bounds
@@ -97,7 +101,6 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
 }
 
 void get_neighbouring_communities(louvain_partition_t* p, louvain_graph_t* g, unsigned long node) {
-    unsigned long long i;
     unsigned long neigh, neigh_com;
     long double neigh_weight;
     p->neigh_com_pos[0] = p->node_to_com[node];
@@ -127,7 +130,6 @@ void get_neighbouring_communities(louvain_partition_t* p, louvain_graph_t* g, un
 }
 
 void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g, unsigned long node) {
-    unsigned long long i;
     unsigned long neigh, neigh_com;
     long double neigh_weight;
     list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
@@ -166,7 +168,7 @@ unsigned long *sort_by_partition(unsigned long *part, unsigned long size) {
     return nodes;
 }
 
-inline long double degree_weighted(louvain_graph_t* g, unsigned long node) {
+long double degree_weighted(louvain_graph_t* g, unsigned long node) {
     long double res = 0.0;
     list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
     relationship_t* rel = NULL;
@@ -178,11 +180,12 @@ inline long double degree_weighted(louvain_graph_t* g, unsigned long node) {
     return res;
 }
 
-inline long double selfloop_weighted(louvain_graph_t* g, unsigned long node) {
+long double selfloop_weighted(louvain_graph_t* g, unsigned long node) {
     list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
     relationship_t* rel = NULL;
 
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        rel = list_relationship_get(rels, i);
         if (rel->source_node == rel->target_node) {
             return rel->weight;
         }
@@ -214,7 +217,7 @@ louvain_partition_t* create_louvain_partition(louvain_graph_t* g) {
     return p;
 }
 
-void louvain_partit_destroy(louvain_partition_t* p) {
+void louvain_part_destroy(louvain_partition_t* p) {
     free(p->in);
     free(p->tot);
     free(p->neigh_com_weights);
@@ -223,20 +226,20 @@ void louvain_partit_destroy(louvain_partition_t* p) {
     free(p);
 }
 
-inline void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node,
+void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node,
         unsigned long comm, long double dnodecomm) {
     p->in[comm] -= 2.0L * dnodecomm + selfloop_weighted(g, node);
     p->tot[comm] -= degree_weighted(g, node);
 }
 
-inline void louvain_part_insert_node(louvain_partition_t *p, louvain_graph_t *g, unsigned long node,
+void louvain_part_insert_node(louvain_partition_t *p, louvain_graph_t *g, unsigned long node,
         unsigned long comm, long double dnodecomm) {
     p->in[comm] += 2.0L * dnodecomm + selfloop_weighted(g, node);
     p->tot[comm] += degree_weighted(g, node);
     p->node_to_com[node] = comm;
 }
 
-inline long double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm,
+long double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm,
         long double dnodecomm, long double d_node) { // degc ? long double???
     long double totc = p->tot[comm];
     long double m2 = g->total_weight;

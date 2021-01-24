@@ -76,7 +76,7 @@ int relationship_to_string(const relationship_t* record, char* buffer, size_t bu
             "Source node's next relationship: %#lX\n"
             "Target node's previous relationship: %#lX\n"
             "Target node's next relationship: %#lX\n"
-            "First Property: %#lX\n",
+            "First Property: %Lf\n",
             record->id,
             record->flags,
             record->source_node,
@@ -106,7 +106,7 @@ void relationship_pretty_print(const relationship_t* record) {
             "Source node's next relationship: %#lX\n"
             "Target node's previous relationship: %#lX\n"
             "Target node's next relationship: %#lX\n"
-            "First Property: %#lX\n",
+            "Weight: %Lf\n",
             record->id,
             record->flags,
             record->source_node,

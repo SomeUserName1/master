@@ -3,12 +3,6 @@
 
 #define _GNU_SOURCE
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-
 #include "../access/in_memory_file.h"
 
 #define NNODES 10000000 //maximum number of nodes in the input graph: used for memory allocation, will increase if needed
@@ -57,7 +51,7 @@ typedef struct {
 int compare_by_partition(const void *a, const void *b, void *array2);
 unsigned long *sort_by_partition(unsigned long *part, unsigned long size);
 
-inline long double degree_weighted(louvain_graph_t* g, unsigned long node);
+long double degree_weighted(louvain_graph_t* g, unsigned long node);
 /**
   Returns the weight of the self-loop of a node
   Assumes that there is at most one self node for a given node
@@ -65,7 +59,7 @@ inline long double degree_weighted(louvain_graph_t* g, unsigned long node);
   @param node The node whose self-loop weight must be calculated
   @return the self-loop weight
   */
-inline long double selfloop_weighted(louvain_graph_t* g, unsigned long node);
+long double selfloop_weighted(louvain_graph_t* g, unsigned long node);
 
 // updates a given partition with the current Louvain partition
 unsigned long update_partition(louvain_partition_t* p, unsigned long* part, unsigned long size);
@@ -99,7 +93,7 @@ void louvain_part_destroy(louvain_partition_t* p);
   @param dnodecomm The weighted degree from node to comm
   @return nothing
   */
-inline void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node, unsigned long comm, long double dnodecomm);
+void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node, unsigned long comm, long double dnodecomm);
 /**
   Adds a node to a community and update modularity
   @param p The Louvain partition
@@ -109,7 +103,7 @@ inline void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g,
   @param dnodecomm The weighted degree from node to comm
   @return nothing
   */
-inline void louvain_part_insert_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node, unsigned long comm, long double dnodecomm);
+void louvain_part_insert_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node, unsigned long comm, long double dnodecomm);
 /**
   Computes the increase of modularity if a node where to be added to a given community
   - Note that node itself is not usefull
@@ -121,7 +115,7 @@ inline void louvain_part_insert_node(louvain_partition_t* p, louvain_graph_t* g,
   @param nodeDegree The weighted degree of the node
   @return nothing
   */
-inline long double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm, long double dnodecomm, long double d_node);
+long double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm, long double dnodecomm, long double d_node);
 /**
   Computes modularity of the given partition
   @param p The Louvain partition
