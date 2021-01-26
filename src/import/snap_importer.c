@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <zlib.h>
 #include <zconf.h>
@@ -269,7 +270,7 @@ unsigned long int get_no_rels(dataset_t data) {
 
 }
 
-int import_from_txt(in_memory_file_t* db, const char* path) {
+dict_ul_ul_t* import_from_txt(in_memory_file_t* db, const char* path) {
     unsigned long int fromTo[IMPORT_FIELDS];
     int result;
     size_t lines = 1;
@@ -279,7 +280,7 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
         perror("Failed to open file to read from");
-        return -1;
+        exit(-1);
     }
     result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
@@ -302,13 +303,12 @@ int import_from_txt(in_memory_file_t* db, const char* path) {
         lines++;
     }
 
-    dict_ul_ul_destroy(txt_to_db_id);
     fclose(in_file);
 
     if (result != EOF) {
         printf("%s", "Failed to read line from file");
-        return -1;
+        exit(-1);
     }
 
-    return 0;
+    return txt_to_db_id;
 }

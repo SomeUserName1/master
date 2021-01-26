@@ -79,7 +79,7 @@ unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsi
     if (!dict_ul_node_contains(db->cache_nodes, nodeFrom)
             || !dict_ul_node_contains(db->cache_nodes, nodeTo)) {
         printf("%s: %lu, %lu",
-                "One of the nodes which are refered to by the relationship to create do not exist!\n",
+                "One of the nodes which are refered to by the relationship to create do not exist: %lu, %lu!\n",
                 nodeFrom,
                 nodeTo);
         exit(-1);
@@ -109,7 +109,7 @@ unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsi
         while (next_id != UNINITIALIZED_LONG) {
             rel_source = dict_ul_rel_get_direct(db->cache_rels, next_id);
             if (rel_source->source_node == nodeFrom && rel_source->target_node == nodeTo) {
-                return 0;
+                return rel_source->id;
             }
             next_id = in_memory_next_relationship(db, source_node->id, rel_source, BOTH);
         }
@@ -131,7 +131,12 @@ unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsi
         relationship_set_first_source(rel);
         source_node->first_relationship = rel->id;
     } else {
-        rel_source->next_rel_source = rel->id;
+        if (rel_source->source_node == nodeFrom) {
+            rel_source->next_rel_source = rel->id;
+        }
+        if (rel_source->target_node == nodeFrom) {
+            rel_source->next_rel_target = rel->id;
+        }
         rel->prev_rel_source = rel_source->id;
     }
 
@@ -139,7 +144,12 @@ unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsi
         relationship_set_first_source(rel);
         target_node->first_relationship = rel->id;
     } else {
-        rel_target->next_rel_target = rel->id;
+        if (rel_target->source_node == nodeTo) {
+            rel_target->next_rel_source = rel->id;
+        }
+        if (rel_target->target_node == nodeTo) {
+            rel_target->next_rel_target = rel->id;
+        }
         rel->prev_rel_target = rel_target->id;
     }
     dict_ul_rel_insert(db->cache_rels, rel->id, rel);
@@ -161,7 +171,7 @@ unsigned long in_memory_next_relationship(in_memory_file_t* db, unsigned long no
         } else if (rel->target_node == node_id && (direction == BOTH || direction == INCOMING)) {
             return rel->next_rel_target;
         } else {
-            rel_id = node_id == rel->source_node ? rel->next_rel_source : rel->next_rel_target;
+            rel_id = node_id == rel->source_node ? rel->next_rel_source : node_id == rel->target_node ? rel->target_node : UNINITIALIZED_LONG;
             rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
         }
     }
@@ -186,9 +196,9 @@ list_relationship_t* in_memory_expand(in_memory_file_t* db, unsigned long node_i
         } else if (rel->target_node == node->id && (direction == BOTH || direction == INCOMING)) {
             list_relationship_append(result, rel);
         } else {
-            printf("%s%lu%s%lu", "Invalid relationship ", rel->id, " in chain of node ", node->id);
+            printf("%s%lu%s%lu", "Expand: Invalid relationship ", rel->id, " in chain of node ", node->id);
             list_relationship_destroy(result);
-            return NULL;
+            exit(-1);
         }
         rel_id = in_memory_next_relationship(db, node->id, rel, direction);
     }

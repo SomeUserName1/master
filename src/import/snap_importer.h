@@ -1,4 +1,5 @@
 #include "../access/in_memory_file.h"
+#include "../data-struct/dict_ul.h"
 
 #define EMAIL_EU_CORE_URL "https://snap.stanford.edu/data/email-Eu-core.txt.gz"
 #define DBLP_URL          "https://snap.stanford.edu/data/com-DBLP.html"
@@ -51,4 +52,4 @@ int uncompress_dataset(const char* gz_path, const char* out_path);
 void zlib_error(int return_value);
 
 /* Parsing and importing */
-int import_from_txt(in_memory_file_t* db, const char* path);
+dict_ul_ul_t* import_from_txt(in_memory_file_t* db, const char* path);

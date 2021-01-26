@@ -5,25 +5,13 @@
 #include "import/snap_importer.h"
 #include "query/bfs.h"
 #include "analyze/ids_to_io.h"
+#include "data-struct/dict_ul.h"
 
 int main(void) {
-    dataset_t dataset = EMAIL_EU_CORE;
-
-    printf("Start downloading\n");
-    if (download_dataset(dataset, "/home/someusername/workspace_local/dataset.txt.gz") < 0) {
-        printf("Downloading the EMAIL EU CORE dataset failed\n");
-        return -1;
-    }
-    printf("start uncompressing\n");
-    if (uncompress_dataset("/home/someusername/workspace_local/dataset.txt.gz", "/home/someusername/workspace_local/email_eu.txt") < 0) {
-        printf("Uncompressing failed\n");
-        return -1;
-    }
     printf("Start importing\n");
     in_memory_file_t* db = create_in_memory_file();
-    if (import_from_txt(db, "/home/someusername/workspace_local/email_eu.txt") < 0) {
-        printf("Importing failed!\n");
-    }
+    dict_ul_ul_t* map = import_from_txt(db, "/home/someusername/workspace_local/email_eu.txt");
+    free(map);
     printf("BFS\n");
     bfs_result_t* result = bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
 
