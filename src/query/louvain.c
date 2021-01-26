@@ -70,6 +70,7 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
     unsigned long old_com = p->node_to_com[order[0]];
     unsigned long cur_com = 0;
     long double neigh_com_weight = 0;
+    last = 0;
     for (i = 0; i <= p->size; i++) {
         // current node and current community with dummy values if out of bounds
         node = (i == p->size) ? 0 : order[i];
@@ -81,15 +82,17 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
             // for all neighboring communities of current community add edges
             for (j = 0; j < p->neigh_com_nb; j++) {
                 neigh_com_weight = p->neigh_com_weights[p->neigh_com_pos[j]];
-                in_memory_create_relationship_weighted(res->graph, res->graph->rel_id_counter, p->neigh_com_pos[j], neigh_com_weight);
+                in_memory_create_relationship_weighted(res->graph,
+                        last, p->neigh_com_pos[j], neigh_com_weight);
                 res->total_weight += neigh_com_weight;
             }
 
             if (i == p->size) {
                 free(order);
-
                 return res;
             }
+
+            last++;
             old_com = cur_com;
             init_neighbouring_communities(p);
         }
@@ -127,6 +130,7 @@ void get_neighbouring_communities(louvain_partition_t* p, louvain_graph_t* g, un
             p->neigh_com_weights[neigh_com] += neigh_weight;
         }
     }
+    list_relationship_destroy(rels);
 }
 
 void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g, unsigned long node) {
@@ -149,12 +153,14 @@ void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g
         }
         p->neigh_com_weights[neigh_com] += neigh_weight;
     }
+    list_relationship_destroy(rels);
 }
 
 
 int compare_by_partition(const void *a, const void *b, void *array2) {
-    return ((unsigned long *)array2)[*(unsigned long *)a]
-        == ((unsigned long *)array2)[*(unsigned *)b];
+    long diff = ((unsigned long *)array2)[*(unsigned long *)a]
+        > ((unsigned long *)array2)[*(unsigned *)b];
+    return (0 < diff) - (diff < 0);
 }
 
 unsigned long *sort_by_partition(unsigned long *part, unsigned long size) {
@@ -177,6 +183,8 @@ long double degree_weighted(louvain_graph_t* g, unsigned long node) {
         rel = list_relationship_get(rels, i);
         res += rel->weight;
     }
+
+    list_relationship_destroy(rels);
     return res;
 }
 
@@ -187,9 +195,11 @@ long double selfloop_weighted(louvain_graph_t* g, unsigned long node) {
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
         if (rel->source_node == rel->target_node) {
+            list_relationship_destroy(rels);
             return rel->weight;
         }
     }
+    list_relationship_destroy(rels);
     return 0.0;
 }
 
@@ -404,6 +414,7 @@ louvain_graph_t* louvain_graph_init(in_memory_file_t* db) {
     result->total_weight *= 2;
     // reference C impl did this, check against cpp impl.
     result->map = NULL;
+    list_relationship_destroy(rels);
 
     return result;
 }

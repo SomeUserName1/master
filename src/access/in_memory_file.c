@@ -53,6 +53,7 @@ list_node_t* in_memory_get_nodes(in_memory_file_t* db) {
     while(dict_ul_node_iterator_next(it, NULL, &node) > -1) {
         list_node_append(nodes, node);
     }
+    dict_ul_node_iterator_destroy(it);
     return nodes;
 }
 
@@ -68,6 +69,7 @@ list_relationship_t* in_memory_get_relationships(in_memory_file_t* db) {
     while(dict_ul_rel_iterator_next(it, NULL, &rel) > -1)  {
         list_relationship_append(rels, rel);
     }
+    dict_ul_rel_iterator_destroy(it);
     return rels;
 }
 
@@ -78,8 +80,8 @@ unsigned long in_memory_create_relationship(in_memory_file_t * db, unsigned long
 unsigned long in_memory_create_relationship_weighted(in_memory_file_t * db, unsigned long nodeFrom, unsigned long nodeTo, long double weight) {
     if (!dict_ul_node_contains(db->cache_nodes, nodeFrom)
             || !dict_ul_node_contains(db->cache_nodes, nodeTo)) {
-        printf("%s: %lu, %lu",
-                "One of the nodes which are refered to by the relationship to create do not exist: %lu, %lu!\n",
+        printf("%s: %lu, %lu\n",
+                "One of the nodes which are refered to by the relationship to create do not exist:",
                 nodeFrom,
                 nodeTo);
         exit(-1);
