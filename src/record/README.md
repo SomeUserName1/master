@@ -9,7 +9,3 @@ This directory contains the structs and read/write functions of nodes, relations
 - [ ] Relationship Type
 - [ ] Key record
 
-
-
-# TODO 
-rename functions of node and records and use function ptrs

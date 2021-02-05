@@ -7,7 +7,7 @@ This module shall provide access operators for the database. That is it shall pr
 - [x] getRelationship (one)
 - [x] getRelationships (all)
 - [x] get Node (all)
-- [ ] Expand
+- [x] Expand
 - [ ] Filter
 - [ ] getNodesInRange (bulk)
 - [ ] getRelationshipsInRange (bulk)
