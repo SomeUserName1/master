@@ -207,3 +207,24 @@ list_relationship_t* in_memory_expand(in_memory_file_t* db, unsigned long node_i
     return result;
 }
 
+relationship_t* in_memory_contains_relationship_from_to(in_memory_file_t* db, unsigned long node_from, unsigned long node_to, direction_t direction) {
+    relationship_t* rel;
+    node_t* source_node = dict_ul_node_get_direct(db->cache_nodes, node_from);
+    node_t* target_node = dict_ul_node_get_direct(db->cache_nodes, node_to);
+    unsigned long node_id;
+
+    if (source_node->first_relationship == UNINITIALIZED_LONG || target_node->first_relationship == UNINITIALIZED_LONG) {
+        return NULL;
+    } else {
+        unsigned long next_id = source_node->first_relationship;
+
+        while (next_id != UNINITIALIZED_LONG) {
+            rel = dict_ul_rel_get_direct(db->cache_rels, next_id);
+            if (direction != INCOMING && rel->source_node == node_from && rel->target_node == node_to || direction != OUTGOING && rel->source_node == node_to && rel->target_node == node_from) {
+                return rel;
+            }
+            next_id = in_memory_next_relationship(db, node_from, rel, direction);
+        }
+    }
+    return NULL;
+}

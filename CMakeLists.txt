@@ -5,8 +5,8 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
 endif()
 
 project(gndb-c  VERSION 0.1
-                DESCRIPTION "A graph native database written in C"
-                LANGUAGES C)
+    DESCRIPTION "A graph native database written in C"
+    LANGUAGES C)
 
 # Set Compiler
 set(CMAKE_C_COMPILER "clang")
@@ -17,7 +17,7 @@ set(CMAKE_C_STANDARD 11)
 set(__STDC_LIB_EXT1__)
 set(__STDC_WANT_LIB_EXT1__ 1)
 # -fsanitize=address,undefined
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security -ferror-limit 0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fPIC -march=native -m64 -O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 

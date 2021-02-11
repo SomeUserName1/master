@@ -15,16 +15,16 @@
  * [     x  ] First in chain of target node
  */
 typedef struct RelationshipRecord {
-    unsigned long int id;
+    unsigned long id;
     unsigned char flags;
-    unsigned long int source_node;
-    unsigned long int target_node;
-    unsigned long int relationship_type;
-    unsigned long int prev_rel_source;
-    unsigned long int next_rel_source;
-    unsigned long int prev_rel_target;
-    unsigned long int next_rel_target;
-    long double weight;
+    unsigned long source_node;
+    unsigned long target_node;
+    unsigned long relationship_type;
+    unsigned long prev_rel_source;
+    unsigned long next_rel_source;
+    unsigned long prev_rel_target;
+    unsigned long next_rel_target;
+    double weight;
     // first_property; properties not impelemented yet
 } relationship_t;
 
