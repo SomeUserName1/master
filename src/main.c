@@ -4,7 +4,7 @@
 #include "access/in_memory_file.h"
 #include "import/snap_importer.h"
 #include "query/bfs.h"
-#include "analyze/ids_to_io.h"
+#include "locality/ids_to_io.h"
 #include "data-struct/dict_ul.h"
 #include "query/louvain.h"
 
