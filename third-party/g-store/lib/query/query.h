@@ -69,7 +69,7 @@ typedef enum enum_label : unsigned char
 void evaluate_label(block1 p, header1 h, g_id first_gid, int v_rel, 
 		std::unordered_map< unsigned int, Label > &label, g_id v_gid);
 
-class q_path_set : public query
+class q_path : public query
 {
 public:
 	void start();
@@ -77,10 +77,8 @@ public:
 		return page_queue;
 	};
 
-	q_path_set();
-	~q_path_set();
-
-	void print_stats();
+	q_path();
+	~q_path();
 
 private:
 	LRUBuffer *lru;
