@@ -23,7 +23,7 @@ int coarsen(multi_level_graph_t* graph, size_t block_size, size_t* num_v_matches
 void turn_around(multi_level_graph_t* graph, size_t block_size);
 void project(multi_level_graph_t* graph, bool* part_type, size_t block_size, float c_ratio_avg, list_ul_t** nodes_per_part);
 void reorder(multi_level_graph_t* graph, bool* part_type);
-void refine(multi_level_graph_t* db);
+void refine(multi_level_graph_t* db, size_t block_size, list_ul_t** nodes_per_part);
 int uncoarsen(multi_level_graph_t* db, size_t block_size, float c_ratio_avg);
 void finalize(multi_level_graph_t* db);
 void g_store_layout(in_memory_file_t* db, size_t block_size);

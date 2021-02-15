@@ -380,6 +380,10 @@ void reorder(multi_level_graph_t* graph, bool* part_type) {
     free(groups);
 }
 
+void refine(multi_level_graph_t* graph, size_t block_size, list_ul_t** nodes_per_part) {
+
+}
+
 int uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg) {
     if (graph->finer == NULL) {
         return -1;
