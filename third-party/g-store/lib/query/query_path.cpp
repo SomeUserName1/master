@@ -1,7 +1,7 @@
 #include "query.h"
 
 void evaluate_label(block1 p, header1 h, g_id first_gid, int v_rel, 
-		std::unordered_map< unsigned int, q_path::Label > &label, g_id v_gid);
+		std::unordered_map< unsigned int, Label > &label, g_id v_gid);
 
 q_path::q_path()
 {

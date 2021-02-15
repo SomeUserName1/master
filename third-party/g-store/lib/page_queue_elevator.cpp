@@ -4,7 +4,7 @@
 bool* pages;
 int capacity;
 int size;
-PageQueue::Direction current_dir;
+Direction current_dir;
 int last_retrieved_page;
 
 int fill_ascending(int* space, int k, int& fill_ptr, int& gaps);
@@ -44,7 +44,7 @@ bool PageQueue::insert(int page)
 	return true;
 }
 
-bool PageQueue::next(int* space, int k)
+int PageQueue::next(int* space, int k, bool read_ahead)
 {
 	if (k > capacity)
 		return false;
@@ -108,7 +108,7 @@ int PageQueue::get_last_retrieved_page()
 	return last_retrieved_page;
 }
 
-PageQueue::Direction PageQueue::get_current_dir()
+Direction PageQueue::get_current_dir()
 {
 	return current_dir;
 }
@@ -124,7 +124,7 @@ bool PageQueue::is_empty()
 }
 
 int fill_ascending(int* space, int k, int& fill_ptr, int& gaps) {
-	assert (current_dir == PageQueue::ASCENDING);
+	assert (current_dir == ASCENDING);
 
 	int num_filled = 0;
 
@@ -149,7 +149,7 @@ int fill_ascending(int* space, int k, int& fill_ptr, int& gaps) {
 }
 
 int fill_descending(int* space, int k, int& fill_ptr, int& gaps) {
-	assert (current_dir == PageQueue::DESCENDING);
+	assert (current_dir == DESCENDING);
 
 	int num_filled = 0;
 

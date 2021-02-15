@@ -408,7 +408,7 @@ struct p_stats
     max_int_v.set(-1, -1);
     min_ext_v.set(-1, INT_MAX);
     max_ext_v.set(-1, -1);
-    min_tens_v.set(-1, INT8_MAX);
+    min_tens_v.set(-1, LLONG_MAX);
     max_tens_v.set(-1, -1L);
   }
 
@@ -466,7 +466,7 @@ struct g_stats
     max_int_p.set(-1, -1);
     min_ext_p.set(-1, INT_MAX);
     max_ext_p.set(-1, -1);
-    min_tens_p.set(-1, INT8_MAX);
+    min_tens_p.set(-1, LLONG_MAX);
     max_tens_p.set(-1, -1L);
 
     min_w_p.set(-1, INT_MAX);
@@ -476,7 +476,7 @@ struct g_stats
     max_int_v.set(-1, -1);
     min_ext_v.set(-1, INT_MAX);
     max_ext_v.set(-1, -1);
-    min_tens_v.set(-1, INT8_MAX);
+    min_tens_v.set(-1, LLONG_MAX);
     max_tens_v.set(-1, -1L);
   }
 

@@ -16,10 +16,6 @@ typedef unsigned int uint4;       // [0; 4,294,967,296)
 typedef unsigned int uint;        // [0; 4,294,967,296)
 typedef unsigned long long uint8;
 
-const int8   INT8_MAX =  LLONG_MAX;
-const int8   INT8_MIN =  LLONG_MIN;
-const uint8 UINT8_MAX = ULLONG_MAX;
-
 const int4   INT4_MAX =  INT_MAX;
 const int4   INT4_MIN =  INT_MIN;
 const uint4 UINT4_MAX = UINT_MAX;
