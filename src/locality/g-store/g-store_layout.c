@@ -38,7 +38,7 @@ long compute_abs_tension(multi_level_graph_t* graph, size_t* partition_p_node) {
     list_relationship_t* rels = in_memory_get_relationships(finer->records);
     relationship_t* rel;
 
-    for (size_t i = 0; i < finer->records->rel_id_counter; ++i) {
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
 
         diff = partition_p_node[rel->target_node] - partition_p_node[rel->source_node];
@@ -46,6 +46,34 @@ long compute_abs_tension(multi_level_graph_t* graph, size_t* partition_p_node) {
     }
     return tension;
 
+}
+
+unsigned long compute_total_e_w_btw_blocks(multi_level_graph_t* graph, size_t* partition) {
+    list_relationship_t* rels = in_memory_get_relationships(graph->records);
+    relationship_t* rel;
+    long total_e_w = 0;
+
+    for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
+        rel = list_relationship_get(rels, i);
+        if (partition[rel->source_node] != partition[rel->target_node]) {
+            total_e_w += graph->edge_aggregation_weight[i];
+        }
+    }
+    return total_e_w;
+}
+
+long compute_num_e_btw_blocks(multi_level_graph_t* graph, size_t* partition) {
+    list_relationship_t* rels = in_memory_get_relationships(graph->records);
+    relationship_t* rel;
+    long total_e = 0;
+
+    for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
+        rel = list_relationship_get(rels, i);
+        if (partition[rel->source_node] != partition[rel->target_node]) {
+            total_e++;
+        }
+    }
+    return total_e;
 }
 
 long* compute_tension(multi_level_graph_t* graph, list_ul_t* nodes_in_p, bool modified_t) {
@@ -113,8 +141,7 @@ size_t* swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2) {
     return new_partition;
 }
 
-int coarsen(multi_level_graph_t* graph, size_t block_size, size_t* num_v_matches,
-        size_t* max_partition_size, float* c_ratio_avg) {
+int coarsen(multi_level_graph_t* graph, size_t block_size, size_t* num_v_matches, size_t* max_partition_size, float* c_ratio_avg) {
     float c_ratio = 1.0;
     size_t num_nodes = graph->records->node_id_counter;
     bool* node_matched = calloc(num_nodes, sizeof(bool));
@@ -181,17 +208,20 @@ int coarsen(multi_level_graph_t* graph, size_t block_size, size_t* num_v_matches
     for (unsigned long i = 0; i < num_rels; ++i) {
         rel = list_relationship_get(rels, i);
 
-        new_rel = in_memory_contains_relationship_from_to(coarser->records,
-                graph->map_to_coarser[rel->source_node], graph->map_to_coarser[rel->target_node], BOTH);
+        if (graph->map_to_coarser[rel->source_node] != graph->map_to_coarser[rel->target_node]) {
+            new_rel = in_memory_contains_relationship_from_to(coarser->records,
+                    graph->map_to_coarser[rel->source_node], graph->map_to_coarser[rel->target_node], BOTH);
 
-        if (new_rel == NULL) {
-            new_rel_id = in_memory_create_relationship(coarser->records, graph->map_to_coarser[i],
-                    graph->map_to_coarser[other_node_id]);
-        } else {
-            new_rel_id = new_rel->id;
+
+            if (new_rel == NULL) {
+                new_rel_id = in_memory_create_relationship(coarser->records, graph->map_to_coarser[i],
+                        graph->map_to_coarser[other_node_id]);
+            } else {
+                new_rel_id = new_rel->id;
+            }
+
+            coarser->edge_aggregation_weight[new_rel_id] += graph->edge_aggregation_weight[rel->id];
         }
-
-        coarser->edge_aggregation_weight[new_rel_id] += 1;
     }
 
     c_ratio = (1.0 - (float) coarser->records->node_id_counter / (float) graph->records->node_id_counter);
@@ -380,8 +410,41 @@ void reorder(multi_level_graph_t* graph, bool* part_type) {
     free(groups);
 }
 
-void refine(multi_level_graph_t* graph, size_t block_size, list_ul_t** nodes_per_part) {
+void refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg) {
+    multi_level_graph_t* finer;
+    size_t num_nodes = finer->records->node_id_counter;
+    float* score = calloc(num_nodes * finer->num_partitions, sizeof(float));
+    float weight_threshold = block_size / pow(1 - c_ratio_avg, finer->c_level);
+    size_t* temp_p = calloc(num_nodes, sizeof(size_t));
+    long occupancy_factor = 0;
+    float max_score;
+    size_t node_id, partition_id;
 
+    for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
+        for (size_t i = 0; i < finer->records->node_id_counter; ++i) {
+            for (size_t k = 0; k < finer->num_partitions; ++k) {
+                if (k == finer->partition[i]) { continue; }
+                // copy temp partition from original & set current nodes partition according to k
+                for (size_t n = 0; n < num_nodes; ++n) {
+                    temp_p[n] = finer->partition[n];
+                }
+                temp_p[i] = k;
+                occupancy_factor = 1 - (finer->node_aggregation_weight[i] + finer->partition_aggregation_weight[k]) / weight_threshold;
+                score[i * finer->num_partitions + k] 
+                    = - (ALPHA * compute_abs_tension(finer, temp_p)
+                    + BETA * compute_total_e_w_btw_blocks(graph, temp_p)
+                    + GAMMA * compute_num_e_btw_blocks(graph, temp_p));
+            }
+        }
+        max_score = 0.0f;
+        for (size_t i = 0; i < num_nodes * finer->num_partitions; ++i) {
+            if (score[i] > max_score) {
+                node_id = i / finer->num_partitions;
+                partition_id = i % finer->num_partitions;
+            }
+        }
+        finer->partition[node_id] = partition_id;
+    }
 }
 
 int uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg) {
@@ -403,7 +466,7 @@ int uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg) 
     reorder(graph, part_type);
     free(part_type);
 
-    refine(graph);
+    refine(graph, block_size, c_ratio_avg);
 
 
     return 0;
