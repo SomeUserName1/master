@@ -1,2 +1,3 @@
-add_library(multilevel ml_coarsen.cpp ml_part.cpp ml_project.cpp ml_refine.cpp ml_reorder.cpp ml_turn_around.cpp ml_uncoarsen.cpp finalize.cpp)
-list(APPEND LIBS multilevel)
+add_library(g-store-layout g-store_layout.c)
+target_link_libraries(g-store-layout PRIVATE access)
+list(APPEND LIBS g-store-layout)

@@ -41,9 +41,9 @@ I.e. Adapt C3 s.t. edges between partitions correspond to relationships in the s
 2. Turn-arround: Assign partition numbers. For each CC with size > block size assign number. For rest assign same number until part > block size
 
 3. Uncoarsening: 
-    - Project
-    - Reorder
-    - Refine
+    - Project: Derive first projection
+    - Reorder: Swap partitions
+    - Refine: Swap vertices between partitions
 
 
 ## Scalable layout of large graphs on disk [Yasar, Gedik]
@@ -56,22 +56,37 @@ Block locality:
 - Conductance $$C_D$$:  
 |Edges with only one vertex in block| / |edges in block|  
 - Cohesiveness $$c_h$$:  
-|Adjacent vertices in block| / |vertices in block|
+|Adjacent vertices in block| / |vertex pairs in block|
 
 - Overall:
-$$L_B = \sqrt{C_D (1 - C_H)}$$
+$$L(B) = \sqrt{C_D (1 - C_H)}$$
 
 Ordering locality:  
-$$R_B = \frac{\sum_{v \in V} \sum_{u \in N_v} |\phi(u) - \phi(v)|}{|\text{blocks}| \sum_{v \in B} N_v}$$
+$$R(B) = 1 - \frac{\sum_{v \in V_B} \sum_{u \in N_v} |\phi(u) - \phi(v)|}{|\text{blocks}| \sum_{v \in B} N_v}$$
 
 ### Algorithm
-1. Indentify Diffusion sets
+1. Indentify Diffusion sets: Execute t random walks of length l and capture the vertices the were visited along with how often they were visited.
+$$t = \argmin_x f'(x) \geq 1$$ with $$f$$ cdf of node degree.  
+$$l = 1 + \lceil ln(|V|)/k \rceil$$
 
-2. Coarse partitioning using k-Means based on jaccard distance of diffusion sets
+2. Coarse partitioning using k-Means based on weighted jaccard distance of diffusion sets  
+Distance function: $$J_w(u, v) = 1 - \frac{\sum_{x \in D_u \cap D_v} \min w_{x, D_u} w_{x, D_v}}{\sum_{x \in D_u \cup D_v} \max w_{x, D_u}, w_{x, D_v}}$$
 
-3. Hierarchical clustering of k partitions based on diffusion sets
+$$k$$ chosen based upon memory availability of node in cluster: $$k = \rceil |node in B| \cdot |nodes| / \sqrt{0.8 |Memory per node|}$$  
+Adapt: memory = RAM  
+"We produce new centers by counting the number of occurences of vertices in each cluster and keeping the most frequent ones"; I.e. most frequent node in diffusion set is centroid.  
+Initial centers: Sort nodes by degree and pick those which are appart at least 0.9  
 
-4. Ordering based on dewey numbers 
+3. & 4. Hierarchical clustering of k partitions based on diffusion sets & assign labels
+Bottom-up hierarchical clustering. Each vertex in own partition, merged by picking closest pair of part at each step (min weighted jaccard). 
+After each of the k subgraphs has been clustered and labelled, the same procedure is applied between the components.
+
+To be implemented:
+- Random walk
+- k-Medoid-like clustering with custom jaccard distance
+- hierarchical clustering including labelling
+- ordering of subgraphs based on dist.
+
 
 
  
