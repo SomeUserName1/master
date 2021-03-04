@@ -6,13 +6,12 @@
 \date{\today}
 \year{2020}
 \author{Fabian Klopfer}
-\title{[Draft] Probabilistic Automata}
-\subtitle{Semantics, Equivalence \& Minimization}
+\title{[Draft] Locality Optimization}
+\subtitle{for traversal-based queries on graph databases}
 \unisection{Faculty of Sciences}
 \department{Department of Computer and Information Science}
-\group{Modeling of Complex, Self-Organizing Systems Group}
-\supervisorOne{Prof. Dr. Tatjana Petrov}
-\supervisorTwo{Prof. Dr. Michael Grossniklaus}
+\supervisorOne{Prof. Dr. Michael Grossniklaus}
+\supervisorTwo{Dr. Michael Rupp}
 
 \headFoot{14}
 \bibliography{resources} 
@@ -21,7 +20,7 @@
 \begin{document}
 
 \newgeometry{left=2.5cm, right=2.5cm, bottom=2cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=30pt}
-\thesistitlepage[language=english]{Master Thesis}
+\thesistitlepage[language=english]{Master of Science}{Computer and Information Science}
 \input{01-abstract.tex}
 \addtocounter{page}{-1}
 \tableofcontents
@@ -33,9 +32,10 @@
 \normalsize
 
 \include{02-introduction}
-\include{03-background}
-\include{04-minimization_complexity}
-\include{05-conclusions}
+\include{03-preliminaries}
+\include{04-methods}
+\include{05-eval}
+\include{06-conclusions}
 
 \nocite{*}
 \printbibliography

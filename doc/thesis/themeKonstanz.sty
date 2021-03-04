@@ -518,7 +518,7 @@ citestyle=numeric]{biblatex}
 %
 % Diese Thesis-Titelseite ist auf DinA4 optimiert!
 
-\newkeycommand{\thesistitlepage}[language=german][1]{%
+\newkeycommand{\thesistitlepage}[language=german][2]{%
 % Definiere Deutsch, English und Benutzereingabe
 %\def\lanGerman{german}%
 \def\lanEnglish{english}%
@@ -532,64 +532,41 @@ citestyle=numeric]{biblatex}
 \selectfontsize{16pt}\centering\textbf{\docSubtitle}
 \end{textblock*}%
 % Art der Arbeit, z.b. Bachelorarbeit, Masterarbeit, ...
+\ifthenelse{\equal{\lanUser}{\lanEnglish}}%
+{%
 \begin{textblock*}{\textwidth}(0.5\footspace, 9cm)%
-\selectfontsize{18pt}\centering\textbf{#1}%
-\end{textblock*}%
-% Autor (Deutsch, English)
-\ifthenelse{\equal{\lanUser}{\lanEnglish}}%
-{%
-\begin{textblock*}{\textwidth}(0.5\footspace, 9.8cm)%
-\selectfontsize{14pt}\centering%
-by\\%
-\vskip 2pt
-\textbf{\autor}%
+\selectfontsize{14pt}\centering
+A thesis submitted to the%
 \end{textblock*}%
 }%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 10cm)%
-\selectfontsize{14pt}\centering%
-vorgelegt von\\%
-\vskip 2pt%
-\textbf{\autor}%
-\end{textblock*}%
-}%
-% at the / an der
-\ifthenelse{\equal{\lanUser}{\lanEnglish}}%
-{%
-
-}%
-{%
-\begin{textblock*}{\textwidth}(0.5\footspace, 12.5cm)%
-\selectfontsize{14pt}\centering%
-an der%
+\begin{textblock*}{\textwidth}(0.5\footspace, 9cm)%
+\selectfontsize{14pt}\centering 
+Eine Abschlussarbeit eingereicht an der%
 \end{textblock*}%
 }%
 % Unversität Konstanz Logo
-\begin{textblock*}{\textwidth}(0.5\footspace, 13.25cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 8.5cm)%
 \centering\includegraphics[width=0.75\textwidth]{img/logo.pdf}
 \end{textblock*}%
 % Uni-Sektion und Fachebereich
-\begin{textblock*}{\textwidth}(0.5\footspace, 19.5cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 14cm)%
 \selectfontsize{14pt}\centering%
-\docUnisection\\%
-\vskip 2pt%
 \docDepartment\\%
-\vskip 2pt%
-\docGroup
 \end{textblock*}%
 % Gutachter (Deutsch, English)
 \ifthenelse{\equal{\lanUser}{\lanEnglish}}%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 22.5cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 15cm)%
 \selectfontsize{14pt}\centering%
-\begin{tabular}{lL{0.5cm}l}%
- \textbf{1\textsuperscript{st} Reviewer:} & & \docSupervisorOne\\[2pt]%
- \textbf{2\textsuperscript{nd} Reviewer:} & & \docSupervisorTwo%
+\begin{tabular}{lL{0.1cm}l}%
+ 1\textsuperscript{st} Reviewer: & & \docSupervisorOne\\[2pt]%
+ 2\textsuperscript{nd} Reviewer: & & \docSupervisorTwo%
 \end{tabular}%
 \end{textblock*}%
 }%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 22.5cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 15cm)%
 \selectfontsize{14pt}\centering%
 \begin{tabular}{lL{0.5cm}l}%
 Erstgutachter: & & \docSupervisorOne\\[2pt]%
@@ -597,17 +574,50 @@ Zweitgutachter: & & \docSupervisorTwo%
 \end{tabular}%
 \end{textblock*}%
 }%
-% Konstanz, Jahr (Deutsch, English)
 \ifthenelse{\equal{\lanUser}{\lanEnglish}}%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 26cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 19cm)%
 \selectfontsize{14pt}\centering%
+in partial fulfillment of the requirements for the degree of\\%
+\vskip 10pt%
+\selectfontsize{16pt}\textbf{#1}\\%
+\vskip 2pt%
+\selectfontsize{14pt}in\\%
+\vskip 2pt%
+\selectfontsize{16pt}\textbf{#2}\\%
+\end{textblock*}%
+}%
+{%
+\begin{textblock*}{\textwidth}(0.5\footspace, 19cm)%
+\selectfontsize{14pt}\centering%
+zur Erlangung des Grades\\%
+\vskip 10pt%
+#1\\%
+\vskip 2pt%
+in\\%
+\vskip 2pt%
+#2\\%
+\end{textblock*}%
+}%
+% Autor (Deutsch, English)
+\ifthenelse{\equal{\lanUser}{\lanEnglish}}%
+{%
+\begin{textblock*}{\textwidth}(0.5\footspace, 24cm)%
+\selectfontsize{14pt}\centering%
+by\\%
+\vskip 2pt
+\autor\\%
+\vskip 2pt%
 Konstanz, \jahr%
 \end{textblock*}%
 }%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 26cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 24m)%
 \selectfontsize{14pt}\centering%
+vorgelegt von\\%
+\vskip 2pt%
+\autor\\%
+\vskip 2pt%
 Konstanz, \jahr%
 \end{textblock*}%
 }%

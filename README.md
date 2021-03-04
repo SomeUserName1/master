@@ -29,7 +29,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] G-Store
 - [ ] ICBL
 - [ ] Louvain + customizations
-- [ ] Evaluation:
+
+#### Evaluation:
 - [ ] Describe Implementation & Setup
 - [ ] Insert like on dataset -> run queries & analyze block usage -> run method & reorganize -> run queries and analysis again. 
 - [ ] Visualize.
