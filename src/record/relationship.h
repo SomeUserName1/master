@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
-#define UNINITIALIZED_BYTE 0xFF
-#define UNINITIALIZED_WEIGHT 1.0f;
-
 /**
  * The flags field is structured the floowoing way:
  * [       x] In Use

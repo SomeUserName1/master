@@ -3,6 +3,7 @@
 #include "../../src/data-struct/dict_ul.h"
 #include "../../src/record/node.h"
 #include "../../src/record/relationship.h"
+#include "../../src/constants.h"
 
 #include <assert.h>
 #include <stdio.h>

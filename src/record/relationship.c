@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../constants.h"
+
 
 relationship_t* new_relationship() {
     relationship_t *rel = malloc(sizeof(*rel));
@@ -76,7 +78,7 @@ int relationship_to_string(const relationship_t* record, char* buffer, size_t bu
             "Source node's next relationship: %#lX\n"
             "Target node's previous relationship: %#lX\n"
             "Target node's next relationship: %#lX\n"
-            "First Property: %Lf\n",
+            "First Property: %f\n",
             record->id,
             record->flags,
             record->source_node,
@@ -106,7 +108,7 @@ void relationship_pretty_print(const relationship_t* record) {
             "Source node's next relationship: %#lX\n"
             "Target node's previous relationship: %#lX\n"
             "Target node's next relationship: %#lX\n"
-            "Weight: %Lf\n",
+            "Weight: %f\n",
             record->id,
             record->flags,
             record->source_node,
@@ -121,9 +123,9 @@ void relationship_pretty_print(const relationship_t* record) {
 }
 
 void relationship_set_first_source(relationship_t* rel) {
-    rel->flags = rel->flags | 000000010;
+    rel->flags = rel->flags | FIRST_REL_SOURCE_FLAG;
 }
 
 void relationship_set_first_target(relationship_t* rel) {
-    rel->flags = rel->flags | 000000100;
+    rel->flags = rel->flags | FIRST_REL_TARGET_FLAG;
 }

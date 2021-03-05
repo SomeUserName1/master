@@ -8,7 +8,7 @@
 
 size_t fnv_hash_ul(const void* in, unsigned int seed) {
     size_t h = seed;
-    unsigned int prime = 0xFDCFB7;
+    const unsigned int prime = 0xFDCFB7;
     unsigned long ul = *((unsigned long*) in);
 
     return (h ^ ul) * prime;

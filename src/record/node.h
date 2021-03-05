@@ -4,9 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define UNINITIALIZED_LONG 0xFFFFFFFFFFFFFFFF
-#define UNINITIALIZED_BYTE 0xFF
-
 
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag

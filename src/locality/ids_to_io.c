@@ -1,6 +1,7 @@
 #include "ids_to_io.h"
 #include "../record/relationship.h"
 #include "../record/node.h"
+#include "../constants.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -23,11 +24,11 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
         printf("ids_to_io: Can't open file with path %s", out_path);
         return NULL;
     }
-    char ignore[128];
-    char read_type[128];
+    char ignore[BUFFER_SIZE];
+    char read_type[BUFFER_SIZE];
     unsigned long id;
-    memset(ignore, 0, 128);
-    memset(read_type, 0, 128);
+    memset(ignore, 0, BUFFER_SIZE);
+    memset(read_type, 0, BUFFER_SIZE);
 
     unsigned long page_node;
     unsigned long page_rel;
@@ -49,7 +50,8 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
             }
             fprintf(page_accesses_file, "\n");
        }
-       if ((type == REL || type == ALL) && strncmp(read_type, "Relationship", 12) == 0) {
+       if ((type == REL || type == ALL) && strncmp(read_type, "Relationship",
+                   NUM_CHARS_REL) == 0) {
             if ((page_rel = id_to_page(id, page_size, REL)) != prev_page_rel) {
                 prev_page_rel = page_rel;
                 num_pages_loaded++;

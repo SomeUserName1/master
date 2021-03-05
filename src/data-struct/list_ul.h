@@ -4,11 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "list.h"
-
 typedef struct list_ul list_ul_t;
 
-list_ul_t* create_list_ul(list_flags_t flags);
+list_ul_t* create_list_ul(void);
 void list_ul_destroy(list_ul_t* l);
 size_t list_ul_size(list_ul_t* l);
 

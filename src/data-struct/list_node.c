@@ -1,15 +1,16 @@
 #include "list_node.h"
 
 #include "cbs.h"
+#include "list.h"
 #include "../record/node.h"
 
-list_node_t* create_list_node(list_flags_t flags) {
+list_node_t* create_list_node() {
     list_cbs_t cbs = {
         node_eq,
         NULL,
         NULL
     };
-    list_t* lst =  create_list(&cbs, flags);
+    list_t* lst =  create_list(&cbs);
 
     return (list_node_t*) lst;
 }
@@ -54,14 +55,3 @@ node_t* list_node_take(list_node_t* l, size_t idx) {
     return (node_t*) list_take((list_t*) l, idx);
 }
 
-int list_node_start_bulk_add(list_node_t* l) {
-    return list_start_bulk_add((list_t*) l);
-}
-
-int list_node_end_bulk_add(list_node_t* l) {
-    return list_end_bulk_add((list_t*) l);
-}
-
-int list_node_sort(list_node_t* l) {
-    return list_sort((list_t*) l, NULL);
-}

@@ -25,7 +25,7 @@ void in_memory_file_destroy(in_memory_file_t* db);
 
 unsigned long in_memory_create_node(in_memory_file_t* db);
 unsigned long in_memory_create_relationship(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo);
-unsigned long in_memory_create_relationship_weighted(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo, long double weight);
+unsigned long in_memory_create_relationship_weighted(in_memory_file_t* db, unsigned long nodeFrom, unsigned long nodeTo, double weight);
 
 node_t* in_memory_get_node(in_memory_file_t* db, unsigned long id);
 list_node_t* in_memory_get_nodes(in_memory_file_t* db);

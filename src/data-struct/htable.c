@@ -348,4 +348,5 @@ void htable_print(htable_t* ht) {
         hi->ht->cbs.value_print(value);
         printf("%s", "_______________________");
     }
+    htable_iterator_destroy(hi);
 }

@@ -1,15 +1,17 @@
 #include "list_rel.h"
 
 #include "cbs.h"
+
+#include "list.h"
 #include "../record/relationship.h"
 
-list_relationship_t* create_list_relationship(list_flags_t flags) {
+list_relationship_t* create_list_relationship() {
     list_cbs_t cbs = {
         rel_eq,
         NULL,
         NULL
     };
-    list_t* lst =  create_list(&cbs, flags);
+    list_t* lst =  create_list(&cbs);
 
     return (list_relationship_t*) lst;
 }
@@ -54,14 +56,3 @@ relationship_t* list_relationship_take(list_relationship_t* l, size_t idx) {
     return (relationship_t*) list_take((list_t*) l, idx);
 }
 
-int list_relationship_start_bulk_add(list_relationship_t* l) {
-    return list_start_bulk_add((list_t*) l);
-}
-
-int list_relationship_end_bulk_add(list_relationship_t* l) {
-    return list_end_bulk_add((list_t*) l);
-}
-
-int list_relationship_sort(list_relationship_t* l) {
-    return list_sort((list_t*) l, NULL);
-}

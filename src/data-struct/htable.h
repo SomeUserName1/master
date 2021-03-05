@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define REHASH_FILLING_RATIO 0.8
-#define BUCKET_START 8
-#define TOO_MANY_BUCKETS_BITS 31U
+#define REHASH_FILLING_RATIO (0.8F)
+#define BUCKET_START (8)
+#define TOO_MANY_BUCKETS_BITS (31U)
+
 
 typedef size_t (*htable_hash)(const void* in, unsigned int seed);
 typedef bool (*htable_keq)(const void* first, const void* second);

@@ -3,13 +3,13 @@
 
 #include <stdlib.h>
 
-list_l_t* create_list_l(list_flags_t flags) {
+list_l_t* create_list_l() {
     list_cbs_t cbs = {
         unsigned_long_eq,
         unsigned_long_copy,
         free
     };
-    list_t* lst =  create_list(&cbs, flags);
+    list_t* lst =  create_list(&cbs);
 
     return (list_l_t*) lst;
 }
@@ -52,16 +52,4 @@ long list_l_get(list_l_t* l, size_t idx) {
 
 long list_l_take(list_l_t* l, size_t idx) {
     return *((long*) list_take((list_t*) l, idx));
-}
-
-int list_l_start_bulk_add(list_l_t* l) {
-    return list_start_bulk_add((list_t*) l);
-}
-
-int list_l_end_bulk_add(list_l_t* l) {
-    return list_end_bulk_add((list_t*) l);
-}
-
-int list_l_sort(list_l_t* l) {
-    return list_sort((list_t*) l, unsigned_long_eq);
 }

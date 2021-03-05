@@ -22,14 +22,14 @@
 
 ### Cost Model
 C1: minimal linear arrangement  
-$$\sum_{\{u, v\} \in E} |\phi(\pi(u)) - \phi(\pi(v))|$$ with $$\pi$$ partitioning function, $$\phi$$ permuatation.  
+$\sum_{\{u, v\} \in E} |\phi(\pi(u)) - \phi(\pi(v))|$ with $\pi$ partitioning function, $\phi$ permuatation.  
 
 C2/C3: Partitioning  
 Penalize adjacent vertices in distinct partitions.  
-$$\sum_{\{u, v\} \in E} w \delta_{uv}$$ with $$\delta_{uv} = 1$$ if $$\pi(u) \neq \pi(v)$$  
+$\sum_{\{u, v\} \in E} w \delta_{uv}$ with $\delta_{uv} = 1$ if $\pi(u) \neq \pi(v)$  
   
 Penalize edges between partitions.  
-$$\sum_{i < j} w \delta_{ij}$$ with $$\delta_{ij} = 1$$ if $$\exists \{u,v\} \in E: \pi(u) = i \wedge \pi(v) = j$$  
+$\sum_{i < j} w \delta_{ij}$ with $\delta_{ij} = 1$ if $\exists \{u,v\} \in E: \pi(u) = i \wedge \pi(v) = j$  
 
 As neighbouring vertices in distinct partitions $$\Rightarrow$$ edges between partitons, C2 implies C3.  
 Useful for us, as C2 is a vertex placement cost and C3 is an edge placement cost.  
@@ -53,26 +53,27 @@ distributed due to MapReduce. Else same problem as with G-Store.
 
 ### Cost model
 Block locality:  
-- Conductance $$C_D$$:  
+- Conductance $C_D$:  
 |Edges with only one vertex in block| / |edges in block|  
-- Cohesiveness $$c_h$$:  
+- Cohesiveness $C_H$:  
 |Adjacent vertices in block| / |vertex pairs in block|
 
 - Overall:
-$$L(B) = \sqrt{C_D (1 - C_H)}$$
+$L(B) = \sqrt{C_D (1 - C_H)}$
 
 Ordering locality:  
 $$R(B) = 1 - \frac{\sum_{v \in V_B} \sum_{u \in N_v} |\phi(u) - \phi(v)|}{|\text{blocks}| \sum_{v \in B} N_v}$$
 
 ### Algorithm
-1. Indentify Diffusion sets: Execute t random walks of length l and capture the vertices the were visited along with how often they were visited.
-$$t = \argmin_x f'(x) \geq 1$$ with $$f$$ cdf of node degree.  
-$$l = 1 + \lceil ln(|V|)/k \rceil$$
+1. Indentify Diffusion sets: Execute t random walks of length l and capture the vertices the were visited along with how often they were visited.  
+$t = \argmin_x f'(x) \geq 1$ with $f$ cdf of node degree.  
+$l = 1 + \lceil ln(|V|)/k \rceil$
 
 2. Coarse partitioning using k-Means based on weighted jaccard distance of diffusion sets  
-Distance function: $$J_w(u, v) = 1 - \frac{\sum_{x \in D_u \cap D_v} \min w_{x, D_u} w_{x, D_v}}{\sum_{x \in D_u \cup D_v} \max w_{x, D_u}, w_{x, D_v}}$$
+Distance function: $J_w(u, v) = 1 - \frac{\sum_{x \in D_u \cap D_v} \min w_{x, D_u} w_{x, D_v}}{\sum_{x \in D_u \cup D_v} \max w_{x, D_u}, w_{x, D_v}}$
 
-$$k$$ chosen based upon memory availability of node in cluster: $$k = \rceil |node in B| \cdot |nodes| / \sqrt{0.8 |Memory per node|}$$  
+$k$ chosen based upon memory availability of node in cluster:  
+$k = \lceil |\text{node in }B| \cdot |nodes| / \sqrt{0.8 |\text{Memory per comp. node}]|}$  
 Adapt: memory = RAM  
 "We produce new centers by counting the number of occurences of vertices in each cluster and keeping the most frequent ones"; I.e. most frequent node in diffusion set is centroid.  
 Initial centers: Sort nodes by degree and pick those which are appart at least 0.9  

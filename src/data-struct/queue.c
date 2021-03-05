@@ -13,7 +13,6 @@ static void* queue_passthrough_copy(const void* elem) {
 
 static void queue_passthrough_free(void* elem) {
     elem = NULL;
-    return;
 }
 
 queue_t* create_queue(const queue_cbs_t* cbs) {
@@ -100,7 +99,7 @@ int queue_insert(queue_t* queue , void* elem, size_t idx) {
         return -1;
     }
 
-    queue_node_t* cur;
+    queue_node_t* cur = queue->head;
     queue_node_t* next = queue->head;
     for (size_t i = 0; i < (idx + 1); ++i) {
         cur = next;
@@ -115,7 +114,7 @@ int queue_insert(queue_t* queue , void* elem, size_t idx) {
     return 0;
 }
 
-static int __queue_remove(queue_t* queue, size_t idx, bool free_flag) {
+static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
      if (queue == NULL || idx >= queue->len) {
         return -1;
     }
@@ -180,7 +179,7 @@ static int __queue_remove(queue_t* queue, size_t idx, bool free_flag) {
 }
 
 int queue_remove(queue_t* queue, size_t idx) {
-    return __queue_remove(queue, idx, true);
+    return queue_remove_int(queue, idx, true);
 }
 
 int queue_remove_elem(queue_t* queue, void* elem) {
@@ -188,7 +187,7 @@ int queue_remove_elem(queue_t* queue, void* elem) {
     if (queue_index_of(queue, elem, &idx) < 0) {
         return -1;
     }
-    return __queue_remove(queue, idx, true);
+    return queue_remove_int(queue, idx, true);
 }
 
 int queue_index_of(queue_t* queue, void* elem, size_t* idx) {
@@ -227,7 +226,7 @@ void* queue_get(queue_t* queue, size_t idx) {
 
 void* queue_take(queue_t* queue) {
     void* result = queue->head->element;
-    if (__queue_remove(queue, 0, false) < 0) {
+    if (queue_remove_int(queue, 0, false) < 0) {
         return NULL;
     }
     return result;

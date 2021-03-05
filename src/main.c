@@ -7,6 +7,7 @@
 #include "locality/ids_to_io.h"
 #include "data-struct/dict_ul.h"
 #include "query/louvain.h"
+#include "constants.h"
 
 int main(void) {
     printf("Start importing\n");
@@ -17,15 +18,17 @@ int main(void) {
     bfs_result_t* result = bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
 
     printf("Analyze IOs from IDs\n");
-    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", "/home/someusername/workspace_local/block_access_sequence.txt", 512, 512, REL);
+    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", "/home/someusername/workspace_local/block_access_sequence.txt", BLOCK_SIZE, PAGE_SIZE, REL);
     if (res == NULL) {
         return -1;
     }
     printf("%s %lu %s %lu %s", "Loaded", res->read_pages, "Pages and accessed thereby", res->read_blocks, "Blocks.\n");
 
     unsigned long* partition = louvain(db);
+    printf("%p", partition);
     // block_order = partition_to_block_order(db, partition);
     // reorder_storage(db, block_order, partiton);
+    free(partition);
 
     printf("\nSuccess!\n");
     bfs_result_destroy(result);

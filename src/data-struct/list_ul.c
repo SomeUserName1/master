@@ -1,15 +1,16 @@
 #include "list_ul.h"
 #include "cbs.h"
+#include "list.h"
 
 #include <stdlib.h>
 
-list_ul_t* create_list_ul(list_flags_t flags) {
+list_ul_t* create_list_ul() {
     list_cbs_t cbs = {
         unsigned_long_eq,
         unsigned_long_copy,
         free
     };
-    list_t* lst =  create_list(&cbs, flags);
+    list_t* lst =  create_list(&cbs);
 
     return (list_ul_t*) lst;
 }
@@ -54,14 +55,3 @@ unsigned long list_ul_take(list_ul_t* l, size_t idx) {
     return *((unsigned long*) list_take((list_t*) l, idx));
 }
 
-int list_ul_start_bulk_add(list_ul_t* l) {
-    return list_start_bulk_add((list_t*) l);
-}
-
-int list_ul_end_bulk_add(list_ul_t* l) {
-    return list_end_bulk_add((list_t*) l);
-}
-
-int list_ul_sort(list_ul_t* l) {
-    return list_sort((list_t*) l, unsigned_long_eq);
-}

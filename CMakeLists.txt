@@ -17,7 +17,7 @@ set(CMAKE_C_STANDARD 11)
 set(__STDC_LIB_EXT1__)
 set(__STDC_WANT_LIB_EXT1__ 1)
 # -fsanitize=address,undefined
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security -ferror-limit 0")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security -ferror-limit=0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fPIC -march=native -m64 -O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
@@ -40,12 +40,11 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(FORTIFY_SOURCE 2)
-    #    set(CMAKE_C_CLANG_TIDY
-    #         clang-tidy;
-    #            -header-filter=.*;
-    #            -checks=*,-llvmlibc-restrict-system-libc-headers,-llvm-header-guard,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-macro-parentheses,-clang-analyzer-core.UndefinedBinaryOperatorResult,-cert-msc32-c,-cert-msc51-cpp,-cert-msc30-c,-cert-msc50-cpp,-misc-no-recursion;
-    #            -warnings-as-errors=*;)
-    # message("-- Using Clang-Tidy")
+        set(CMAKE_C_CLANG_TIDY
+             clang-tidy;
+                -header-filter=.*;
+                -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling                )
+     message("-- Using Clang-Tidy")
 
     set(CMAKE_C_INCLUDE_WHAT_YOU_USE include-what-you-use)
     set(LINK_WHAT_YOU_USE)
