@@ -4,7 +4,7 @@
 #include "../../access/in_memory_file.h"
 #include "../../data-struct/dict_ul.h"
 
-#define MEMORY 8589934592.0f
+#define MEMORY (8589934592.0f)
 
 typedef struct dendrogram {
     char* label;

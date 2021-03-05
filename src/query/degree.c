@@ -6,8 +6,7 @@
 #include "../data-struct/list_rel.h"
 
 float get_avg_degree(in_memory_file_t* db, direction_t direction) {
-    list_node_t* nodes = in_memory_get_nodes(db);
-    size_t num_nodes = list_node_size(nodes);
+    size_t num_nodes = db->node_id_counter;
     size_t total_degree = 0;
     list_relationship_t* rels;
 
@@ -20,8 +19,7 @@ float get_avg_degree(in_memory_file_t* db, direction_t direction) {
 }
 
 size_t get_min_degree(in_memory_file_t* db, direction_t direction) {
-    list_node_t* nodes = in_memory_get_nodes(db);
-    size_t num_nodes = list_node_size(nodes);
+    size_t num_nodes = db->node_id_counter;
     size_t min_degree = SIZE_MAX;
     list_relationship_t* rels;
 
@@ -36,8 +34,7 @@ size_t get_min_degree(in_memory_file_t* db, direction_t direction) {
 }
 
 size_t get_max_degree(in_memory_file_t* db, direction_t direction) {
-    list_node_t* nodes = in_memory_get_nodes(db);
-    size_t num_nodes = list_node_size(nodes);
+    size_t num_nodes = db->node_id_counter;
     size_t max_degree = 0;
     list_relationship_t* rels;
 
