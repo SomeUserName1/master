@@ -4,20 +4,22 @@
 
 #include <float.h>
 #include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
 #include <math.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "../../query/degree.h"
-#include "../../data-struct/list_ul.h"
-#include "../../query/random_walk.h"
 #include "../../constants.h"
+#include "../../data-struct/list_ul.h"
+#include "../../query/degree.h"
+#include "../../query/random_walk.h"
 
 #define SHARE_OF_MEMORY (0.8)
 
-static size_t get_num_walks(in_memory_file_t* db) {
+static size_t
+get_num_walks(in_memory_file_t* db)
+{
     size_t min_deg = get_min_degree(db, BOTH);
     size_t max_deg = get_max_degree(db, BOTH);
     size_t range = max_deg - min_deg + 1;
@@ -43,17 +45,23 @@ static size_t get_num_walks(in_memory_file_t* db) {
     return max_deg;
 }
 
-static inline size_t get_num_coarse_clusters(in_memory_file_t* db) {
-    return ceil(((double) (sizeof(node_t) * db->node_id_counter))
-            / sqrt(SHARE_OF_MEMORY * MEMORY));
+static inline size_t
+get_num_coarse_clusters(in_memory_file_t* db)
+{
+    return ceil(((double)(sizeof(node_t) * db->node_id_counter)) /
+                sqrt(SHARE_OF_MEMORY * MEMORY));
 }
 
-static inline size_t get_num_steps(in_memory_file_t* db) {
-    return 1 + ceil(log2((float) db->node_id_counter)
-            / get_num_coarse_clusters(db));
+static inline size_t
+get_num_steps(in_memory_file_t* db)
+{
+    return 1 +
+           ceil(log2((float)db->node_id_counter) / get_num_coarse_clusters(db));
 }
 
-int identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets) {
+int
+identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
+{
     size_t num_nodes = db->node_id_counter;
     size_t num_walks = get_num_walks(db);
     size_t num_steps = get_num_steps(db);
@@ -67,8 +75,10 @@ int identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets) {
             for (size_t k = 0; k < list_ul_size(result->visited_nodes); ++k) {
                 node_id = list_ul_get(result->visited_nodes, k);
                 if (dict_ul_ul_contains(dif_sets[i], node_id)) {
-                    dict_ul_ul_insert(dif_sets[i], node_id,
-                            dict_ul_ul_get_direct(dif_sets[i], node_id) + 1);
+                    dict_ul_ul_insert(
+                          dif_sets[i],
+                          node_id,
+                          dict_ul_ul_get_direct(dif_sets[i], node_id) + 1);
                 } else {
                     dict_ul_ul_insert(dif_sets[i], node_id, 1);
                 }
@@ -78,8 +88,9 @@ int identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets) {
     return 0;
 }
 
-static float weighted_jaccard_dist(dict_ul_ul_t* dif_set_a,
-        dict_ul_ul_t* dif_set_b) {
+static float
+weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
+{
     dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dif_set_a);
     list_ul_t* visited_elems_b = create_list_ul();
 
@@ -113,11 +124,16 @@ static float weighted_jaccard_dist(dict_ul_ul_t* dif_set_a,
     dict_ul_ul_iterator_destroy(it);
     list_ul_destroy(visited_elems_b);
 
-    return 1 - ((float) intersect_sum / (float) union_sum);
+    return 1 - ((float)intersect_sum / (float)union_sum);
 }
 
-static void insert_match(size_t* max_degree_nodes, size_t* max_degrees,
-        unsigned long node_id, unsigned long degree, size_t num_clusters) {
+static void
+insert_match(size_t* max_degree_nodes,
+             size_t* max_degrees,
+             unsigned long node_id,
+             unsigned long degree,
+             size_t num_clusters)
+{
     bool placed = false;
     unsigned long temp_d;
     unsigned long temp1_d;
@@ -142,13 +158,15 @@ static void insert_match(size_t* max_degree_nodes, size_t* max_degrees,
     }
 }
 
-int initialize_centers(in_memory_file_t* db, unsigned long** centers,
-        size_t num_clusters) {
+int
+initialize_centers(in_memory_file_t* db,
+                   unsigned long** centers,
+                   size_t num_clusters)
+{
     unsigned long num_nodes = db->node_id_counter;
-    unsigned long* max_degree_nodes = calloc(num_clusters,
-            sizeof(unsigned long));
-    unsigned long* max_degrees = calloc(num_clusters,
-            sizeof(unsigned long));
+    unsigned long* max_degree_nodes =
+          calloc(num_clusters, sizeof(unsigned long));
+    unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
     list_relationship_t* rels;
     unsigned long degree;
 
@@ -156,8 +174,8 @@ int initialize_centers(in_memory_file_t* db, unsigned long** centers,
         rels = in_memory_expand(db, i, BOTH);
         degree = list_relationship_size(rels);
         if (degree > max_degrees[num_clusters - 1]) {
-            insert_match(max_degree_nodes, max_degrees, i, num_clusters,
-                    degree);
+            insert_match(
+                  max_degree_nodes, max_degrees, i, num_clusters, degree);
         }
     }
     list_relationship_destroy(rels);
@@ -166,8 +184,13 @@ int initialize_centers(in_memory_file_t* db, unsigned long** centers,
     return 0;
 }
 
-size_t assign_to_cluster(size_t num_nodes, dict_ul_ul_t** dif_sets,
-        unsigned long* part, const unsigned long* centers, size_t num_clusters) {
+size_t
+assign_to_cluster(size_t num_nodes,
+                  dict_ul_ul_t** dif_sets,
+                  unsigned long* part,
+                  const unsigned long* centers,
+                  size_t num_clusters)
+{
     float min_dist = FLT_MAX;
     float dist;
     unsigned long best_center_idx = ULONG_MAX;
@@ -188,10 +211,16 @@ size_t assign_to_cluster(size_t num_nodes, dict_ul_ul_t** dif_sets,
     return 0;
 }
 
-int updated_centers(size_t num_nodes, dict_ul_ul_t** dif_sets,
-        const unsigned long* part, unsigned long* centers, size_t num_clusters) {
+int
+updated_centers(size_t num_nodes,
+                dict_ul_ul_t** dif_sets,
+                const unsigned long* part,
+                unsigned long* centers,
+                size_t num_clusters)
+{
 
-    dict_ul_ul_t** cluster_counts = malloc(num_clusters * sizeof(dict_ul_ul_t*));
+    dict_ul_ul_t** cluster_counts =
+          malloc(num_clusters * sizeof(dict_ul_ul_t*));
     for (size_t i = 0; i < num_clusters; ++i) {
         cluster_counts[i] = create_dict_ul_ul();
     }
@@ -207,9 +236,11 @@ int updated_centers(size_t num_nodes, dict_ul_ul_t** dif_sets,
         it = create_dict_ul_ul_iterator(dif_sets[i]);
         while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
             if (dict_ul_ul_contains(cluster_counts[part[i]], node_id)) {
-                dict_ul_ul_insert(cluster_counts[part[i]], node_id,
-                        dict_ul_ul_get_direct(cluster_counts[part[i]], node_id)
-                        + count);
+                dict_ul_ul_insert(
+                      cluster_counts[part[i]],
+                      node_id,
+                      dict_ul_ul_get_direct(cluster_counts[part[i]], node_id) +
+                            count);
             } else {
                 dict_ul_ul_insert(dif_sets[part[i]], node_id, count);
             }
@@ -233,22 +264,25 @@ int updated_centers(size_t num_nodes, dict_ul_ul_t** dif_sets,
     return 0;
 }
 
-int cluster_coarse(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
-        unsigned long* part) {
+int
+cluster_coarse(in_memory_file_t* db,
+               dict_ul_ul_t** dif_sets,
+               unsigned long* part)
+{
     size_t num_clusters = get_num_coarse_clusters(db);
     size_t changes = 0;
 
     unsigned long* centers = NULL;
 
     initialize_centers(db, &centers, num_clusters);
-    changes = assign_to_cluster(db->node_id_counter, dif_sets, part, centers,
-            num_clusters);
+    changes = assign_to_cluster(
+          db->node_id_counter, dif_sets, part, centers, num_clusters);
 
     do {
-        updated_centers(db->node_id_counter, dif_sets, part, centers,
-                num_clusters);
-        changes = assign_to_cluster(db->node_id_counter, dif_sets, part,
-                centers, num_clusters);
+        updated_centers(
+              db->node_id_counter, dif_sets, part, centers, num_clusters);
+        changes = assign_to_cluster(
+              db->node_id_counter, dif_sets, part, centers, num_clusters);
     } while (changes > 0);
 
     free(centers);
@@ -256,8 +290,12 @@ int cluster_coarse(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
     return 0;
 }
 
-int find_min_dist(const float* pairwise_diff, size_t n_nodes,
-        unsigned long* idx, dendrogram_t** dendros) {
+int
+find_min_dist(const float* pairwise_diff,
+              size_t n_nodes,
+              unsigned long* idx,
+              dendrogram_t** dendros)
+{
     float min_dist = FLT_MAX;
 
     // Compute pairwise distance matrix
@@ -276,12 +314,16 @@ int find_min_dist(const float* pairwise_diff, size_t n_nodes,
     return 0;
 }
 
-int assign_dendro_label(dendrogram_t* dendro, dendrogram_t* fst_child,
-        dendrogram_t* snd_child) {
+int
+assign_dendro_label(dendrogram_t* dendro,
+                    dendrogram_t* fst_child,
+                    dendrogram_t* snd_child)
+{
     if (fst_child->size > BLOCK_SIZE && snd_child->size > BLOCK_SIZE) {
         // block label of first + : + block label of snd + \0
-        dendro->label = malloc((strlen(fst_child->label) + 1
-                    + strlen(snd_child->label) + 1) * sizeof(char));
+        dendro->label = malloc(
+              (strlen(fst_child->label) + 1 + strlen(snd_child->label) + 1) *
+              sizeof(char));
         dendro->label[0] = '\0';
 
         if (fst_child->size > snd_child->size) {
@@ -295,7 +337,7 @@ int assign_dendro_label(dendrogram_t* dendro, dendrogram_t* fst_child,
         }
     } else {
         char* label = fst_child->size > snd_child->size ? fst_child->label
-            : snd_child->label;
+                                                        : snd_child->label;
 
         dendro->label = malloc(strlen(label) * sizeof(char));
         strcpy(dendro->label, label);
@@ -303,7 +345,12 @@ int assign_dendro_label(dendrogram_t* dendro, dendrogram_t* fst_child,
     return 0;
 }
 
-int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dendrogram_t** blocks, unsigned long* block_count) {
+int
+cluster_hierarchical(list_ul_t* nodes_of_part,
+                     dict_ul_ul_t** dif_sets,
+                     dendrogram_t** blocks,
+                     unsigned long* block_count)
+{
     size_t n_nodes_of_p = list_ul_size(nodes_of_part);
     float* pairwise_diff = calloc(n_nodes_of_p * n_nodes_of_p, sizeof(float));
     size_t n_clusters = n_nodes_of_p;
@@ -319,10 +366,10 @@ int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dend
             if (i == j) {
                 continue;
             }
-            pairwise_diff[j * n_nodes_of_p + j] = weighted_jaccard_dist(
-                    dif_sets[i], dif_sets[j]);
-            pairwise_diff[i * n_nodes_of_p + j] = pairwise_diff[
-                i * n_nodes_of_p + j];
+            pairwise_diff[j * n_nodes_of_p + j] =
+                  weighted_jaccard_dist(dif_sets[i], dif_sets[j]);
+            pairwise_diff[i * n_nodes_of_p + j] =
+                  pairwise_diff[i * n_nodes_of_p + j];
         }
     }
 
@@ -330,7 +377,7 @@ int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dend
         h_part[i] = i;
         dendros[i] = malloc(sizeof(dendrogram_t));
         dendros[i]->children.node = i;
-        dendros[i]->label = malloc(snprintf(NULL, 0,"%lu", i) + 1);
+        dendros[i]->label = malloc(snprintf(NULL, 0, "%lu", i) + 1);
         sprintf(dendros[i]->label, "%lu", i);
         dendros[i]->size = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;
@@ -343,8 +390,8 @@ int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dend
         dendro->children.dendro[0] = dendros[min_idx[0]];
         dendro->children.dendro[1] = dendros[min_idx[1]];
         dendro->size = dendros[min_idx[0]]->size + dendros[min_idx[1]]->size;
-        dendro->uncapt_s = dendros[min_idx[0]]->uncapt_s
-            + dendros[min_idx[1]]->uncapt_s;
+        dendro->uncapt_s =
+              dendros[min_idx[0]]->uncapt_s + dendros[min_idx[1]]->uncapt_s;
 
         if (dendro->uncapt_s > BLOCK_SIZE) {
             (*block_count)++;
@@ -367,8 +414,13 @@ int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dend
     return 0;
 }
 
-int block_formation(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
-        const unsigned long* parts, dendrogram_t*** blocks, unsigned long* block_count) {
+int
+block_formation(in_memory_file_t* db,
+                dict_ul_ul_t** dif_sets,
+                const unsigned long* parts,
+                dendrogram_t*** blocks,
+                unsigned long* block_count)
+{
     size_t n_nodes = db->node_id_counter;
     size_t num_clusters = get_num_coarse_clusters(db);
     blocks = malloc(num_clusters * sizeof(dendrogram_t**));
@@ -384,35 +436,44 @@ int block_formation(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
     }
 
     for (size_t i = 0; i < num_clusters; ++i) {
-        cluster_hierarchical(nodes_per_part[i], dif_sets, blocks[i], &(block_count[i]));
+        cluster_hierarchical(
+              nodes_per_part[i], dif_sets, blocks[i], &(block_count[i]));
     }
 
     return 0;
 }
 
-int compare_by_label(const void *a, const void *b, void *array2) {
-    dendrogram_t** blocks = (dendrogram_t**) array2;
+int
+compare_by_label(const void* a, const void* b, void* array2)
+{
+    dendrogram_t** blocks = (dendrogram_t**)array2;
     dendrogram_t* block_a = blocks[*(unsigned long*)a];
     dendrogram_t* block_b = blocks[*(unsigned long*)b];
-    long diff = strcmp(block_a->label,
-            block_b->label);
+    long diff = strcmp(block_a->label, block_b->label);
     if (diff == 0) {
-        diff = (long) (block_a->block_no - block_b->block_no);
+        diff = (long)(block_a->block_no - block_b->block_no);
     }
     return (0 < diff) - (diff < 0);
 }
 
-unsigned long* sort_by_label(dendrogram_t** blocks, unsigned long size) {
-    unsigned long *order = (unsigned long *)malloc(size * sizeof(unsigned long));
+unsigned long*
+sort_by_label(dendrogram_t** blocks, unsigned long size)
+{
+    unsigned long* order = (unsigned long*)malloc(size * sizeof(unsigned long));
 
     for (size_t i = 0; i < size; i++) {
         order[i] = i;
     }
-    qsort_r(order, size, sizeof(unsigned long), compare_by_label, (void *)blocks);
+    qsort_r(
+          order, size, sizeof(unsigned long), compare_by_label, (void*)blocks);
     return order;
 }
 
-int layout_blocks(in_memory_file_t* db, dendrogram_t*** blocks, unsigned long* block_count) {
+int
+layout_blocks(in_memory_file_t* db,
+              dendrogram_t*** blocks,
+              unsigned long* block_count)
+{
     size_t num_clusters = get_num_coarse_clusters(db);
     unsigned long* order[num_clusters];
 

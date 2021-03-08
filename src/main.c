@@ -2,27 +2,41 @@
 #include <stdlib.h>
 
 #include "access/in_memory_file.h"
-#include "import/snap_importer.h"
-#include "query/bfs.h"
-#include "locality/ids_to_io.h"
-#include "data-struct/dict_ul.h"
-#include "query/louvain.h"
 #include "constants.h"
+#include "data-struct/dict_ul.h"
+#include "import/snap_importer.h"
+#include "locality/ids_to_io.h"
+#include "query/bfs.h"
+#include "query/louvain.h"
 
-int main(void) {
+int
+main(void)
+{
     printf("Start importing\n");
     in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(db, "/home/someusername/workspace_local/email_eu.txt");
+    dict_ul_ul_t* map = import_from_txt(
+          db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
     printf("BFS\n");
-    bfs_result_t* result = bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
+    bfs_result_t* result =
+          bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
 
     printf("Analyze IOs from IDs\n");
-    io_stats_t* res = ids_to_io("/home/someusername/workspace_local/accessed_records.txt", "/home/someusername/workspace_local/block_access_sequence.txt", BLOCK_SIZE, PAGE_SIZE, REL);
+    io_stats_t* res = ids_to_io(
+          "/home/someusername/workspace_local/accessed_records.txt",
+          "/home/someusername/workspace_local/block_access_sequence.txt",
+          BLOCK_SIZE,
+          PAGE_SIZE,
+          REL);
     if (res == NULL) {
         return -1;
     }
-    printf("%s %lu %s %lu %s", "Loaded", res->read_pages, "Pages and accessed thereby", res->read_blocks, "Blocks.\n");
+    printf("%s %lu %s %lu %s",
+           "Loaded",
+           res->read_pages,
+           "Pages and accessed thereby",
+           res->read_blocks,
+           "Blocks.\n");
 
     unsigned long* partition = louvain(db);
     printf("%p", partition);

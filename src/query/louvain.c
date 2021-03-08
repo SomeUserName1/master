@@ -1,7 +1,7 @@
 #include "louvain.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "../access/in_memory_file.h"
 #include "../data-struct/list_rel.h"
@@ -9,10 +9,13 @@
 
 // FIXME Implementation currently assumes undirected graphs
 
-void update_partition(louvain_partition_t* p, unsigned long *part,
-        unsigned long size) {
+void
+update_partition(louvain_partition_t* p,
+                 unsigned long* part,
+                 unsigned long size)
+{
     // Renumber the communities in p
-    unsigned long *renumber = calloc(p->size, sizeof(unsigned long));
+    unsigned long* renumber = calloc(p->size, sizeof(unsigned long));
     unsigned long last = 1;
 
     for (size_t i = 0; i < p->size; i++) {
@@ -29,12 +32,13 @@ void update_partition(louvain_partition_t* p, unsigned long *part,
     free(renumber);
 }
 
-
-louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g) {
+louvain_graph_t*
+louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
+{
     size_t num_nodes = g->graph->node_id_counter;
     // Renumber communities
-    unsigned long *renumber =
-        (unsigned long *)calloc(num_nodes, sizeof(unsigned long));
+    unsigned long* renumber =
+          (unsigned long*)calloc(num_nodes, sizeof(unsigned long));
 
     unsigned long last = 1;
     for (size_t node = 0; node < num_nodes; node++) {
@@ -49,10 +53,10 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
     free(renumber);
 
     // sort nodes according to their community
-    unsigned long *order = sort_by_partition(p->node_to_com, num_nodes);
+    unsigned long* order = sort_by_partition(p->node_to_com, num_nodes);
 
     // Initialize meta graph
-    louvain_graph_t* res = (louvain_graph_t*) malloc(sizeof(*res));
+    louvain_graph_t* res = (louvain_graph_t*)malloc(sizeof(*res));
     res->total_weight = 0;
     res->graph = create_in_memory_file();
 
@@ -60,8 +64,8 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
         in_memory_create_node(res->graph);
     }
 
-    // for each node (in community order), extract all edges to other communities
-    // and build the graph
+    // for each node (in community order), extract all edges to other
+    // communities and build the graph
     init_neighbouring_communities(p);
     unsigned long old_com = p->node_to_com[order[0]];
     unsigned long cur_com = 0;
@@ -71,16 +75,18 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
     for (size_t i = 0; i <= p->size; i++) {
         // current node and current community with dummy values if out of bounds
         node = (i == p->size) ? 0 : order[i];
-        cur_com =
-            (i == p->size) ? cur_com + 1 : p->node_to_com[order[i]];
+        cur_com = (i == p->size) ? cur_com + 1 : p->node_to_com[order[i]];
 
         // new community, write previous one
         if (old_com != cur_com) {
             // for all neighboring communities of current community add edges
             for (size_t j = 0; j < p->neigh_com_nb; j++) {
                 neigh_com_weight = p->neigh_com_weights[p->neigh_com_pos[j]];
-                in_memory_create_relationship_weighted(res->graph,
-                        last, p->neigh_com_pos[j], (double) neigh_com_weight);
+                in_memory_create_relationship_weighted(
+                      res->graph,
+                      last,
+                      p->neigh_com_pos[j],
+                      (double)neigh_com_weight);
                 res->total_weight += neigh_com_weight;
             }
 
@@ -100,7 +106,11 @@ louvain_graph_t* louvain_partition_to_graph(louvain_partition_t* p, louvain_grap
     return res;
 }
 
-void get_neighbouring_communities(louvain_partition_t* p, louvain_graph_t* g, unsigned long node) {
+void
+get_neighbouring_communities(louvain_partition_t* p,
+                             louvain_graph_t* g,
+                             unsigned long node)
+{
     unsigned long neigh;
     unsigned long neigh_com;
     double neigh_weight;
@@ -131,7 +141,11 @@ void get_neighbouring_communities(louvain_partition_t* p, louvain_graph_t* g, un
     list_relationship_destroy(rels);
 }
 
-void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g, unsigned long node) {
+void
+get_neighbouring_communities_all(louvain_partition_t* p,
+                                 louvain_graph_t* g,
+                                 unsigned long node)
+{
     unsigned long neigh;
     unsigned long neigh_com;
     double neigh_weight;
@@ -155,24 +169,33 @@ void get_neighbouring_communities_all(louvain_partition_t* p, louvain_graph_t* g
     list_relationship_destroy(rels);
 }
 
-
-int compare_by_partition(const void *a, const void *b, void *array2) {
-    long diff = ((unsigned long *)array2)[*(unsigned long *)a]
-        > ((unsigned long *)array2)[*(unsigned *)b];
+int
+compare_by_partition(const void* a, const void* b, void* array2)
+{
+    long diff = ((unsigned long*)array2)[*(unsigned long*)a] >
+                ((unsigned long*)array2)[*(unsigned*)b];
     return (0 < diff) - (diff < 0);
 }
 
-unsigned long *sort_by_partition(unsigned long *part, unsigned long size) {
-    unsigned long *nodes = (unsigned long *)malloc(size * sizeof(unsigned long));
+unsigned long*
+sort_by_partition(unsigned long* part, unsigned long size)
+{
+    unsigned long* nodes = (unsigned long*)malloc(size * sizeof(unsigned long));
 
     for (size_t i = 0; i < size; i++) {
         nodes[i] = i;
     }
-    qsort_r(nodes, size, sizeof(unsigned long), compare_by_partition, (void *)part);
+    qsort_r(nodes,
+            size,
+            sizeof(unsigned long),
+            compare_by_partition,
+            (void*)part);
     return nodes;
 }
 
-double degree_weighted(louvain_graph_t* g, unsigned long node) {
+double
+degree_weighted(louvain_graph_t* g, unsigned long node)
+{
     double res = 0.0;
     list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
     relationship_t* rel = NULL;
@@ -186,7 +209,9 @@ double degree_weighted(louvain_graph_t* g, unsigned long node) {
     return res;
 }
 
-double selfloop_weighted(louvain_graph_t* g, unsigned long node) {
+double
+selfloop_weighted(louvain_graph_t* g, unsigned long node)
+{
     list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
     relationship_t* rel = NULL;
 
@@ -201,7 +226,9 @@ double selfloop_weighted(louvain_graph_t* g, unsigned long node) {
     return 0.0;
 }
 
-louvain_partition_t* create_louvain_partition(louvain_graph_t* g) {
+louvain_partition_t*
+create_louvain_partition(louvain_graph_t* g)
+{
     louvain_partition_t* p = malloc(sizeof(*p));
 
     p->size = g->graph->node_id_counter;
@@ -225,7 +252,9 @@ louvain_partition_t* create_louvain_partition(louvain_graph_t* g) {
     return p;
 }
 
-void louvain_part_destroy(louvain_partition_t* p) {
+void
+louvain_part_destroy(louvain_partition_t* p)
+{
     free(p->in);
     free(p->tot);
     free(p->neigh_com_weights);
@@ -234,28 +263,45 @@ void louvain_part_destroy(louvain_partition_t* p) {
     free(p);
 }
 
-void louvain_part_remove_node(louvain_partition_t* p, louvain_graph_t* g, unsigned long node,
-        unsigned long comm, double dnodecomm) {
+void
+louvain_part_remove_node(louvain_partition_t* p,
+                         louvain_graph_t* g,
+                         unsigned long node,
+                         unsigned long comm,
+                         double dnodecomm)
+{
     p->in[comm] -= 2 * dnodecomm + selfloop_weighted(g, node);
     p->tot[comm] -= degree_weighted(g, node);
 }
 
-void louvain_part_insert_node(louvain_partition_t *p, louvain_graph_t *g, unsigned long node,
-        unsigned long comm, double dnodecomm) {
+void
+louvain_part_insert_node(louvain_partition_t* p,
+                         louvain_graph_t* g,
+                         unsigned long node,
+                         unsigned long comm,
+                         double dnodecomm)
+{
     p->in[comm] += 2 * dnodecomm + selfloop_weighted(g, node);
     p->tot[comm] += degree_weighted(g, node);
     p->node_to_com[node] = comm;
 }
 
-double gain(louvain_partition_t* p, louvain_graph_t* g, unsigned long comm,
-        double dnodecomm, double d_node) { // degc ? long double???
+double
+gain(louvain_partition_t* p,
+     louvain_graph_t* g,
+     unsigned long comm,
+     double dnodecomm,
+     double d_node)
+{ // degc ? long double???
     double totc = p->tot[comm];
     double m2 = g->total_weight;
 
     return (dnodecomm - totc * d_node / m2);
 }
 
-double compute_modularity(louvain_partition_t* p, louvain_graph_t* g) {
+double
+compute_modularity(louvain_partition_t* p, louvain_graph_t* g)
+{
     double q = 0.0F;
     double m2 = g->total_weight;
 
@@ -268,14 +314,18 @@ double compute_modularity(louvain_partition_t* p, louvain_graph_t* g) {
     return q / m2;
 }
 
-void init_neighbouring_communities(louvain_partition_t* p) {
+void
+init_neighbouring_communities(louvain_partition_t* p)
+{
     for (size_t i = 0; i < p->neigh_com_nb; i++) {
         p->neigh_com_weights[p->neigh_com_pos[i]] = -1;
     }
     p->neigh_com_nb = 0;
 }
 
-double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g) {
+double
+louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
+{
     unsigned long rand_pos;
     unsigned long tmp;
     unsigned long nb_moves;
@@ -292,7 +342,7 @@ double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g) {
     double new_gain;
 
     // generate a random order for nodes' movements
-    unsigned long *rand_ord = malloc(p->size * sizeof(unsigned long));
+    unsigned long* rand_ord = malloc(p->size * sizeof(unsigned long));
 
     for (size_t i = 0; i < p->size; i++) {
         rand_ord[i] = i;
@@ -325,7 +375,8 @@ double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g) {
             get_neighbouring_communities(p, g, node);
 
             // remove node from its current community
-            louvain_part_remove_node(p, g, node, old_com, p->neigh_com_weights[old_com]);
+            louvain_part_remove_node(
+                  p, g, node, old_com, p->neigh_com_weights[old_com]);
 
             // compute the gain for all neighboring communities
             // default choice is the former community
@@ -334,7 +385,11 @@ double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g) {
             best_gain = 0L;
             for (size_t j = 0; j < p->neigh_com_nb; j++) {
                 new_com = p->neigh_com_pos[j];
-                new_gain = gain(p, g, new_com, p->neigh_com_weights[new_com], weighted_deg);
+                new_gain = gain(p,
+                                g,
+                                new_com,
+                                p->neigh_com_weights[new_com],
+                                weighted_deg);
 
                 if (new_gain > best_gain) {
                     best_com = new_com;
@@ -350,19 +405,22 @@ double louvain_one_level(louvain_partition_t* p, louvain_graph_t* g) {
             }
         }
         new_modularity = compute_modularity(p, g);
-    } while (nb_moves != 0 && new_modularity - cur_modularity > MIN_IMPROVEMENT);
+    } while (nb_moves != 0 &&
+             new_modularity - cur_modularity > MIN_IMPROVEMENT);
 
     free(rand_ord);
 
     return new_modularity - start_modularity;
 }
 
-unsigned long* louvain(in_memory_file_t* db) {
+unsigned long*
+louvain(in_memory_file_t* db)
+{
     unsigned long original_size = db->node_id_counter;
     unsigned long* partition = calloc(original_size, sizeof(unsigned long));
     louvain_graph_t* g = louvain_graph_init(db);
     louvain_graph_t* original = g;
-    louvain_graph_t *g2;
+    louvain_graph_t* g2;
     louvain_partition_t* gp;
     double improvement;
 
@@ -395,7 +453,9 @@ unsigned long* louvain(in_memory_file_t* db) {
     return partition;
 }
 
-louvain_graph_t* louvain_graph_init(in_memory_file_t* db) {
+louvain_graph_t*
+louvain_graph_init(in_memory_file_t* db)
+{
     louvain_graph_t* result = malloc(sizeof(*result));
     result->graph = db;
     result->total_weight = 0;
@@ -414,8 +474,9 @@ louvain_graph_t* louvain_graph_init(in_memory_file_t* db) {
     return result;
 }
 
-void louvain_graph_destroy(louvain_graph_t* g) {
+void
+louvain_graph_destroy(louvain_graph_t* g)
+{
     in_memory_file_destroy(g->graph);
     free(g);
 }
-

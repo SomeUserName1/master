@@ -3,11 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-static bool list_passthrough_eq(const void* first, const void* second) {
+static bool
+list_passthrough_eq(const void* first, const void* second)
+{
     return first == second;
 }
 
-list_t* create_list(list_cbs_t *cbs) {
+list_t*
+create_list(list_cbs_t* cbs)
+{
     list_t* list = malloc(sizeof(*list));
     list->elements = malloc(sizeof(*list->elements) * list_block_size);
     list->alloced = list_block_size;
@@ -25,16 +29,18 @@ list_t* create_list(list_cbs_t *cbs) {
         list->cbs.leq = list_passthrough_eq;
     }
 
-   return list;
+    return list;
 }
 
-void list_destroy(list_t* l) {
+void
+list_destroy(list_t* l)
+{
     if (l == NULL) {
         return;
     }
 
     if (l->cbs.lfree != NULL) {
-        for (size_t i = 0; i < l->len; ++i)  {
+        for (size_t i = 0; i < l->len; ++i) {
             l->cbs.lfree(l->elements[i]);
         }
     }
@@ -43,29 +49,34 @@ void list_destroy(list_t* l) {
     free(l);
 }
 
-size_t list_size(list_t* l) {
+size_t
+list_size(list_t* l)
+{
     if (l == NULL) {
         return 0;
     }
     return l->len;
 }
 
-int list_append(list_t* l, void* v) {
+int
+list_append(list_t* l, void* v)
+{
     if (l == NULL || v == NULL) {
         return -1;
     }
     return list_insert(l, v, l->len);
 }
 
-int list_insert(list_t* l, void* v, size_t idx) {
+int
+list_insert(list_t* l, void* v, size_t idx)
+{
     if (l == NULL || v == NULL) {
         return -1;
     }
 
     if (l->alloced == l->len) {
         l->alloced += list_block_size;
-        l->elements = realloc(l->elements,
-                sizeof(*l->elements) * l->alloced);
+        l->elements = realloc(l->elements, sizeof(*l->elements) * l->alloced);
         if (l->elements == NULL) {
             return -1;
         }
@@ -81,8 +92,9 @@ int list_insert(list_t* l, void* v, size_t idx) {
     if (idx > l->len) {
         idx = l->len;
     } else if (idx < l->len) {
-       memmove(l->elements + idx + 1, l->elements + idx,
-               (l->len - idx) * sizeof(*l->elements));
+        memmove(l->elements + idx + 1,
+                l->elements + idx,
+                (l->len - idx) * sizeof(*l->elements));
     }
     l->elements[idx] = v;
     l->len++;
@@ -90,7 +102,9 @@ int list_insert(list_t* l, void* v, size_t idx) {
     return 0;
 }
 
-static int list_remove_int(list_t* l, size_t idx, bool free_flag) {
+static int
+list_remove_int(list_t* l, size_t idx, bool free_flag)
+{
     if (l == NULL || idx >= l->len) {
         return -1;
     }
@@ -100,19 +114,24 @@ static int list_remove_int(list_t* l, size_t idx, bool free_flag) {
     }
 
     l->len--;
-    if(idx == l->len) {
+    if (idx == l->len) {
         return 0;
     }
-    memmove(l->elements + idx, l->elements + idx + 1,
+    memmove(l->elements + idx,
+            l->elements + idx + 1,
             (l->len - idx) * sizeof(*l->elements));
     return 0;
 }
 
-int list_remove(list_t* l, size_t idx) {
+int
+list_remove(list_t* l, size_t idx)
+{
     return list_remove_int(l, idx, true);
 }
 
-int list_index_of(list_t* l, void* v, size_t* idx) {
+int
+list_index_of(list_t* l, void* v, size_t* idx)
+{
     if (l == NULL || v == NULL || idx == NULL) {
         return -1;
     }
@@ -126,7 +145,9 @@ int list_index_of(list_t* l, void* v, size_t* idx) {
     return -1;
 }
 
-int list_remove_elem(list_t* l, void* elem) {
+int
+list_remove_elem(list_t* l, void* elem)
+{
     size_t idx = 0;
     if (list_index_of(l, elem, &idx) != 0) {
         return -1;
@@ -134,19 +155,25 @@ int list_remove_elem(list_t* l, void* elem) {
     return list_remove_int(l, idx, true);
 }
 
-bool list_contains(list_t* l, void* elem) {
+bool
+list_contains(list_t* l, void* elem)
+{
     size_t idx = 0;
     return list_index_of(l, elem, &idx) == 0 ? true : false;
 }
 
-void* list_get(list_t* l, size_t idx) {
+void*
+list_get(list_t* l, size_t idx)
+{
     if (l == NULL || idx >= l->len) {
         return NULL;
     }
     return l->elements[idx];
 }
 
-void* list_take(list_t* l, size_t idx) {
+void*
+list_take(list_t* l, size_t idx)
+{
     void* elem = list_get(l, idx);
     list_remove_int(l, idx, false);
     return elem;

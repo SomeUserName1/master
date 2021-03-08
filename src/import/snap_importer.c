@@ -1,12 +1,12 @@
 #include "snap_importer.h"
 
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-#include <zlib.h>
-#include <zconf.h>
 #include <curl/curl.h>
+#include <zconf.h>
+#include <zlib.h>
 
 #include "../access/in_memory_file.h"
 #include "../data-struct/dict_ul.h"
@@ -16,13 +16,16 @@
 #define CHUNK 524288
 #define IMPORT_FIELDS 2
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
+static size_t
+write_data(void* ptr, size_t size, size_t nmemb, void* stream)
 {
-    size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+    size_t written = fwrite(ptr, size, nmemb, (FILE*)stream);
     return written;
 }
 
-int download_dataset(dataset_t data, const char* gz_path) {
+int
+download_dataset(dataset_t data, const char* gz_path)
+{
     CURL* curl;
     CURLcode result;
     FILE* gz_file;
@@ -43,13 +46,14 @@ int download_dataset(dataset_t data, const char* gz_path) {
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) gz_file);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)gz_file);
 
     result = curl_easy_perform(curl);
 
     if (result != CURLE_OK) {
-        printf("%s %s\n", "Failed to download the dataset with curl error: ",
-                curl_easy_strerror(result));
+        printf("%s %s\n",
+               "Failed to download the dataset with curl error: ",
+               curl_easy_strerror(result));
         curl_easy_cleanup(curl);
         return -1;
     }
@@ -60,7 +64,9 @@ int download_dataset(dataset_t data, const char* gz_path) {
     return 0;
 }
 
-int uncompress_dataset(const char* gz_path, const char* out_path) {
+int
+uncompress_dataset(const char* gz_path, const char* out_path)
+{
     int ret;
     unsigned have;
     z_stream stream;
@@ -96,7 +102,7 @@ int uncompress_dataset(const char* gz_path, const char* out_path) {
     }
 
     do {
-        stream.avail_in  = fread(in, 1, CHUNK, in_gz_file);
+        stream.avail_in = fread(in, 1, CHUNK, in_gz_file);
         if (ferror(in_gz_file)) {
             inflateEnd(&stream);
             fclose(out_file);
@@ -141,12 +147,14 @@ int uncompress_dataset(const char* gz_path, const char* out_path) {
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
-void zlib_error(int ret) {
+void
+zlib_error(int ret)
+{
     fputs("Uncompressing failed: ", stderr);
     switch (ret) {
         case Z_ERRNO:
             fputs("error reading the input or writing the outputfile\n",
-                    stderr);
+                  stderr);
             break;
         case Z_STREAM_ERROR:
             fputs("invalid compression level\n", stderr);
@@ -162,7 +170,9 @@ void zlib_error(int ret) {
     }
 }
 
-const char* get_url(dataset_t data) {
+const char*
+get_url(dataset_t data)
+{
     const char* result;
     switch (data) {
         case EMAIL_EU_CORE:
@@ -192,7 +202,9 @@ const char* get_url(dataset_t data) {
     return result;
 }
 
-unsigned long int get_no_nodes(dataset_t data) {
+unsigned long int
+get_no_nodes(dataset_t data)
+{
     unsigned long int result;
     switch (data) {
         case EMAIL_EU_CORE:
@@ -228,10 +240,11 @@ unsigned long int get_no_nodes(dataset_t data) {
             break;
     }
     return result;
-
 }
 
-unsigned long int get_no_rels(dataset_t data) {
+unsigned long int
+get_no_rels(dataset_t data)
+{
     unsigned long int result;
     switch (data) {
         case EMAIL_EU_CORE:
@@ -267,10 +280,11 @@ unsigned long int get_no_rels(dataset_t data) {
             break;
     }
     return result;
-
 }
 
-dict_ul_ul_t* import_from_txt(in_memory_file_t* db, const char* path) {
+dict_ul_ul_t*
+import_from_txt(in_memory_file_t* db, const char* path)
+{
     unsigned long int fromTo[IMPORT_FIELDS];
     int result;
     size_t lines = 1;
@@ -286,7 +300,7 @@ dict_ul_ul_t* import_from_txt(in_memory_file_t* db, const char* path) {
 
     while (result == 2) {
         if (lines % 10000 == 0) {
-            printf("%s %lu\n","Processed", lines);
+            printf("%s %lu\n", "Processed", lines);
         }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
             if (dict_ul_ul_contains(txt_to_db_id, fromTo[i])) {

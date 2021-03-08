@@ -1,18 +1,26 @@
 #include "ids_to_io.h"
-#include "../record/relationship.h"
-#include "../record/node.h"
 #include "../constants.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-unsigned long id_to_page(unsigned long id, size_t page_size, record_id_t type) {
+unsigned long
+id_to_page(unsigned long id, size_t page_size, record_id_t type)
+{
     size_t factor = type == REL ? sizeof(relationship_t) : sizeof(node_t);
     return id * factor / page_size;
 }
 
-io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_size, size_t block_size, record_id_t type) {
+io_stats_t*
+ids_to_io(const char* in_path,
+          const char* out_path,
+          size_t page_size,
+          size_t block_size,
+          record_id_t type)
+{
     FILE* log_file = fopen(in_path, "r");
     if (log_file == NULL) {
         printf("ids_to_io: Can't open file with path %s", in_path);
@@ -35,34 +43,49 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
     unsigned long prev_page_node = UNINITIALIZED_LONG;
     unsigned long prev_page_rel = UNINITIALIZED_LONG;
     unsigned long num_pages_loaded = 0;
-    size_t pages_to_blocks = (page_size / block_size) > 0 ? page_size / block_size : 1;
+    size_t pages_to_blocks =
+          (page_size / block_size) > 0 ? page_size / block_size : 1;
 
-   while(fscanf(log_file, "%s %s %lu", ignore, read_type, &id) == 3) {
-       if ((type == NODE || type == ALL) && strncmp(read_type, "Node", 4) == 0) {
-            if ((page_node = id_to_page(id, page_size, NODE)) != prev_page_node) {
+    while (fscanf(log_file, "%s %s %lu", ignore, read_type, &id) == 3) {
+        if ((type == NODE || type == ALL) &&
+            strncmp(read_type, "Node", 4) == 0) {
+            if ((page_node = id_to_page(id, page_size, NODE)) !=
+                prev_page_node) {
                 prev_page_rel = page_node;
                 num_pages_loaded++;
             }
 
-            fprintf(page_accesses_file, "%s%lu%s", "Node: PageOffset: ", page_node, " BlockOffset:");
+            fprintf(page_accesses_file,
+                    "%s%lu%s",
+                    "Node: PageOffset: ",
+                    page_node,
+                    " BlockOffset:");
             for (size_t i = 0; i < pages_to_blocks; ++i) {
-                fprintf(page_accesses_file, " %lu", page_node * pages_to_blocks + i);
+                fprintf(page_accesses_file,
+                        " %lu",
+                        page_node * pages_to_blocks + i);
             }
             fprintf(page_accesses_file, "\n");
-       }
-       if ((type == REL || type == ALL) && strncmp(read_type, "Relationship",
-                   NUM_CHARS_REL) == 0) {
+        }
+        if ((type == REL || type == ALL) &&
+            strncmp(read_type, "Relationship", NUM_CHARS_REL) == 0) {
             if ((page_rel = id_to_page(id, page_size, REL)) != prev_page_rel) {
                 prev_page_rel = page_rel;
                 num_pages_loaded++;
             }
 
-            fprintf(page_accesses_file, "%s%lu%s", "Relationship: PageOffset: ", page_rel, " BlockOffset:");
+            fprintf(page_accesses_file,
+                    "%s%lu%s",
+                    "Relationship: PageOffset: ",
+                    page_rel,
+                    " BlockOffset:");
             for (size_t i = 0; i < pages_to_blocks; ++i) {
-                fprintf(page_accesses_file, " %lu", page_rel * pages_to_blocks + i);
+                fprintf(page_accesses_file,
+                        " %lu",
+                        page_rel * pages_to_blocks + i);
             }
             fprintf(page_accesses_file, "\n");
-       }
+        }
     }
     io_stats_t* result = malloc(sizeof(*result));
     result->read_pages = num_pages_loaded;
@@ -76,4 +99,3 @@ io_stats_t* ids_to_io(const char* in_path, const char* out_path, size_t page_siz
 
     return result;
 }
-

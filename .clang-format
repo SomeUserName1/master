@@ -1,6 +1,6 @@
 ---
-Language:        C
-# BasedOnStyle:  Mozilla
+Language:        Cpp
+BasedOnStyle:  Mozilla
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
@@ -58,11 +58,11 @@ ColumnLimit:     80
 CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-ConstructorInitializerIndentWidth: 2
-ContinuationIndentWidth: 2
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 6
 Cpp11BracedListStyle: false
 DeriveLineEnding: true
-DerivePointerAlignment: false
+DerivePointerAlignment: true 
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: false
@@ -88,7 +88,7 @@ IndentCaseBlocks: false
 IndentGotoLabels: true
 IndentPPDirectives: None
 IndentExternBlock: AfterExternBlock
-IndentWidth:     2
+IndentWidth:     4
 IndentWrappedFunctionNames: false
 InsertTrailingCommas: None
 JavaScriptQuotes: Leave

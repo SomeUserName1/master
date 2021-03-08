@@ -1,17 +1,19 @@
 #include "../../src/access/in_memory_file.h"
-#include "../../src/import/snap_importer.h"
+#include "../../src/constants.h"
 #include "../../src/data-struct/dict_ul.h"
+#include "../../src/import/snap_importer.h"
 #include "../../src/record/node.h"
 #include "../../src/record/relationship.h"
-#include "../../src/constants.h"
 
 #include <assert.h>
 #include <stdio.h>
 
-
-void test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map) {
+void
+test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
+{
     node_t* node = in_memory_get_node(db, 0);
-    relationship_t* rel = in_memory_get_relationship(db, node->first_relationship);
+    relationship_t* rel =
+          in_memory_get_relationship(db, node->first_relationship);
     // 1.
     assert(rel->id == 0);
     assert(rel->source_node == dict_ul_ul_get_direct(map, 0));
@@ -355,11 +357,13 @@ void test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map) {
     // 73.
 }
 
-
-int main(void) {
+int
+main(void)
+{
     in_memory_file_t* db = create_in_memory_file();
     printf("Import\n");
-    dict_ul_ul_t* map = import_from_txt(db, "/home/someusername/workspace_local/email_eu.txt");
+    dict_ul_ul_t* map = import_from_txt(
+          db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);
 

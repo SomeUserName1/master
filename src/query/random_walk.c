@@ -3,7 +3,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-path_t* random_walk(in_memory_file_t* db, unsigned long node_id, size_t num_steps, direction_t direction) {
+path_t*
+random_walk(in_memory_file_t* db,
+            unsigned long node_id,
+            size_t num_steps,
+            direction_t direction)
+{
     list_ul_t* visited_nodes = create_list_ul(LIST_NONE);
     list_ul_t* visited_rels = create_list_ul(LIST_NONE);
     list_relationship_t* cur_rels = in_memory_expand(db, node_id, direction);
@@ -14,10 +19,10 @@ path_t* random_walk(in_memory_file_t* db, unsigned long node_id, size_t num_step
 
     for (size_t i = 0; i < num_steps; ++i) {
         rel = list_relationship_get(cur_rels,
-                rand() % list_relationship_size(cur_rels));
+                                    rand() % list_relationship_size(cur_rels));
 
-        node_id = rel->source_node == node_id ? rel->target_node
-            : rel->source_node;
+        node_id =
+              rel->source_node == node_id ? rel->target_node : rel->source_node;
 
         list_ul_append(visited_rels, rel->id);
         list_ul_append(visited_nodes, node_id);

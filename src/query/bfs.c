@@ -1,15 +1,17 @@
 #include "bfs.h"
-#include "../record/node.h"
-#include "../record/relationship.h"
-#include "../data-struct/queue_ul.h"
-#include "../data-struct/dict_ul.h"
 #include "../access/in_memory_file.h"
 #include "../constants.h"
+#include "../data-struct/dict_ul.h"
+#include "../data-struct/queue_ul.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
-bfs_result_t* create_bfs_result(dict_ul_int_t* bfs, dict_ul_ul_t* parents) {
+bfs_result_t*
+create_bfs_result(dict_ul_int_t* bfs, dict_ul_ul_t* parents)
+{
     bfs_result_t* result = malloc(sizeof(*result));
     result->bfs = bfs;
     result->parents = parents;
@@ -17,13 +19,17 @@ bfs_result_t* create_bfs_result(dict_ul_int_t* bfs, dict_ul_ul_t* parents) {
     return result;
 }
 
-void bfs_result_destroy(bfs_result_t* result) {
+void
+bfs_result_destroy(bfs_result_t* result)
+{
     dict_ul_int_destroy(result->bfs);
     dict_ul_ul_destroy(result->parents);
     free(result);
 }
 
-bfs_result_t* bfs(in_memory_file_t* db, unsigned long sourceNodeID, const char* log_path) {
+bfs_result_t*
+bfs(in_memory_file_t* db, unsigned long sourceNodeID, const char* log_path)
+{
     dict_ul_ul_t* parents = create_dict_ul_ul();
     dict_ul_int_t* bfs = create_dict_ul_int();
     queue_ul_t* nodes_queue = create_queue_ul();
@@ -53,14 +59,18 @@ bfs_result_t* bfs(in_memory_file_t* db, unsigned long sourceNodeID, const char* 
         while (rel_id != UNINITIALIZED_LONG) {
             current_rel = in_memory_get_relationship(db, rel_id);
             fprintf(log_file, "%s %lu\n", "bfs: Relationship: ", rel_id);
-            temp = *node_id == current_rel->source_node ? current_rel->target_node : current_rel->source_node;
+            temp = *node_id == current_rel->source_node
+                         ? current_rel->target_node
+                         : current_rel->source_node;
 
             if (!dict_ul_int_contains(bfs, temp)) {
-                dict_ul_int_insert(bfs, temp, dict_ul_int_get_direct(bfs, *node_id));
+                dict_ul_int_insert(
+                      bfs, temp, dict_ul_int_get_direct(bfs, *node_id));
                 dict_ul_ul_insert(parents, temp, current_rel->id);
                 queue_ul_add(nodes_queue, temp);
             }
-            rel_id = in_memory_next_relationship(db, current_node->id, current_rel, BOTH);
+            rel_id = in_memory_next_relationship(
+                  db, current_node->id, current_rel, BOTH);
         }
         free(node_id);
     }
@@ -69,4 +79,3 @@ bfs_result_t* bfs(in_memory_file_t* db, unsigned long sourceNodeID, const char* 
 
     return create_bfs_result(bfs, parents);
 }
-

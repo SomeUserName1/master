@@ -1,21 +1,29 @@
 #include "queue.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-static bool queue_passthrough_eq(const void* first, const void* second) {
+static bool
+queue_passthrough_eq(const void* first, const void* second)
+{
     return first == second;
 }
 
-static void* queue_passthrough_copy(const void* elem) {
-    return (void*) elem;
+static void*
+queue_passthrough_copy(const void* elem)
+{
+    return (void*)elem;
 }
 
-static void queue_passthrough_free(void* elem) {
+static void
+queue_passthrough_free(void* elem)
+{
     elem = NULL;
 }
 
-queue_t* create_queue(const queue_cbs_t* cbs) {
+queue_t*
+create_queue(const queue_cbs_t* cbs)
+{
     queue_t* queue;
     queue = calloc(1, sizeof(*queue));
     queue->len = 0;
@@ -23,24 +31,30 @@ queue_t* create_queue(const queue_cbs_t* cbs) {
     queue->tail = NULL;
 
     memset(&(queue->cbs), 0, sizeof(queue->cbs));
-    queue->cbs.qeq = cbs == NULL || cbs->qeq == NULL
-        ? queue_passthrough_eq : cbs->qeq;
+    queue->cbs.qeq =
+          cbs == NULL || cbs->qeq == NULL ? queue_passthrough_eq : cbs->qeq;
     queue->cbs.qcopy = cbs == NULL || cbs->qcopy == NULL
-        ? queue_passthrough_copy : cbs->qcopy;
+                             ? queue_passthrough_copy
+                             : cbs->qcopy;
     queue->cbs.qfree = cbs == NULL || cbs->qfree == NULL
-        ? queue_passthrough_free : cbs->qfree;
+                             ? queue_passthrough_free
+                             : cbs->qfree;
 
     return queue;
 }
 
-size_t queue_size(queue_t* queue) {
+size_t
+queue_size(queue_t* queue)
+{
     if (queue == NULL) {
         return 0;
     }
     return queue->len;
 }
 
-void queue_destroy(queue_t* queue) {
+void
+queue_destroy(queue_t* queue)
+{
     if (queue == NULL) {
         return;
     }
@@ -55,18 +69,20 @@ void queue_destroy(queue_t* queue) {
     free(queue);
 }
 
-int queue_add(queue_t* queue, void* elem) {
+int
+queue_add(queue_t* queue, void* elem)
+{
     if (queue == NULL || elem == NULL) {
         return -1;
     }
 
-    queue_node_t* node = (queue_node_t*) calloc(1, sizeof(*node));
+    queue_node_t* node = (queue_node_t*)calloc(1, sizeof(*node));
     node->element = queue->cbs.qcopy(elem);
     node->next = NULL;
     node->prev = NULL;
 
     if (queue->tail == NULL) {
-       queue->head = node;
+        queue->head = node;
         queue->tail = node;
         queue->len++;
         return 0;
@@ -79,12 +95,14 @@ int queue_add(queue_t* queue, void* elem) {
     return 0;
 }
 
-int queue_insert(queue_t* queue , void* elem, size_t idx) {
+int
+queue_insert(queue_t* queue, void* elem, size_t idx)
+{
     if (queue == NULL || elem == NULL) {
         return -1;
     }
 
-    queue_node_t* new = (queue_node_t*) calloc(1, sizeof(*new));
+    queue_node_t* new = (queue_node_t*)calloc(1, sizeof(*new));
     new->element = queue->cbs.qcopy(elem);
 
     if (queue->len == 0 && idx == 0) {
@@ -114,12 +132,14 @@ int queue_insert(queue_t* queue , void* elem, size_t idx) {
     return 0;
 }
 
-static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
-     if (queue == NULL || idx >= queue->len) {
+static int
+queue_remove_int(queue_t* queue, size_t idx, bool free_flag)
+{
+    if (queue == NULL || idx >= queue->len) {
         return -1;
     }
 
-     if (queue->len == 1 && idx == 0) {
+    if (queue->len == 1 && idx == 0) {
         if (free_flag) {
             queue->cbs.qfree(queue->head->element);
         }
@@ -129,9 +149,9 @@ static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
         queue->len--;
 
         return 0;
-     }
+    }
 
-     if (idx == 0) {
+    if (idx == 0) {
         if (free_flag) {
             queue->cbs.qfree(queue->head->element);
         }
@@ -142,9 +162,9 @@ static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
         queue->len--;
 
         return 0;
-     }
+    }
 
-     if (idx == queue->len - 1) {
+    if (idx == queue->len - 1) {
         if (free_flag) {
             queue->cbs.qfree(queue->tail->element);
         }
@@ -155,7 +175,7 @@ static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
         queue->len--;
 
         return 0;
-     }
+    }
 
     queue_node_t* cur;
     queue_node_t* next = queue->head;
@@ -178,11 +198,15 @@ static int queue_remove_int(queue_t* queue, size_t idx, bool free_flag) {
     return 0;
 }
 
-int queue_remove(queue_t* queue, size_t idx) {
+int
+queue_remove(queue_t* queue, size_t idx)
+{
     return queue_remove_int(queue, idx, true);
 }
 
-int queue_remove_elem(queue_t* queue, void* elem) {
+int
+queue_remove_elem(queue_t* queue, void* elem)
+{
     size_t idx;
     if (queue_index_of(queue, elem, &idx) < 0) {
         return -1;
@@ -190,7 +214,9 @@ int queue_remove_elem(queue_t* queue, void* elem) {
     return queue_remove_int(queue, idx, true);
 }
 
-int queue_index_of(queue_t* queue, void* elem, size_t* idx) {
+int
+queue_index_of(queue_t* queue, void* elem, size_t* idx)
+{
     if (queue == NULL || elem == NULL || idx == NULL || queue->len == 0) {
         return -1;
     }
@@ -207,12 +233,16 @@ int queue_index_of(queue_t* queue, void* elem, size_t* idx) {
     return -1;
 }
 
-bool queue_contains(queue_t* queue, void* elem) {
+bool
+queue_contains(queue_t* queue, void* elem)
+{
     size_t idx;
     return (queue_index_of(queue, elem, &idx) > 0);
 }
 
-void* queue_get(queue_t* queue, size_t idx) {
+void*
+queue_get(queue_t* queue, size_t idx)
+{
     if (queue == NULL || idx >= queue->len) {
         return NULL;
     }
@@ -224,7 +254,9 @@ void* queue_get(queue_t* queue, size_t idx) {
     return cur->element;
 }
 
-void* queue_take(queue_t* queue) {
+void*
+queue_take(queue_t* queue)
+{
     void* result = queue->head->element;
     if (queue_remove_int(queue, 0, false) < 0) {
         return NULL;
