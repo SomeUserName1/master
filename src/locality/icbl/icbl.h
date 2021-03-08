@@ -8,17 +8,24 @@
 
 typedef struct dendrogram {
     char* label;
-    bool leaf[2];
+    unsigned long block_no;
+    size_t size;
+    size_t uncapt_s;
 
     union {
-        node_t* node;
-        struct dendrogram* dendro;
-    } children[2];
+        unsigned long node;
+        struct dendrogram* dendro[2];
+    } children;
 } dendrogram_t;
 
-int gen_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
-int cluster_coarse(in_memory_file_t* db, dict_ul_ul_t** dif_sets, size_t* parts);
-int cluster_subgraphs(in_memory_file_t* db, dict_ul_ul_t** dif_sets, size_t* parts, dendrogram_t* root);
-int create_blocks(in_memory_file_t* db, size_t* parts, dendrogram_t** roots);
+int identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
+int cluster_coarse(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
+        unsigned long* parts);
+int block_formation(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
+        const unsigned long* parts, dendrogram_t*** blocks,
+        unsigned long* block_count);
+int layout_blocks(in_memory_file_t* db, dendrogram_t*** blocks,
+        unsigned long* block_count);
+int icbl(in_memory_file_t* db);
 
 #endif

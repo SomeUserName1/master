@@ -1,10 +1,14 @@
 #include "icbl.h"
 
+#define _GNU_SOURCE
+
 #include <float.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../../query/degree.h"
 #include "../../data-struct/list_ul.h"
@@ -49,7 +53,7 @@ static inline size_t get_num_steps(in_memory_file_t* db) {
             / get_num_coarse_clusters(db));
 }
 
-int gen_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets) {
+int identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets) {
     size_t num_nodes = db->node_id_counter;
     size_t num_walks = get_num_walks(db);
     size_t num_steps = get_num_steps(db);
@@ -241,9 +245,187 @@ int cluster_coarse(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
             num_clusters);
 
     do {
-        updated_centers(db->node_id_counter, dif_sets, part, centers, num_clusters);
-        changes = assign_to_cluster(db->node_id_counter, dif_sets, part, centers, num_clusters);
+        updated_centers(db->node_id_counter, dif_sets, part, centers,
+                num_clusters);
+        changes = assign_to_cluster(db->node_id_counter, dif_sets, part,
+                centers, num_clusters);
     } while (changes > 0);
 
+    free(centers);
+
+    return 0;
+}
+
+int find_min_dist(const float* pairwise_diff, size_t n_nodes,
+        unsigned long* idx, dendrogram_t** dendros) {
+    float min_dist = FLT_MAX;
+
+    // Compute pairwise distance matrix
+    for (size_t i = 0; i < n_nodes; ++i) {
+        for (size_t j = 0; j < n_nodes - i; ++j) {
+            if (i == j || dendros[i] == dendros[j]) {
+                continue;
+            }
+            if (pairwise_diff[i * n_nodes + j] < min_dist) {
+                min_dist = pairwise_diff[i * n_nodes + j];
+                idx[0] = i;
+                idx[1] = j;
+            }
+        }
+    }
+    return 0;
+}
+
+int assign_dendro_label(dendrogram_t* dendro, dendrogram_t* fst_child,
+        dendrogram_t* snd_child) {
+    if (fst_child->size > BLOCK_SIZE && snd_child->size > BLOCK_SIZE) {
+        // block label of first + : + block label of snd + \0
+        dendro->label = malloc((strlen(fst_child->label) + 1
+                    + strlen(snd_child->label) + 1) * sizeof(char));
+        dendro->label[0] = '\0';
+
+        if (fst_child->size > snd_child->size) {
+            strncat(dendro->label, fst_child->label, strlen(fst_child->label));
+            strcat(dendro->label, ":");
+            strncat(dendro->label, snd_child->label, strlen(snd_child->label));
+        } else {
+            strncat(dendro->label, snd_child->label, strlen(snd_child->label));
+            strcat(dendro->label, ":");
+            strncat(dendro->label, fst_child->label, strlen(fst_child->label));
+        }
+    } else {
+        char* label = fst_child->size > snd_child->size ? fst_child->label
+            : snd_child->label;
+
+        dendro->label = malloc(strlen(label) * sizeof(char));
+        strcpy(dendro->label, label);
+    }
+    return 0;
+}
+
+int cluster_hierarchical(list_ul_t* nodes_of_part, dict_ul_ul_t** dif_sets, dendrogram_t** blocks, unsigned long* block_count) {
+    size_t n_nodes_of_p = list_ul_size(nodes_of_part);
+    float* pairwise_diff = calloc(n_nodes_of_p * n_nodes_of_p, sizeof(float));
+    size_t n_clusters = n_nodes_of_p;
+    unsigned int* h_part = calloc(n_nodes_of_p, sizeof(unsigned int));
+    unsigned long min_idx[2];
+    dendrogram_t** dendros = malloc(n_nodes_of_p * sizeof(dendrogram_t*));
+    dendrogram_t* dendro;
+    blocks = malloc(list_ul_size(nodes_of_part) * sizeof(dendrogram_t*));
+
+    // Compute pairwise distance matrix
+    for (size_t i = 0; i < n_nodes_of_p; ++i) {
+        for (size_t j = 0; j < n_nodes_of_p - i; ++j) {
+            if (i == j) {
+                continue;
+            }
+            pairwise_diff[j * n_nodes_of_p + j] = weighted_jaccard_dist(
+                    dif_sets[i], dif_sets[j]);
+            pairwise_diff[i * n_nodes_of_p + j] = pairwise_diff[
+                i * n_nodes_of_p + j];
+        }
+    }
+
+    for (size_t i = 0; i < n_nodes_of_p; ++i) {
+        h_part[i] = i;
+        dendros[i] = malloc(sizeof(dendrogram_t));
+        dendros[i]->children.node = i;
+        dendros[i]->label = malloc(snprintf(NULL, 0,"%lu", i) + 1);
+        sprintf(dendros[i]->label, "%lu", i);
+        dendros[i]->size = sizeof(node_t);
+        dendros[i]->uncapt_s = dendros[i]->size;
+    }
+
+    while (n_clusters > 1) {
+        find_min_dist(pairwise_diff, n_nodes_of_p, min_idx, dendros);
+
+        dendro = malloc(sizeof(dendrogram_t));
+        dendro->children.dendro[0] = dendros[min_idx[0]];
+        dendro->children.dendro[1] = dendros[min_idx[1]];
+        dendro->size = dendros[min_idx[0]]->size + dendros[min_idx[1]]->size;
+        dendro->uncapt_s = dendros[min_idx[0]]->uncapt_s
+            + dendros[min_idx[1]]->uncapt_s;
+
+        if (dendro->uncapt_s > BLOCK_SIZE) {
+            (*block_count)++;
+            dendro->block_no = *block_count;
+            blocks[(*block_count) - 1] = dendro;
+        }
+
+        assign_dendro_label(dendro, dendros[min_idx[0]], dendros[min_idx[1]]);
+
+        dendros[min_idx[0]] = dendro;
+        dendros[min_idx[1]] = dendro;
+        n_clusters--;
+    }
+
+    free(dendros);
+    free(pairwise_diff);
+    free(h_part);
+    blocks = realloc(blocks, *block_count * sizeof(dendrogram_t*));
+
+    return 0;
+}
+
+int block_formation(in_memory_file_t* db, dict_ul_ul_t** dif_sets,
+        const unsigned long* parts, dendrogram_t*** blocks, unsigned long* block_count) {
+    size_t n_nodes = db->node_id_counter;
+    size_t num_clusters = get_num_coarse_clusters(db);
+    blocks = malloc(num_clusters * sizeof(dendrogram_t**));
+
+    list_ul_t* nodes_per_part[num_clusters];
+
+    for (size_t i = 0; i < num_clusters; ++i) {
+        nodes_per_part[i] = create_list_ul();
+    }
+
+    for (size_t i = 0; i < n_nodes; ++i) {
+        list_ul_append(nodes_per_part[parts[i]], i);
+    }
+
+    for (size_t i = 0; i < num_clusters; ++i) {
+        cluster_hierarchical(nodes_per_part[i], dif_sets, blocks[i], &(block_count[i]));
+    }
+
+    return 0;
+}
+
+int compare_by_label(const void *a, const void *b, void *array2) {
+    dendrogram_t** blocks = (dendrogram_t**) array2;
+    dendrogram_t* block_a = blocks[*(unsigned long*)a];
+    dendrogram_t* block_b = blocks[*(unsigned long*)b];
+    long diff = strcmp(block_a->label,
+            block_b->label);
+    if (diff == 0) {
+        diff = (long) (block_a->block_no - block_b->block_no);
+    }
+    return (0 < diff) - (diff < 0);
+}
+
+unsigned long* sort_by_label(dendrogram_t** blocks, unsigned long size) {
+    unsigned long *order = (unsigned long *)malloc(size * sizeof(unsigned long));
+
+    for (size_t i = 0; i < size; i++) {
+        order[i] = i;
+    }
+    qsort_r(order, size, sizeof(unsigned long), compare_by_label, (void *)blocks);
+    return order;
+}
+
+int layout_blocks(in_memory_file_t* db, dendrogram_t*** blocks, unsigned long* block_count) {
+    size_t num_clusters = get_num_coarse_clusters(db);
+    unsigned long* order[num_clusters];
+
+    for (size_t i = 0; i < num_clusters; ++i) {
+        order[i] = sort_by_label(blocks[i], block_count[i]);
+    }
+
+    // TODO distance for subgraphs based on edges
+    // use function to generate distance in cluster hierarchical
+    // apply cluster hierarchical to subgraphs
+    // sort like in the lines above
+    // impl mapping function for blocks 2 node ids
+
+    // map_blocks_to_node_ids(blocks, order);
     return 0;
 }
