@@ -24,6 +24,7 @@
 \usepackage[english]{babel}
 \usepackage[T1]{fontenc}
 \usepackage{wrapfig}
+\usepackage{adjustbox}
 
 % Absolute Positionierung der Textfelder inkl. Uni Konstanz Logo
 \usepackage[absolute, overlay]{textpos}
@@ -250,7 +251,7 @@ citestyle=numeric]{biblatex}
 \newcommand{\format}[1]{%
  	\def\dinformat{#1}%
 	\ifx\dinformat\dinafuenf%
-		\geometry{paperheight=21.0cm, paperwidth=14.8cm, left=2.5cm, right=2.5cm, bottom=2.5cm, top=2.5cm, headheight=12pt, headsep=0.8cm, footskip=1.2cm}%
+		\geometry{paperheight=21.0cm, paperwidth=14.8cm, left=2.5cm, right=2.5cm, bottom=2.5cm, top=2.5cm, headheight=14pt, headsep=0.8cm, footskip=1.2cm}%
 		\setlength{\logoheight}{15mm}
 		\setlength{\boxlinewidth}{1pt}
 	\else%
@@ -576,10 +577,10 @@ Zweitgutachter: & & \docSupervisorTwo%
 }%
 \ifthenelse{\equal{\lanUser}{\lanEnglish}}%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 19cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 17cm)%
 \selectfontsize{14pt}\centering%
 in partial fulfillment of the requirements for the degree of\\%
-\vskip 10pt%
+\vskip 1.5cm%
 \selectfontsize{16pt}\textbf{#1}\\%
 \vskip 2pt%
 \selectfontsize{14pt}in\\%
@@ -588,10 +589,10 @@ in partial fulfillment of the requirements for the degree of\\%
 \end{textblock*}%
 }%
 {%
-\begin{textblock*}{\textwidth}(0.5\footspace, 19cm)%
+\begin{textblock*}{\textwidth}(0.5\footspace, 17cm)%
 \selectfontsize{14pt}\centering%
 zur Erlangung des Grades\\%
-\vskip 10pt%
+\vskip 1.5cm%
 #1\\%
 \vskip 2pt%
 in\\%

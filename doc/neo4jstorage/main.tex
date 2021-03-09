@@ -150,8 +150,25 @@ In this document I describe the internals of the storage layer of the popular na
         \caption{A sketch of how Neo4J occupies memory.} %TODO citation
         \end{figure}
 
-    \subsection{The Property Graph Model}
-        TODO
+    \subsection{The Property Graph Model}\label{\positionnumber}
+A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
+\begin{itemize}
+    \item $V$ the set of vertices.
+    \item $E$ the set of edges.
+    \item $\lambda: (V \times V) \rightarrow E$ a function assigning a pair of nodes to an edge.
+    \item $L$ a set of strings used as labels.
+    \item $P$ a set of key-value pairs called properties.
+    \item $T$ a set of strings used as relationship types.
+    \item $f_P: V \cup E \rightarrow 2^P$ a function that assigns a set of properties to a node or relationship.
+   \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
+   \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
+\end{itemize} 
+\smallskip
+The property graph model reflects a directed, node-labeled and relationship-typed multi-graph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property}. \\
+    In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them objects on their own.
+    An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
+Neo4j is a graph database employing the property graph model~\cite{neo4j_book}, which is used in the evaluation part of this thesis.
+
 
 \newpage
 
