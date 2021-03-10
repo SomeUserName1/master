@@ -1,68 +1,288 @@
 \chapter{Preliminaries}\label{\positionnumber}
 
-\section{Graph Databases}\label{\positionnumber}
-        \subsection{Graphs}\label{\positionnumber}
-            A \textit{graph} $G$ is a tuple $(V, E)$ where $V$ is a non-empty set of vertices. $E$ is a subset of cartesian product of the set vertices $E \subseteq V \times V$, called edges. \\
-            A \textit{subgraph} is a graph $G' = (V', E')$, where $V' \subseteq V$ and $E' \subseteq E$.
+\section{Graph Databases
+}\label{\positionnumber}
+In this section we first give a definition of graphs as discrete structures and related concepts. Next we introduce and analyze possible data structures and algorithms to represent and operate on graphs. \\
+        \subsection{Graph Theory}\label{\positionnumber}
+        % TODO add figures for some examples
+            Most of the definitions below follow the notations intorduced in ~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}
+        
+            A \textbf{graph} $G$ is a tuple $(V, E)$ where $V$ is a non-empty set of vertices (also called nodes). 
+            $E$ is a subset of cartesian product of the set vertices $E \subseteq V \times V$, called edges.
+            A \textbf{subgraph} is a graph $G' = (V', E')$, where $V' \subseteq V$ and $E' \subseteq E$. \\
             
-            Two vertices are called \textbf{adjacent}, if there exists an edge between these vertices: $u,v \in V$ adjacent $\Leftrightarrow \exists e \in E: e = (u, v) \vee e= (v, u)$. \\
-            Given one vertex $v \in V$, the neighbouhood of $v$ are all vertices that are adjacent to $v$: $N_v = {u \in V | (v, u) \in E \vee (u, v) \in E}$. \\
-            A vertex and an edge are called incident, if the edge connects the vertex to another vertex (or itself): $v \in V, e\in E$ incident $\Leftrightarrow \exists u \in V: e = (u,v) \vee (v,u)$. The number of neighbours a vertex has is called the \textit{degree}: $v \in V: deg(v) = |N_v|$. \\
-            One can model villages and roads using a graph. Given two villages that are connected by a road are adjacent. The road and one of the two cities are incident and all villages connected to one specific village by roads are the neighbouhood of this specific village. 
+            Two vertices are called \textbf{adjacent}, if there exists an edge between these vertices: 
+            \[ u,v \in V \text{ adjacent } \Leftrightarrow \exists e \in E: e = (u, v) \vee e= (v, u).\]
+            Given one vertex $v \in V$, the neighbouhood of $v$ are all vertices that are adjacent to $v$: 
+            \[N_v = {u \in V | (v, u) \in E \vee (u, v) \in E}.\] 
+            A vertex and an edge are called incident, if the edge connects the vertex to another vertex (or itself): 
+            \[v \in V, e\in E \text{ incident } \Leftrightarrow \exists u \in V: e = (u,v) \vee (v,u).\]
+            The number of neighbours a vertex has is called the \textbf{degree}: 
+            \[v \in V: deg(v) = |N_v|.\]
+            The average degree of the graph $G$ is defined by:
+            \[ \text{deg}(V) = \frac{1}{|V|} \sum_{v \in V}\text{deg}(v)\]
+            The set of neighbours connected to a node by incoming edges is called $N_v |_\text{in}$. Analogously we define $N_v |_\text{out}$. \\
             
-            A graph is \textit{undirected}, if $E$ is a symmetric relation, that is $(u, v) \in E \Rightarrow (v, u) \in E$.
-            Otherwise the graph is called \textit{directed}, that is the order within the tuple matters and $E$ is not symmetric. \\
-            For example rivers or irrigation systems always have a flow, running exclusively in one direction. This behaviour can be modeled using a directed graph.
+            One can model villages and roads using a graph. 
+            Given two villages that are connected by a road are adjacent. 
+            The road and one of the two cities are incident and all villages connected to one specific village by roads are the neighbouhood of this specific village. \\
             
-            Weights can be assigned to both edges and vertices. The graph is called \textit{weighted}, if either edges or nodes are assigned weights. Otherwise it's called unweighted.
-            Similarly labels can be assigned to both nodes and edges. In some cases these labels may encode the type of the entity.
+            A graph is \textbf{undirected}, if $E$ is a symmetric relation, that is $(u, v) \in E \Rightarrow (v, u) \in E$. \\
+            Otherwise the graph is called \textbf{directed}, that is the order within the tuple matters and $E$ is not symmetric. \\
+            
+            Similar to the edges incident to a vertex we can define the incoming and outgoing edges by restricting which of the positions the vertex takes. 
+            The set of incoming edges is defined as:
+            \[v \in V: \text{In}_v = \{e \in E |u \in V: (u, v) \}.\]
+            Similarly the outgoing edges are defined as \[v \in V: \text{Out}_v = \{e \in E |u \in V: (v, u) \}.\]
+            For example rivers or irrigation systems always have a flow, running exclusively in one direction. 
+            This behaviour can be modeled using a directed graph.\\
+            
+            Weights can be assigned to both edges and vertices. The graph is called \textbf{weighted}, if either edges or nodes are assigned weights. \\
+            Otherwise it's called unweighted.
+            Similarly labels can be assigned to both nodes and edges. 
+            In some cases these labels may encode the type of the entity.
             Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so called properties. \\
-            An example for a weighted graph is a road network: The vertices are crossings between roads, the roads are the edges and the edge weights represent the distances between the crossings that are connected by the road.
-            To include labels, one could distinguish between highways and minor roads or simply assign the name of the road. The former would model the type of the road, while the latter would be an (potentially non-unique) identifier.
             
-            In case there may exist multiple edges between the same pair of nodes in the same direction, then the graph is called \textit{multigraph}. That is, $E_M = (E, M)$ is a multiset, with $M: E \rightarrow \mathbb{N}$. \\
-            Imagine one tries to model the transportation links between major cities. There are many possible means: Highways, railways, flights and for some sea routes. In particular, two cities may be connected by more than one mean of transportation.
+            An example for a weighted graph is a road network: 
+            The vertices are crossings between roads, the roads are the edges and the edge weights represent the distances between the crossings that are connected by the road.
+            To include labels, one could distinguish between highways and minor roads or simply assign the name of the road. 
+            The former would model the type of the road, while the latter would be an (potentially non-unique) identifier.\\
             
-            A \textit{walk} of length $n$ is a sequence of vertices, where there exists an edge for each two consecutive vertices: $i \in \{0, \dots, n-1\} v_i \in V: \forall j \in {0, \dots, n-2}: (v_j,v_{j+1}) \in E$. A \textit{trail} is a walk, where each edge is only visited once. A \textit{path} is a trail, where all visited vetices are distinct.\\
-            When planning a route from some point to another, one is interested in finding a path between these points. More explicitly, one wants to find the shortest possible path. Algorithms to solve this problem setting are given later in this chapter. \\
+            In case there may exist multiple edges between the same pair of nodes in the same direction, then the graph is called \textbf{multigraph}. 
+            That is, $E_M = (E, M)$ is a multiset, with $M: E \rightarrow \mathbb{N}$. \\
+            A graph that is not a multi-graph and does not have self-loops is called \textbf{simple}. \\
             
-            A \textit{cycle} is a trail, where the first visited vertex is also the last visited vertex. \\
-            If you start your route from home, go to work and return home after closing time, your route is a cycle.
+            Imagine one tries to model the transportation links between major cities. 
+            There are many possible means: Highways, railways, flights and for some sea routes. 
+            In particular, two cities may be connected by more than one mean of transportation.\\
             
-            A graph is called \textit{connected}, if for each pair of vertices there exists a path between those: $G$ connected $\Leftrightarrow \forall v_i, v_j \in V: \exists$ Path$(u, v)$.  \\
-            A \textit{tree} is a graph, which is connected and cycle-free. \\
-            A \textit{spanning tree} is a subgraph $G' = (V', E')$ of $G = (V, E)$, that is a tree and $V' = V$. \\
+            A \textbf{walk} of length $n$ is a sequence of edges, where the target and the source of consecutive edges are equal. Let $u,v,w \in V$. Then a trail is a sequence $(e_i)_{i \in \{0, \dots, n-1\}}$ where $e_i \in E$ and
+            \[ \forall j \in \{0, \dots, n-2\}: e_j = (u, v) \Rightarrow e_{j+1} = (v, w)\] 
+            A \textbf{trail} is a walk, where all edges are distinct. \\
+            A \textbf{path} is a trail, where no vertex is visited twice.\\
             
-            When partitioning a graph, one splits the vertices in disjoint subsets. Thus a \textit{partition} of a graph is a set of subgraphs $i\in \{0, \dots, n-1\}: G_i = (V_i, E_i)$ of $G$, where $\forall i,j \in \{0, \dots, n-1\}, i \neq j: V_i \cap V_j = \emptyset$ and $\bigcup_i V_i = V$.
+            When planning a route from some point to another, one is interested in finding a path between these points.
+            More explicitly, one wants to find the shortest possible path. 
+            Algorithms to solve this problem setting are given later in this chapter. \\
+            
+            A \textbf{cycle} is a trail, where the first visited vertex is also the last visited vertex. \\
+            If you start your route from home, go to work and return home after closing time, your route is a cycle.\\
+            
+            A graph is called \textbf{connected}, if for each pair of vertices there exists a path between those: 
+            \[G \text{ connected } \Leftrightarrow \forall v_i, v_j \in V: \exists \text{ Path}(u, v).\]
+            A \textbf{tree} is a graph, which is connected and cycle-free. \\
+            A \textbf{spanning tree} is a subgraph $G' = (V', E')$ of $G = (V, E)$, that is a tree and $V' = V$. \\
+            
+            When partitioning a graph, one splits the vertices in disjoint subsets. 
+            Thus a \textbf{partition} of a graph is a set of subgraphs $i\in \{0, \dots, n-1\}: G_i = (V_i, E_i)$ of $G$, where 
+            \begin{enumerate}
+             \item $\forall i,j \in \{0, \dots, n-1\}, i \neq j: V_i \cap V_j = \emptyset$.
+             \item $\bigcup_i V_i = V$.
+            \end{enumerate}
             
     \subsection{Data Structures}\label{\positionnumber}
-        When implementing graphs for computing machinery, there are some possibilities on how to represent the graph in memory. 
+        When implementing graphs for computing machinery, there are some possibilities on how to represent the graph in memory.
+        We only consider the costs of storing the structure of the graph, for the sake of succintness. 
+        Most of the following data structures can be extended to include labels and properties either by using additional fields or pointers. 
+        The definitions of the data types and parts of the complexity analysis are based upon~\autocite{Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA, steinhaus2010g}. 
+        Besides the ones elaborated on below there are the compressed sparse column and row (CSC/CSR) representations, which are used for sparse matrices in arithmetics-heavy applications, like in the library Eigen or Matlab. 
+        For more information on these the reader is reffered to~\autocite{steinhaus2010g, Eisenstat1982YaleSM}
+        % TODO Figure of example graph
         
-        % TODO insertion & lookup
-        % Check Knuth Bible & Steinhaus & Wiki
-        The simplest representation uses an unordered list of edges. That is each element of the data structure carries the information of exactly one edge. For example in a directed and weighted graph, the indices of the source and target node and the weight of the edge are one entry. \\
-        \subsubsection{Adjacency List}
-        \subsubsection{Adjacency Matrix}
-        \subsubsection{Incidence Matrix}
-        \subsection{CSR}
+        \paragraph{Unordered Edge List}
+        The simplest representation uses an unordered list of edges. 
+        That is each element of the data structure carries the information of exactly one edge. 
+        For example in a directed, weighted graph, the indices of the source and target node and the weight of the edge are one entry. 
+        Additionally an edge list needs to store a list of vertex indices, in order to represent nodes with no edges.
+        Overall this results in $\mathcal{|E| + |V|}$ space complexity. \\
+        
+        The number of nodes can be retreived in $\mathcal{O}(1)$ assuming that the list data structure stores its size as a filed. 
+        The same is true for edges.\\
+
+        Finding a vertex requires to inspect the list of vertices, thus $\mathcal{O}(|V|)$. 
+        Assuming the list stores a pointer to its tail, vertex insertion's asymptotic runtime is $\mathcal{O}(1)$. 
+        Deleting a vertex requires a pass over all edges to remove the ones including the particular vertex and a pass over the list of vertex indices to delete the vertex itself, in total $\mathcal{O}(|E|+|V|)$. \\
+        For edges, the basic operations find, and remove can be executed in linear runtime, i.e. $\mathcal{O}(|E|)$. \\
+        Edge insertion's asymptotic runtime is $\mathcal{O}(1)$, again assuming the list stores a reference to its tail. \\
+        
+        Deciding wether two vertices are adjacent requires iterating over the list of edges, that is 
+        $\mathcal{O}(|E|)$ runtime.\\
+        
+        Finally, finding the neighbouhood $N_v$ of a vertex requires a again a scan of all edges, i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
+        The same is true for the incoming and outgoing sets of a vertex. \\
+        
+        An example of this data structure is shown in \ref{edgelist}
+        
+        \begin{figure}[htp]\label{edgelist}
+         \begin{center}
+         \begin{minipage}{0.5\textwidth}
+         \begin{minted}[fontsize=\footnotesize]{bash}
+          0 1 2 3 4 7 9 10
+          \end{minted}
+          \begin{minted}{bash}
+           0 1 1
+           1 0 2
+           1 2 1
+           2 3 -1
+           1 3 1
+           3 4 1
+           4 1 5
+           7 9 3
+          \end{minted}
+         \end{minipage}%
+         \hfill%
+         \begin{minipage}{0.5\textwidth}
+          \begin{minted}[fontsize=\footnotesize]{bash}
+           0 1 1
+           1 0 2
+           1 2 1
+           2 3 -1
+           1 3 1
+           3 4 1
+           4 1 5
+           5 6 3
+          \end{minted}
+         \end{minipage}
+         \end{center}
+         \caption{%
+             An example of the edge list representation of a graph.%
+             The left handside uses a list to encode vertex indices, while the right handside assumes consecutive indexes.%
+        }
+        \end{figure}
+
+        \paragraph{Adjacency Matrix}
+        An adjacency matrix of a graph $G$ is a $|V|\times|V|$ matrix where a non-zero entry corresponds to an edge with the weight beeing the value of that entry. 
+        Let $A \in |V|\times|V|. u, v \in \{0, \dots, |V| - 1\}$ and $w_{u,v}$ the weight of the edge $e = (e,v) \in E$ then
+        \[ a_{uv} = \begin{cases}
+                     w_{u,v} & \text{if} (u,v) \in E \\
+                     0 & \text{otherwise}
+                    \end{cases}
+        \]
+        Additionally in order to model non-consecutive indices one needs to store a mapping from the actual vertex index to the one used in the matrix --- usually represented by a 2D array. 
+        It is also important to note, that adjacency matrix representations are not able to represent multi-graphs without further modification.
+        The space complexity of an adjacency matrix is thus $\mathcal{O}(|V|^2 + |V|)$. \\
+                
+        The number of nodes can be retreived in $\mathcal{O}(1)$, as it's simply the size of the mapping that is stored.
+        For the number of edges, one needs to iterate over all elements of the matrix and count the non-zero entries, which requires one to touch $\mathcal{O}(|V|^2)$ elements.\\
+
+        Finding a vertex is just an array lookup, thus $\mathcal{O}(1)$. \\
+
+        Insertion requires to add one row and one column to the matrix, as well as one entry to the mapping. 
+        This includes reallocating the matrix which is non-deterministic and independent of the matrix size. But it also requires copying all elements to the new matrix, such that we can estimate the overall asymptotic runtime of $\mathcal{O}(|V|^2)$. \\
+        
+        Deleting a vertex is similar: Either one leaves a gap that may be used on subsequent insertions and simply marks the true id in the mapping as deleted, which would be an $\mathcal{O}(1)$ operation. 
+        Alternatively one could imediately reallocate the matrix to free the extra row and column as well as the extra field in the mapping. 
+        This would again be non-deteministic, but can again be estimated by copying the elements from the former matrix $\mathcal{O}(|V-1|^2) = \mathcal{O}(|V|^2)$. \\
+        
+        For edges, the basic operations find, insert and remove can be executed in constant runtime, i.e. $\mathcal{O}(1)$, as a simple array access. \\
+        
+        Deciding wether two vertices are adjacent requires just reading what is in the particular array at the index of the two nodes, that is $\mathcal{O}(1)$ runtime.\\
+        
+        Finally, finding the neighbouhood $N_v$ of a vertex requires a again a scan of a row and a column i.e. an asymptotic runtime of $\mathcal{O}(2|V|)$. For the incoming and outgoing sets of a vertex, one needs to access only either a row or a column resulting in $\mathcal{O}(|V|)$ steps per operation. \\
+        
+        An example of this data structure is shown in \ref{edgelist}
+        
+        \begin{figure}[htp]\label{edgelist}
+         \begin{center}
+         \begin{minted}[fontsize=\footnotesize]{bash}
+            0 1 2 3 4 5 6 7
+            0 1 2 3 4 7 9 10
+          \end{minted}
+          \begin{minted}{bash}
+            0 1 0  0 0 0 0 0
+            2 0 1  1 0 0 0 0
+            0 0 0 -1 0 0 0 0
+            0 0 0  0 1 0 0 0
+            0 5 0  0 0 0 0 0
+            0 0 0  0 0 0 3 0
+            0 0 0  0 0 0 0 0
+            0 0 0  0 0 0 0 0
+          \end{minted}
+         \end{center}
+         \caption{An example of the adjacency matrix representation of a graph.}
+        \end{figure}
+        
+        \paragraph{Incidence Matrix}
+        An incidence matrix
+        
+        \paragraph{Adjacency List}
+        In an adjacency list, there is an entry for each vertex in the graph. 
+        Each such entry stores the nodes that are adjacent to the vertex, i.e. its neighbourhood $N_v$. 
+        It is important to note, in most implementations only $N_v |_\text{out}$ is the content of the adjacency list.
+        When we sum $|N_v |_\text{out}|$ over all vertices of the graph, we count each edge once.\\
+        The space complexity here is $\mathcal{O}(|V| + |E|)$, as we store each node once and then for each relationship one more node in the corresponding adjacency list containing $N_v |_\text{out}$.
+
+        The number of nodes can be retreived in $\mathcal{O}(1)$, as it's the size of the list.
+        For retrieving the number of edges, one needs to iterate over all elements of the node list and sum over their respective adjacency list. This requires $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations. \\
+
+        Finding a vertex is just a lookup, thus in $\mathcal{O}(1)$. \\
+        Inserting a vertex means simply appending an element to a list which is in $\mathcal{O}(1)$. \\
+        Deleting a vertex requires to iterate over all nodes and their adjacency list in order to remove the occurences as adjacent node and is in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$. \\
+        
+        Finding an edge, can be done by checking the adjacency list of the source node, and requires to look at $\mathcal{O}(\text{deg}(V))$ elements.
+        For the insertion of an edge one needs to append one element to the end of the adjacency list of the source node, which can be done in $\mathcal{O}(1)$.
+        Removing an edge again requires to iterate over the adjacency list of the source node and remove the corresponding entry which is again in $\mathcal{O}(\text{deg}(V))$. \\
+        
+        Deciding wether two vertices are adjacent can be checked by looking at the adjacency lists of two nodes, that is $\mathcal{O}(2 \text{deg}(V))$ runtime.\\
+        
+        Finally, the outgoing neighbourhood of a vertex, is already stored and can be returned in $\mathcal{O}(1)$.\\
+        In contrast for the incoming neighbourhood one needs to access all vertices' adjacency list and see if the particular vertex is contained in it, resulting in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
+        Finding the neighbouhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
+        Note that in undirected graphs, both directions of all edges exist, i.e. $N_v = N_v |_\text{out} = N_v |_\text{in}$. This means for undirected graphs all neighbourhood queries are in $\mathcal{O}(1)$. \\
+        
+        An example of this data structure is shown in \ref{edgelist}
+        
+        \begin{figure}[htp]\label{edgelist}
+         \begin{center}
+          \begin{minted}[fontsize=\footnotesize]{bash}
+            0 -> (1, 1)
+            1 -> (1, 2) -> (2,1) -> (1, 3)
+            2 -> (3, -1)
+            3 -> (4, 1)
+            4 -> (1, 5)
+            7 -> (9, 3)
+            9
+            10
+          \end{minted}
+         \end{center}
+         \caption{An example of the adjacency list representation of a graph.}
+        \end{figure}
+        
+        \paragraph{Incidence List}
+        
+        \paragraph{Summary}
+        
+        \newpage
+        \begin{landscape}
+            \begin{longtable}{llllll} \toprule
+            & Edge List & Adjacency Matrix & Incidence Matrix & Adjacency List & Incidence List \\ \midrule
+            Space Complexity & $\mathcal{O}(|E| + |V|)$ & $\mathcal{O}(|V|^2 + |V|)$ & & $\mathcal{O}(|V| + |E|)$ &  \\
+            Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
+            Retrieve $|E|$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(|E|)$ &  \\
+            Find $v \in V$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
+            Insert $v$ to $V$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(1)$ &  \\
+            Remove $v$ from $|V|$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(|E|)$ &  \\
+            Find $e \in E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
+            Insert $e$ to $E$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
+            Remove $e$ from $E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
+            $u, v$ adjacent? & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
+            $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(|E|)$\footnote{\label{fn}For directed graphs, for undirected ones it's $\mathcal{O}(1)$} &  \\
+            $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(|E|)$\footref{fn} &  \\
+            $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(1)$ &  \\ \bottomrule
+           \caption{Space and runtime complexity comparison of the different data types}
+         \end{longtable}
+        \end{landscape}
+
 
     \subsection{Queries and Algorithms}\label{\positionnumber}
         \subsubsection{Traversal-based}
             \paragraph{Breadth First Search \& Dijkstra, Spreading Activation}
             \paragraph{A* Algorithm}
-            \paragraph{ALT}
             \paragraph{Depth First Search}
             \paragraph{Random Walk}
-            \paragraph{Others: Min/Max Flow}
         
-        \subsubsection{Structure-based}
-            \paragraph{Partitioning}
-            \paragraph{Community Detection}
-            \paragraph{Clustering}
-            \paragraph{Others: Minimal Spanning Trees, Strongly Connected Components, Graph Matching}
+        \subsubsection{Partitioning, Clustering or Community Detection}
             
-        %\subsubsection{Pattern-based}
-            %\paragraph{Paths, Star, Tree, Cycle}
             
     \subsection{Architecture}\label{\positionnumber}
             \paragraph{Memory hierarchy}
@@ -146,8 +366,10 @@
         These depend mainly on the structure of the data to be stored and the queries to be run.
 
 
-
     \subsection{The Property Graph Model}\label{\positionnumber}
+        The property graph model is a widely adopted data model to represent graphs in databases.
+        It is not only able to represent the structure of directed or undirected, weighted or unweighted, but also of typed graphs carrying additional information.
+    
         A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
         \begin{itemize}
             \item $V$ the set of vertices.
@@ -157,75 +379,78 @@
             \item $P$ a set of key-value pairs called properties.
             \item $T$ a set of strings used as relationship types.
             \item $f_P: V \cup E \rightarrow 2^P$ a function that assigns a set of properties to a node or relationship.
-        \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
-        \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
+            \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
+            \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
         \end{itemize} 
         \smallskip
-        The property graph model reflects a directed, node-labeled and relationship-typed multi-graph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property}. \\
-            In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them objects on their own.
-            An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
+        The property graph model reflects a directed, node-labeled and relationship-typed multigraph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property}. \\
+        In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them records on their own. 
+        This means they either need to be addressed explicitly or one needs to store all information, including the properties, consecutively. 
+        The latter approach has the downside, that when the type or a property contain a variable length string, the relationships have to be variable lenght records. 
+        This would cause the lookup of a relationship's property to be not only indirected via a node index, but also requires an additional mechanism to be able to tell the beginning and length of the record. \\
+        An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
         Neo4j is a graph database employing the property graph model~\cite{neo4j_book}, which is used in the evaluation part of this thesis.
     
     \subsection{Example: Neo4J}\label{\positionnumber}
-            When restricting to graph structures where nodes and relationships are allowed to have properties and labels and types respectively, this allows one to narrow down some of the design decisions.
-            In particular the example of a popular graph native database --- Neo4J --- is what we discuss in this subsection.
+        When restricting to graph structures where nodes and relationships are allowed to have properties and labels and types respectively, this allows one to narrow down some of the design decisions.
+        In particular the example of a popular graph native database --- Neo4J --- is what we discuss in this subsection.
 
-            To get an overview of the architecture let us consider figure~\ref{N4J_HLA_Emil}. 
+        To get an overview of the architecture let us consider figure~\ref{N4J_HLA_Emil}. 
 
-            \begin{figure}[htp]\label{N4J_HLA_Emil}
+        \begin{figure}[htp]\label{N4J_HLA_Emil}
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_HLA_Emil.png}
+        \end{center}
+        \caption{The high level architecture of Neo4J according to Emil Efrim, the co-founder of Neo technologies.} %TODO citation
+        \end{figure}
+
+        Here we can see that the previous schema is not exactly straight forward to apply, mainly due to a lack of concise documentation.
+        The diagram was taken from the only publication that elaborates on the internals of Neo4J aside from the code of course.
+        
+        \begin{figure}[htp]\label{N4J_Storage}
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.5\textwidth,height=0.3\textheight]{img/00_intro/N4J_Storage.png}
+        \end{center}
+        \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
+        \end{figure}
+        
+        Here The storage manager makes mostly use of the Java NIO package with some additional usage of operating system native calls to allocate memory for the page cache and network buffers. 
+        A more detailed view on the high level architecture of the disk space and buffer manager and the files and index structures was deduced by the author from the source code and the non-public JavaDocs.
+        This is shown in figure~\ref{N4J_Storage}.
+        
+      \begin{figure}[htp]\label{N4J_memory_view}
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_memory_view.png}
+        \end{center}
+        \caption{A sketch of how Neo4J occupies memory.} %TODO citation
+        \end{figure}
+        
+        The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
+
+        \subsubsection{IO \& File Layout}\label{files_sec}
+        The files that Neo4J uses to store data are categorizable into 5 classes based upon the records they contain:
+        \begin{itemize}
+            \item Node-related files: These files start with the prefixes \mintinline{bash}{neostore.nodestore*} and \mintinline{bash}{neostore.label*}. 
+                The contents of these files contain the node structure and labels. 
+            \item Relationship-related files: The prefix \mintinline{bash}{neostore.relationship*} is used for all files containing records related to the graph's relationship structure, types and possibly groups.
+            \item Property-related files: Containing the properties of both nodes and relationship, this is the part that is least structured and rather unspecialized with respect to graphs.
+            \item Schema: Files starting with \mintinline{bash}{neostore.schemastore*} contain information about the schema of the graph or rather the schematic information on the node, relationship and property labels, types and constraints.
+            \item Metadata: Files only starting with \mintinline{bash}{neostore} and none of the above prefixes contain meta information about the graph.
+            \item Finally, a lock file.
+        \end{itemize}
+        
+        \begin{figure}[htp]\label{files}
             \begin{center}
-            \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_HLA_Emil.png}
+                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/files.png}
             \end{center}
-            \caption{The high level architecture of Neo4J according to Emil Efrim, the co-founder of Neo technologies.} %TODO citation
-            \end{figure}
+            \caption{A visualization of the files layout of Neo4j.} %TODO citation
+        \end{figure}
 
-            Here we can see that the previous schema is not exactly straight forward to apply, mainly due to a lack of concise documentation.
-            The diagram was taken from the only publication that elaborates on the internals of Neo4J aside from the code of course.
-            Here The storage manager makes mostly use of the Java NIO package with some additional usage of operating system native calls to allocate memory for the page cache and network buffers. 
-            A more detailed view on the high level architecture of the disk space and buffer manager and the files and index structures was deduced by the author from the source code and the non-public JavaDocs.
-            This is shown in figure~\ref{N4J_Storage}.
-
-            \begin{figure}[htp]\label{N4J_Storage}
-            \begin{center}
-            \includegraphics[keepaspectratio,width=0.5\textwidth]{img/00_intro/N4J_Storage.png}
-            \end{center}
-            \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
-            \end{figure}
-
-            The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
-
-            \begin{figure}[htp]\label{N4J_memory_view}
-            \begin{center}
-            \includegraphics[keepaspectratio,width=\textwidth]{img/00_intro/N4J_memory_view.png}
-            \end{center}
-            \caption{A sketch of how Neo4J occupies memory.} %TODO citation
-            \end{figure}
-            
-            \subsubsection{File Layout}\label{files_sec}
-            The files that Neo4J uses to store data are categorizable into 5 classes based upon the records they contain:
-            \begin{itemize}
-                \item Node-related files: These files start with the prefixes \mintinline{bash}{neostore.nodestore*} and \mintinline{bash}{neostore.label*}. 
-                    The contents of these files contain the node structure and labels. 
-                \item Relationship-related files: The prefix \mintinline{bash}{neostore.relationship*} is used for all files containing records related to the graph's relationship structure, types and possibly groups.
-                \item Property-related files: Containing the properties of both nodes and relationship, this is the part that is least structured and rather unspecialized with respect to graphs.
-                \item Schema: Files starting with \mintinline{bash}{neostore.schemastore*} contain information about the schema of the graph or rather the schematic information on the node, relationship and property labels, types and constraints.
-                \item Metadata: Files only starting with \mintinline{bash}{neostore} and none of the above prefixes contain meta information about the graph.
-                \item Finally, a lock file.
-            \end{itemize}
-            
-            \begin{figure}[htp]\label{files}
-                \begin{center}
-                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/files.png}
-                \end{center}
-                \caption{A visualization of the files layout of Neo4j.} %TODO citation
-            \end{figure}
-
-            Most importantly the files ending with \mintinline{bash}{.db} contain all fixed size records representing the structure of the graph and small amounts of data.
-            Files ending with \mintinline{bash}{.id} are used for record allocation and contain unused IDs. 
-            Files having one of the suffixes \mintinline{bash}{names}, \mintinline{bash}{arrays} and \mintinline{bash}{strings} are so called dynamic stores and contain dynamic sized records. 
-            A dynamic store is always started with a header block containing extra information and the offset to the first block in the store files. 
-            Files ending with \mintinline{bash}{.index} contain indexes either generated by Neo4J (e.g.\ the keys of properties are referenced like this to avoid storing key names multiple times) or by the Apache Lucene indexing library.
-            
+        Most importantly the files ending with \mintinline{bash}{.db} contain all fixed size records representing the structure of the graph and small amounts of data.
+        Files ending with \mintinline{bash}{.id} are used for record allocation and contain unused IDs. 
+        Files having one of the suffixes \mintinline{bash}{names}, \mintinline{bash}{arrays} and \mintinline{bash}{strings} are so called dynamic stores and contain dynamic sized records. 
+        A dynamic store is always started with a header block containing extra information and the offset to the first block in the store files. 
+        Files ending with \mintinline{bash}{.index} contain indexes either generated by Neo4J (e.g.\ the keys of properties are referenced like this to avoid storing key names multiple times) or by the Apache Lucene indexing library.
         
         \subsubsection{Record Structures}
             \paragraph{Address Translation}
@@ -354,159 +579,15 @@
                     \caption{A visualization of the record structure of a relationship type.} %TODO citation
                 \end{figure}
                 
-            \paragraph{Relationship Groups}~\label{rel_group}
-                The relationship group record is used for dense nodes in order not to iterate over all relationships but only over those of a specific type.
-                Each record consists of 25 bytes where the first byte again contains the in-use flags and the high order bits of IDs that do not fit into integers.
-                The next bytes again contains high bits of addresses and is followed by the relationship type.
-                After that a reference (an ID) to the next relationship group record is given.
-                Finally the first outgoing relation, the first incoming relation, the first looping relation and the node of interest are specified.
-            
-                \begin{figure}[htp]\label{rel_group_record}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/relationship/relationship_group_record.png}
-                    \end{center}
-                    \caption{A visualization of the record structure of a relationship group.} %TODO citation
-                \end{figure}
-            
-                \begin{enumerate}
-                    \item Byte 1: In-use flag, high bits for the next relationship group ID, high bits for the first entry of outgoing relationship list.
-                    \item Byte 2: High bits for the first entry in the incoming relationship list, high bits for the first entry in the looping relationship list.
-                    \item Bytes 3 and 4: Relationship type ID
-                    \item Bytes 5 --- 8: ID of the next relationship group record.
-                    \item Bytes 9 --- 12: ID of the first relationship in the linked list of outgoing relationships, i.e.\ those relationships which start at the record owning node.
-                    \item Bytes 13 --- 16: ID of the first relationship in the linked list of incoming relationships, i.e.\ those relationships which end at the record owning node.
-                    \item Bytes 17 --- 20: ID of the first relationship in the linked list of loops, i.e.\ relationships which start and end at the record owning node.
-                    \item Bytes 21 --- 25: ID of the node for which the relationship group was created, also called the owning node (in the source code).
-                \end{enumerate}
-                
-                \begin{figure}[htp]\label{rel_group_first_bytes}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/relationship/relationship_group_first_bytes.png}
-                    \end{center}
-                    \caption{The structure of the first two bytes of a relationship group record.} %TODO citation
-                \end{figure}
-            
-
-            \paragraph{Properties}
-                Properties are stored per node or relationship as doubly linked list of 41 byte records with the first 9 bytes storing the previous and next property IDs and the remaining 32 bytes carry so called property blocks.
-                \begin{enumerate}
-                \item Byte 1: High bits of next and previous property IDs
-                \item Bytes 2 --- 5: Previous property ID
-                \item Bytes 6 --- 9: Next property ID
-                \item Bytes 10 --- 41: Up to 4 Property Blocks
-                \end{enumerate}
-                
-                \begin{figure}[htp]\label{prop}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/property/property.png}
-                    \end{center}
-                    \caption{The structure of a property record.} %TODO citation
-                \end{figure}
-                
-            \paragraph{Property Blocks} 
-                Each propety block consists of one to four 8 byte value blocks.
-                Thus each property block spans between 8 and 32 byte.
-                The first value block of a property block has the following structure:
-                \begin{enumerate}
-                    \item Byte 1 --- 3: Property key index ID (pointer to the key name)
-                    \item Byte 4: Type, inlined flag and 3 bits data
-                    \item Byte 5 --- 8: Data
-                \end{enumerate}
-                \textit{TODO correct figure to have lsb and msb inverted, inlined flag needs to be on the ´´surface'' instead of the inside.} \\
-                
-                At least this order would feel natural (first the header then data).
-                However the engineers at Neo Technologies have decided to swap the endianness of a property block.
-                In order to complete the confusion, they use a special encoding derived from the Latin 1 encoding for all in-lined types which is described in \mintinline[fontsize=\tiny]{bash}{neo4j/community/record-storage-engine/src/main/java/org/neo4j/kernel/impl/store/LongerShortString.java}.
-                The decoding step is implemented from line 900 to line 1000.
-                The coding tables are implemented from lines 30 too 600.
-                
-                \begin{figure}[htp]\label{prop_block}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/property/property_block.png}
-                    \end{center}
-                    \caption{The structure of a property block.} %TODO citation
-                \end{figure}
-                
-                All remaining value blocks contain pure data. 
-                Property values of type boolean, byte, short, int, char and float fit into one property block with one value block. 
-                Properties of type long and double are stored into two value blocks. 
-                Short strings and arrays are stored in the same property block as well, if they fit into 28 byte.
-                Otherwise a reference is stored, that refers to one of the respective dynamic stores for array and string property values. 
-                Other types such as temporal and spatial data are also fit into one property block. 
-                Details on each data type are outlined in the comment from the source code shown below. 
-                As there are only 14 different types, 4 bits suffice to encode the type. 
-                The types are enumerated in the order given below starting at \mintinline{java}{0b0001}. \\
-                
-                \textit{TODO requires further elaboration on in-lined values}
-                
-                \begin{figure}[htp]\label{property_types}
-                    \begin{center}    
-                        \adjustbox{varwidth=\textwidth}{%
-                            \inputminted{Java}{code/PropertyTypeEnum.java}
-                        }
-                    \end{center}
-                    \caption{The type enumeration used for property blocks}
-                \end{figure}
-                
-                \begin{figure}[htp]\label{property_Value_formats}
-                    \begin{center}
-                        \adjustbox{varwidth=\textwidth, scale=0.9}{%
-                            \inputminted[autogobble, fontsize=\scriptsize]{java}{code/PropertyTypeLayout.java}
-                        }
-                    \end{center}
-                    \caption{The layout of different types in property blocks.}
-                \end{figure}
-                
-            \paragraph{Property Key Index}
-                The property key index contains a in-use flag, a usage count and a reference to the respective name string in a dynamic store.
-                \begin{enumerate}
-                \item Byte 1: In-use Flag
-                \item Byte 2 --- 5: 
-                \end{enumerate}
-                    \begin{figure}[htp]\label{prop_key_idx}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/property/property_key_index.png}
-                    \end{center}
-                    \caption{The structure of a property key index record.} %TODO citation
-                \end{figure}
-
-                
-            \paragraph{Dynamic Records: Strings \& Arrays}\label{dynamic}
-                \begin{figure}[htp]\label{dynamic_rec}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/dynamic.png}
-                    \end{center}
-                    \caption{The structure of a dynamic record.} %TODO citation
-                \end{figure}
-                A record in a dynamic store is either strings or arrays stored as properties,  the strings of node labels or relationship types each of which stored in their own dynamic store.
-                A dynamic record has 8 fixed bytes followed by up to $2^{24}$ bytes $= 16 $MiB.
-                If the string or array to be stored is larger, then the remainder of the data is stored using a linked list of next blocks.
-                The absolute amount of dynamic data that can be stored that way is only limited by the machines disk space, so potentially infinite (as the admin could keep on buying new disks). 
-                The structure of such a record is as follows:
-                \begin{enumerate}
-                    \item 1 Byte: Start or linked record flag, in-use flag, high bits of next block ID
-                    \item 2 --- 4: Number of bytes used to store data beginning after the header.
-                    \item 5 --- 8: Reference to the next dynamic record
-                    \item 9 --- Number of bytes used $- 1$: Data
-                \end{enumerate}
-                
-                \begin{figure}[htp]\label{dynamic_first}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/dynamic_first_byte.png}
-                    \end{center}
-                    \caption{The first byte of a dynamic record.} %TODO citation
-                \end{figure}
+           
+           All further record structures like properties, arrays and strings are omitted for the sake of succintness.
         
-        \subsubsection{Caching \& Indexes}
+        \subsubsection{Caching \& Indexes} 
         
         \subsubsection{Queries \& Transactions}
             
             
-         
     \subsection{Locality}\label{\positionnumber}
-    
-    \subsection{Example: G-Store - A Storage Manager for Graphs}
-    
     
     
 \section{Problem Definition}\label{\positionnumber}

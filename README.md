@@ -70,11 +70,13 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] __DOCUMENTATION__
 - [ ] __More Tests__
 - [ ] __BSD-style data structures__ (to avoid wrapper code)
-- [ ] Alternative record layout (nodes + adj list in same file)
+- [ ] Drop consecutive index assumptions & support deletions
+- [ ] Alternative record layouts (nodes + adj list in same file)
 - [ ] Transactions/MVCC using git-like transaction logs (aka a block chain without economics and marketing bs)
 - [ ] Distribution
+- [ ] Multi-Model Rel
 
 
 ### Additional Documentation
 - [x] Write Neo4J Storage & Memory Design doc: Intro, Record Formats, BFS example   
-- [ ] Write Neo4J Storage & Memory Design doc: Property Graph Model, Page Cache (Cursors & Caches plain what's on disk), IO parts  
+- [ ] Write Neo4J Storage & Memory Design doc: Page Cache (Cursors & Caches plain what's on disk), IO parts  

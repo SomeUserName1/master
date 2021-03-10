@@ -5,6 +5,9 @@ compile_commands.json
 # Prerequisites
 *.d
 
+# html statistics
+*.html
+
 # Object files
 *.o
 *.ko
