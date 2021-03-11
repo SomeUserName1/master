@@ -1,9 +1,9 @@
 \chapter{Preliminaries}\label{\positionnumber}
 
-\section{Graph Databases
+\section{Graphs
 }\label{\positionnumber}
 In this section we first give a definition of graphs as discrete structures and related concepts. Next we introduce and analyze possible data structures and algorithms to represent and operate on graphs. \\
-        \subsection{Graph Theory}\label{\positionnumber}
+        \subsection{Theory}\label{\positionnumber}
         % TODO add figures for some examples
             Most of the definitions below follow the notations intorduced in ~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}
         
@@ -13,7 +13,7 @@ In this section we first give a definition of graphs as discrete structures and 
             
             Two vertices are called \textbf{adjacent}, if there exists an edge between these vertices: 
             \[ u,v \in V \text{ adjacent } \Leftrightarrow \exists e \in E: e = (u, v) \vee e= (v, u).\]
-            Given one vertex $v \in V$, the neighbouhood of $v$ are all vertices that are adjacent to $v$: 
+            Given one vertex $v \in V$, the neighbourhood of $v$ are all vertices that are adjacent to $v$: 
             \[N_v = {u \in V | (v, u) \in E \vee (u, v) \in E}.\] 
             A vertex and an edge are called incident, if the edge connects the vertex to another vertex (or itself): 
             \[v \in V, e\in E \text{ incident } \Leftrightarrow \exists u \in V: e = (u,v) \vee (v,u).\]
@@ -25,7 +25,7 @@ In this section we first give a definition of graphs as discrete structures and 
             
             One can model villages and roads using a graph. 
             Given two villages that are connected by a road are adjacent. 
-            The road and one of the two cities are incident and all villages connected to one specific village by roads are the neighbouhood of this specific village. \\
+            The road and one of the two cities are incident and all villages connected to one specific village by roads are the neighbourhood of this specific village. \\
             
             A graph is \textbf{undirected}, if $E$ is a symmetric relation, that is $(u, v) \in E \Rightarrow (v, u) \in E$. \\
             Otherwise the graph is called \textbf{directed}, that is the order within the tuple matters and $E$ is not symmetric. \\
@@ -101,14 +101,14 @@ In this section we first give a definition of graphs as discrete structures and 
 
         Finding a vertex requires to inspect the list of vertices, thus $\mathcal{O}(|V|)$. 
         Assuming the list stores a pointer to its tail, vertex insertion's asymptotic runtime is $\mathcal{O}(1)$. 
-        Deleting a vertex requires a pass over all edges to remove the ones including the particular vertex and a pass over the list of vertex indices to delete the vertex itself, in total $\mathcal{O}(|E|+|V|)$. \\
+        Deleting a vertex requires a pass over all edges to remove the ones including the particular vertex, in total $\mathcal{O}(|E|)$. \\
         For edges, the basic operations find, and remove can be executed in linear runtime, i.e. $\mathcal{O}(|E|)$. \\
         Edge insertion's asymptotic runtime is $\mathcal{O}(1)$, again assuming the list stores a reference to its tail. \\
         
         Deciding wether two vertices are adjacent requires iterating over the list of edges, that is 
         $\mathcal{O}(|E|)$ runtime.\\
         
-        Finally, finding the neighbouhood $N_v$ of a vertex requires a again a scan of all edges, i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
+        Finally, finding the neighbourhood $N_v$ of a vertex requires a again a scan of all edges, i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
         The same is true for the incoming and outgoing sets of a vertex. \\
         
         An example of this data structure is shown in \ref{edgelist}
@@ -152,9 +152,9 @@ In this section we first give a definition of graphs as discrete structures and 
 
         \paragraph{Adjacency Matrix}
         An adjacency matrix of a graph $G$ is a $|V|\times|V|$ matrix where a non-zero entry corresponds to an edge with the weight beeing the value of that entry. 
-        Let $A \in |V|\times|V|. u, v \in \{0, \dots, |V| - 1\}$ and $w_{u,v}$ the weight of the edge $e = (e,v) \in E$ then
+        Let $A \in |V|\times|V|. u, v \in \{0, \dots, |V| - 1\}$ and $w_{u,v}$ the weight of the edge $e = (u,v) \in E$ then
         \[ a_{uv} = \begin{cases}
-                     w_{u,v} & \text{if} (u,v) \in E \\
+                     w_{u,v} & \text{if } (u,v) \in E \\
                      0 & \text{otherwise}
                     \end{cases}
         \]
@@ -178,7 +178,7 @@ In this section we first give a definition of graphs as discrete structures and 
         
         Deciding wether two vertices are adjacent requires just reading what is in the particular array at the index of the two nodes, that is $\mathcal{O}(1)$ runtime.\\
         
-        Finally, finding the neighbouhood $N_v$ of a vertex requires a again a scan of a row and a column i.e. an asymptotic runtime of $\mathcal{O}(2|V|)$. For the incoming and outgoing sets of a vertex, one needs to access only either a row or a column resulting in $\mathcal{O}(|V|)$ steps per operation. \\
+        Finally, finding the neighbourhood $N_v$ of a vertex requires a again a scan of a row and a column i.e. an asymptotic runtime of $\mathcal{O}(2|V|)$. For the incoming and outgoing sets of a vertex, one needs to access only either a row or a column resulting in $\mathcal{O}(|V|)$ steps per operation. \\
         
         An example of this data structure is shown in \ref{edgelist}
         
@@ -203,14 +203,62 @@ In this section we first give a definition of graphs as discrete structures and 
         \end{figure}
         
         \paragraph{Incidence Matrix}
-        An incidence matrix
+        An incidence matrix of a graph $G$ is an $|V| \times |E|$ matrix, where each column corresponds to an edge. Each entry in a column is either the positive weight, if the node is the target of the edge or the negative weight, if the node is the source of the edge. Self-loops require a slight extension of this syntax, because here one node would be both source and target such that the entry is zero. One option is to just put the weight as entry of the node.  Another problem is that incidence matrices can not represent negative weights without further extensions. \\
+        
+        Let $u,v \in \{0, |V|-1\}, j \in \{0, |E|-1\}, A \in |V| \times |E|$ and $a_{v,j}$ the entry at row $v$ and column $j$ of $A$. Let further $w_j$ be the weight of the edge $e_j = (u,v) \in E$. Then 
+        \[         a_{vj} = \begin{cases}
+                     -w_{v,u} & \text{if } e_j = (v,u) \in E \\
+                     w_{u,v} & \text{if } e_j = (u,v) \in E \\
+                     0 & \text{otherwise}
+                    \end{cases}
+        \]
+        
+        As with adjacency matrices, in order to be able to represent non-consecutive indieces, we need to store a mapping from the true node indices to the ones used in the matrix.
+        The space requirements are thus $\mathcal{O}(|V| \cdot |E| + |V|) = \mathcal{O}(|V| \cdot |E|)$. \\
+        
+        The number of nodes can be retreived in $\mathcal{O}(1)$, as it's simply the size of the mapping that is stored.
+        The number of edges can also be retreived in $\mathcal{O}(1)$ as it's the second dimension of the matrix.\\
+
+        Finding a vertex is just an array lookup, thus $\mathcal{O}(1)$. \\
+
+        Insertion requires to add one row and one column to the matrix, as well as one entry to the mapping, as with adjacency lists. Thus the complexity is again the cost of copying the whole matrix $\mathcal{O}(|V| \cdot |E|)$. The same is true for deleting a vertex. \\
+        
+        In order to find an edge, one needs to scan one row of either the source or the target node of the edge, which requires $\mathcal{O}(|E|)$ steps.
+        Insertion and removal of edges correspond to the case of vertices: One would need to reallocate the matrix and copy all elements resulting in an asymptotic runtime complexity of $\mathcal{O}(|V| \cdot |E|)$. \\
+        
+        Deciding wether two vertices are adjacent requires reading one row and checking for each non-zero element, if the entry in the other nodes row is also non-zero, which has $\mathcal{O}(|E|)$ runtime.\\
+        
+        Finally, finding the neighbourhood $N_v$ of a vertex requires a again a scan of a row and checking all non-zero entry columns for the neighbour i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
+        For the incoming and outgoing sets the procedure is almost the same. The difference is, that only positive or negative non-zero columns --- depending on wehter the incoming or outgoing neighbours shall be returned -- have to be checked.\\
+        
+        An example of this data structure is shown in \ref{edgelist}
+        
+        \begin{figure}[htp]\label{edgelist}
+         \begin{center}
+         \begin{minted}[fontsize=\footnotesize]{bash}
+            0 1 2 3 4 5 6 7
+            0 1 2 3 4 7 9 10
+          \end{minted}
+          \begin{minted}{bash}
+            -1  2  0  0    0   0  0
+            1  -2 -1 -(-1) 0   5  0
+            0   0  1  0    0   0  0
+            0   0  0  (-1) 1   0  0
+            0   0  0  0    1  -5  0
+            0   0  0  0    0   0  0
+            0   0  0  0    0   0 -3
+            0   0  0  0    0   0  3
+          \end{minted}
+         \end{center}
+         \caption{An example of the incidence matrix representation of a graph.}
+        \end{figure}
         
         \paragraph{Adjacency List}
         In an adjacency list, there is an entry for each vertex in the graph. 
         Each such entry stores the nodes that are adjacent to the vertex, i.e. its neighbourhood $N_v$. 
-        It is important to note, in most implementations only $N_v |_\text{out}$ is the content of the adjacency list.
-        When we sum $|N_v |_\text{out}|$ over all vertices of the graph, we count each edge once.\\
-        The space complexity here is $\mathcal{O}(|V| + |E|)$, as we store each node once and then for each relationship one more node in the corresponding adjacency list containing $N_v |_\text{out}$.
+        It is important to note, that in most implementations only $N_v |_\text{out}$ is the content of the adjacency list.
+        When we sum $|N_v |_\text{out}|$ over all vertices of the graph, we count each edge once. \\
+        The space complexity here is $\mathcal{O}(|V| + |V| \cdot \text{deg}(V)) = \mathcal{O}(|V| + |E|)$, as we store each node once and then for each relationship one more node in the corresponding adjacency list containing $N_v |_\text{out}$.
 
         The number of nodes can be retreived in $\mathcal{O}(1)$, as it's the size of the list.
         For retrieving the number of edges, one needs to iterate over all elements of the node list and sum over their respective adjacency list. This requires $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations. \\
@@ -223,11 +271,11 @@ In this section we first give a definition of graphs as discrete structures and 
         For the insertion of an edge one needs to append one element to the end of the adjacency list of the source node, which can be done in $\mathcal{O}(1)$.
         Removing an edge again requires to iterate over the adjacency list of the source node and remove the corresponding entry which is again in $\mathcal{O}(\text{deg}(V))$. \\
         
-        Deciding wether two vertices are adjacent can be checked by looking at the adjacency lists of two nodes, that is $\mathcal{O}(2 \text{deg}(V))$ runtime.\\
+        Deciding wether two vertices are adjacent can be checked by looking at the adjacency lists of two nodes, that is $\mathcal{O}(2 \cdot \text{deg}(V)) = \mathcal{O}(\text{deg}(V))$ runtime.\\
         
         Finally, the outgoing neighbourhood of a vertex, is already stored and can be returned in $\mathcal{O}(1)$.\\
         In contrast for the incoming neighbourhood one needs to access all vertices' adjacency list and see if the particular vertex is contained in it, resulting in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
-        Finding the neighbouhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
+        Finding the neighbourhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
         Note that in undirected graphs, both directions of all edges exist, i.e. $N_v = N_v |_\text{out} = N_v |_\text{in}$. This means for undirected graphs all neighbourhood queries are in $\mathcal{O}(1)$. \\
         
         An example of this data structure is shown in \ref{edgelist}
@@ -236,7 +284,7 @@ In this section we first give a definition of graphs as discrete structures and 
          \begin{center}
           \begin{minted}[fontsize=\footnotesize]{bash}
             0 -> (1, 1)
-            1 -> (1, 2) -> (2,1) -> (1, 3)
+            1 -> (0, 2) -> (2,1) -> (3, 1)
             2 -> (3, -1)
             3 -> (4, 1)
             4 -> (1, 5)
@@ -249,42 +297,101 @@ In this section we first give a definition of graphs as discrete structures and 
         \end{figure}
         
         \paragraph{Incidence List}
+        This representation is also called incidence table in \autocite{Gross1998GraphTA}. \\
+        The incidence list of a graph $G$ stores for each vertex $v \in V$ the list of edges it is conencted to. 
+        The space requirements are thus $\mathcal{O}(|V| + |V| \cdot \text{deg}(V) + |E|) = \mathcal{O}(|V| + |E|)$. 
+        In contrast to adjacency lists, incidence lists do not only store the connected vertices but the edges. 
+        This comes with an additional cost of $|E|$ memory, but is beneficial when it comes to accessing information. Another thing that is beneficial, is that the additional costs can be mitigated by using references. \\
+        
+        Most of the operations have the same complexity class as when using adjacency lists and the same operations are needed. 
+        Differences occur first when removing a vertex:
+        Instead of having to iterate over all lists and check if the vertex is contained, it is sufficient to look the relevant lists up in the vertexes' list and delete them resulting in $\mathcal{O}(\text{deg}(V))$ operations. \\
+        
+        Differences also occur, when accessing the neighbourhood. 
+        As all edges that are incident to a node are stored, finding all neighbours is an $\mathcal{O}(1)$ operation. 
+        Considering the incoming and outgoing neighbourhoods, one only needs to filter the list of incident edges accordingly, which has length $\mathcal{O}(\text{deg}(V))$.\\
+        
+        An example of this data structure is shown in \ref{edgelist}
+        
+        \begin{figure}[htp]\label{edgelist}
+         \begin{center}
+          \begin{minted}[fontsize=\footnotesize]{bash}
+            0 -> (0, 1, 1) -> (1, 0, 2)
+            1 -> (1, 0, 2) -> (1, 2, 1) -> (1, 3, 1) -> (4, 1, 5) -> (0, 1, 1)
+            2 -> (2, 3, -1) -> (1, 2, 1)
+            3 -> (3, 4, 1) -> (1, 3, 1) -> (2, 3, -1)
+            4 -> (4, 1, 5)
+            7 -> (7, 9, 3)
+            9 -> (7, 9, 3)
+            10
+          \end{minted}
+         \end{center}
+         \caption{An example of the incidence list representation of a graph.}
+        \end{figure}
+        
+        
         
         \paragraph{Summary}
+        While edge lists are able to represent all variations of graphs, the asymptotic runtime for many operations is linear in the number of edges. These are inacceptable costs in many cases. \\
+        
+        An adjacency matrix improves the performance for lookups and updates and is thus the standard data structure for many computation heavy tasks and widely used by libraries as Eigen, openBLAS and the Intel math kernel library (MKL)~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. When dealing with multi-graphs, the adjacency matrix representation requires additional arrays (one per edge ``type``) or is not able to canonically represent them. \\
+        
+        The incidence matrix is not able to represent self-loops and negative weights without modification, but has some interesting relationships with other matrices. For example, if one multiplies the incidence matrix with its own transpose, one gets the sum of the adjacency matrix and the gradient matrix, i.e. the laplacian matrix~\autocite{brouwer2011spectra}. Further it's useful in physical flow problems \& simulations, e.g. when computing the current and resistances in a graph or when simulating micro-circuits~\autocite{weinberg1958kirchhoff}. \\
+        
+        Even tough the incidence matrix requires less space, both options are rather unfeasible when storing large graphs and the incidence matrix provides even worse access times than edge lists. \\
+        
+        As a side note: The compressed sparse row and compressed sparse column storage formats are very similar to adjacency lists. Insead of using lists, three arrays are used. The first one maps the node to the start index of its relationship in the other two arrays. The other two arrays store the adjacent nodes and the weight of the relationship respectively. CSR/CSC and adjacency lists share most of the algorithmic traits, while requiring least storage. These formats are used for sparse matrix arithmetics in some of the most popular matrix arithmetics libraries, like~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}.  \\
+        
+        Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. Even tough not optimal for  the find, insert and remove operations, both data structures are being better than linear in all respects. Assuming all nodes have the same degree, i.e. all edges are distributed uniformly over the graph, the average degree can be crudely estimated by dividing twice the number of edges by the number of nodes: $\frac{2|E|}{|V|} < |E|$. In real networks, the distribution is mostly non-uniform and exhibits different distributions, e.g. binomial, poisson or power law type~\autocite{holme2019rare}. A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. \\
+        What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. \\
+        
+        In the table below we summarize the space and runtime complexities of the described data structures and the operations upon them. 
         
         \newpage
         \begin{landscape}
             \begin{longtable}{llllll} \toprule
             & Edge List & Adjacency Matrix & Incidence Matrix & Adjacency List & Incidence List \\ \midrule
-            Space Complexity & $\mathcal{O}(|E| + |V|)$ & $\mathcal{O}(|V|^2 + |V|)$ & & $\mathcal{O}(|V| + |E|)$ &  \\
-            Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
-            Retrieve $|E|$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(|E|)$ &  \\
-            Find $v \in V$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
-            Insert $v$ to $V$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(1)$ &  \\
-            Remove $v$ from $|V|$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & & $\mathcal{O}(|E|)$ &  \\
-            Find $e \in E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
-            Insert $e$ to $E$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(1)$ &  \\
-            Remove $e$ from $E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
-            $u, v$ adjacent? & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & & $\mathcal{O}(\text{deg}(V))$ &  \\
-            $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(|E|)$\footnote{\label{fn}For directed graphs, for undirected ones it's $\mathcal{O}(1)$} &  \\
-            $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(|E|)$\footref{fn} &  \\
-            $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & & $\mathcal{O}(1)$ &  \\ \bottomrule
-           \caption{Space and runtime complexity comparison of the different data types}
+            Space Complexity & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V| + |E|)$ \\
+            Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+            Retrieve $|E|$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ \\
+            Find $v \in V$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+            Insert $v$ to $V$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+            Remove $v$ from $|V|$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
+            Find $e \in E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
+            Insert $e$ to $E$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+            Remove $e$ from $E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
+            $u, v$ adjacent? & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
+            $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$\footnote{\label{fn}For directed graphs, for undirected ones it's $\mathcal{O}(1)$} & $\mathcal{O}(1)$ \\
+            $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$\footref{fn} & $\mathcal{O}(\text{deg}(V))$ \\
+            $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(\text{deg}(V))$ \\ \bottomrule
+           \caption{Space and runtime complexity comparison of the different data types.}
          \end{longtable}
         \end{landscape}
 
 
-    \subsection{Queries and Algorithms}\label{\positionnumber}
-        \subsubsection{Traversal-based}
-            \paragraph{Breadth First Search \& Dijkstra, Spreading Activation}
-            \paragraph{A* Algorithm}
-            \paragraph{Depth First Search}
-            \paragraph{Random Walk}
+    \subsection{Traversal-based Algorithms}\label{\positionnumber}
+        \paragraph{Random Walk}
+            A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905: 
+            \begin{quote}
+                A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. He repeats this process n times. I require the probability that after these $n$ stretches he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
+            \end{quote}
+            The problem has grathered wide interests and has many connections ranging from financial mathematics~\autocite{bachelier1900theorie}, over physics and biology (brownian motion\autocite{brown1828xxvii}) to pure mathematics~\autocite{wiener1976collected}. \\
+            
+            Random walks are modelled mathematically using markov chains. Let
+            
+            For further information on the purely mathematical theory the reader is reffered to a comprehensive survey of the topic~\autocite{lovasz1993random}. \\
+            
+            Our focus will remain database oriented, that is traversal-based. In~ \autocite{fouss2007random} the authors show, that the generated random walks can be used to compute the similarities of nodes in a graph. This insight is used by a method described in the next chapter. \\
+            
+            Pseudo-code describing the algorithm can be found in listing \ref{TODO}.
+        \paragraph{Depth First Search}
+        \paragraph{Breadth First Search} 
+        \paragraph{Dijkstra}
+        \paragraph{A*}
         
-        \subsubsection{Partitioning, Clustering or Community Detection}
             
-            
-    \subsection{Architecture}\label{\positionnumber}
+\section{Graph Databases}\label{\positionnumber}
+    \subsection{Database Architecture}\label{\positionnumber}
             \paragraph{Memory hierarchy}
         Relational databases store tables of data.
         The links considered in this category of DBMS are mostly used to stitch together the fields of an entry into one row again, after it has been split to satisfy a certain normal form.
@@ -587,9 +694,11 @@ In this section we first give a definition of graphs as discrete structures and 
         \subsubsection{Queries \& Transactions}
             
             
-    \subsection{Locality}\label{\positionnumber}
+\section{Locality}\label{\positionnumber}
+    
+    \subsection{Metrics}
     
     
 \section{Problem Definition}\label{\positionnumber}
 
-    \subsection{Metrics}
+
