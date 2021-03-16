@@ -32,45 +32,45 @@ mode=LaTeX
 
 [item:02-introduction.tex]
 archive=true
-encoding=UTF-8
-highlight=LaTeX
-mode=LaTeX
+encoding=
+highlight=
+mode=
 
-[item:03-background.tex]
+[item:03-preliminaries.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:04-minimization_complexity.tex]
+[item:04-methods.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:05-conclusions.tex]
+[item:05-eval.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:masterthesis.kilepr]
+[item:06-conclusions.tex]
 archive=true
 encoding=
 highlight=
 mode=
+
+[item:masterthesis.kilepr]
+archive=true
+encoding=UTF-8
+highlight=None
+mode=Normal
 
 [item:resources.bib]
 archive=true
 encoding=UTF-8
 highlight=BibTeX
 mode=BibTeX
-
-[item:scratch_pad.tex]
-archive=true
-encoding=UTF-8
-highlight=LaTeX
-mode=LaTeX
 
 [item:themeKonstanz.sty]
 archive=true
