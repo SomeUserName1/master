@@ -113,7 +113,7 @@ In this section we first give a definition of graphs as discrete structures and 
         
         An example of this data structure is shown in \ref{edgelist}
         
-        \begin{figure}[htp]\label{edgelist}
+        \begin{figure}[htp]
          \begin{center}
          \begin{minipage}{0.5\textwidth}
          \begin{minted}[fontsize=\footnotesize]{bash}
@@ -148,6 +148,7 @@ In this section we first give a definition of graphs as discrete structures and 
              An example of the edge list representation of a graph.%
              The left handside uses a list to encode vertex indices, while the right handside assumes consecutive indexes.%
         }
+        \label{edgelist}
         \end{figure}
 
         \paragraph{Adjacency Matrix}
@@ -180,9 +181,9 @@ In this section we first give a definition of graphs as discrete structures and 
         
         Finally, finding the neighbourhood $N_v$ of a vertex requires a again a scan of a row and a column i.e. an asymptotic runtime of $\mathcal{O}(2|V|)$. For the incoming and outgoing sets of a vertex, one needs to access only either a row or a column resulting in $\mathcal{O}(|V|)$ steps per operation. \\
         
-        An example of this data structure is shown in \ref{edgelist}
+        An example of this data structure is shown in \ref{adm}
         
-        \begin{figure}[htp]\label{edgelist}
+        \begin{figure}[htp]
          \begin{center}
          \begin{minted}[fontsize=\footnotesize]{bash}
             0 1 2 3 4 5 6 7
@@ -200,6 +201,7 @@ In this section we first give a definition of graphs as discrete structures and 
           \end{minted}
          \end{center}
          \caption{An example of the adjacency matrix representation of a graph.}
+         \label{adm}
         \end{figure}
         
         \paragraph{Incidence Matrix}
@@ -231,9 +233,9 @@ In this section we first give a definition of graphs as discrete structures and 
         Finally, finding the neighbourhood $N_v$ of a vertex requires a again a scan of a row and checking all non-zero entry columns for the neighbour i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
         For the incoming and outgoing sets the procedure is almost the same. The difference is, that only positive or negative non-zero columns --- depending on wehter the incoming or outgoing neighbours shall be returned -- have to be checked.\\
         
-        An example of this data structure is shown in \ref{edgelist}
+        An example of this data structure is shown in \ref{incm}
         
-        \begin{figure}[htp]\label{edgelist}
+        \begin{figure}[htp]
          \begin{center}
          \begin{minted}[fontsize=\footnotesize]{bash}
             0 1 2 3 4 5 6 7
@@ -251,6 +253,7 @@ In this section we first give a definition of graphs as discrete structures and 
           \end{minted}
          \end{center}
          \caption{An example of the incidence matrix representation of a graph.}
+         \label{incm}
         \end{figure}
         
         \paragraph{Adjacency List}
@@ -278,9 +281,9 @@ In this section we first give a definition of graphs as discrete structures and 
         Finding the neighbourhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
         Note that in undirected graphs, both directions of all edges exist, i.e. $N_v = N_v |_\text{out} = N_v |_\text{in}$. This means for undirected graphs all neighbourhood queries are in $\mathcal{O}(1)$. \\
         
-        An example of this data structure is shown in \ref{edgelist}
+        An example of this data structure is shown in \ref{adjl}
         
-        \begin{figure}[htp]\label{edgelist}
+        \begin{figure}[htp]
          \begin{center}
           \begin{minted}[fontsize=\footnotesize]{bash}
             0 -> (1, 1)
@@ -294,6 +297,7 @@ In this section we first give a definition of graphs as discrete structures and 
           \end{minted}
          \end{center}
          \caption{An example of the adjacency list representation of a graph.}
+         \label{adjl}
         \end{figure}
         
         \paragraph{Incidence List}
@@ -311,9 +315,9 @@ In this section we first give a definition of graphs as discrete structures and 
         As all edges that are incident to a node are stored, finding all neighbours is an $\mathcal{O}(1)$ operation. 
         Considering the incoming and outgoing neighbourhoods, one only needs to filter the list of incident edges accordingly, which has length $\mathcal{O}(\text{deg}(V))$.\\
         
-        An example of this data structure is shown in \ref{edgelist}
+        An example of this data structure is shown in \ref{incidencel}
         
-        \begin{figure}[htp]\label{edgelist}
+        \begin{figure}[htp]
          \begin{center}
           \begin{minted}[fontsize=\footnotesize]{bash}
             0 -> (0, 1, 1) -> (1, 0, 2)
@@ -327,6 +331,7 @@ In this section we first give a definition of graphs as discrete structures and 
           \end{minted}
          \end{center}
          \caption{An example of the incidence list representation of a graph.}
+         \label{incidencel}
         \end{figure}
         
         
@@ -345,11 +350,11 @@ In this section we first give a definition of graphs as discrete structures and 
         Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. Even tough not optimal for  the find, insert and remove operations, both data structures are being better than linear in all respects. Assuming all nodes have the same degree, i.e. all edges are distributed uniformly over the graph, the average degree can be crudely estimated by dividing twice the number of edges by the number of nodes: $\frac{2|E|}{|V|} < |E|$. In real networks, the distribution is mostly non-uniform and exhibits different distributions, e.g. binomial, poisson or power law type~\autocite{holme2019rare}. A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. \\
         What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. \\
         
-        In the table below we summarize the space and runtime complexities of the described data structures and the operations upon them. 
-        
+        In the table \ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations upon them. 
+                
         \newpage
         \begin{landscape}
-            \begin{longtable}{llllll} \toprule
+            \begin{longtable}[c]{llllll} \toprule
             & Edge List & Adjacency Matrix & Incidence Matrix & Adjacency List & Incidence List \\ \midrule
             Space Complexity & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V| + |E|)$ \\
             Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
@@ -365,6 +370,7 @@ In this section we first give a definition of graphs as discrete structures and 
             $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$\footref{fn} & $\mathcal{O}(\text{deg}(V))$ \\
             $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(\text{deg}(V))$ \\ \bottomrule
            \caption{Space and runtime complexity comparison of the different data types.}
+           \label{sumtabds}
          \end{longtable}
         \end{landscape}
 
@@ -377,14 +383,41 @@ In this section we first give a definition of graphs as discrete structures and 
             \end{quote}
             The problem has grathered wide interests and has many connections ranging from financial mathematics~\autocite{bachelier1900theorie}, over physics and biology (brownian motion\autocite{brown1828xxvii}) to pure mathematics~\autocite{wiener1976collected}. \\
             
-            Random walks are modelled mathematically using markov chains. Let
+            Random walks are modelled mathematically using markov chains.            
+            For further information on the pure mathematical theory the reader is reffered to a comprehensive survey of the topic~\autocite{lovasz1993random}. \\
             
-            For further information on the purely mathematical theory the reader is reffered to a comprehensive survey of the topic~\autocite{lovasz1993random}. \\
+            Our focus will remain database oriented, that is traversal-based.
+            In~\autocite{fouss2007random} the authors show, that the generated random walks can be used to compute the similarities of nodes in a graph. 
+            This insight is used by a method described in the next chapter. \\
             
-            Our focus will remain database oriented, that is traversal-based. In~ \autocite{fouss2007random} the authors show, that the generated random walks can be used to compute the similarities of nodes in a graph. This insight is used by a method described in the next chapter. \\
+            Pseudo-code describing the algorithm can be found in listing \ref{random_walk}. The code makes two assumptions: The function \mintinline{c}{random()} returns a unsigned integer by drawing from a uniform distribution. The function expand returns the edges with a certain direction of a vertex, given a graph, a vertex (id) and the respective direction. \\
             
-            Pseudo-code describing the algorithm can be found in listing \ref{TODO}.
+            \begin{algorithm}[htp]
+                \KwIn{Graph $G = (V,E)$, number of steps $n$, start vertex id $v\_id$}
+                \KwOut{A walk $(e_0, \dots, e_{n-1})$}
+                \hrulealg
+                \Begin{
+                    visited\_edges $\leftarrow$ edge\_t[$n$]\;
+                    current\_node\_edges $\leftarrow$ expand($G$, $v\_id$, direction)\;
+                    edge $\leftarrow$ NULL\;
+                    
+                    \For{$i$ from $0$ to $n - 1$}{
+                        edge $\leftarrow$ current\_node\_edges[random() $\%$ size(current\_node\_edges)]\;
+                        append(visited\_edges, edge)\;
+                        current\_node\_edges = expand($G$, edge.other\_v\_id, direction)\;
+                    }
+                }
+            \caption{Pseudo-code for a random walk on a graph $G$.}\label{random_walk}
+            \end{algorithm}
+            
+            The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. In each of the $n$ steps we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. Overall the runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$. The space complexity is of course dependent on the data structure the graph is stored in. Besides that a random walk has an additional space complexity of $\mathcal{O}(\text{deg}(V))$. \\
+
         \paragraph{Depth First Search}
+        One description of the depth first search was authored by Charles-Pierre Trémaux in 1818. Even though the work was published a lot later, this is the first appearence in modern citation history~\autocite{lucas1891recreations}. He used so called Trémaux trees to solve arbitrary mazes. Each result of a depth first search is such a Trémaux tree. These have the property that each two adjacent vertexes are in an ancestor-descendant relationship. Even though Trémaux trees themselves are interesting --- for example all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth first search. \\
+        
+        Depth first search is very similar to backtracking: Chase one path until it proves to be a dead end. 
+        Go back to the to the point where you can take a different path, chose that path to chase and reapeat. In fact Donald Knuth considers depth first search and backtracking to be the same algorithm, as both are acting upon a graph. However when backtracking is used the graph is often implicit.~\autocite{}
+        
         \paragraph{Breadth First Search} 
         \paragraph{Dijkstra}
         \paragraph{A*}
@@ -471,6 +504,8 @@ In this section we first give a definition of graphs as discrete structures and 
 
         All these considerations make choosing different file splits, layouts, orderings, addressing schemes, management structures, de-/allocation schemes and indexes a complex set of dependent choices. 
         These depend mainly on the structure of the data to be stored and the queries to be run.
+        
+        % TODO Elaborate on get nodes, get relationships and expand
 
 
     \subsection{The Property Graph Model}\label{\positionnumber}
@@ -694,11 +729,10 @@ In this section we first give a definition of graphs as discrete structures and 
         \subsubsection{Queries \& Transactions}
             
             
-\section{Locality}\label{\positionnumber}
+    \subsection{Locality}\label{\positionnumber}
+        
+        \subsubsection{Metrics}
     
-    \subsection{Metrics}
-    
-    
-\section{Problem Definition}\label{\positionnumber}
+
 
 

@@ -14,7 +14,7 @@ random_walk(in_memory_file_t* db,
     list_relationship_t* cur_rels = in_memory_expand(db, node_id, direction);
     relationship_t* rel;
 
-    list_ul_append(visited_rels, node_id);
+    list_ul_append(visited_nodes, node_id);
     srand(time(NULL));
 
     for (size_t i = 0; i < num_steps; ++i) {
