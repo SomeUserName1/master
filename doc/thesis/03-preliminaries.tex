@@ -377,7 +377,7 @@ In this section we first give a definition of graphs as discrete structures and 
 
     \subsection{Traversal-based Algorithms}\label{\positionnumber}
         \paragraph{Random Walk}
-            A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905: 
+            A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
             \begin{quote}
                 A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. He repeats this process n times. I require the probability that after these $n$ stretches he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
             \end{quote}
@@ -393,32 +393,92 @@ In this section we first give a definition of graphs as discrete structures and 
             Pseudo-code describing the algorithm can be found in listing \ref{random_walk}. The code makes two assumptions: The function \mintinline{c}{random()} returns a unsigned integer by drawing from a uniform distribution. The function expand returns the edges with a certain direction of a vertex, given a graph, a vertex (id) and the respective direction. \\
             
             \begin{algorithm}[htp]
-                \KwIn{Graph $G = (V,E)$, number of steps $n$, start vertex id $v\_id$}
+                \KwIn{Graph $G = (V,E)$, number of steps $n$, start vertex id $v\_id$, direction $d$}
                 \KwOut{A walk $(e_0, \dots, e_{n-1})$}
                 \hrulealg
                 \Begin{
                     visited\_edges $\leftarrow$ edge\_t[$n$]\;
-                    current\_node\_edges $\leftarrow$ expand($G$, $v\_id$, direction)\;
+                    current\_node\_edges $\leftarrow$ expand($G$, $v\_id$, $d$)\;
                     edge $\leftarrow$ NULL\;
                     
                     \For{$i$ from $0$ to $n - 1$}{
                         edge $\leftarrow$ current\_node\_edges[random() $\%$ size(current\_node\_edges)]\;
                         append(visited\_edges, edge)\;
-                        current\_node\_edges = expand($G$, edge.other\_v\_id, direction)\;
+                        current\_node\_edges = expand($G$, edge.other\_v\_id, $d$)\;
                     }
                 }
             \caption{Pseudo-code for a random walk on a graph $G$.}\label{random_walk}
             \end{algorithm}
             
-            The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. In each of the $n$ steps we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. Overall the runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$. The space complexity is of course dependent on the data structure the graph is stored in. Besides that a random walk has an additional space complexity of $\mathcal{O}(\text{deg}(V))$. \\
+            The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. In each of the $n$ steps we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. How fast thuis construction is depends on the data structure that is used. The overall average runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$ for incidence lists. For the other data structures, one has to replace the $\text{deg}(V)$ term with the respective runtime of retreiving the neighbourhood of vertex. The average space complexity of a random walk is $\mathcal{O}(\text{deg}(V))$. \\
 
         \paragraph{Depth First Search}
-        One description of the depth first search was authored by Charles-Pierre Trémaux in 1818. Even though the work was published a lot later, this is the first appearence in modern citation history~\autocite{lucas1891recreations}. He used so called Trémaux trees to solve arbitrary mazes. Each result of a depth first search is such a Trémaux tree. These have the property that each two adjacent vertexes are in an ancestor-descendant relationship. Even though Trémaux trees themselves are interesting --- for example all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth first search. \\
+        One description of the depth first search (DFS) was authored by Charles-Pierre Trémaux in 1818. Even though the work was published a lot later, this is the first appearence in modern citation history~\autocite{lucas1891recreations}. He used so called Trémaux trees to solve arbitrary mazes. Each result of a depth first search is such a Trémaux tree. These have the property that each two adjacent vertexes are in an ancestor-descendant relationship. Even though Trémaux trees themselves are interesting --- for example all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth first search. \\
         
         Depth first search is very similar to backtracking: Chase one path until it proves to be a dead end. 
-        Go back to the to the point where you can take a different path, chose that path to chase and reapeat. In fact Donald Knuth considers depth first search and backtracking to be the same algorithm, as both are acting upon a graph. However when backtracking is used the graph is often implicit.~\autocite{}
+        Go back to the to the point where you can take a different path, chose that path to chase and reapeat. In fact Donald Knuth considers depth first search and backtracking to be the same algorithm, as both are acting upon a graph. However when backtracking is used, the graph is often implicit~\autocite{Knuth2000DancingL}.\\
+        
+        Even though DFS is a general traversal schema -- go deep first -- it can also be used for other purposes like finding shortest paths, connected components, testing planarity and many more. A pseudo-code description of it is given in \ref{dfs}. This version continues its search at the last found edge instead of the last visited edge. This is enable the usage of the implementation for other problems like finding spanning trees, cycles or paths.
+        
+        \begin{algorithm}[htp]
+            \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
+            \KwOut{Search numbers DFS, predecessor edges parent}
+            \hrulealg
+            \Begin{
+                dfs $\leftarrow$ array initialized to $-1$\;
+                parents $\leftarrow$ array initialized to $-1$\;
+                node\_stack $\leftarrow$ create\_stack()\;
+                
+                push(node\_stack, v\_id)\;
+                
+                \While{node\_stack non-empty}{
+                    node\_id $\leftarrow$ pop(node\_stack)\;
+                    current\_node\_edges $\leftarrow$ expand($G$, v\_id, $d$)\;
+                    
+                    \For{edge $\in$ current\_node\_egdes}{
+                        \If{dfs[edge.other\_v\_id] $= -1$}{
+                            dfs[edge.other\_v\_id] = dfs[node\_id] + 1\;
+                            push(node\_stack, edge.other\_v\_id)\;
+                            parent[edge.other\_id] = edge.id\;
+                        }
+                    }
+                }
+            }
+        \caption{Pseudo-code for a depth first search on a graph $G$.}\label{dfs}
+        \end{algorithm}
+        
+        The runtime is again dependent on the data structure, that is used and again the runtime for querying the neighbourhood of a node is the varying term. Each node is visited exactly once and by the handshaking lemma~\autocite{Gross1998GraphTA} it should be clear that we visit each edge twice resulting in an overall worst-case runtime of $\mathcal{O}(|V|+|E|)$. Regarding space complexity, the worst case is that the node stack contains all nodes, i.e that it is traversed without repetitions or --- put differently --- backtracking. The result is a worst-case space complexity of $\mathcal{O}(|V|)$
         
         \paragraph{Breadth First Search} 
+        Zuse
+        
+        \begin{algorithm}[htp]
+            \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
+            \KwOut{Search numbers bfs, predecessor edges parent}
+            \hrulealg
+            \Begin{
+                bfs $\leftarrow$ array initialized to $-1$\;
+                parents $\leftarrow$ array initialized to $-1$\;
+                node\_queue $\leftarrow$ create\_queue()\;
+                
+                enqueue(node\_stack, v\_id)\;
+                
+                \While{node\_stack non-empty}{
+                    node\_id $\leftarrow$ dequeue(node\_stack)\;
+                    current\_node\_edges $\leftarrow$ expand($G$, v\_id, $d$)\;
+                    
+                    \For{edge $\in$ current\_node\_egdes}{
+                        \If{bfs[edge.other\_v\_id] $= -1$}{
+                            bfs[edge.other\_v\_id] = bfs[node\_id] + 1\;
+                            enqueue(node\_stack, edge.other\_v\_id)\;
+                            parent[edge.other\_id] = edge.id\;
+                        }
+                    }
+                }
+            }
+        \caption{Pseudo-code for a breadth first search on a graph $G$.}\label{bfs}
+        \end{algorithm}
+        
         \paragraph{Dijkstra}
         \paragraph{A*}
         
