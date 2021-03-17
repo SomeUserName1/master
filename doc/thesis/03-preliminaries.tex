@@ -1,5 +1,91 @@
 \chapter{Preliminaries}\label{\positionnumber}
 
+\section{Database Architecture}\label{\positionnumber}
+            \paragraph{Memory hierarchy}
+        Relational databases store tables of data.
+        The links considered in this category of DBMS are mostly used to stitch together the fields of an entry into one row again, after it has been split to satisfy a certain normal form.
+        Of course one may also store tables where one table stores nodes and the other table's fields are node IDs to represent relationships.
+
+        However, in order to traverse the graph, one has either to do a lot of rather expensive look ups or store auxiliary structures to speed up the look up process.
+        In particular when using B-trees as index structure, each look up takes $\mathcal{O}(\log(n))$ steps to locate a specific edge.
+        Alternatively one could store an additional table that holds edge lists such that the look up of outgoing or incomming edges is only $\mathcal{O}(\log(n))$ which would speed up breadth first traversals.
+        But still one has to compute joins in order to continue the traversal in terms of depth.
+        Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins.
+
+        In contrast to relational data base management systems, native graph databases use structures specialised for this kind of queries.
+        In the following sections we discuss what structures and mechanisms graph databases employ in order to achieve this superior performance in the domain of graphs using the popular graph database Neo4J as example.
+
+        First of all, let us consider the high level architecture of a general database management systems as shown in figure~\ref{dbms_arch} --- with a focus on the storage and loading elements.
+
+        \begin{figure}[htp]
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.7\textwidth]{img/00_intro/RDBMS.png}
+        \end{center}
+        \caption{The typical structure of a relational database management system.} %TODO citation
+        \label{dbms_arch}
+        \end{figure}
+
+        Here The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a page: A disk block brought into memory. 
+        For that it needs to keep track of free blocks in the allocated file. Optimally both a disk block and a page are of the same size. 
+        One crucial task of a disk space manager is to store sequences of pages into continuous memory blocks in order to optimize data locality.
+        Data locality has the upside, that one needs only one I/O operation to load multiple pages.
+        To summarize the two most important objectives of a storage manager are to provide a locality-preserving mapping from pages to blocks based upon the information in the DBMS and to abstract physical storage to pages, taking care of allocation and access.
+        
+        A buffer manager is used to mediate between external storage and main memory. It maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory.
+        It's objective is to minimize the number of disk reads to be executed by caching, pre-fetching and the usage of suitable replacement policies. 
+        It also needs to take care of allocating a certain fraction of pages to each transaction.
+
+        \begin{figure}[htp]\label{dbms_memory}
+            \begin{center}
+            \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/00_intro/RDBMS_memory_view.png}
+            \end{center}
+            \caption{A visualization of the interaction of a database with memory.} %TODO citation
+        \end{figure}
+
+        The final memory and storage model relevant component of the  of a database management system is the file layout and possible index structures. 
+        In order to store data a DBMS may either store one single or multiple files to maintain records. 
+
+        A file may consist of a set of pages containing a set of slots. A slot stores one record with each record containing a set of fields. Further the database needs to keep track of free space in the file: A linked list or a directory must record free pages and some structure needs to keep track of the free slots either globally or per page. 
+        Records may be of fixed or of variable size, depending on the types of their fields. 
+        Records can be layout in row or column major order.
+        That is one can store sequences of tuples or sequences of fields.
+        The former is beneficial if a lot of update, insert or delete operations are committed to the database, while the latter optimizes the performance when scans and aggregations are the most typical queries to the system.
+        Another option is to store the structure of the records along with pointers to the values of their fields in one files and the actual values in one or multiple separate files. 
+        Also distinct types of tables can be stored in different files. 
+        For example entities and relations can be stored in different files with references to each other, thus enabling the layout of these two to be specialized to their structure and usage in queries.
+
+        Files may either organize their records in random order (heap file), sorted or using a hash function on one or more fields. 
+        All of these approaches have upsides and downsides when it comes to scans, searches, insertions, deletions and updates. 
+
+        To mitigate the effect that result from selecting one file organization or another, the concept of indexes have been introduced. 
+        Indexes are auxiliary structures to speed up certain operations that depend on one field. 
+        Indexes may be clustered or unclustered. 
+        An index over field $F$ is called clustered if the underlying data file is sorted according to the values of $F$. 
+        An unclustered index over field $G$ is one where the file is not sorted according to $G$. 
+        In a similar way indexes can be sparse or dense. 
+        A sparse index has less index entries than records, mostly one index entry per file. 
+        This can of course only be done for clustered indexes as the sorting of the data file keeps the elements between index keys in order. 
+        An index is dense if there is a one to one correspondence between records and index entries. 
+        There are different variants of storing index entries which have again certain implications on the compactness of the index and the underlying design decisions.
+
+        In another view of database management systems architectures, this boils down to the design decisions one has to make when implementing the storage layer and the access layer as shown in figure~\ref{dbms_arch_layers}.
+
+        \begin{figure}[htp]
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/layered_RDBMS.png}
+        \end{center}
+        \caption{The architecture of a database management system from another point of view.} %TODO citation
+        \label{dbms_arch_layers}
+        \end{figure}
+
+        Here the storage layer is in close correspondence to the disk space manager in combination with the buffer manager, while the files and index structures provide the access layer.
+
+        All these considerations make choosing different file splits, layouts, orderings, addressing schemes, management structures, de-/allocation schemes and indexes a complex set of dependent choices. 
+        These depend mainly on the structure of the data to be stored and the queries to be run.
+        
+        % TODO Elaborate on get nodes, get relationships and expand
+
+
 \section{Graphs
 }\label{\positionnumber}
 In this section we first give a definition of graphs as discrete structures and related concepts. Next we introduce and analyze possible data structures and algorithms to represent and operate on graphs. \\
@@ -41,12 +127,19 @@ In this section we first give a definition of graphs as discrete structures and 
             Otherwise it's called unweighted.
             Similarly labels can be assigned to both nodes and edges. 
             In some cases these labels may encode the type of the entity.
-            Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so called properties. \\
+            Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so called properties. An example of an unweighted and undirected, a directed and a weighted graph is shown in figure \ref{di-we} \\
             
             An example for a weighted graph is a road network: 
             The vertices are crossings between roads, the roads are the edges and the edge weights represent the distances between the crossings that are connected by the road.
             To include labels, one could distinguish between highways and minor roads or simply assign the name of the road. 
             The former would model the type of the road, while the latter would be an (potentially non-unique) identifier.\\
+            
+        \begin{figure}
+         \begin{center}
+          \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/graph_di_we.png}
+         \end{center}
+          \caption{An undirected, a directed and a weighted graph.}\label{di-we}
+        \end{figure}
             
             In case there may exist multiple edges between the same pair of nodes in the same direction, then the graph is called \textbf{multigraph}. 
             That is, $E_M = (E, M)$ is a multiset, with $M: E \rightarrow \mathbb{N}$. \\
@@ -89,7 +182,7 @@ In this section we first give a definition of graphs as discrete structures and 
         For more information on these the reader is reffered to~\autocite{steinhaus2010g, Eisenstat1982YaleSM}
         % TODO Figure of example graph
         
-        \paragraph{Unordered Edge List}
+        \subsubsection*{Unordered Edge List}
         The simplest representation uses an unordered list of edges. 
         That is each element of the data structure carries the information of exactly one edge. 
         For example in a directed, weighted graph, the indices of the source and target node and the weight of the edge are one entry. 
@@ -151,7 +244,7 @@ In this section we first give a definition of graphs as discrete structures and 
         \label{edgelist}
         \end{figure}
 
-        \paragraph{Adjacency Matrix}
+        \subsubsection*{Adjacency Matrix}
         An adjacency matrix of a graph $G$ is a $|V|\times|V|$ matrix where a non-zero entry corresponds to an edge with the weight beeing the value of that entry. 
         Let $A \in |V|\times|V|. u, v \in \{0, \dots, |V| - 1\}$ and $w_{u,v}$ the weight of the edge $e = (u,v) \in E$ then
         \[ a_{uv} = \begin{cases}
@@ -204,7 +297,7 @@ In this section we first give a definition of graphs as discrete structures and 
          \label{adm}
         \end{figure}
         
-        \paragraph{Incidence Matrix}
+        \subsubsection*{Incidence Matrix}
         An incidence matrix of a graph $G$ is an $|V| \times |E|$ matrix, where each column corresponds to an edge. Each entry in a column is either the positive weight, if the node is the target of the edge or the negative weight, if the node is the source of the edge. Self-loops require a slight extension of this syntax, because here one node would be both source and target such that the entry is zero. One option is to just put the weight as entry of the node.  Another problem is that incidence matrices can not represent negative weights without further extensions. \\
         
         Let $u,v \in \{0, |V|-1\}, j \in \{0, |E|-1\}, A \in |V| \times |E|$ and $a_{v,j}$ the entry at row $v$ and column $j$ of $A$. Let further $w_j$ be the weight of the edge $e_j = (u,v) \in E$. Then 
@@ -256,7 +349,7 @@ In this section we first give a definition of graphs as discrete structures and 
          \label{incm}
         \end{figure}
         
-        \paragraph{Adjacency List}
+        \subsubsection*{Adjacency List}
         In an adjacency list, there is an entry for each vertex in the graph. 
         Each such entry stores the nodes that are adjacent to the vertex, i.e. its neighbourhood $N_v$. 
         It is important to note, that in most implementations only $N_v |_\text{out}$ is the content of the adjacency list.
@@ -300,12 +393,13 @@ In this section we first give a definition of graphs as discrete structures and 
          \label{adjl}
         \end{figure}
         
-        \paragraph{Incidence List}
+        \subsubsection*{Incidence List}
         This representation is also called incidence table in \autocite{Gross1998GraphTA}. \\
         The incidence list of a graph $G$ stores for each vertex $v \in V$ the list of edges it is conencted to. 
         The space requirements are thus $\mathcal{O}(|V| + |V| \cdot \text{deg}(V) + |E|) = \mathcal{O}(|V| + |E|)$. 
         In contrast to adjacency lists, incidence lists do not only store the connected vertices but the edges. 
-        This comes with an additional cost of $|E|$ memory, but is beneficial when it comes to accessing information. Another thing that is beneficial, is that the additional costs can be mitigated by using references. \\
+        This comes with an additional cost of $|E|$ memory, but is beneficial when it comes to accessing information. 
+        Another thing that is beneficial, is that the additional costs can be mitigated by using references. \\
         
         Most of the operations have the same complexity class as when using adjacency lists and the same operations are needed. 
         Differences occur first when removing a vertex:
@@ -336,19 +430,34 @@ In this section we first give a definition of graphs as discrete structures and 
         
         
         
-        \paragraph{Summary}
-        While edge lists are able to represent all variations of graphs, the asymptotic runtime for many operations is linear in the number of edges. These are inacceptable costs in many cases. \\
+        \subsubsection*{Summary}
+        While edge lists are able to represent all variations of graphs, the asymptotic runtime for many operations is linear in the number of edges. 
+        These are inacceptable costs in many cases. \\
         
-        An adjacency matrix improves the performance for lookups and updates and is thus the standard data structure for many computation heavy tasks and widely used by libraries as Eigen, openBLAS and the Intel math kernel library (MKL)~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. When dealing with multi-graphs, the adjacency matrix representation requires additional arrays (one per edge ``type``) or is not able to canonically represent them. \\
+        An adjacency matrix improves the performance for lookups and updates and is thus the standard data structure for many computation heavy tasks and widely used by libraries as Eigen, openBLAS and the Intel math kernel library (MKL)~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. 
+        When dealing with multi-graphs, the adjacency matrix representation requires additional arrays (one per edge ``type``) or is not able to canonically represent them. \\
         
-        The incidence matrix is not able to represent self-loops and negative weights without modification, but has some interesting relationships with other matrices. For example, if one multiplies the incidence matrix with its own transpose, one gets the sum of the adjacency matrix and the gradient matrix, i.e. the laplacian matrix~\autocite{brouwer2011spectra}. Further it's useful in physical flow problems \& simulations, e.g. when computing the current and resistances in a graph or when simulating micro-circuits~\autocite{weinberg1958kirchhoff}. \\
+        The incidence matrix is not able to represent self-loops and negative weights without modification, but has some interesting relationships with other matrices. 
+        For example, if one multiplies the incidence matrix with its own transpose, one gets the sum of the adjacency matrix and the gradient matrix, i.e. the laplacian matrix~\autocite{brouwer2011spectra}. 
+        Further it's useful in physical flow problems \& simulations, e.g. when computing the current and resistances in a graph or when simulating micro-circuits~\autocite{weinberg1958kirchhoff}. \\
         
         Even tough the incidence matrix requires less space, both options are rather unfeasible when storing large graphs and the incidence matrix provides even worse access times than edge lists. \\
         
-        As a side note: The compressed sparse row and compressed sparse column storage formats are very similar to adjacency lists. Insead of using lists, three arrays are used. The first one maps the node to the start index of its relationship in the other two arrays. The other two arrays store the adjacent nodes and the weight of the relationship respectively. CSR/CSC and adjacency lists share most of the algorithmic traits, while requiring least storage. These formats are used for sparse matrix arithmetics in some of the most popular matrix arithmetics libraries, like~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}.  \\
+        As a side note: The compressed sparse row and compressed sparse column storage formats are very similar to adjacency lists. 
+        Insead of using lists, three arrays are used. 
+        The first one maps the node to the start index of its relationship in the other two arrays. 
+        The other two arrays store the adjacent nodes and the weight of the relationship respectively. 
+        CSR/CSC and adjacency lists share most of the algorithmic traits, while requiring least storage. 
+        These formats are used for sparse matrix arithmetics in some of the most popular matrix arithmetics libraries, like~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}.  \\
         
-        Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. Even tough not optimal for  the find, insert and remove operations, both data structures are being better than linear in all respects. Assuming all nodes have the same degree, i.e. all edges are distributed uniformly over the graph, the average degree can be crudely estimated by dividing twice the number of edges by the number of nodes: $\frac{2|E|}{|V|} < |E|$. In real networks, the distribution is mostly non-uniform and exhibits different distributions, e.g. binomial, poisson or power law type~\autocite{holme2019rare}. A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. \\
-        What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. \\
+        Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. 
+        Even tough not optimal for  the find, insert and remove operations, both data structures are being better than linear in all respects. 
+        Assuming all nodes have the same degree, i.e. all edges are distributed uniformly over the graph, the average degree can be crudely estimated by dividing twice the number of edges by the number of nodes: $\frac{2|E|}{|V|} < |E|$.
+        In real networks, the distribution is mostly non-uniform and exhibits different distributions, e.g. binomial, poisson or power law type~\autocite{holme2019rare}. 
+        A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. \\
+        
+        What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. 
+        When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. \\
         
         In the table \ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations upon them. 
                 
@@ -376,10 +485,12 @@ In this section we first give a definition of graphs as discrete structures and 
 
 
     \subsection{Traversal-based Algorithms}\label{\positionnumber}
-        \paragraph{Random Walk}
+        \subsubsection*{Random Walk}
             A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
             \begin{quote}
-                A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. He repeats this process n times. I require the probability that after these $n$ stretches he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
+                A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. 
+                He repeats this process n times. 
+                I require the probability that after these $n$ stretches he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
             \end{quote}
             The problem has grathered wide interests and has many connections ranging from financial mathematics~\autocite{bachelier1900theorie}, over physics and biology (brownian motion\autocite{brown1828xxvii}) to pure mathematics~\autocite{wiener1976collected}. \\
             
@@ -390,7 +501,9 @@ In this section we first give a definition of graphs as discrete structures and 
             In~\autocite{fouss2007random} the authors show, that the generated random walks can be used to compute the similarities of nodes in a graph. 
             This insight is used by a method described in the next chapter. \\
             
-            Pseudo-code describing the algorithm can be found in listing \ref{random_walk}. The code makes two assumptions: The function \mintinline{c}{random()} returns a unsigned integer by drawing from a uniform distribution. The function expand returns the edges with a certain direction of a vertex, given a graph, a vertex (id) and the respective direction. \\
+            Pseudo-code describing the algorithm can be found in listing \ref{random_walk}. 
+            The code makes two assumptions: The function \mintinline{c}{random()} returns a unsigned integer by drawing from a uniform distribution. 
+            The function expand returns the edges with a certain direction of a vertex, given a graph, a vertex (id) and the respective direction. \\
             
             \begin{algorithm}[htp]
                 \KwIn{Graph $G = (V,E)$, number of steps $n$, start vertex id $v\_id$, direction $d$}
@@ -410,15 +523,30 @@ In this section we first give a definition of graphs as discrete structures and 
             \caption{Pseudo-code for a random walk on a graph $G$.}\label{random_walk}
             \end{algorithm}
             
-            The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. In each of the $n$ steps we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. How fast thuis construction is depends on the data structure that is used. The overall average runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$ for incidence lists. For the other data structures, one has to replace the $\text{deg}(V)$ term with the respective runtime of retreiving the neighbourhood of vertex. The average space complexity of a random walk is $\mathcal{O}(\text{deg}(V))$. \\
+            The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. 
+            In each of the $n$ steps we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. 
+            How fast this construction is depends on the data structure that is used. 
+            The overall average runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$ for incidence lists. 
+            For the other data structures, one has to replace the $\text{deg}(V)$ term with the respective runtime of retreiving the neighbourhood of vertex. 
+            The average space complexity of a random walk is $\mathcal{O}(\text{deg}(V))$. \\
 
-        \paragraph{Depth First Search}
-        One description of the depth first search (DFS) was authored by Charles-Pierre Trémaux in 1818. Even though the work was published a lot later, this is the first appearence in modern citation history~\autocite{lucas1891recreations}. He used so called Trémaux trees to solve arbitrary mazes. Each result of a depth first search is such a Trémaux tree. These have the property that each two adjacent vertexes are in an ancestor-descendant relationship. Even though Trémaux trees themselves are interesting --- for example all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth first search. \\
+        \subsubsection*{Depth First Search}
+        One description of the depth first search (DFS) was authored by Charles-Pierre Trémaux in 1818.
+        Even though the work was published a lot later, this is the first appearence in modern citation history~\autocite{lucas1891recreations}. 
+        He used so called Trémaux trees to solve arbitrary mazes. 
+        Each result of a depth first search is such a Trémaux tree.
+        These have the property that each two adjacent vertexes are in an ancestor-descendant relationship.
+        Even though Trémaux trees themselves are interesting --- for example all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth first search. \\
         
         Depth first search is very similar to backtracking: Chase one path until it proves to be a dead end. 
-        Go back to the to the point where you can take a different path, chose that path to chase and reapeat. In fact Donald Knuth considers depth first search and backtracking to be the same algorithm, as both are acting upon a graph. However when backtracking is used, the graph is often implicit~\autocite{Knuth2000DancingL}.\\
+        Go back to the to the point where you can take a different path, chose that path to chase and reapeat. 
+        In fact Donald Knuth considers depth first search and backtracking to be the same algorithm, as both are acting upon a graph. 
+        However when backtracking is used, the graph is often implicit~\autocite{Knuth2000DancingL}.\\
         
-        Even though DFS is a general traversal schema -- go deep first -- it can also be used for other purposes like finding shortest paths, connected components, testing planarity and many more. A pseudo-code description of it is given in \ref{dfs}. This version continues its search at the last found edge instead of the last visited edge. This is enable the usage of the implementation for other problems like finding spanning trees, cycles or paths.
+        Even though DFS is a general traversal schema -- go deep first -- it can also be used for other purposes like finding shortest paths, connected components, testing planarity and many more. 
+        A pseudo-code description of it is given in \ref{dfs}. 
+        This version continues its search at the last found edge instead of the last visited edge. 
+        This is enable the usage of the implementation for other problems like finding spanning trees, cycles or paths.
         
         \begin{algorithm}[htp]
             \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
@@ -447,11 +575,35 @@ In this section we first give a definition of graphs as discrete structures and 
         \caption{Pseudo-code for a depth first search on a graph $G$.}\label{dfs}
         \end{algorithm}
         
-        The runtime is again dependent on the data structure, that is used and again the runtime for querying the neighbourhood of a node is the varying term. Each node is visited exactly once and by the handshaking lemma~\autocite{Gross1998GraphTA} it should be clear that we visit each edge twice resulting in an overall worst-case runtime of $\mathcal{O}(|V|+|E|)$. Regarding space complexity, the worst case is that the node stack contains all nodes, i.e that it is traversed without repetitions or --- put differently --- backtracking. The result is a worst-case space complexity of $\mathcal{O}(|V|)$
+        The runtime is again dependent on the data structure, that is used and again the runtime for querying the neighbourhood of a node is the varying term. 
+        Each node is visited exactly once and by the handshaking lemma~\autocite{Gross1998GraphTA} it should be clear that we visit each edge twice resulting in an overall worst-case runtime of $\mathcal{O}(|V|+|E|)$. 
+        Regarding space complexity, the worst case is that the node stack contains all nodes, i.e. that it is traversed without repetitions or --- put differently --- backtracking. 
+        The result is a worst-case space complexity of $\mathcal{O}(|V|)$
         
-        \paragraph{Breadth First Search} 
-        Zuse
+        \subsubsection*{Breadth First Search} 
+        The first description of beadth first search (BFS) in modern science was given by Konrad Zuse in the course of his Ph.D.thesis on the ''Plankalkühl``. 
+        He used it to find connected components~\autocite{zuse1948allgemeinen}. 
+        The schema of the breadth first search was also used to find shortest path solutions for mazes and to wire placed electrical components on a printed circuit board (PCB). \\
         
+        The general traversal scheme in breadth first search is to explore all next neighbours before continuing with those who are more steps away. 
+        Thus it first explores one ''level`` exhaustively, before continuing to the next one. 
+        In other words: The only difference between DFS and DFS is the data structure that is used: While DFS uses a stack and thus always inspects the element that was inserted last, BFS uses a queue.
+        That means it inspects the element that was inserted first.
+        An illustrative comparison of DFS and BFS is shown in figure \ref{dfs-bfs}. \\
+        
+        \begin{figure}
+         \begin{center}
+          \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/bfs-dfs.png}
+         \end{center}
+          \caption{Comparison between a DFS and a BFS traversal.}\label{dfs-bfs}
+        \end{figure}
+        
+        Like the DFS, the BFS traversal schema can be used to find shortest paths, maximum flows and to test if a graph is bipartite. 
+        The space and runtime complexity of the BFS is similar to the complexities of DFS: $\mathcal{O}(|V|)$ space, when all nodes are stored in the queue at the same time. 
+        $\mathcal{O}(|V| + |E|)$, since all vertices are visited and each edge is visited twice by the handshake lemma. 
+        Pseudo-code for the BFS traversal-scheme is shown in \ref{bfs}. 
+        We again make the assumption, that we are using an incidence list as data structure and that the expand operator is implemented accordingly.
+
         \begin{algorithm}[htp]
             \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
             \KwOut{Search numbers bfs, predecessor edges parent}
@@ -461,16 +613,16 @@ In this section we first give a definition of graphs as discrete structures and 
                 parents $\leftarrow$ array initialized to $-1$\;
                 node\_queue $\leftarrow$ create\_queue()\;
                 
-                enqueue(node\_stack, v\_id)\;
+                enqueue(node\_queue, v\_id)\;
                 
-                \While{node\_stack non-empty}{
-                    node\_id $\leftarrow$ dequeue(node\_stack)\;
+                \While{node\_queue non-empty}{
+                    node\_id $\leftarrow$ dequeue(node\_queue)\;
                     current\_node\_edges $\leftarrow$ expand($G$, v\_id, $d$)\;
                     
                     \For{edge $\in$ current\_node\_egdes}{
                         \If{bfs[edge.other\_v\_id] $= -1$}{
                             bfs[edge.other\_v\_id] = bfs[node\_id] + 1\;
-                            enqueue(node\_stack, edge.other\_v\_id)\;
+                            enqueue(node\_queue, edge.other\_v\_id)\;
                             parent[edge.other\_id] = edge.id\;
                         }
                     }
@@ -479,319 +631,195 @@ In this section we first give a definition of graphs as discrete structures and 
         \caption{Pseudo-code for a breadth first search on a graph $G$.}\label{bfs}
         \end{algorithm}
         
-        \paragraph{Dijkstra}
-        \paragraph{A*}
+        \subsubsection*{Dijkstra} In the original formulation, Edsger Dijkstra formulated the algorithm as a solution to the problem of finding a shortest path between two nodes~\autocite{dijkstra1959note}. 
+        Many variants and extensions exist of which we are going to discuss two: A$^*$ and ALT~\autocite{hart1968formal, goldberg2005computing}. 
+        One slight variation makes it possible to find all shortest path from a given starting node.
+        The algorithm however imposes a restriction on the graph.
+        Only positive weights are allowed as otherwise a negative cycle results in an infinite loop~\autocite{cormen2009introduction}. \\
         
-            
-\section{Graph Databases}\label{\positionnumber}
-    \subsection{Database Architecture}\label{\positionnumber}
-            \paragraph{Memory hierarchy}
-        Relational databases store tables of data.
-        The links considered in this category of DBMS are mostly used to stitch together the fields of an entry into one row again, after it has been split to satisfy a certain normal form.
-        Of course one may also store tables where one table stores nodes and the other table's fields are node IDs to represent relationships.
-
-        However, in order to traverse the graph, one has either to do a lot of rather expensive look ups or store auxiliary structures to speed up the look up process.
-        In particular when using B-trees as index structure, each look up takes $\mathcal{O}(\log(n))$ steps to locate a specific edge.
-        Alternatively one could store an additional table that holds edge lists such that the look up of outgoing or incomming edges is only $\mathcal{O}(\log(n))$ which would speed up breadth first traversals.
-        But still one has to compute joins in order to continue the traversal in terms of depth.
-        Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins.
-
-        In contrast to relational data base management systems, native graph databases use structures specialised for this kind of queries.
-        In the following sections we discuss what structures and mechanisms graph databases employ in order to achieve this superior performance in the domain of graphs using the popular graph database Neo4J as example.
-
-        First of all, let us consider the high level architecture of a general database management systems as shown in figure~\ref{dbms_arch} --- with a focus on the storage and loading elements.
-
-        \begin{figure}[htp]\label{dbms_arch}
-        \begin{center}
-        \includegraphics[keepaspectratio,width=0.7\textwidth]{img/00_intro/RDBMS.png}
-        \end{center}
-        \caption{The typical structure of a relational database management system.} %TODO citation
-        \end{figure}
-
-        Here The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a page: A disk block brought into memory. 
-        For that it needs to keep track of free blocks in the allocated file. Optimally both a disk block and a page are of the same size. 
-        One crucial task of a disk space manager is to store sequences of pages into continuous memory blocks in order to optimize data locality.
-        Data locality has the upside, that one needs only one I/O operation to load multiple pages.
-        To summarize the two most important objectives of a storage manager are to provide a locality-preserving mapping from pages to blocks based upon the information in the DBMS and to abstract physical storage to pages, taking care of allocation and access.
+        Conceptually Dijkstra's algorithm assigns each node in the graph a distance. 
+        The source node has the distance 0, while all other vertices have a distance of infinity at the beginning.
+        Then it gradually considers the next ''shortest`` edge to take.
+        That is the distance of the already taken path to a certain node (at the beginning it's zero) is added to an edge weight such that the sum of both is minimal. 
+        In order to efficiently compute the minimum a priority queue or a fibonacci heap is used to define the traversal order. 
+        An array stores the distances from the source to the already visited nodes, while the queue is filled with their neighbours along with the distance to them (i.e. the path to the predecessor plus the weight of the edge to be taken). 
+        The vertex with the shortest total distance is visited until all vertices are visited or the target vertex is reached. \\
         
-        A buffer manager is used to mediate between external storage and main memory. It maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory.
-        It's objective is to minimize the number of disk reads to be executed by caching, pre-fetching and the usage of suitable replacement policies. 
-        It also needs to take care of allocating a certain fraction of pages to each transaction.
-
-        \begin{figure}[htp]\label{dbms_memory}
-            \begin{center}
-            \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/00_intro/RDBMS_memory_view.png}
-            \end{center}
-            \caption{A visualization of the interaction of a database with memory.} %TODO citation
-        \end{figure}
-
-        The final memory and storage model relevant component of the  of a database management system is the file layout and possible index structures. 
-        In order to store data a DBMS may either store one single or multiple files to maintain records. 
-
-        A file may consist of a set of pages containing a set of slots. A slot stores one record with each record containing a set of fields. Further the database needs to keep track of free space in the file: A linked list or a directory must record free pages and some structure needs to keep track of the free slots either globally or per page. 
-        Records may be of fixed or of variable size, depending on the types of their fields. 
-        Records can be layout in row or column major order.
-        That is one can store sequences of tuples or sequences of fields.
-        The former is beneficial if a lot of update, insert or delete operations are committed to the database, while the latter optimizes the performance when scans and aggregations are the most typical queries to the system.
-        Another option is to store the structure of the records along with pointers to the values of their fields in one files and the actual values in one or multiple separate files. 
-        Also distinct types of tables can be stored in different files. 
-        For example entities and relations can be stored in different files with references to each other, thus enabling the layout of these two to be specialized to their structure and usage in queries.
-
-        Files may either organize their records in random order (heap file), sorted or using a hash function on one or more fields. 
-        All of these approaches have upsides and downsides when it comes to scans, searches, insertions, deletions and updates. 
-
-        To mitigate the effect that result from selecting one file organization or another, the concept of indexes have been introduced. 
-        Indexes are auxiliary structures to speed up certain operations that depend on one field. 
-        Indexes may be clustered or unclustered. 
-        An index over field $F$ is called clustered if the underlying data file is sorted according to the values of $F$. 
-        An unclustered index over field $G$ is one where the file is not sorted according to $G$. 
-        In a similar way indexes can be sparse or dense. 
-        A sparse index has less index entries than records, mostly one index entry per file. 
-        This can of course only be done for clustered indexes as the sorting of the data file keeps the elements between index keys in order. 
-        An index is dense if there is a one to one correspondence between records and index entries. 
-        There are different variants of storing index entries which have again certain implications on the compactness of the index and the underlying design decisions.
-
-        In another view of database management systems architectures, this boils down to the design decisions one has to make when implementing the storage layer and the access layer as shown in figure~\ref{dbms_arch_layers}.
-
-        \begin{figure}[htp]\label{dbms_arch_layers}
-        \begin{center}
-        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/layered_RDBMS.png}
-        \end{center}
-        \caption{The architecture of a database management system from another point of view.} %TODO citation
-        \end{figure}
-
-        Here the storage layer is in close correspondence to the disk space manager in combination with the buffer manager, while the files and index structures provide the access layer.
-
-        All these considerations make choosing different file splits, layouts, orderings, addressing schemes, management structures, de-/allocation schemes and indexes a complex set of dependent choices. 
-        These depend mainly on the structure of the data to be stored and the queries to be run.
+        Pseudo code for the variant that computes all shortest paths can be found in \ref{dijkstra}. 
+        The runtime complexity of Dijkstra's algorithm is $\mathcal{O}(|E| \cdot T_d + |V| \cdot T_m)$ where $T_d, T_m$ stand for the complexities to update the distance of a path and to extract the minimum.
+        Besides the new neccissity to select the element to inspect based on priorities and to maintain those, the runtime complexity is equivalent to what we had with BFS. \\
         
-        % TODO Elaborate on get nodes, get relationships and expand
-
-
-    \subsection{The Property Graph Model}\label{\positionnumber}
-        The property graph model is a widely adopted data model to represent graphs in databases.
-        It is not only able to represent the structure of directed or undirected, weighted or unweighted, but also of typed graphs carrying additional information.
-    
-        A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
-        \begin{itemize}
-            \item $V$ the set of vertices.
-            \item $E$ the set of edges.
-            \item $\lambda: (V \times V) \rightarrow E$ a function assigning a pair of nodes to an edge.
-            \item $L$ a set of strings used as labels.
-            \item $P$ a set of key-value pairs called properties.
-            \item $T$ a set of strings used as relationship types.
-            \item $f_P: V \cup E \rightarrow 2^P$ a function that assigns a set of properties to a node or relationship.
-            \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
-            \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
-        \end{itemize} 
-        \smallskip
-        The property graph model reflects a directed, node-labeled and relationship-typed multigraph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property}. \\
-        In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them records on their own. 
-        This means they either need to be addressed explicitly or one needs to store all information, including the properties, consecutively. 
-        The latter approach has the downside, that when the type or a property contain a variable length string, the relationships have to be variable lenght records. 
-        This would cause the lookup of a relationship's property to be not only indirected via a node index, but also requires an additional mechanism to be able to tell the beginning and length of the record. \\
-        An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
-        Neo4j is a graph database employing the property graph model~\cite{neo4j_book}, which is used in the evaluation part of this thesis.
-    
-    \subsection{Example: Neo4J}\label{\positionnumber}
-        When restricting to graph structures where nodes and relationships are allowed to have properties and labels and types respectively, this allows one to narrow down some of the design decisions.
-        In particular the example of a popular graph native database --- Neo4J --- is what we discuss in this subsection.
-
-        To get an overview of the architecture let us consider figure~\ref{N4J_HLA_Emil}. 
-
-        \begin{figure}[htp]\label{N4J_HLA_Emil}
-        \begin{center}
-        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_HLA_Emil.png}
-        \end{center}
-        \caption{The high level architecture of Neo4J according to Emil Efrim, the co-founder of Neo technologies.} %TODO citation
-        \end{figure}
-
-        Here we can see that the previous schema is not exactly straight forward to apply, mainly due to a lack of concise documentation.
-        The diagram was taken from the only publication that elaborates on the internals of Neo4J aside from the code of course.
+        We use a min-priority queue here, which is simpler to implement but yields a sub-optimal runtime: $T_d, T_m \in \mathcal{\log(|V|)}$. 
+        Overall the asymptotic runtime complexity using a min-priority queue is $\mathcal{O}(|V| + |E|)\log(|V|)$~\autocite{Goodrich2014AlgorithmDA}. \\
         
-        \begin{figure}[htp]\label{N4J_Storage}
-        \begin{center}
-        \includegraphics[keepaspectratio,width=0.5\textwidth,height=0.3\textheight]{img/00_intro/N4J_Storage.png}
-        \end{center}
-        \caption{A visualization of the broad the storage and memory organization of Neo4J.} %TODO citation
-        \end{figure}
+        One can also use plain arrays, which requires a minimum search and no update of the priority. 
+        The minimum search is linear, i.e. $\mathcal{O}(|V|)$ and priorities can be updated in $\mathcal{O}(1)$. 
+        Overall we have $\mathcal{O}(|E| + |V|^2)$~\autocite{Goodrich2014AlgorithmDA}. \\
         
-        Here The storage manager makes mostly use of the Java NIO package with some additional usage of operating system native calls to allocate memory for the page cache and network buffers. 
-        A more detailed view on the high level architecture of the disk space and buffer manager and the files and index structures was deduced by the author from the source code and the non-public JavaDocs.
-        This is shown in figure~\ref{N4J_Storage}.
+        Finally more advanced data structures can be used, like a Fibonacci-Heap~\autocite{cormen2009introduction}. 
+        These make it possible to update the priority in $\mathcal{O}(1)$ and still find the minimum in $\mathcal{\log(|V|)}$. This yields the optimal asymptotical runtime of $\mathcal{O}(|E| + |V|\log(|V|))$. \\
         
-      \begin{figure}[htp]\label{N4J_memory_view}
-        \begin{center}
-        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_memory_view.png}
-        \end{center}
-        \caption{A sketch of how Neo4J occupies memory.} %TODO citation
-        \end{figure}
-        
-        The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
-
-        \subsubsection{IO \& File Layout}\label{files_sec}
-        The files that Neo4J uses to store data are categorizable into 5 classes based upon the records they contain:
-        \begin{itemize}
-            \item Node-related files: These files start with the prefixes \mintinline{bash}{neostore.nodestore*} and \mintinline{bash}{neostore.label*}. 
-                The contents of these files contain the node structure and labels. 
-            \item Relationship-related files: The prefix \mintinline{bash}{neostore.relationship*} is used for all files containing records related to the graph's relationship structure, types and possibly groups.
-            \item Property-related files: Containing the properties of both nodes and relationship, this is the part that is least structured and rather unspecialized with respect to graphs.
-            \item Schema: Files starting with \mintinline{bash}{neostore.schemastore*} contain information about the schema of the graph or rather the schematic information on the node, relationship and property labels, types and constraints.
-            \item Metadata: Files only starting with \mintinline{bash}{neostore} and none of the above prefixes contain meta information about the graph.
-            \item Finally, a lock file.
-        \end{itemize}
-        
-        \begin{figure}[htp]\label{files}
-            \begin{center}
-                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/files.png}
-            \end{center}
-            \caption{A visualization of the files layout of Neo4j.} %TODO citation
-        \end{figure}
-
-        Most importantly the files ending with \mintinline{bash}{.db} contain all fixed size records representing the structure of the graph and small amounts of data.
-        Files ending with \mintinline{bash}{.id} are used for record allocation and contain unused IDs. 
-        Files having one of the suffixes \mintinline{bash}{names}, \mintinline{bash}{arrays} and \mintinline{bash}{strings} are so called dynamic stores and contain dynamic sized records. 
-        A dynamic store is always started with a header block containing extra information and the offset to the first block in the store files. 
-        Files ending with \mintinline{bash}{.index} contain indexes either generated by Neo4J (e.g.\ the keys of properties are referenced like this to avoid storing key names multiple times) or by the Apache Lucene indexing library.
-        
-        \subsubsection{Record Structures}
-            \paragraph{Address Translation}
-                Neo4j defines the following constants as the size of the addresses used.
-                \begin{figure}[htp]\label{addrsize}
-                    \adjustbox{varwidth=\textwidth, scale=0.9}{%
-                        \inputminted{Java}{code/MaxIdLength.java}
+        \begin{algorithm}[htp]
+            \KwIn{Graph $G = (V,E)$, start vertex id v\_id}
+            \KwOut{Path distance distances, predecessor edges parent}
+            \hrulealg
+            \Begin{
+                distances $\leftarrow$ array initialized to $\infty$\;
+                parents $\leftarrow$ array initialized to $-1$\;
+                path\_queue $\leftarrow$ create\_min\_prio\_queue()\;
+                
+                enqueue(path\_queue, v\_id)\;
+                
+                \While{path\_queue non-empty}{
+                    node\_id $\leftarrow$ dequeue(path\_queue)\;
+                    current\_node\_edges $\leftarrow$ expand($G$, v\_id, $d$)\;
+                    
+                    \For{edge $\in$ current\_node\_egdes}{
+                        \If{distances[edge.other\_v\_id] $\geq$ distances[node\_id] + edge.weight}{
+                            distances[edge.other\_v\_id] = distances[node\_id] + edge.weight\;
+                            enqueue(path\_queue, edge.other\_v\_id)\;
+                            parent[edge.other\_id] = edge.id\;
+                        }
                     }
-                \end{figure}
-                These are represented by the datatype \mintinline{java}{long} when loaded into main memory. 
-                On disk these values are stored as 32-bit \mintinline{java}{Integer}s with additional modifiers, that is the highest bits that do not fit into an int are stored to fields with additional space.
-                
-                For example the in-use bit consumes one byte of memory and the additional 7 bytes are used to stroe the highest bits that do not fit into an integer of another field.
-                
-                Finally the base and the modifer are aggregated into a long by shifting both appropriately, casting them to longs and applying the logical or \mintinline{java}{|} operation.
-                
-                Thus when refering to high bits and ID below, high bits do always mean the remainer of the bits that did not fit into the field that is said to be holding the ID\@.
-                The latter is actually only holding the lowest 32 bits of an ID/address. The \textit{actual ID} is always high bits and ID field, shifted appropriately and connected using the logical or operator.
-                
-            \paragraph{Nodes}
-                The record format of nodes consist of a 15 byte structure.
-                The IDs of nodes are stored implicitly as their address.
-                If a node has ID 100 we know that its record starts at offset $15 \text{ Bytes} \cdot 100 = 1500$ from the beginning of the file.
-                The struct of a record looks like this:
-                \begin{enumerate}
-                    \item Byte 1: The first byte contains one bit for the in-use flag. 
-                        The additional 7 bits are used to store the 3 highest bits of the relationship ID and the 4 highest bits of a property ID\@.
-                    \item Bytes 2 --- 5: The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
-                    \item Bytes 6 --- 9: Again 4 bytes encode the ID to the first property of the node.
-                    \item Bytes 10 --- 14: This 5 byte section points to the labels of this node.
-                    \item Byte 15: The last byte stores if the node is dense, i.e.\ one node has an aweful lot of relationships and is treated a bit differently.
-                        That is a relationships are stored by type and direction for this node into groups, see~\ref{rel_group}.
-                \end{enumerate}
-            
-                \begin{figure}[htp]\label{node_record}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/node/node_record.png}
-                    \end{center}
-                    \caption{A visualization of the record structure of a node.} %TODO citation
-                \end{figure}
-                
-                To summarize: The records on disk are stored as in the enumeration above. 
-                In the database all IDs get mapped to longs and their respective space is larger than the space representable by 35 bit --- what is perfectly fine.
-            
-                \begin{figure}[htp]\label{node_first_byte}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/node/node_first_byte.png}
-                    \end{center}
-                    \caption{A visualization of the information stored in the first byte of a node record.} %TODO citation
-                \end{figure}
-            
-                On disk 4 byte integers are used to store the 32 lowest bits of the respective addresses and the higher bits are stored in the first byte that also carries the in-use bit.
-            
-            \paragraph{Node Labels}
-                Each node label record consists of an in use bit and a name ID, which in turn points to an entry in a seperate file storing label names as dynamic records (see~\ref{dynamic}), storing the label names.
-                This is done in order to assure that the records are of fixed length.
-                \begin{enumerate}
-                    \item Byte 1: In-use flag
-                    \item Bytes 2 --- 5: Pointer to the label string entry
-                \end{enumerate}
-                
-                \begin{figure}[htp]\label{label_record}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/node/label_record.png}
-                    \end{center}
-                    \caption{A visualization of the structure of a label record.} %TODO citation
-                \end{figure}
-                
-                
-            
-            \paragraph{Relationships}
-                \begin{figure}[htp]\label{rel_record}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.9\textheight,width=0.5\textwidth]{img/03_record/relationship/relationship_record.png}
-                    \end{center}
-                    \caption{A visualization of the record structure of a relationship in Neo4J.} %TODO citation
-                \end{figure}
-                
-                Relationship records are stored with implicit IDs too. 
-                Their fixed size records contain 34 bytes.
-                Besides an in-use flag and the node IDs that are connected, and the relationship type, the record also contains two doubly linked list: One for the relationships of the first node and one for the relationship of the second node.
-                Finally a link to the head of the properties linked list of this relationship and a marker if this relationship is the first element in the relationships linked list of one of the nodes.
-                \newpage
-                
-                \begin{enumerate}
-                    \item Byte 1: In-use bit, first node high order bits (3 bits), first property high order bits (4 bits)
-                    \item Bytes 2 --- 5: first node ID 
-                    \item Bytes 6 --- 9: second node ID 
-                    \item Bytes 10 --- 13: relationship type (16 bit), second node high order bits (3 bits), relationship previous and next ID higher bits for first and second node ($4 \cdot 3 = 12$ bits), one unused bit.
-                    \item Bytes 14 --- 17: previous relationship ID for first node
-                    \item Bytes 18 --- 21: next relationship ID for first node
-                    \item Bytes 22 --- 25: previous relationship ID for second node
-                    \item Bytes 26 --- 29: next relationship ID for second node
-                    \item Bytes 30 --- 33: link to the first property of the relationship
-                    \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes stored in the lowest two bits of the byte. 
-                        The other 6 bits are unused.
-                \end{enumerate}
-
-
-                \begin{figure}[htp]\label{rel_first_byte}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,width=\textwidth]{img/03_record/relationship/relationship_first_byte.png}
-                    \end{center}
-                    \caption{A visualization of how information is stored in the first byte of a relationship record.} %TODO citation
-                \end{figure}
-
-                \begin{figure}[htp]\label{rel_type_bytes}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,width=\textwidth]{img/03_record/relationship/relationship_type_bytes.png}
-                    \end{center}
-                    \caption{The structure of the bytes that are used to store the type of a relationship and high bits of a node and a relationship IDs.} %TODO citation
-                \end{figure}
-            
-
-            \paragraph{Relationship Types}
-                Similarly to the node labels, the relationship type records posses an in-use flag and a type ID that points to a record in a file containing strings in the dynamic record format.
-                \begin{enumerate}
-                    \item Byte 1: In-use flag
-                    \item Bytes 2 --- 5: Pointer to the type string entry
-                \end{enumerate}
-            
-                \begin{figure}[htp]\label{rel_type_record}
-                    \begin{center}
-                        \includegraphics[keepaspectratio,height=0.2\textheight,width=0.2\textwidth]{img/03_record/relationship/rel_type_record.png}
-                    \end{center}
-                    \caption{A visualization of the record structure of a relationship type.} %TODO citation
-                \end{figure}
-                
-           
-           All further record structures like properties, arrays and strings are omitted for the sake of succintness.
+                }
+            }
+        \caption{Pseudo-code of the Dijkstra's algorithm for finding shortest paths from a node $v$ to all other nodes in a graph $G$.}\label{dijkstra}
+        \end{algorithm}
         
-        \subsubsection{Caching \& Indexes} 
         
-        \subsubsection{Queries \& Transactions}
+        \subsubsection*{A*}
+        
+
+
+\section{The Property Graph Model}\label{\positionnumber}
+    The property graph model is a widely adopted data model to represent graphs in databases.
+    It is not only able to represent the structure of directed or undirected, weighted or unweighted, but also of typed graphs carrying additional information.
+
+    A \textbf{Property Graph} is a 9-Tuple $G = (V, E, \lambda, P, T, L, f_P, f_T, f_L)$ with 
+    \begin{itemize}
+        \item $V$ the set of vertices.
+        \item $E$ the set of edges.
+        \item $\lambda: (V \times V) \rightarrow E$ a function assigning a pair of nodes to an edge.
+        \item $L$ a set of strings used as labels.
+        \item $P$ a set of key-value pairs called properties.
+        \item $T$ a set of strings used as relationship types.
+        \item $f_P: V \cup E \rightarrow 2^P$ a function that assigns a set of properties to a node or relationship.
+        \item $f_T: E \rightarrow T$ a function that assigns a type to  a relationship.
+        \item  $f_L: V \rightarrow 2^L$ a function that assigns a node a set of labels.
+    \end{itemize} 
+    \smallskip
+    The property graph model reflects a directed, node-labeled and relationship-typed multigraph $G$, where each node and relationship can hold a set of key-value pairs~\cite{angles2018property, rodriguez2012graph}. \\
+    In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them records on their own. 
+    This means they either need to be addressed explicitly or one needs to store all information, including the properties, consecutively. 
+    The latter approach has the downside, that when the type or a property contain a variable length string, the relationships have to be variable lenght records. 
+    This would cause the lookup of a relationship's property to be not only indirected via a node index, but also requires an additional mechanism to be able to tell the beginning and length of the record. \\
+    An illustration of this model is shown in \fullref{fig:propertygraph}\fig{img/property_graph_elements.jpg}{propertygraph}{A visualization of the property graph model}{1}.
+    Neo4j is a graph database employing the property graph model~\cite{robinson2015graph}, which is used in the evaluation part of this thesis.
+    
+\section{Example: Neo4J}\label{\positionnumber}
+    When restricting to graph structures where nodes and relationships are allowed to have properties and labels and types respectively, this allows one to narrow down some of the design decisions.
+    In particular the example of a popular graph native database --- Neo4J --- is what we discuss in this subsection.
+
+    To get an overview of the architecture let us consider figure~\ref{N4J_HLA_Emil}. 
+
+    \begin{figure}[htp]
+    \begin{center}
+    \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_HLA_Emil.png}
+    \end{center}
+    \caption{The high level architecture of Neo4J according to Emil Efrim, the co-founder of Neo technologies~\autocite{robinson2015graph}.} 
+    \label{N4J_HLA_Emil}
+    \end{figure}
+
+    Here we can see that the previous schema is not exactly straight forward to apply, mainly due to a lack of concise documentation.
+    The diagram was taken from the only publication that elaborates on the internals of Neo4J aside from the code of course.
+    
+    \begin{figure}[htp]
+    \begin{center}
+    \includegraphics[keepaspectratio,width=0.5\textwidth,height=0.3\textheight]{img/00_intro/N4J_Storage.png}
+    \end{center}
+    \caption{A visualization of the broad the storage and memory organization of Neo4J.} \label{N4J_Storage}
+    \end{figure}
+    
+    \subsubsection*{IO \& File Layout}\label{files_sec}
+    Here The storage manager makes mostly use of the Java NIO package with some additional usage of operating system native calls to allocate memory for the page cache and network buffers. 
+    A more detailed view on the high level architecture of the disk space and buffer manager and the files and index structures was deduced by the author from the source code and the non-public JavaDocs.
+    This is shown in figure~\ref{N4J_Storage}.
+    Most importantly the files ending with \mintinline{bash}{.db} contain all fixed size records representing the structure of the graph and small amounts of data.
+    
+    \subsubsection*{Caching \& Indexes} 
+    Files ending with \mintinline{bash}{.index} contain indexes either generated by Neo4J (e.g.\ the keys of properties are referenced like this to avoid storing key names multiple times) or by the Apache Lucene indexing library.
+    
+    \begin{figure}[htp]
+    \begin{center}
+    \includegraphics[keepaspectratio,width=0.6\textwidth]{img/00_intro/N4J_memory_view.png}
+    \end{center}
+    \caption{A sketch of how Neo4J occupies memory.}
+    \label{N4J_memory_view}
+    \end{figure}
+    
+    The overall memory and storage state of a Neo4J instance and its environment may thus be visualized like this figure~\ref{N4J_memory_view}.
+    
+    \subsection*{Record Structures}
+        \subsubsection*{Nodes}
+            The record format of nodes consist of a 15 byte structure.
+            The IDs of nodes are stored implicitly as their address.
+            If a node has ID 100 we know that its record starts at offset $15 \text{ Bytes} \cdot 100 = 1500$ from the beginning of the file.
+            The struct of a record looks like this:
+            \begin{enumerate}
+                \item Byte 1: The first byte contains one bit for the in-use flag. 
+                    The additional 7 bits are used to store the 3 highest bits of the relationship ID and the 4 highest bits of a property ID\@.
+                \item Bytes 2 --- 5: The next 4 Bytes represent the ID of the first relationship in the linked list containing the relationships of the considered node.
+                \item Bytes 6 --- 9: Again 4 bytes encode the ID to the first property of the node.
+                \item Bytes 10 --- 14: This 5 byte section points to the labels of this node.
+                \item Byte 15: The last byte stores if the node is dense, i.e.\ one node has an aweful lot of relationships and is treated a bit differently.
+                    That is a relationships are stored by type and direction for this node into groups.
+            \end{enumerate}
+        
+            \begin{figure}[htp]\label{node_record}
+                \begin{center}
+                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03_record/node/node_record.png}
+                \end{center}
+                \caption{A visualization of the record structure of a node.} %TODO citation
+            \end{figure}
+            
+            To summarize: The records on disk are stored as in the enumeration above. 
+            In the database all IDs get mapped to longs and their respective space is larger than the space representable by 35 bit --- what is perfectly fine.
+               
+            On disk 4 byte integers are used to store the 32 lowest bits of the respective addresses and the higher bits are stored in the first byte that also carries the in-use bit.
+        
+        \subsubsection*{Relationships}
+            \begin{figure}[htp]\label{rel_record}
+                \begin{center}
+                    \includegraphics[keepaspectratio,height=0.9\textheight,width=0.5\textwidth]{img/03_record/relationship/relationship_record.png}
+                \end{center}
+                \caption{A visualization of the record structure of a relationship in Neo4J.} %TODO citation
+            \end{figure}
+            
+            Relationship records are stored with implicit IDs too. 
+            Their fixed size records contain 34 bytes.
+            Besides an in-use flag and the node IDs that are connected, and the relationship type, the record also contains two doubly linked list: One for the relationships of the first node and one for the relationship of the second node.
+            Finally a link to the head of the properties linked list of this relationship and a marker if this relationship is the first element in the relationships linked list of one of the nodes.
+            \newpage
+            
+            \begin{enumerate}
+                \item Byte 1: In-use bit, first node high order bits (3 bits), first property high order bits (4 bits)
+                \item Bytes 2 --- 5: first node ID 
+                \item Bytes 6 --- 9: second node ID 
+                \item Bytes 10 --- 13: relationship type (16 bit), second node high order bits (3 bits), relationship previous and next ID higher bits for first and second node ($4 \cdot 3 = 12$ bits), one unused bit.
+                \item Bytes 14 --- 17: previous relationship ID for first node
+                \item Bytes 18 --- 21: next relationship ID for first node
+                \item Bytes 22 --- 25: previous relationship ID for second node
+                \item Bytes 26 --- 29: next relationship ID for second node
+                \item Bytes 30 --- 33: link to the first property of the relationship
+                \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes stored in the lowest two bits of the byte. 
+                    The other 6 bits are unused.
+            \end{enumerate}
+
+        All further record structures like relationship types, properties, arrays and strings are outlined in the appendix for the interested reader and ommitted here for the sake of succintness.
+    
             
             
-    \subsection{Locality}\label{\positionnumber}
-        
-        \subsubsection{Metrics}
+
     
 
 
