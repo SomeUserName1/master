@@ -7,42 +7,48 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] Register Colloquium
 
 ## Thesis  
-#### Introduction: 
-- [ ] Essay
-- [ ] brief problem statement
-- [ ] Organization
-- [ ] Contributions!
+#### Introduction ~ 2 P. 
+- [ ] Essay ~ 1 P.
+- [ ] brief problem statement ~ 0.3 P.
+- [ ] Organization ~ 0.3 P.
+- [ ] Contributions! ~ 0.3 P.
 
-#### Background
-- [ ] Graphs & Property Graph Model
-- [ ] Neo4J & Index-free Adjacency List
-- [ ] Traversals, Patterns
+#### Background ~ 21 P.
+- [-] Low-level Database Arch. ~ 2.5 P.
+- [x] Graphs ~ 2.5 P
+- [x] Data structures ~ 6 P.
+- [x] traversal-based algos ~ 5 P.
+- [x] Property Graph Model ~ 1 P.
+- [-] Neo4J & Index-free Adjacency List ~ 4 P.
+
+#### Problem Def. ~ 5 P.
 - [ ] Locality & Measures
 - [ ] Problem definition
+- [ ] Example
 
-#### Related Work: 
-- [ ] DRAW and the like
-- [ ] Relational DBs for graphs, triplet stores (locaility setting in those)
-- [ ] Interaction graphs
-
-#### Methods: 
+#### Related Work ~ 5 P.
 - [ ] G-Store
 - [ ] ICBL
+
+#### Method ~ 5 P.
 - [ ] Louvain + customizations
+- [ ] Partition ordering
+- [ ] Incidence List rearrangement
 
-#### Evaluation:
-- [ ] Describe Implementation & Setup
-- [ ] Insert like on dataset -> run queries & analyze block usage -> run method & reorganize -> run queries and analysis again. 
-- [ ] Visualize.
+#### Evaluation ~ 15 P.
+- [ ] Describe Implementation & Setup ~ 5 P.
+- [ ] Results & Visualize. ~ 10 P.
 
-#### Conclusion
-- [ ] Summary
-- [ ] Future Work
+#### Conclusion ~ 1 P.
+- [ ] Summary ~ 0.5 P.
+- [ ] Future Work ~ 0.5 P.
 
 #### Others
-- Title
-- Acknowledgements
-- Bibliography
+- [x] Title page
+- [ ] Acknowledgements
+- [ ] Bibliography
+
+**Overall 48 P. Contents + 10 P. Title, TOC, Abstract, Bibliography --> 60P.**
 
 ## Implementation
 - [x] Record structures  
@@ -50,17 +56,18 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] SNAP importer
 - [x] In Memory Access Layer 
 - [x] BFS
+- [x] DFS
 - [x] IDs to Pages to IOs computation
 - [x] Lovaine Method
-- [ ] WIP: G-Store  [Steinhaus, Olteanu]. (TODO refinement using propper KL & Testing)  
 - [x] Random Walk
-- [ ] WIP: ICBL [Yasar, Gedik]
-- [ ] Record remapping
 - [ ] Dijkstra
-- [ ] A*
+- [ ] A\*
 - [ ] ALT
-- [ ] DFS
-- [ ] Spreading Activation
+- [-] G-Store  [Steinhaus, Olteanu]. (TODO refinement using propper KL & Testing)  
+- [-] ICBL [Yasar, Gedik]
+- [ ] Record remapping
+- [ ] Incidence List Reordering
+
 
 ## Future Improvements
 ### Implementation Features
