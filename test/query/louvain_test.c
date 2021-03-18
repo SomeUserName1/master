@@ -21,12 +21,18 @@ main(void)
     FILE* in_file =
           fopen("/home/someusername/workspace_local/louvain_c_out", "r");
 
+    if (!in_file) {
+        exit(-1);
+    }
+
     unsigned long* true_part =
           calloc(db->node_id_counter, sizeof(unsigned long));
-    unsigned long node_id, part_id;
+    unsigned long node_id;
+    unsigned long part_id;
     while (fscanf(in_file, "%lu %lu", &node_id, &part_id) == 2) {
         true_part[node_id] = part_id;
     }
+    fclose(in_file);
 
     dict_ul_ul_t* mapping = create_dict_ul_ul();
 

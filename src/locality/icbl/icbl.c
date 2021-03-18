@@ -163,12 +163,20 @@ initialize_centers(in_memory_file_t* db,
                    unsigned long** centers,
                    size_t num_clusters)
 {
+    if (!db || !centers) {
+        exit(-1);
+    }
+
     unsigned long num_nodes = db->node_id_counter;
     unsigned long* max_degree_nodes =
           calloc(num_clusters, sizeof(unsigned long));
     unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
     list_relationship_t* rels;
     unsigned long degree;
+
+    if (!max_degrees || !max_degree_nodes) {
+        exit(-1);
+    }
 
     for (size_t i = 0; i < num_nodes; ++i) {
         rels = in_memory_expand(db, i, BOTH);
@@ -179,6 +187,7 @@ initialize_centers(in_memory_file_t* db,
         }
     }
     list_relationship_destroy(rels);
+    free(max_degrees);
 
     centers = &max_degree_nodes;
     return 0;
@@ -218,10 +227,14 @@ updated_centers(size_t num_nodes,
                 unsigned long* centers,
                 size_t num_clusters)
 {
+    if (!dif_sets || !part || !centers) {
+        exit(-1);
+    }
 
     dict_ul_ul_t** cluster_counts =
           malloc(num_clusters * sizeof(dict_ul_ul_t*));
-    if (cluster_counts == NULL) {
+
+    if (!cluster_counts) {
         return -1;
     }
 
@@ -265,6 +278,8 @@ updated_centers(size_t num_nodes,
         dict_ul_ul_iterator_destroy(it);
     }
 
+    free(cluster_counts);
+
     return 0;
 }
 
@@ -273,6 +288,10 @@ cluster_coarse(in_memory_file_t* db,
                dict_ul_ul_t** dif_sets,
                unsigned long* part)
 {
+    if (!db || ! dif_sets || !part) {
+        exit(-1);
+    }
+
     size_t num_clusters = get_num_coarse_clusters(db);
     size_t changes = 0;
 

@@ -46,7 +46,8 @@ unsigned long
 compute_abs_tension(multi_level_graph_t* graph,
                     const unsigned int* partition_p_node)
 {
-    if (!graph || !partition_p_node) {
+    if (!graph || !partition_p_node || !graph->finer
+            || !graph->finer->edge_aggregation_weight) {
         exit(-1);
     }
 
@@ -123,7 +124,7 @@ compute_tension(multi_level_graph_t* graph,
                 list_ul_t* nodes_in_p,
                 bool modified_t)
 {
-    if (graph == NULL || nodes_in_p == NULL) {
+    if (!graph || !nodes_in_p || !graph->finer || !graph->partition) {
         exit(-1);
     }
 
@@ -141,6 +142,11 @@ compute_tension(multi_level_graph_t* graph,
     multi_level_graph_t* finer = graph->finer;
     list_relationship_t* rels;
     relationship_t* rel;
+
+    if (!finer->partition || !finer->map_to_coarser || !finer->records
+            || finer->edge_aggregation_weight) {
+        exit(-1);
+    }
 
     for (size_t i = 0; i < num_nodes_p; ++i) {
         node_id = list_ul_get(nodes_in_p, i);
@@ -397,8 +403,8 @@ coarsen(multi_level_graph_t* graph,
           realloc(coarser->node_aggregation_weight,
                   coarser->records->rel_id_counter * sizeof(unsigned long));
 
-    if (coarser->node_aggregation_weight == NULL
-            || coarser->edge_aggregation_weight == NULL) {
+    if (!coarser->node_aggregation_weight
+            || !coarser->edge_aggregation_weight) {
         exit(-1);
     }
     free(node_matched);
@@ -537,8 +543,8 @@ project(multi_level_graph_t* graph,
           realloc(finer->partition_aggregation_weight,
                   finer->num_partitions * sizeof(size_t));
     part_type = realloc(part_type, finer->num_partitions * sizeof(bool));
-    if (finer->partition_aggregation_weight == NULL
-            || part_type == NULL) {
+
+    if (!finer->partition_aggregation_weight || !part_type) {
        exit(-1);
     }
 }
@@ -580,7 +586,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     }
     groups = realloc(groups, num_groups * sizeof(list_ul_t*));
 
-    if (groups == NULL) {
+    if (!groups) {
         exit(-1);
     }
 
@@ -590,7 +596,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
             continue;
         }
         gains = malloc(num_parts * num_parts * sizeof(long));
-        if (gains == NULL) {
+        if (!gains) {
             exit(-1);
         }
         do {

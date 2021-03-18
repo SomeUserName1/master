@@ -81,9 +81,11 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
 
         if (last != NULL) {
             cur = calloc(1, sizeof(*cur->next));
-            if (cur == NULL) {
+
+            if (!cur) {
                 return -1;
             }
+
             if (!rehash) {
                 key = ht->cbs.key_copy(key);
                 if (key == NULL) {
@@ -123,7 +125,8 @@ htable_rehash(htable_t* ht)
 
     ht->num_buckets <<= 1UL;
     ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
-    if (ht->buckets == NULL) {
+
+    if (!ht->buckets) {
         return -1;
     }
 
@@ -157,6 +160,11 @@ create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs)
     }
 
     htable_t* ht = calloc(1, sizeof(*ht));
+
+    if (!ht) {
+        exit(-1);
+    }
+
     ht->hash_fn = fn;
     ht->keq = keq;
 
@@ -184,6 +192,11 @@ create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs)
 
     ht->num_buckets = BUCKET_START;
     ht->buckets = calloc(BUCKET_START, sizeof(*ht->buckets));
+
+    if (!ht->buckets) {
+        exit(-1);
+    }
+
     ht->num_used = 0;
 
     srand(time(NULL));
@@ -325,11 +338,16 @@ htable_contains(htable_t* ht, void* key)
 htable_iterator_t*
 create_htable_iterator(htable_t* ht)
 {
-    if (ht == NULL) {
+    if (!ht) {
         return NULL;
     }
 
     htable_iterator_t* hi = calloc(1, sizeof(*hi));
+
+    if (!hi) {
+        exit(-1);
+    }
+
     hi->ht = ht;
 
     return hi;
@@ -338,22 +356,22 @@ create_htable_iterator(htable_t* ht)
 int
 htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
 {
-    if (hi == NULL || hi->idx >= hi->ht->num_buckets) {
+    if (!hi || hi->idx >= hi->ht->num_buckets) {
         return -1;
     }
 
-    if (key == NULL) {
+    if (!key) {
         void* mkey = NULL;
         key = &mkey;
     }
-    if (value == NULL) {
+    if (!value) {
         void* mvalue = NULL;
         value = &mvalue;
     }
 
-    if (hi->cur == NULL) {
+    if (!hi->cur) {
         while (hi->idx < hi->ht->num_buckets &&
-               hi->ht->buckets[hi->idx].key == NULL) {
+               !hi->ht->buckets[hi->idx].key) {
             hi->idx++;
         }
         if (hi->idx >= hi->ht->num_buckets) {
@@ -373,7 +391,7 @@ htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
 void
 htable_iterator_destroy(htable_iterator_t* hi)
 {
-    if (hi == NULL) {
+    if (!hi) {
         return;
     }
     free(hi);
