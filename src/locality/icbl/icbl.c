@@ -221,6 +221,10 @@ updated_centers(size_t num_nodes,
 
     dict_ul_ul_t** cluster_counts =
           malloc(num_clusters * sizeof(dict_ul_ul_t*));
+    if (cluster_counts == NULL) {
+        return -1;
+    }
+
     for (size_t i = 0; i < num_clusters; ++i) {
         cluster_counts[i] = create_dict_ul_ul();
     }
@@ -274,7 +278,10 @@ cluster_coarse(in_memory_file_t* db,
 
     unsigned long* centers = NULL;
 
-    initialize_centers(db, &centers, num_clusters);
+    if(initialize_centers(db, &centers, num_clusters) < 0) {
+        return -1;
+    }
+
     changes = assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
 
@@ -324,6 +331,9 @@ assign_dendro_label(dendrogram_t* dendro,
         dendro->label = malloc(
               (strlen(fst_child->label) + 1 + strlen(snd_child->label) + 1) *
               sizeof(char));
+        if (dendro->label == NULL) {
+            return -1;
+        }
         dendro->label[0] = '\0';
 
         if (fst_child->size > snd_child->size) {
@@ -340,7 +350,10 @@ assign_dendro_label(dendrogram_t* dendro,
                                                         : snd_child->label;
 
         dendro->label = malloc(strlen(label) * sizeof(char));
-        strcpy(dendro->label, label);
+        if (dendro->label == NULL) {
+            return -1;
+        }
+        strncpy(dendro->label, label, strlen(label) * sizeof(char));
     }
     return 0;
 }
@@ -359,6 +372,12 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
     dendrogram_t** dendros = malloc(n_nodes_of_p * sizeof(dendrogram_t*));
     dendrogram_t* dendro;
     blocks = malloc(list_ul_size(nodes_of_part) * sizeof(dendrogram_t*));
+    size_t length;
+
+    if (pairwise_diff == NULL || h_part == NULL
+            || dendros == NULL || blocks == NULL) {
+        return -1;
+    }
 
     // Compute pairwise distance matrix
     for (size_t i = 0; i < n_nodes_of_p; ++i) {
@@ -369,7 +388,7 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
             pairwise_diff[j * n_nodes_of_p + j] =
                   weighted_jaccard_dist(dif_sets[i], dif_sets[j]);
             pairwise_diff[i * n_nodes_of_p + j] =
-                  pairwise_diff[i * n_nodes_of_p + j];
+                  pairwise_diff[j * n_nodes_of_p + i];
         }
     }
 
@@ -377,8 +396,9 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
         h_part[i] = i;
         dendros[i] = malloc(sizeof(dendrogram_t));
         dendros[i]->children.node = i;
-        dendros[i]->label = malloc(snprintf(NULL, 0, "%lu", i) + 1);
-        sprintf(dendros[i]->label, "%lu", i);
+        length = snprintf(NULL, 0, "%lu", i);
+        dendros[i]->label = malloc( length + 1);
+        snprintf(dendros[i]->label, length, "%lu", i);
         dendros[i]->size = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;
     }
@@ -387,6 +407,9 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
         find_min_dist(pairwise_diff, n_nodes_of_p, min_idx, dendros);
 
         dendro = malloc(sizeof(dendrogram_t));
+        if (dendro == NULL) {
+            return -1;
+        }
         dendro->children.dendro[0] = dendros[min_idx[0]];
         dendro->children.dendro[1] = dendros[min_idx[1]];
         dendro->size = dendros[min_idx[0]]->size + dendros[min_idx[1]]->size;
@@ -410,6 +433,9 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
     free(pairwise_diff);
     free(h_part);
     blocks = realloc(blocks, *block_count * sizeof(dendrogram_t*));
+    if (blocks == NULL) {
+        return -1;
+    }
 
     return 0;
 }
@@ -424,6 +450,9 @@ block_formation(in_memory_file_t* db,
     size_t n_nodes = db->node_id_counter;
     size_t num_clusters = get_num_coarse_clusters(db);
     blocks = malloc(num_clusters * sizeof(dendrogram_t**));
+    if (blocks == NULL) {
+        return -1;
+    }
 
     list_ul_t* nodes_per_part[num_clusters];
 
@@ -459,7 +488,10 @@ compare_by_label(const void* a, const void* b, void* array2)
 unsigned long*
 sort_by_label(dendrogram_t** blocks, unsigned long size)
 {
-    unsigned long* order = (unsigned long*)malloc(size * sizeof(unsigned long));
+    unsigned long* order = malloc(size * sizeof(unsigned long));
+    if (order == NULL) {
+        exit(-1);
+    }
 
     for (size_t i = 0; i < size; i++) {
         order[i] = i;
