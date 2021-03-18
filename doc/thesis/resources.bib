@@ -1,7 +1,25 @@
-%% Introduction
+% Introduction
 
-%% Background
-% Diskrete Strukturen
+% Background
+%% DB Arch
+@book{ramakrishnan2000database,
+  title={Database Management Systems},
+  author={Ramakrishnan, Raghu and Gehrke, Johannes},
+  year={2000},
+  publisher={McGraw-Hill}
+}
+  
+@book{silberschatz1997database,
+  title={Database system concepts},
+  author={Silberschatz, Abraham and Korth, Henry F and Sudarshan, Shashank and others},
+  volume={4},
+  year={1997},
+  publisher={Mcgraw-hill New York}
+}
+
+
+%% Graphs
+%%% Diskrete Strukturen
 @book{steger2007diskrete,
   title={Diskrete Strukturen: Band 1: Kombinatorik, Graphentheorie, Algebra},
   author={Steger, Angelika},
@@ -9,7 +27,9 @@
   publisher={Springer-Verlag}
 }
 
-% Data structures & Algos
+
+
+%%% Data structures & Algos
 @article{Eisenstat1982YaleSM,
   title={Yale sparse matrix package I: The symmetric codes},
   author={S. C. Eisenstat and M. C. Gursky and M. Schultz and A. H. Sherman},
@@ -45,16 +65,32 @@
   year={2014}
 }
 
-%%% MKL manual
-@Online {MatrixStorageSchemes-2021-03-05,  title = {Matrix Storage Schemes},  date = {2021-03-05},  file = {:./references/content-www-us-en-develop-documentation-onemkl-developer-reference-c-top-blas-and-sparse-blas-routines-blas-routines-matrix-storage-schemes-for-blas-routines.html.html:html},  url = {https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/blas-and-sparse-blas-routines/blas-routines/matrix-storage-schemes-for-blas-routines.html},  urldate = {2021-03-11}}
 
-%%% Eigen
-@Online {EigenTheMatrixclass-2020-12-05,  title = {Eigen: The Matrix class},  date = {2020-12-05},  file = {:./references/dox-group__TutorialMatrixClass.html.html:html},  url = {https://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html},  urldate = {2021-03-11}}
+%%%% Summary
+@Online {MatrixStorageSchemes-2021-03-05,  
+    title = {Matrix Storage Schemes},  
+    date = {2021-03-05},  
+    file = {:./references/content-www-us-en-develop-documentation-onemkl-developer-reference-c-top-blas-and-sparse-blas-routines-blas-routines-matrix-storage-schemes-for-blas-routines.html.html:html},  
+    url = {https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/blas-and-sparse-blas-routines/blas-routines/matrix-storage-schemes-for-blas-routines.html},  
+    urldate = {2021-03-11}
+}
 
-%% LAPACK/BLAS
-@Online {MatrixStorageSchemes-1999-10-01,  title = {Matrix Storage Schemes},  date = {1999-10-01},  file = {:./references/lapack-lug-node121.html.html:html},  url = {http://www.netlib.org/lapack/lug/node121.html},  urldate = {2021-03-11}}
+@Online {EigenTheMatrixclass-2020-12-05,  
+    title = {Eigen: The Matrix class},  
+    date = {2020-12-05},  
+    file = {:./references/dox-group__TutorialMatrixClass.html.html:html},
+    url = {https://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html},  
+    urldate = {2021-03-11}
+}
 
-%%% Spectral graph
+@Online {MatrixStorageSchemes-1999-10-01,  
+    title = {Matrix Storage Schemes},  
+    date = {1999-10-01},  
+    file = {:./references/lapack-lug-node121.html.html:html},  
+    url = {http://www.netlib.org/lapack/lug/node121.html},  
+    urldate = {2021-03-11}
+}
+
 @book{brouwer2011spectra,
   title={Spectra of graphs},
   author={Brouwer, Andries E and Haemers, Willem H},
@@ -62,7 +98,6 @@
   publisher={Springer Science \& Business Media}
 }
 
-%% Kirchoffs law
 @article{weinberg1958kirchhoff,
   title={Kirchhoff's' third and fourth laws'},
   author={Weinberg, Louis},
@@ -74,7 +109,6 @@
   publisher={IEEE}
 }
 
-%%% Power law
 @article{holme2019rare,
   title={Rare and everywhere: Perspectives on scale-free networks},
   author={Holme, Petter},
@@ -88,75 +122,8 @@
 
 
 
-%%% BFS
-@article{zuse1948allgemeinen,
-  title={{\"U}ber den allgemeinen Plankalk{\"u}l als Mittel zur Formulierung schematisch-kombinativer Aufgaben},
-  author={Zuse, Konrad},
-  journal={Archiv der Mathematik},
-  volume={1},
-  number={6},
-  pages={441--449},
-  year={1948},
-  publisher={Springer}
-}
-
-%%% DFS
-@book{lucas1891recreations,
-  title={R{\'e}cr{\'e}ations math{\'e}matiques: Les traversees. Les ponts. Les labyrinthes. Les reines. Le solitaire. la num{\'e}ration. Le baguenaudier. Le taquin},
-  author={Lucas, {\'E}douard},
-  volume={1},
-  year={1891},
-  publisher={Gauthier-Villars et fils}
-}
-@inproceedings{Knuth2000DancingL,
-  title={Dancing links},
-  author={D. Knuth},
-  year={2000}
-}
-
-
-%%% Dijkstra
-@article{dijkstra1959note,
-  title={A note on two problems in connexion with graphs},
-  author={Dijkstra, Edsger W and others},
-  journal={Numerische mathematik},
-  volume={1},
-  number={1},
-  pages={269--271},
-  year={1959}
-}
-
-%%% A*
-@article{hart1968formal,
-  title={A formal basis for the heuristic determination of minimum cost paths},
-  author={Hart, Peter E and Nilsson, Nils J and Raphael, Bertram},
-  journal={IEEE transactions on Systems Science and Cybernetics},
-  volume={4},
-  number={2},
-  pages={100--107},
-  year={1968},
-  publisher={IEEE}
-}
-
-%%% ALT
-@inproceedings{goldberg2005computing,
-  title={Computing the shortest path: A search meets graph theory.},
-  author={Goldberg, Andrew V and Harrelson, Chris},
-  booktitle={SODA},
-  volume={5},
-  pages={156--165},
-  year={2005},
-  organization={Citeseer}
-}
-
-@inproceedings{Goldberg2005ComputingPS,
-  title={Computing Point-to-Point Shortest Paths from External Memory},
-  author={A. Goldberg and Renato F. Werneck},
-  booktitle={ALENEX/ANALCO},
-  year={2005}
-}
-
-%%% Random Walk
+%%% Algos
+%%%% Random Walk
 @article{pearson1905problem,
   title={The problem of the random walk},
   author={Pearson, Karl},
@@ -216,29 +183,185 @@
   pages={21--86},
   year={1900}
 }
-
-
-
-%%% DB Arch
-@book{ramakrishnan2000database,
-  title={Database management systems},
-  author={Ramakrishnan, Raghu and Gehrke, Johannes},
-  year={2000},
-  publisher={McGraw-Hill}
+%%%% BFS
+@article{zuse1948allgemeinen,
+  title={{\"U}ber den allgemeinen Plankalk{\"u}l als Mittel zur Formulierung schematisch-kombinativer Aufgaben},
+  author={Zuse, Konrad},
+  journal={Archiv der Mathematik},
+  volume={1},
+  number={6},
+  pages={441--449},
+  year={1948},
+  publisher={Springer}
 }
-  
-@book{silberschatz1997database,
-  title={Database system concepts},
-  author={Silberschatz, Abraham and Korth, Henry F and Sudarshan, Shashank and others},
+
+
+%%%% DFS
+@book{lucas1891recreations,
+  title={R{\'e}cr{\'e}ations math{\'e}matiques: Les traversees. Les ponts. Les labyrinthes. Les reines. Le solitaire. la num{\'e}ration. Le baguenaudier. Le taquin},
+  author={Lucas, {\'E}douard},
+  volume={1},
+  year={1891},
+  publisher={Gauthier-Villars et fils}
+}
+@inproceedings{Knuth2000DancingL,
+  title={Dancing links},
+  author={D. Knuth},
+  year={2000}
+}
+
+
+%%%% Dijkstra
+@article{dijkstra1959note,
+  title={A note on two problems in connexion with graphs},
+  author={Dijkstra, Edsger W and others},
+  journal={Numerische mathematik},
+  volume={1},
+  number={1},
+  pages={269--271},
+  year={1959}
+}
+
+
+%%%% A*
+@article{hart1968formal,
+  title={A formal basis for the heuristic determination of minimum cost paths},
+  author={Hart, Peter E and Nilsson, Nils J and Raphael, Bertram},
+  journal={IEEE transactions on Systems Science and Cybernetics},
   volume={4},
-  year={1997},
-  publisher={Mcgraw-hill New York}
+  number={2},
+  pages={100--107},
+  year={1968},
+  publisher={IEEE}
 }
 
+
+%%%% ALT
+@inproceedings{goldberg2005computing,
+  title={Computing the shortest path: A search meets graph theory.},
+  author={Goldberg, Andrew V and Harrelson, Chris},
+  booktitle={SODA},
+  volume={5},
+  pages={156--165},
+  year={2005},
+  organization={Citeseer}
+}
+
+@inproceedings{Goldberg2005ComputingPS,
+  title={Computing Point-to-Point Shortest Paths from External Memory},
+  author={A. Goldberg and Renato F. Werneck},
+  booktitle={ALENEX/ANALCO},
+  year={2005}
 }
 
 
-%%% Locality
+
+%%% Property Graph Model
+@inproceedings{angles2018property,
+    title={The Property Graph Database Model.},
+    author={Angles, Renzo},
+    booktitle={AMW},
+    year={2018}
+}
+
+@incollection{rodriguez2012graph,
+  title={The graph traversal pattern},
+  author={Rodriguez, Marko A and Neubauer, Peter},
+  booktitle={Graph Data Management: Techniques and Applications},
+  pages={29--46},
+  year={2012},
+  publisher={IGI Global}
+}
+
+@inproceedings{Holsch2016Algeb,
+  title={An Algebra and Equivalences to Transform Graph Patterns in Neo4j},
+  url={http://ceur-ws.org/Vol-1558/paper24.pdf},
+  year={2016},
+  number={1558},
+  issn={1613-0073},
+  series={CEUR Workshop Proceedings},
+  booktitle={Proceedings of the Workshops of the EDBT/ICDT 2016 Joint Conference (EDBT/ICDT 2016)},
+  editor={Palpanas, Themis and Stefanidis, Kostas},
+  author={Hölsch, Jürgen and Grossniklaus, Michael}
+}
+
+@Online {property-graph-img,  
+    title = {What is a Graph Database? - Developer Guides},  
+    date = {2021-03-17},  
+    file = {:./references/developer-graph-database-.html:html},  
+    url = {https://neo4j.com/developer/graph-database/},  
+    urldate = {2021-03-18}
+}
+
+% Index free Adjacency
+@article{Rodriguez2010ConstructionsFD,
+  title={Constructions from Dots and Lines},
+  author={Michael A. Rodriguez and P. Neubauer},
+  journal={ArXiv},
+  year={2010},
+  volume={abs/1006.2361}
+}
+
+
+%%% Neo4J
+@book{robinson2015graph,
+  title={Graph databases: new opportunities for connected data},
+  author={Robinson, Ian and Webber, Jim and Eifrem, Emil},
+  year={2015},
+  publisher={"O'Reilly Media, Inc."}
+}
+
+@Online {GitHubneo4j,  
+    title = {GitHub - neo4j/neo4j: Graphs for Everyone}, 
+    date = {2020-12-09},  
+    file = {:./references/neo4j-neo4j.html:html},  
+    url = {https://github.com/neo4j/neo4j},  
+    urldate = {2020-12-09}
+}
+
+@Online {neo4jidgenerator,  
+    title = {Package id-generator · Neo4J · GitHub},  
+    date = {2021-03-18},  
+    file = {:./references/neo4j-neo4j-tree-4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed-community-id-generator.html:html},  
+    url = {https://github.com/neo4j/neo4j/tree/4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed/community/id-generator},  
+    urldate = {2021-03-18}
+}
+
+@Online {neo4jio,  
+    title = {Package io · Neo4J · GitHub},  
+    date = {2021-03-18},  
+    file = {:./references/neo4j-neo4j-tree-4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed-community-io.html:html},  
+    url = {https://github.com/neo4j/neo4j/tree/4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed/community/io},  
+    urldate = {2021-03-18}
+}
+
+@Online {neo4jrecordstorage,  
+    title = {Package record-storage-engine · Neo4J · GitHub},  
+    date = {2021-03-18},  
+    file = {:./references/neo4j-neo4j-tree-4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed-community-record-storage-engine.html:html},  
+    url = {https://github.com/neo4j/neo4j/tree/4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed/community/record-storage-engine},  
+    urldate = {2021-03-18}
+}
+
+@Online {neo4jindex,  
+    title = {Package index · Neo4J · GitHub},  
+    date = {2021-03-18},  
+    file = {:./references/neo4j-neo4j-tree-4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed-community-index.html:html},  
+    url = {https://github.com/neo4j/neo4j/tree/4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed/community/index},  
+    urldate = {2021-03-18}
+}
+
+@Online {neo4jNodeRecordFormat,  
+    title = {File NodeRecordFormat.java · Neo4J · GitHub}, 
+    date = {2021-03-18}, 
+    file = {:./references/neo4j-neo4j-blob-4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed-community-record-storage-engine-src-main-java-org-neo4j-kernel-impl-store-format-standard-NodeRecordFormat.java.html:html},  
+    url = {https://github.com/neo4j/neo4j/blob/4cd5556a5356c8d0d9efe9c8fb6a8b87865c48ed/community/record-storage-engine/src/main/java/org/neo4j/kernel/impl/store/format/standard/NodeRecordFormat.java},  
+    urldate = {2021-03-18}
+}
+
+
+% Problem Definition
+%% Locality
 @incollection{denning2006locality,
   title={The locality principle},
   author={Denning, Peter J},
@@ -267,107 +390,8 @@
 }
 
 
-%%% Neo4J
-@book{robinson2015graph,
-  title={Graph databases: new opportunities for connected data},
-  author={Robinson, Ian and Webber, Jim and Eifrem, Emil},
-  year={2015},
-  publisher={"O'Reilly Media, Inc."}
-}
-
-@Online {TheNeo4jOperationsManualv42OperationsManual-2020-12-04, 
-    title = {The Neo4j Operations Manual v4.2 - Operations Manual},  
-    date = {2020-12-04},  
-    file = {:./references/docs-operations-manual-current-.html:html},  
-    url = {https://neo4j.com/docs/operations-manual/current/},  
-    urldate = {2020-12-09}
-}
-
-@Online {GitHubneo4jneo4jGraphsforEveryone-2020-12-09,  
-    title = {GitHub - neo4j/neo4j: Graphs for Everyone}, 
-    date = {2020-12-09},  
-    file = {:./references/neo4j-neo4j.html:html},  
-    url = {https://github.com/neo4j/neo4j},  
-    urldate = {2020-12-09}
-}
-
-@Online {AnoverviewofNeo4jInternals-2020-12-09,  
-    title = {An overview of Neo4j Internals},  
-    date = {2020-12-09},  
-    file = {:./references/thobe-an-overview-of-neo4j-internals.html:html},  
-    url = {https://www.slideshare.net/thobe/an-overview-of-neo4j-internals}, 
-    urldate = {2020-12-09}
-}
-
-@Online {Neo4jarchitectureKeyvalueStories-2020-02-29,  
-    title = {Neo4j architecture | Key-value Stories},  
-    date = {2020-02-29},  
-    file = {:./references/2015-02-neo4j-architecture.html.html:html},  
-    url = {http://key-value-stories.blogspot.com/2015/02/neo4j-architecture.html},  
-    urldate = {2020-12-09}
-}
-
-% Property Graph Model
-@inproceedings{angles2018property,
-    title={The Property Graph Database Model.},
-    author={Angles, Renzo},
-    booktitle={AMW},
-    year={2018}
-}
-
-@article{Rodriguez2010ConstructionsFD,
-  title={Constructions from Dots and Lines},
-  author={Michael A. Rodriguez and P. Neubauer},
-  journal={ArXiv},
-  year={2010},
-  volume={abs/1006.2361}
-}
-
-% Index free Adjacency
-@incollection{rodriguez2012graph,
-  title={The graph traversal pattern},
-  author={Rodriguez, Marko A and Neubauer, Peter},
-  booktitle={Graph Data Management: Techniques and Applications},
-  pages={29--46},
-  year={2012},
-  publisher={IGI Global}
-}
-
-@inproceedings{holsch2016algebra,
-  title={An algebra and equivalences to transform graph patterns in neo4j},
-  author={H{\"o}lsch, J{\"u}rgen and Grossniklaus, Michael},
-  booktitle={EDBT/ICDT 2016 Workshops: EDBT Workshop on Querying Graph Structured Data (GraphQ)},
-  year={2016}
-}
-
-
-%%% RailwayDB
-@article{soule2016railwaydb,
-  title={RailwayDB: adaptive storage of interaction graphs},
-  author={Soul{\'e}, Robert and Gedik, Bu{\u{g}}ra},
-  journal={The VLDB Journal},
-  volume={25},
-  number={2},
-  pages={151--169},
-  year={2016},
-  publisher={Springer}
-}
-
-@article{gedik2014disk,
-  title={Disk-based management of interaction graphs},
-  author={Gedik, Bu{\u{g}}ra and Bordawekar, Rajesh},
-  journal={IEEE Transactions on Knowledge and Data Engineering},
-  volume={26},
-  number={11},
-  pages={2689--2702},
-  year={2014},
-  publisher={IEEE}
-}
-
-
-
-%% Methods
-%%% G-Store
+% Related Work
+%% G-Store
 @phdthesis{steinhaus2010g,
   title={G-Store: a storage manager for graph data},
   author={Steinhaus, Robin and Olteanu, Dan and Furche, Tim},
@@ -375,7 +399,7 @@
   school={University of Oxford}
 }
 
-%%% ICBL
+%% ICBL
 @article{yacsar2017distributed,
   title={Distributed block formation and layout for disk-based management of large-scale graphs},
   author={Ya{\c{s}}ar, Abdurrahman and Gedik, Bu{\u{g}}ra and Ferhatosmano{\u{g}}lu, Hakan},
@@ -394,7 +418,7 @@
   school={Bilkent University}
 }
 
-%Jaccard distance
+%%% Jaccard distance
 @article{DBLP:journals/corr/Kosub16,
   author    = {Sven Kosub},
   title     = {A note on the triangle inequality for the Jaccard distance},
@@ -409,7 +433,8 @@
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-%%% Louvain
+% Method
+%% Louvain
 @article{blondel2008fast,
   title={Fast unfolding of communities in large networks},
   author={Blondel, Vincent D and Guillaume, Jean-Loup and Lambiotte, Renaud and Lefebvre, Etienne},
@@ -431,6 +456,13 @@
 }
 
 
+
+
+
+% Evaluation
+
+% Conclusion
+%% Future Work
 %%% Leiden
 @article{traag2019louvain,
   title={From Louvain to Leiden: guaranteeing well-connected communities},
@@ -442,8 +474,3 @@
   year={2019},
   publisher={Nature Publishing Group}
 }
-
-
-%% Evaluation
-
-%% Conclusion
