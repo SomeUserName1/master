@@ -16,6 +16,10 @@ create_in_memory_file()
 {
     in_memory_file_t* file = (in_memory_file_t*)malloc(sizeof(*file));
 
+    if (file == NULL) {
+        exit(-1);
+    }
+
     file->cache_nodes = create_dict_ul_node();
     file->cache_rels = create_dict_ul_rel();
     file->node_id_counter = 0;

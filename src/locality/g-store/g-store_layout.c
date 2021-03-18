@@ -14,6 +14,10 @@ insert_match(size_t* matches,
              relationship_t* rel,
              size_t num_v_matches)
 {
+    if (!matches || !match_weights || !rel) {
+        exit(-1);
+    }
+
     bool placed = false;
     double temp_w;
     double temp1_w;
@@ -42,6 +46,9 @@ unsigned long
 compute_abs_tension(multi_level_graph_t* graph,
                     const unsigned int* partition_p_node)
 {
+    if (!graph || !partition_p_node) {
+        exit(-1);
+    }
 
     unsigned long tension = 0UL;
     long diff;
@@ -67,6 +74,9 @@ unsigned long
 compute_total_e_w_btw_blocks(multi_level_graph_t* graph,
                              const unsigned int* partition)
 {
+    if (!graph || !partition) {
+        exit(-1);
+    }
 
     list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t* rel;
@@ -75,7 +85,7 @@ compute_total_e_w_btw_blocks(multi_level_graph_t* graph,
     for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
         if (partition[rel->source_node] != partition[rel->target_node]) {
-            total_e_w += graph->edge_aggregation_weight[i];
+            total_e_w += (long) graph->edge_aggregation_weight[i];
         }
     }
 
@@ -88,6 +98,9 @@ long
 compute_num_e_btw_blocks(multi_level_graph_t* graph,
                          const unsigned int* partition)
 {
+    if (!graph || !partition) {
+        exit(-1);
+    }
 
     list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t* rel;
@@ -110,8 +123,17 @@ compute_tension(multi_level_graph_t* graph,
                 list_ul_t* nodes_in_p,
                 bool modified_t)
 {
+    if (graph == NULL || nodes_in_p == NULL) {
+        exit(-1);
+    }
+
     size_t num_nodes_p = list_ul_size(nodes_in_p);
     long* tensions = calloc(num_nodes_p, sizeof(long));
+
+    if (!tensions) {
+        exit(-1);
+    }
+
     unsigned long node_id;
     unsigned long other_node_id;
     long p1;
@@ -149,6 +171,10 @@ compute_tension(multi_level_graph_t* graph,
 int
 compare_by_tension(const void* a, const void* b, void* array2)
 {
+    if (!a || !b | !array2) {
+        exit(-1);
+    }
+
     long diff =
           ((long*)array2)[*(unsigned long*)a] > ((long*)array2)[*(unsigned*)b];
 
@@ -158,8 +184,16 @@ compare_by_tension(const void* a, const void* b, void* array2)
 unsigned long*
 sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
 {
+    if (!nodes || !tensions) {
+        exit(-1);
+    }
+
     unsigned long i;
     unsigned long* s_nodes = malloc(size * sizeof(unsigned long));
+
+    if (s_nodes == NULL) {
+        exit(-1);
+    }
 
     for (i = 0; i < size; i++) {
         s_nodes[i] = list_ul_get(nodes, i);
@@ -173,8 +207,16 @@ sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
 unsigned int*
 swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 {
+    if(!graph) {
+        exit(-1);
+    }
+
     unsigned int* new_partition =
           malloc(graph->records->node_id_counter * sizeof(unsigned int));
+
+    if (new_partition == NULL) {
+        exit(-1);
+    }
 
     for (size_t i = 0; i < graph->records->node_id_counter; ++i) {
         if (graph->partition[i] == idx1) {
@@ -185,6 +227,7 @@ swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
             new_partition[i] = graph->partition[i];
         }
     }
+
     return new_partition;
 }
 
@@ -195,6 +238,9 @@ coarsen(multi_level_graph_t* graph,
         size_t* max_partition_size,
         float* c_ratio_avg)
 {
+    if (!graph || !num_v_matches || !max_partition_size || !c_ratio_avg) {
+        exit(-1);
+    }
 
     float c_ratio = 1.0F;
     size_t num_nodes = graph->records->node_id_counter;
@@ -212,6 +258,11 @@ coarsen(multi_level_graph_t* graph,
     size_t num_matched = 0;
 
     multi_level_graph_t* coarser = malloc(sizeof(*coarser));
+
+    if (!coarser || !node_matched || !matches || !matches_weights) {
+        exit(-1);
+    }
+
     coarser->c_level = graph->c_level + 1;
 
     coarser->node_aggregation_weight =
@@ -221,6 +272,12 @@ coarsen(multi_level_graph_t* graph,
           calloc(graph->records->rel_id_counter, sizeof(unsigned long));
 
     coarser->map_to_coarser = calloc(num_nodes, sizeof(unsigned long));
+
+    if (!coarser->node_aggregation_weight || !coarser->edge_aggregation_weight
+            || !coarser->map_to_coarser) {
+        exit(-1);
+    }
+
     coarser->coarser = NULL;
     coarser->finer = graph;
     graph->coarser = coarser;
@@ -340,6 +397,10 @@ coarsen(multi_level_graph_t* graph,
           realloc(coarser->node_aggregation_weight,
                   coarser->records->rel_id_counter * sizeof(unsigned long));
 
+    if (coarser->node_aggregation_weight == NULL
+            || coarser->edge_aggregation_weight == NULL) {
+        exit(-1);
+    }
     free(node_matched);
     free(matches);
     free(matches_weights);
@@ -350,10 +411,18 @@ coarsen(multi_level_graph_t* graph,
 void
 turn_around(multi_level_graph_t* graph, size_t block_size)
 {
+    if (!graph || !graph->records) {
+        exit(-1);
+    }
+
     size_t num_nodes = graph->records->node_id_counter;
     graph->num_partitions = 0;
     graph->partition = calloc(num_nodes, sizeof(unsigned int));
     graph->partition_aggregation_weight = calloc(num_nodes, sizeof(size_t));
+
+    if (!graph->partition || !graph->partition_aggregation_weight) {
+        exit(-1);
+    }
 
     for (size_t i = 0; i < num_nodes; ++i) {
         // If partition contains at least one other node
@@ -376,6 +445,10 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
     graph->partition_aggregation_weight =
           realloc(graph->partition_aggregation_weight,
                   graph->num_partitions * sizeof(size_t));
+
+    if (graph->partition_aggregation_weight == NULL) {
+        exit(-1);
+    }
 }
 
 void
@@ -386,11 +459,19 @@ project(multi_level_graph_t* graph,
         list_ul_t** nodes_per_part)
 {
 
+    if (!graph || !graph->finer || !part_type || !nodes_per_part) {
+        exit(-1);
+    }
+
     multi_level_graph_t* finer = graph->finer;
     size_t num_nodes_f = finer->records->node_id_counter;
     finer->num_partitions = 0;
     finer->partition = calloc(num_nodes_f, sizeof(unsigned int));
     finer->partition_aggregation_weight = calloc(num_nodes_f, sizeof(size_t));
+
+    if (!finer->partition || !finer->partition_aggregation_weight) {
+        exit(-1);
+    }
 
     size_t finer_partition = 0;
     list_ul_t* nodes_coarser_p;
@@ -407,7 +488,7 @@ project(multi_level_graph_t* graph,
 
         if (list_ul_size(nodes_coarser_p) == 1 ||
             graph->partition_aggregation_weight[coarser_part] <
-                  weight_threshold) {
+                  (unsigned long) weight_threshold) {
 
             for (size_t j = 0; j < num_nodes_p; ++j) {
                 finer->partition[list_ul_get(nodes_coarser_p, j)] =
@@ -456,13 +537,26 @@ project(multi_level_graph_t* graph,
           realloc(finer->partition_aggregation_weight,
                   finer->num_partitions * sizeof(size_t));
     part_type = realloc(part_type, finer->num_partitions * sizeof(bool));
+    if (finer->partition_aggregation_weight == NULL
+            || part_type == NULL) {
+       exit(-1);
+    }
 }
 
 void
 reorder(multi_level_graph_t* graph, const bool* part_type)
 {
+    if (!graph || !part_type || !graph->finer) {
+        exit(-1);
+    }
+
     multi_level_graph_t* finer = graph->finer;
     list_ul_t** groups = calloc(finer->num_partitions, sizeof(list_ul_t*));
+
+    if (!groups) {
+        exit(-1);
+    }
+
     size_t num_groups = 0;
     size_t num_parts;
     bool swapped = false;
@@ -486,12 +580,19 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     }
     groups = realloc(groups, num_groups * sizeof(list_ul_t*));
 
+    if (groups == NULL) {
+        exit(-1);
+    }
+
     for (size_t i = 0; i < num_groups; ++i) {
         num_parts = list_ul_size(groups[i]);
         if (num_parts == 1) {
             continue;
         }
         gains = malloc(num_parts * num_parts * sizeof(long));
+        if (gains == NULL) {
+            exit(-1);
+        }
         do {
             swapped = false;
             max_gain = LONG_MIN;
@@ -540,6 +641,10 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
 void
 refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 {
+    if (!graph || !graph->finer || !graph->finer->records) {
+        exit(-1);
+    }
+
     multi_level_graph_t* finer = graph->finer;
     size_t num_nodes = finer->records->node_id_counter;
     float* score = calloc(num_nodes * finer->num_partitions, sizeof(float));
@@ -548,6 +653,11 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
           block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
 
     unsigned int* temp_p = calloc(num_nodes, sizeof(unsigned int));
+
+    if (!score || !temp_p) {
+        exit(-1);
+    }
+
     float occupancy_factor = 0;
     float max_score;
     size_t node_id;
@@ -598,6 +708,11 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
     bool* part_type =
           calloc(graph->finer->records->node_id_counter, sizeof(bool));
+
+    if (!part_type) {
+        exit(-1);
+    }
+
     list_ul_t* nodes_per_part[graph->num_partitions];
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         nodes_per_part[i] = create_list_ul();
@@ -626,6 +741,9 @@ void
 g_store_layout(in_memory_file_t* db, size_t block_size)
 {
     multi_level_graph_t* graph = malloc(sizeof(*graph));
+    if (graph == NULL) {
+        exit(-1);
+    }
     graph->c_level = 0;
     graph->records = db;
     graph->node_aggregation_weight =
@@ -637,6 +755,10 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
     }
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
     graph->finer = NULL;
+
+    if (!graph->node_aggregation_weight || !graph->edge_aggregation_weight) {
+        exit(-1);
+    }
 
     size_t num_v_matches = 2;
     size_t max_partition_size = block_size / sizeof(node_t);
