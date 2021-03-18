@@ -635,7 +635,6 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
                       finer->partition_aggregation_weight[max_gain_idx2];
                 finer->partition_aggregation_weight[max_gain_idx2] = temp;
                 swapped = true;
-                free(swap_p);
             }
         } while (swapped);
         free(gains);
@@ -703,6 +702,9 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
         }
         finer->partition[node_id] = partition_id;
     }
+    free(score);
+    free(temp_p);
+
 }
 
 int
