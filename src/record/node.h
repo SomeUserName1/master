@@ -4,13 +4,13 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
  * but a byte is used to align the struct to be a aligned.
  *
  */
-typedef struct NodeRecord {
+typedef struct NodeRecord
+{
     unsigned long int id;
     unsigned char flags;
     unsigned long int first_relationship;
@@ -23,7 +23,8 @@ typedef struct NodeRecord {
  *
  *  @return: An empty record struct.
  */
-node_t* new_node(void);
+node_t*
+new_node(void);
 
 /*
  *  Reads the record from disk beginning at the given address/id into a
@@ -33,7 +34,8 @@ node_t* new_node(void);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int node_read(node_t* record, const unsigned char* bytes);
+int
+node_read(node_t* record, const unsigned char* bytes);
 
 /**
  *  Writes the contents of the given record struct to the given address/id.
@@ -42,7 +44,8 @@ int node_read(node_t* record, const unsigned char* bytes);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int node_write(const node_t* record);
+int
+node_write(const node_t* record);
 
 /**
  * Clears the current record struct.
@@ -51,7 +54,8 @@ int node_write(const node_t* record);
  *
  *  @return: 0 on success, negative value otherwise.
  */
-void node_clear(node_t* record);
+void
+node_clear(node_t* record);
 
 /**
  * Copies the contents of the record.
@@ -61,7 +65,8 @@ void node_clear(node_t* record);
  *
  * @return: 0 on success, negative value otherwise.
  */
-node_t* node_copy(const node_t* original);
+node_t*
+node_copy(const node_t* original);
 
 /**
  * Checks if two record structs have the same contents.
@@ -69,7 +74,8 @@ node_t* node_copy(const node_t* original);
  *  @param first: First node to compare against second.
  *  @param second: Other node to compare against first.
  */
-bool node_equals(const node_t* first, const node_t* second);
+bool
+node_equals(const node_t* first, const node_t* second);
 
 /**
  *  Writes a string representation of the node record to a char buffer.
@@ -79,8 +85,10 @@ bool node_equals(const node_t* first, const node_t* second);
  *
  *  @return: 0 on success, negative value on error.
  */
-int node_to_string(const node_t* record, char* buffer, size_t buffer_size);
+int
+node_to_string(const node_t* record, char* buffer, size_t buffer_size);
 
-void node_pretty_print(const node_t* record);
+void
+node_pretty_print(const node_t* record);
 
 #endif

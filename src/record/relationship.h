@@ -10,7 +10,8 @@
  * [      x ] First in chain of source node
  * [     x  ] First in chain of target node
  */
-typedef struct RelationshipRecord {
+typedef struct RelationshipRecord
+{
     unsigned long id;
     unsigned char flags;
     unsigned long source_node;
@@ -29,26 +30,30 @@ typedef struct RelationshipRecord {
  *
  *  @return: An empty relationship struct.
  */
-relationship_t* new_relationship(void);
+relationship_t*
+new_relationship(void);
 
 /*
- *  Reads the relationship relationship from disk beginning at the given address/id
- *  into a struct.
+ *  Reads the relationship relationship from disk beginning at the given
+ * address/id into a struct.
  *
  *  @param relationship: The struct to read the relationship into.
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int relationship_read(relationship_t* record, const unsigned char* bytes);
+int
+relationship_read(relationship_t* record, const unsigned char* bytes);
 
 /**
- *  Writes the contents of the given relationship struct to the given address/id.
+ *  Writes the contents of the given relationship struct to the given
+ * address/id.
  *
  *  @param relationship: The struct to read the relationship into.
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int relationship_write(const relationship_t* record);
+int
+relationship_write(const relationship_t* record);
 
 /**
  * Clears the current relationship struct.
@@ -57,7 +62,8 @@ int relationship_write(const relationship_t* record);
  *
  *  @return: 0 on success, negative value otherwise.
  */
-void relationship_clear(relationship_t* record);
+void
+relationship_clear(relationship_t* record);
 
 /**
  * Copies the contents of the relationship.
@@ -67,7 +73,8 @@ void relationship_clear(relationship_t* record);
  *
  * @return: 0 on success, negative value otherwise.
  */
-relationship_t* relationship_copy(const relationship_t* original);
+relationship_t*
+relationship_copy(const relationship_t* original);
 
 /**
  * Checks if two relationship structs have the same contents.
@@ -75,7 +82,8 @@ relationship_t* relationship_copy(const relationship_t* original);
  *  @param first: First node to compare against second.
  *  @param second: Other node to compare against first.
  */
-bool relationship_equals(const relationship_t* first, const relationship_t* second);
+bool
+relationship_equals(const relationship_t* first, const relationship_t* second);
 
 /**
  *  Writes a string representation of the node relationship to a char buffer.
@@ -85,12 +93,18 @@ bool relationship_equals(const relationship_t* first, const relationship_t* seco
  *
  *  @return: 0 on success, negative value on error.
  */
-int relationship_to_string(const relationship_t* record, char* buffer, size_t buffer_size);
+int
+relationship_to_string(const relationship_t* record,
+                       char* buffer,
+                       size_t buffer_size);
 
-void relationship_pretty_print(const relationship_t* record);
+void
+relationship_pretty_print(const relationship_t* record);
 
-void relationship_set_first_source(relationship_t* rel);
+void
+relationship_set_first_source(relationship_t* rel);
 
-void relationship_set_first_target(relationship_t* rel);
+void
+relationship_set_first_target(relationship_t* rel);
 
 #endif

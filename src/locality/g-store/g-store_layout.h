@@ -15,7 +15,8 @@
 #include "../../access/in_memory_file.h"
 #include "../../data-struct/list_ul.h"
 
-typedef struct multi_level_graph {
+typedef struct multi_level_graph
+{
     unsigned int c_level;
     in_memory_file_t* records;
     unsigned long* node_aggregation_weight;
@@ -28,13 +29,29 @@ typedef struct multi_level_graph {
     struct multi_level_graph* coarser;
 } multi_level_graph_t;
 
-int coarsen(multi_level_graph_t* graph, size_t block_size, size_t* num_v_matches, size_t* max_partition_size, float* c_ratio_avg);
-void turn_around(multi_level_graph_t* graph, size_t block_size);
-void project(multi_level_graph_t* graph, bool* part_type, size_t block_size, float c_ratio_avg, list_ul_t** nodes_per_part);
-void reorder(multi_level_graph_t* graph, const bool* part_type);
-void refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
-int uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
-void finalize(multi_level_graph_t* db);
-void g_store_layout(in_memory_file_t* db, size_t block_size);
+int
+coarsen(multi_level_graph_t* graph,
+        size_t block_size,
+        size_t* num_v_matches,
+        size_t* max_partition_size,
+        float* c_ratio_avg);
+void
+turn_around(multi_level_graph_t* graph, size_t block_size);
+void
+project(multi_level_graph_t* graph,
+        bool* part_type,
+        size_t block_size,
+        float c_ratio_avg,
+        list_ul_t** nodes_per_part);
+void
+reorder(multi_level_graph_t* graph, const bool* part_type);
+void
+refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
+int
+uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
+void
+finalize(multi_level_graph_t* db);
+void
+g_store_layout(in_memory_file_t* db, size_t block_size);
 
 #endif

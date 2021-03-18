@@ -10,6 +10,11 @@ node_t*
 new_node()
 {
     node_t* node = malloc(sizeof(*node));
+
+    if (!node) {
+        exit(-1);
+    }
+
     node_clear(node);
     return node;
 }
@@ -17,6 +22,10 @@ new_node()
 int
 node_read(node_t* record, const unsigned char* bytes)
 {
+    if (!record || !bytes) {
+        exit(-1);
+    }
+
     printf("%lu, %c", record->id, *bytes);
     return 0;
 }
@@ -24,6 +33,10 @@ node_read(node_t* record, const unsigned char* bytes)
 int
 node_write(const node_t* record)
 {
+    if (!record) {
+        exit(-1);
+    }
+
     printf("%lu", record->id);
     return 0;
 }
@@ -31,6 +44,10 @@ node_write(const node_t* record)
 void
 node_clear(node_t* record)
 {
+    if (!record) {
+        exit(-1);
+    }
+
     record->id = UNINITIALIZED_LONG;
     record->flags = UNINITIALIZED_BYTE;
     record->first_relationship = UNINITIALIZED_LONG;
@@ -41,7 +58,16 @@ node_clear(node_t* record)
 node_t*
 node_copy(const node_t* original)
 {
+    if (!original) {
+        exit(-1);
+    }
+
     node_t* copy = malloc(sizeof(*copy));
+
+    if (!copy) {
+        exit(-1);
+    }
+
     copy->id = original->id;
     copy->flags = original->flags;
     copy->first_relationship = original->first_relationship;
@@ -54,6 +80,10 @@ node_copy(const node_t* original)
 bool
 node_equals(const node_t* first, const node_t* second)
 {
+    if (!first || !second) {
+        return false;
+    }
+
     return ((first->id == second->id) && (first->flags == second->flags) &&
             (first->first_relationship == second->first_relationship) &&
             (first->first_property == second->first_property) &&
@@ -63,23 +93,38 @@ node_equals(const node_t* first, const node_t* second)
 int
 node_to_string(const node_t* record, char* buffer, size_t buffer_size)
 {
-    int result = sprintf(buffer,
-                         "Node ID: %#lX\n"
-                         "In-Use: %#hhX\n"
-                         "First Relationship: %#lX\n"
-                         "First Property: %#lX\n"
-                         "Node Type: %#lX\n",
-                         record->id,
-                         record->flags,
-                         record->first_relationship,
-                         record->first_property,
-                         record->node_type);
+    int length = snprintf(NULL,
+                          0,
+                          "Node ID: %#lX\n"
+                          "In-Use: %#hhX\n"
+                          "First Relationship: %#lX\n"
+                          "First Property: %#lX\n"
+                          "Node Type: %#lX\n",
+                          record->id,
+                          record->flags,
+                          record->first_relationship,
+                          record->first_property,
+                          record->node_type);
 
-    if (result < 0 || (size_t)result > buffer_size) {
+    if (length > buffer_size) {
         printf("Wrote node string representation to a buffer that was too "
                "small!");
         return EOVERFLOW;
     }
+
+    int result = snprintf(buffer,
+                          length,
+                          "Node ID: %#lX\n"
+                          "In-Use: %#hhX\n"
+                          "First Relationship: %#lX\n"
+                          "First Property: %#lX\n"
+                          "Node Type: %#lX\n",
+                          record->id,
+                          record->flags,
+                          record->first_relationship,
+                          record->first_property,
+                          record->node_type);
+
     return 0;
 }
 

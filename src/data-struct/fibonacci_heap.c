@@ -2,7 +2,9 @@
 
 #include <stdlib.h>
 
-fib_node* create_fib_node(unsigned long key, void* value) {
+fib_node*
+create_fib_node(unsigned long key, void* value)
+{
     fib_node* node = malloc(sizeof(*node));
     node->key = key;
     node->value = value;
@@ -16,7 +18,9 @@ fib_node* create_fib_node(unsigned long key, void* value) {
     return node;
 }
 
-fib_heap_t* create_fib_heap() {
+fib_heap_t*
+create_fib_heap()
+{
     fib_heap_t* heap = malloc(sizeof(*heap));
     heap->min = NULL;
     heap->num_nodes = 0;
@@ -24,7 +28,9 @@ fib_heap_t* create_fib_heap() {
     return heap;
 }
 
-void destroy_fib_heap(fib_heap_t* fh) {
+void
+destroy_fib_heap(fib_heap_t* fh)
+{
     fib_node* node = fh->min->right;
     fib_node* next;
 
@@ -36,8 +42,7 @@ void destroy_fib_heap(fib_heap_t* fh) {
         }
         if (node->right != node) {
             next = node->right;
-        }
-        else {
+        } else {
             next = node->parent;
         }
         free(node);
@@ -45,6 +50,6 @@ void destroy_fib_heap(fib_heap_t* fh) {
     }
 }
 
-int fib_heap_insert(fib_heap_t* fh) {
-
-}
+int
+fib_heap_insert(fib_heap_t* fh)
+{}

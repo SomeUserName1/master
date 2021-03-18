@@ -10,9 +10,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-    search_result_t*
-bfs(in_memory_file_t* db, unsigned long source_node_id, direction_t direction, const char* log_path)
+search_result_t*
+bfs(in_memory_file_t* db,
+    unsigned long source_node_id,
+    direction_t direction,
+    const char* log_path)
 {
     dict_ul_ul_t* parents = create_dict_ul_ul();
     dict_ul_int_t* bfs = create_dict_ul_int();
@@ -41,14 +43,15 @@ bfs(in_memory_file_t* db, unsigned long source_node_id, direction_t direction, c
 
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
-            fprintf(log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
+            fprintf(
+                  log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
             temp = *node_id == current_rel->source_node
-                ? current_rel->target_node
-                : current_rel->source_node;
+                         ? current_rel->target_node
+                         : current_rel->source_node;
 
             if (!dict_ul_int_contains(bfs, temp)) {
                 dict_ul_int_insert(
-                        bfs, temp, dict_ul_int_get_direct(bfs, *node_id) + 1);
+                      bfs, temp, dict_ul_int_get_direct(bfs, *node_id) + 1);
                 dict_ul_ul_insert(parents, temp, current_rel->id);
                 queue_ul_add(nodes_queue, temp);
             }

@@ -1,13 +1,17 @@
 #include "dfs.h"
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 
-#include "result_types.h"
 #include "../data-struct/list_ul.h"
+#include "result_types.h"
 
 search_result_t*
-dfs(in_memory_file_t* db, unsigned long source_node_id, direction_t direction, const char* log_path) {
+dfs(in_memory_file_t* db,
+    unsigned long source_node_id,
+    direction_t direction,
+    const char* log_path)
+{
     dict_ul_ul_t* parents = create_dict_ul_ul();
     dict_ul_int_t* dfs = create_dict_ul_int();
     list_ul_t* node_stack = create_list_ul();
@@ -37,14 +41,15 @@ dfs(in_memory_file_t* db, unsigned long source_node_id, direction_t direction, c
 
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
-            fprintf(log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
+            fprintf(
+                  log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
             temp = node_id == current_rel->source_node
-                ? current_rel->target_node
-                : current_rel->source_node;
+                         ? current_rel->target_node
+                         : current_rel->source_node;
 
             if (!dict_ul_int_contains(dfs, temp)) {
                 dict_ul_int_insert(
-                        dfs, temp, dict_ul_int_get_direct(dfs, node_id) + 1);
+                      dfs, temp, dict_ul_int_get_direct(dfs, node_id) + 1);
                 dict_ul_ul_insert(parents, temp, current_rel->id);
                 list_ul_append(node_stack, temp);
             }

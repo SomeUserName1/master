@@ -46,8 +46,8 @@ unsigned long
 compute_abs_tension(multi_level_graph_t* graph,
                     const unsigned int* partition_p_node)
 {
-    if (!graph || !partition_p_node || !graph->finer
-            || !graph->finer->edge_aggregation_weight) {
+    if (!graph || !partition_p_node || !graph->finer ||
+        !graph->finer->edge_aggregation_weight) {
         exit(-1);
     }
 
@@ -86,7 +86,7 @@ compute_total_e_w_btw_blocks(multi_level_graph_t* graph,
     for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
         if (partition[rel->source_node] != partition[rel->target_node]) {
-            total_e_w += (long) graph->edge_aggregation_weight[i];
+            total_e_w += (long)graph->edge_aggregation_weight[i];
         }
     }
 
@@ -143,8 +143,8 @@ compute_tension(multi_level_graph_t* graph,
     list_relationship_t* rels;
     relationship_t* rel;
 
-    if (!finer->partition || !finer->map_to_coarser || !finer->records
-            || finer->edge_aggregation_weight) {
+    if (!finer->partition || !finer->map_to_coarser || !finer->records ||
+        finer->edge_aggregation_weight) {
         exit(-1);
     }
 
@@ -213,7 +213,7 @@ sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
 unsigned int*
 swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 {
-    if(!graph) {
+    if (!graph) {
         exit(-1);
     }
 
@@ -279,8 +279,8 @@ coarsen(multi_level_graph_t* graph,
 
     coarser->map_to_coarser = calloc(num_nodes, sizeof(unsigned long));
 
-    if (!coarser->node_aggregation_weight || !coarser->edge_aggregation_weight
-            || !coarser->map_to_coarser) {
+    if (!coarser->node_aggregation_weight ||
+        !coarser->edge_aggregation_weight || !coarser->map_to_coarser) {
         exit(-1);
     }
 
@@ -403,8 +403,8 @@ coarsen(multi_level_graph_t* graph,
           realloc(coarser->node_aggregation_weight,
                   coarser->records->rel_id_counter * sizeof(unsigned long));
 
-    if (!coarser->node_aggregation_weight
-            || !coarser->edge_aggregation_weight) {
+    if (!coarser->node_aggregation_weight ||
+        !coarser->edge_aggregation_weight) {
         exit(-1);
     }
     free(node_matched);
@@ -494,7 +494,7 @@ project(multi_level_graph_t* graph,
 
         if (list_ul_size(nodes_coarser_p) == 1 ||
             graph->partition_aggregation_weight[coarser_part] <
-                  (unsigned long) weight_threshold) {
+                  (unsigned long)weight_threshold) {
 
             for (size_t j = 0; j < num_nodes_p; ++j) {
                 finer->partition[list_ul_get(nodes_coarser_p, j)] =
@@ -545,7 +545,7 @@ project(multi_level_graph_t* graph,
     part_type = realloc(part_type, finer->num_partitions * sizeof(bool));
 
     if (!finer->partition_aggregation_weight || !part_type) {
-       exit(-1);
+        exit(-1);
     }
 }
 

@@ -288,7 +288,7 @@ cluster_coarse(in_memory_file_t* db,
                dict_ul_ul_t** dif_sets,
                unsigned long* part)
 {
-    if (!db || ! dif_sets || !part) {
+    if (!db || !dif_sets || !part) {
         exit(-1);
     }
 
@@ -297,7 +297,7 @@ cluster_coarse(in_memory_file_t* db,
 
     unsigned long* centers = NULL;
 
-    if(initialize_centers(db, &centers, num_clusters) < 0) {
+    if (initialize_centers(db, &centers, num_clusters) < 0) {
         return -1;
     }
 
@@ -393,8 +393,8 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
     blocks = malloc(list_ul_size(nodes_of_part) * sizeof(dendrogram_t*));
     size_t length;
 
-    if (pairwise_diff == NULL || h_part == NULL
-            || dendros == NULL || blocks == NULL) {
+    if (pairwise_diff == NULL || h_part == NULL || dendros == NULL ||
+        blocks == NULL) {
         return -1;
     }
 
@@ -416,7 +416,7 @@ cluster_hierarchical(list_ul_t* nodes_of_part,
         dendros[i] = malloc(sizeof(dendrogram_t));
         dendros[i]->children.node = i;
         length = snprintf(NULL, 0, "%lu", i);
-        dendros[i]->label = malloc( length + 1);
+        dendros[i]->label = malloc(length + 1);
         snprintf(dendros[i]->label, length, "%lu", i);
         dendros[i]->size = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;

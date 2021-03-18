@@ -370,8 +370,7 @@ htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
     }
 
     if (!hi->cur) {
-        while (hi->idx < hi->ht->num_buckets &&
-               !hi->ht->buckets[hi->idx].key) {
+        while (hi->idx < hi->ht->num_buckets && !hi->ht->buckets[hi->idx].key) {
             hi->idx++;
         }
         if (hi->idx >= hi->ht->num_buckets) {
