@@ -21,6 +21,10 @@ ids_to_io(const char* in_path,
           size_t block_size,
           record_id_t type)
 {
+    if(!in_path || !out_path) {
+        exit(-1);
+    }
+
     FILE* log_file = fopen(in_path, "r");
     if (log_file == NULL) {
         printf("ids_to_io: Can't open file with path %s", in_path);
@@ -88,6 +92,11 @@ ids_to_io(const char* in_path,
         }
     }
     io_stats_t* result = malloc(sizeof(*result));
+
+    if (!result) {
+        exit(-1);
+    }
+
     result->read_pages = num_pages_loaded;
     result->read_blocks = num_pages_loaded * page_size / block_size;
     result->write_pages = 0;

@@ -12,8 +12,21 @@ list_passthrough_eq(const void* first, const void* second)
 list_t*
 create_list(list_cbs_t* cbs)
 {
+    if (!cbs) {
+        exit(-1);
+    }
+
     list_t* list = malloc(sizeof(*list));
+
+    if (!list) {
+        exit(-1);
+    }
+
     list->elements = malloc(sizeof(*list->elements) * list_block_size);
+    if (!list->elements) {
+        exit(-1);
+    }
+
     list->alloced = list_block_size;
     list->len = 0;
     list->inbulk = false;
@@ -77,8 +90,8 @@ list_insert(list_t* l, void* v, size_t idx)
     if (l->alloced == l->len) {
         l->alloced += list_block_size;
         l->elements = realloc(l->elements, sizeof(*l->elements) * l->alloced);
-        if (l->elements == NULL) {
-            return -1;
+        if (!l->elements) {
+            exit(-1);
         }
     }
 

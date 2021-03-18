@@ -24,8 +24,17 @@ queue_passthrough_free(void* elem)
 queue_t*
 create_queue(const queue_cbs_t* cbs)
 {
+    if (!cbs) {
+        exit(-1);
+    }
+
     queue_t* queue;
     queue = calloc(1, sizeof(*queue));
+
+    if (!queue) {
+        exit(-1);
+    }
+
     queue->len = 0;
     queue->head = NULL;
     queue->tail = NULL;
@@ -76,7 +85,12 @@ queue_add(queue_t* queue, void* elem)
         return -1;
     }
 
-    queue_node_t* node = (queue_node_t*)calloc(1, sizeof(*node));
+    queue_node_t* node = calloc(1, sizeof(*node));
+
+    if (!node) {
+        exit(-1);
+    }
+
     node->element = queue->cbs.qcopy(elem);
     node->next = NULL;
     node->prev = NULL;
@@ -102,7 +116,12 @@ queue_insert(queue_t* queue, void* elem, size_t idx)
         return -1;
     }
 
-    queue_node_t* new = (queue_node_t*)calloc(1, sizeof(*new));
+    queue_node_t* new = calloc(1, sizeof(*new));
+
+    if (!new) {
+        exit(-1);
+    }
+
     new->element = queue->cbs.qcopy(elem);
 
     if (queue->len == 0 && idx == 0) {
