@@ -9,6 +9,11 @@ relationship_t*
 new_relationship()
 {
     relationship_t* rel = malloc(sizeof(*rel));
+
+    if (!rel) {
+        exit(-1);
+    }
+
     relationship_clear(rel);
     return rel;
 }
@@ -83,32 +88,57 @@ relationship_to_string(const relationship_t* record,
                        char* buffer,
                        size_t buffer_size)
 {
-    int result = sprintf(buffer,
-                         "Relationship ID: %#lX\n"
-                         "Flags: %#hhX\n"
-                         "Source Node: %#lX\n"
-                         "Target Node: %#lX\n"
-                         "Relationship Type: %#lX\n"
-                         "Source node's previous relationship: %#lX\n"
-                         "Source node's next relationship: %#lX\n"
-                         "Target node's previous relationship: %#lX\n"
-                         "Target node's next relationship: %#lX\n"
-                         "First Property: %f\n",
-                         record->id,
-                         record->flags,
-                         record->source_node,
-                         record->target_node,
-                         record->relationship_type,
-                         record->prev_rel_source,
-                         record->next_rel_source,
-                         record->prev_rel_target,
-                         record->next_rel_target,
-                         record->weight);
-    if (result < 0 || (size_t)result > buffer_size) {
+    int length = snprintf(NULL,
+                          0,
+                          "Relationship ID: %#lX\n"
+                          "Flags: %#hhX\n"
+                          "Source Node: %#lX\n"
+                          "Target Node: %#lX\n"
+                          "Relationship Type: %#lX\n"
+                          "Source node's previous relationship: %#lX\n"
+                          "Source node's next relationship: %#lX\n"
+                          "Target node's previous relationship: %#lX\n"
+                          "Target node's next relationship: %#lX\n"
+                          "First Property: %f\n",
+                          record->id,
+                          record->flags,
+                          record->source_node,
+                          record->target_node,
+                          record->relationship_type,
+                          record->prev_rel_source,
+                          record->next_rel_source,
+                          record->prev_rel_target,
+                          record->next_rel_target,
+                          record->weight);
+
+    if ((size_t)length > buffer_size) {
         printf("Wrote relationship string representation to a buffer that was "
                "too small!");
         return -1;
     }
+
+    int result = snprintf(buffer,
+                          length,
+                          "Relationship ID: %#lX\n"
+                          "Flags: %#hhX\n"
+                          "Source Node: %#lX\n"
+                          "Target Node: %#lX\n"
+                          "Relationship Type: %#lX\n"
+                          "Source node's previous relationship: %#lX\n"
+                          "Source node's next relationship: %#lX\n"
+                          "Target node's previous relationship: %#lX\n"
+                          "Target node's next relationship: %#lX\n"
+                          "First Property: %f\n",
+                          record->id,
+                          record->flags,
+                          record->source_node,
+                          record->target_node,
+                          record->relationship_type,
+                          record->prev_rel_source,
+                          record->next_rel_source,
+                          record->prev_rel_target,
+                          record->next_rel_target,
+                          record->weight);
 
     return 0;
 }
