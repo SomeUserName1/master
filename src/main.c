@@ -18,8 +18,8 @@ main(void)
           db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
     printf("BFS\n");
-    bfs_result_t* result =
-          bfs(db, 0, "/home/someusername/workspace_local/accessed_records.txt");
+    search_result_t* result =
+          bfs(db, 0, BOTH, "/home/someusername/workspace_local/accessed_records.txt");
 
     printf("Analyze IOs from IDs\n");
     io_stats_t* res = ids_to_io(
@@ -45,7 +45,7 @@ main(void)
     free(partition);
 
     printf("\nSuccess!\n");
-    bfs_result_destroy(result);
+    search_result_destroy(result);
     free(res);
     in_memory_file_destroy(db);
     return 0;

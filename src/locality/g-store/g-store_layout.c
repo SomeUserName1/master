@@ -400,7 +400,7 @@ coarsen(multi_level_graph_t* graph,
                   coarser->records->node_id_counter * sizeof(unsigned long));
 
     coarser->edge_aggregation_weight =
-          realloc(coarser->node_aggregation_weight,
+          realloc(coarser->edge_aggregation_weight,
                   coarser->records->rel_id_counter * sizeof(unsigned long));
 
     if (!coarser->node_aggregation_weight ||
@@ -542,9 +542,14 @@ project(multi_level_graph_t* graph,
     finer->partition_aggregation_weight =
           realloc(finer->partition_aggregation_weight,
                   finer->num_partitions * sizeof(size_t));
+
+    if (!finer->partition_aggregation_weight) {
+        exit(-1);
+    }
+
     part_type = realloc(part_type, finer->num_partitions * sizeof(bool));
 
-    if (!finer->partition_aggregation_weight || !part_type) {
+    if (!part_type) {
         exit(-1);
     }
 }

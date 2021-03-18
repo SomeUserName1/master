@@ -6,6 +6,11 @@ fib_node*
 create_fib_node(unsigned long key, void* value)
 {
     fib_node* node = malloc(sizeof(*node));
+
+    if (!node) {
+        exit(-1);
+    }
+
     node->key = key;
     node->value = value;
     node->parent = NULL;
@@ -22,6 +27,11 @@ fib_heap_t*
 create_fib_heap()
 {
     fib_heap_t* heap = malloc(sizeof(*heap));
+
+    if (!heap) {
+        exit(-1);
+    }
+
     heap->min = NULL;
     heap->num_nodes = 0;
 
