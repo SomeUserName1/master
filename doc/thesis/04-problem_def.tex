@@ -1,7 +1,26 @@
 \chapter{Problem Definition}\label{\positionnumber}
 \section{Locality}\label{\positionnumber}
+- in memory hierarchy, disk <-> main memory is handeld by SW, rest by HW \\
+
+given sequence of address references \\
+- Temporal (caching) \\
+        small distance in time for the same address. \\
+        DB buffer exploits this. \\
+        
+- spatial (record & block ordering) \\
+    small distance in time for a SIMILAR address \\
+    generalization of temporal locality (== instead of ~) \\
+    similar: delta page no < X \\
+    Record order & prefetch/``read adjacent'' exploits this. \\
+    2 aspects: intra vs. inter blocks \\
+
+    % FIXME!! blocks on disk page in memory
+    
+    
     
     \subsection*{Metrics} 
+    record ordering (intra-block)
+    block ordering (inter-block)
         
 \section{Problem Definition}\label{\positionnumber}
 
