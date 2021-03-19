@@ -429,9 +429,10 @@ In this section we first give a definition of graphs as discrete structures and 
         These formats are used for sparse matrix arithmetics in some of the most popular matrix arithmetics libraries, like~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. 
         
         Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. 
-        Even tough not optimal for  the find, insert and remove operations, both data structures are being better than linear in all respects. 
-        Assuming all nodes have the same degree, i.e. all edges are distributed uniformly over the graph, the average degree can be crudely estimated by dividing twice the number of edges by the number of nodes: $\frac{2|E|}{|V|} < |E|$.
-        In real networks, the distribution is mostly non-uniform and exhibits different distributions, e.g. binomial, poisson or power law type~\autocite{holme2019rare}. 
+        Even tough not optimal for the operations find, insert and remove, both data structures provide access times that are asymptotically better than linear in most cases.
+        If the edges are distributed uniformly, we have an average degree of 
+        \[ \text{deg}(V) = \frac{2|E|}{|V|} \leq \frac{2 |V|^2}{|V|} = 2 |V| \]
+        In real networks, the distribution is often non-uniform but can be modeled using e.g. binomial, poisson or power law type~\autocite{holme2019rare}. 
         A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. 
         What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. 
         When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. 
@@ -734,26 +735,31 @@ In this section we first give a definition of graphs as discrete structures and 
             
             
             \begin{algorithm}[htp]
-                \KwIn{Graph $G = (V,E)$, direction $d$, number of landmarks $l$}
-                \KwOut{Landmarks $L$}
+                \KwIn{Graph $G = (V,E)$, direction $d$, number of landmarks $nl$}
+                \KwOut{Precomputed distance from each landmark to all other vertices $\text{landmarks}[|L|][|V|]$}
                 \hrulealg
                 \Begin{
                     \tcc{Preprocessing stage.}
                     \tcc{Done in advance and only once.}
-                    landmarks $\leftarrow$ select\_landmarks($G$, $l$, $d$)\;
+                    $L \leftarrow$ select\_landmarks($G$, $nl$, $d$)\;
+                    \For {$l_i \in L$}{
+                        \For{$v_j \in V$}{
+                            landmark$[i] = \text{dijkstra}(G, l_i, d)$.distances\;
+                        }
+                    }
                     \Return landmarks\;
                 }
             \caption{Pseudo-code of the preprocessing stage of ALT.}\label{alt-pre}
             \end{algorithm}
             \begin{algorithm}[htp]
-                \KwIn{Graph $G = (V,E)$, source vertex id v\_source, target node v\_target, direction $d$, landmarks $L$}
+                \KwIn{Graph $G = (V,E)$, source vertex id v\_source, target node v\_target, direction $d$, $\text{landmarks}[|L|][|V|]$}
                 \KwOut{Path p}
                 \hrulealg
                 \Begin{
                     \tcc{Query stage.}
                     \tcc{Done for every shortest path query.}
                     \For{$v \in V \setminus \{v_t\}$}{
-                        $h[v] \leftarrow \min_i d(v,$ landmarks[i]$) - d($v\_target, landmarks[i]$)$ 
+                        $h[v] \leftarrow \max_i$ landmarks[i][v]$ - $landmarks[i][v\_target] 
                     }
                     \Return a-star($G, h$ v\_source, v\_target, $d$)\;
                 }

@@ -8,9 +8,10 @@
 fib_node*
 create_fib_node(double key, unsigned long value)
 {
-    if (key == DBL_MIN) {
-        printf("A key of value DBL_MIN is not allowed!"
-               "Please use DBL_MIN + 1 as smallest priority!");
+    if (key == -DBL_MAX) {
+        printf("A key of value DBL_MAX is not allowed!"
+               "Please use somthing greater than"
+               "-DBL_MAX as smallest priority!");
         exit(-1);
     }
 
@@ -139,7 +140,7 @@ fib_heap_consolidate(fib_heap_t* fh)
         exit(-1);
     }
 
-    int max_degree = 2 * (int) log((double) fh->num_nodes);
+    int max_degree = 2 * (int)log((double)fh->num_nodes);
     fib_node** nodes_w_degree = calloc(max_degree, sizeof(fib_node*));
 
     fib_node* node = fh->min->right;
@@ -333,9 +334,10 @@ fib_heap_decrease_key_internal(fib_heap_t* fh,
         exit(-1);
     }
 
-    if (new_key == 0) {
-        printf("A key of value DBL_MIN is not allowed!"
-               "Please use DBL_MIN + 1 as smallest priority!");
+    if (new_key == -DBL_MAX) {
+        printf("A key of value DBL_MAX is not allowed!"
+               "Please use somthing greater than"
+               "-DBL_MAX as smallest priority!");
         exit(-1);
     }
 
@@ -366,6 +368,6 @@ fib_heap_decrease_key(fib_heap_t* fh, fib_node* node, double new_key)
 void
 fib_heap_delete(fib_heap_t* fh, fib_node* node)
 {
-    fib_heap_decrease_key_internal(fh, node, DBL_MIN, true);
+    fib_heap_decrease_key_internal(fh, node, -DBL_MAX, true);
     free(fib_heap_extract_min(fh));
 }

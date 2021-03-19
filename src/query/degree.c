@@ -5,6 +5,16 @@
 #include "../data-struct/list_node.h"
 #include "../data-struct/list_rel.h"
 
+size_t
+get_degree(in_memory_file_t* db, unsigned long node_id, direction_t direction)
+{
+    list_relationship_t* rels = in_memory_expand(db, node_id, direction);
+    size_t degree = list_relationship_size(rels);
+    list_relationship_destroy(rels);
+
+    return degree;
+}
+
 float
 get_avg_degree(in_memory_file_t* db, direction_t direction)
 {
@@ -15,6 +25,7 @@ get_avg_degree(in_memory_file_t* db, direction_t direction)
     for (size_t i = 0; i < num_nodes; ++i) {
         rels = in_memory_expand(db, i, direction);
         total_degree += list_relationship_size(rels);
+        list_relationship_destroy(rels);
     }
 
     return ((float)total_degree) / ((float)num_nodes);
@@ -32,6 +43,7 @@ get_min_degree(in_memory_file_t* db, direction_t direction)
         if (list_relationship_size(rels) < min_degree) {
             min_degree = list_relationship_size(rels);
         }
+        list_relationship_destroy(rels);
     }
 
     return min_degree;
@@ -49,6 +61,7 @@ get_max_degree(in_memory_file_t* db, direction_t direction)
         if (list_relationship_size(rels) > max_degree) {
             max_degree = list_relationship_size(rels);
         }
+        list_relationship_destroy(rels);
     }
 
     return max_degree;

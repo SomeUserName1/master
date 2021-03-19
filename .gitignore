@@ -1,8 +1,8 @@
 # cache
 .cache
 compile_commands.json
-*.kilepr.gui
-
+*.gui
+.kile
 
 # Prerequisites
 *.d
