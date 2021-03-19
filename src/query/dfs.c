@@ -2,24 +2,37 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "../data-struct/list_ul.h"
 #include "result_types.h"
+#include "../constants.h"
 
-search_result_t*
+traversal_result*
 dfs(in_memory_file_t* db,
     unsigned long source_node_id,
     direction_t direction,
     const char* log_path)
 {
-    dict_ul_ul_t* parents = create_dict_ul_ul();
-    dict_ul_int_t* dfs = create_dict_ul_int();
+    unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
+    unsigned long* dfs = malloc(db->node_id_counter * sizeof(*dfs));
+
+    if (!parents || !dfs) {
+        exit(-1);
+    }
+
+    for (size_t i = 0; i < db->node_id_counter; ++i) {
+        parents[i] = UNINITIALIZED_LONG;
+        dfs[i] = ULONG_MAX;
+    }
+
     list_ul_t* node_stack = create_list_ul();
     FILE* log_file = fopen(log_path, "w");
 
     if (log_file == NULL) {
-        dict_ul_ul_destroy(parents);
-        dict_ul_int_destroy(dfs);
+        free(parents);
+        free(dfs);
         list_ul_destroy(node_stack);
         printf("bfs: Failed to open log file, %d\n", errno);
         return NULL;
@@ -30,7 +43,7 @@ dfs(in_memory_file_t* db,
     unsigned long temp;
     unsigned long node_id;
     list_ul_append(node_stack, source_node_id);
-    dict_ul_int_insert(dfs, source_node_id, 0);
+    dfs[source_node_id] = 0;
 
     size_t stack_size = list_ul_size(node_stack);
 
@@ -47,10 +60,9 @@ dfs(in_memory_file_t* db,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            if (!dict_ul_int_contains(dfs, temp)) {
-                dict_ul_int_insert(
-                      dfs, temp, dict_ul_int_get_direct(dfs, node_id) + 1);
-                dict_ul_ul_insert(parents, temp, current_rel->id);
+            if (dfs[temp] == ULONG_MAX) {
+                dfs[temp] = dfs[node_id] + 1;
+                parents[temp] =  current_rel->id;
                 list_ul_append(node_stack, temp);
             }
         }
@@ -60,5 +72,5 @@ dfs(in_memory_file_t* db,
     list_ul_destroy(node_stack);
     fclose(log_file);
 
-    return create_search_result(dfs, parents);
+    return create_traversal_result(dfs, parents);
 }

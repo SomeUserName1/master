@@ -1,16 +1,16 @@
 #include "fibonacci_heap.h"
 
-#include <limits.h>
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 fib_node*
-create_fib_node(long key, void* value)
+create_fib_node(double key, unsigned long value)
 {
-    if (key == LONG_MIN) {
-        printf("A key of value LONG_MIN is not allowed!"
-               "Please use LONG_MIN + 1 as smallest priority!");
+    if (key == DBL_MIN) {
+        printf("A key of value DBL_MIN is not allowed!"
+               "Please use DBL_MIN + 1 as smallest priority!");
         exit(-1);
     }
 
@@ -93,7 +93,7 @@ fib_heap_insert(fib_heap_t* fh, fib_node* node)
     fh->num_nodes++;
 }
 
-void*
+fib_node*
 fib_heap_min(fib_heap_t* fh)
 {
     if (!fh) {
@@ -139,7 +139,7 @@ fib_heap_consolidate(fib_heap_t* fh)
         exit(-1);
     }
 
-    int max_degree = 2 * (int)log(fh->num_nodes);
+    int max_degree = 2 * (int) log((double) fh->num_nodes);
     fib_node** nodes_w_degree = calloc(max_degree, sizeof(fib_node*));
 
     fib_node* node = fh->min->right;
@@ -196,7 +196,7 @@ fib_heap_consolidate(fib_heap_t* fh)
     }
 }
 
-void*
+fib_node*
 fib_heap_extract_min(fib_heap_t* fh)
 {
     if (!fh) {
@@ -326,21 +326,21 @@ fib_heap_cascading_cut(fib_heap_t* fh, fib_node* node)
 void
 fib_heap_decrease_key_internal(fib_heap_t* fh,
                                fib_node* node,
-                               long new_key,
+                               double new_key,
                                bool delete)
 {
     if (!fh || !node || new_key > node->key) {
         exit(-1);
     }
 
-    if (new_key == LONG_MIN) {
-        printf("A key of value LONG_MIN is not allowed!"
-               "Please use LONG_MIN + 1 as smallest priority!");
+    if (new_key == 0) {
+        printf("A key of value DBL_MIN is not allowed!"
+               "Please use DBL_MIN + 1 as smallest priority!");
         exit(-1);
     }
 
     if (delete) {
-        new_key = LONG_MIN;
+        new_key = 0;
     }
 
     fib_node* parent;
@@ -358,7 +358,7 @@ fib_heap_decrease_key_internal(fib_heap_t* fh,
 }
 
 void
-fib_heap_decrease_key(fib_heap_t* fh, fib_node* node, long new_key)
+fib_heap_decrease_key(fib_heap_t* fh, fib_node* node, double new_key)
 {
     fib_heap_decrease_key_internal(fh, node, new_key, false);
 }
@@ -366,6 +366,6 @@ fib_heap_decrease_key(fib_heap_t* fh, fib_node* node, long new_key)
 void
 fib_heap_delete(fib_heap_t* fh, fib_node* node)
 {
-    fib_heap_decrease_key_internal(fh, node, 0, true);
+    fib_heap_decrease_key_internal(fh, node, DBL_MIN, true);
     free(fib_heap_extract_min(fh));
 }

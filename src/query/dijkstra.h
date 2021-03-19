@@ -1,14 +1,13 @@
 #ifndef DIJKSTRA
 #define DIJKSTRA
 
-#include "bfs.h"
-typedef struct bfs_result dijkstra_result_t;
+#include "../access/in_memory_file.h"
+#include "result_types.h"
 
-dijkstra_result_t*
-create_dijkstra_result(dict_ul_int_t* dist, dict_ul_ul_t* parents);
-void
-dijkstra_result_destroy(dijkstra_result_t* result);
+sssp_result*
+dijkstra(in_memory_file_t* db,
+        unsigned long source_node_id,
+        direction_t direction,
+        const char* log_path);
 
-dijkstra_result_t*
-dijkstra(in_memory_file_t* db, unsigned long sourceNodeID, const char* log_path)
 #endif

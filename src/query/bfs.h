@@ -4,7 +4,7 @@
 #include "../access/in_memory_file.h"
 #include "result_types.h"
 
-search_result_t*
+traversal_result*
 bfs(in_memory_file_t* db,
     unsigned long source_node_id,
     direction_t direction,
