@@ -107,21 +107,101 @@
   This is what shall be explained in an example.
   Something that is of importance for the traversal --- but not as straight forward to see as node and edge grouping and order --- is the order of the pointers in the incidence list, as we are going to see.
   
-  The graph used in the below example looks as shown in \ref{}.
-  We use a storage schema that is motivated by the one of Neo4J, that is nodes and relationships are stored in separated files, the incidence list is stored in the records of the edges and the nodes conatain a pointer to the head relationship of their incidence list each.
+  \begin{figure}[htp]
+    \begin{center}
+        \includegraphics[keepaspectratio,height=0.3\textheight,width=\textwidth]{img/04-problem_def/example_graph.png}
+    \end{center}
+    \caption{Parts of a graph that is used in subsequent examples. Cut through edges mean edges to any non-visualized component of the graph. The dotted lines indicate, that other nodes and edges are between the three shown components.}
+    \label{ex-gr}
+  \end{figure}
   
-    % TODO Figure
-  
-  First consider the left grouping of vertices and edges into blocks in \ref{}. Here we need none of the vertices in the partition are neighbouring to each other and when traversing the graph the page contains no referenced information until the neighbourhood of one of the other vertices are reached.
-  The same is true for the edges: None of the edges are connected to the same vertex. Each edge causes a page fault and a load of another page.
-  On the right handside, the vertices are grouped into blocks according to their neighbourhood and the edges are grouped by the vertices they are connected to. One problem that arises is that an edge appears in the neighbourhood of two vertices and it is to be determined in which neighbourhood an edge is to be grouped in.
-  
-    % TODO Figure
-  
-  Next we show two different orderings of the blocks, this time with a focus on the edges only. on the left handside an edge is stored in the neighbourhood of its source node, but far appart from its target node, which requires three single reads to go from one vertex over the edge to another vertex. On the right handside, the block are adjacent and one sequential read per file is enough to do the step from source to target.
-  
-  % TODO Figure
-  
-  Finally: Consider the visualization of an incidence list on the left and compare it to the one on the right. Theoretically the only difference is the order in which the list points to the relationships. In terms of traversed blocks, we access many blocks more than acutally necessarry on the left list. If we rearrange the pointers, the list may be loaded sequentially and at least the jumps are omitted.
+  The graph used in the below example looks as shown in \ref{ex-gr}.
+  We use a storage schema that is motivated by the one of Neo4J, that is nodes and relationships are stored in separated files, the incidence list is stored in the records of the edges and the nodes conatain a pointer to the head relationship of their incidence list each. Further we assume that we can only read sequentially, if the blocks are directly adjacent.
+  As this is a rather small example for the sake of succintness, things are just shown on a conceptual level. 
+  We make the assumption that 3 nodes or 2 relationships fit onto a disk block. 
+  Realistically 8 to 16 nodes and 5 to 8 relationships fit on a 512 byte disk block. 
+  An average graph in the stanford network analysis platform graph dataset collection has thousands of nodes and edges. 
+  Taking the californian road network graph as an example, the whole graph would take 
+  \[ 1 965 206 \text{ nodes} \cdot 35 \text{ bytes per node} \cdot 512^{-1} \text{ bytes per block} = 134 341\text{ blocks}\] 
+  to store all nodes and 
+  \[2 766 607 \text{ relationships} \cdot 72 \text{ bytes per relationship} \cdot 512^{-1} \text{ bytes per block} = 389055\text{ blocks}\] 
+  blocks to store the relationships in Neo4J.
+  To summarize, the principles shown below scale with the graph size and for realistic assumptions, these conditions emerge.
 
-  % TODO Figure
+  First consider the split of vertices and edges into blocks in the upper table in \ref{blocks}. 
+  None of the vertices in the blocks are neighbouring to each other.
+  Thus when traversing the graph, each step requires to load a block.
+  The same is true for the edges: 
+  None of the edges in the same block are connected to the same vertex. 
+  Each edge causes a page fault and a load of another block(s).
+  This may happen in current state of the art graph databases like Neo4J. 
+  The placment into blocks is currently by insertion order, thus depends on the ordering of the input dataset. 
+  On the other handside in the lower table in \ref{blocks}, the vertices are grouped into blocks according to their neighbourhood and the edges are grouped by the vertices they are connected to.
+
+  
+     \begin{table}[htp]
+     \centering
+    \begin{tabular}[c]{|l|c|c|c|c|c|c|} \hline
+    &&&&&&\\[-1em]
+     node.db & \colorbox{blue!30}{0}, \colorbox{red!30}{5}, \colorbox{green!30}{7} & \colorbox{blue!30}{1}, \colorbox{blue!30}{4}, \colorbox{green!30}{9} & \colorbox{blue!30}{2}, \colorbox{red!30}{6}, \colorbox{green!30}{8} & \colorbox{blue!30}{3} &  & \\ \hline
+     &&&&&&\\[-1em]
+     edge.db & \colorbox{blue!30}{a}, \colorbox{green!30}{f} & \colorbox{blue!30}{b}, \colorbox{green!30}{g} & \colorbox{blue!30}{c}, \colorbox{green!30}{h} & \colorbox{blue!30}{d}, \colorbox{green!30}{i} & \colorbox{red!30}{e}, \colorbox{green!30}{j} & \colorbox{green!30}{k} \\  \hline
+    \end{tabular}
+    \vspace{0.5cm}
+    
+    \begin{tabular}{|l | c | c | c | c | c | c|} \hline
+    &&&&&&\\[-1em]
+     node.db & \colorbox{green!30}{7},\colorbox{green!30}{8}, \colorbox{green!30}{9} & \colorbox{blue!30}{0}, \colorbox{blue!30}{1}, \colorbox{blue!30}{3} & \colorbox{red!30}{6} & \colorbox{blue!30}{4}, \colorbox{blue!30}{2}, \colorbox{red!30}{5},  &  & \\ \hline
+     &&&&&&\\[-1em]
+     edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h} & \colorbox{green!30}{g}, \colorbox{green!30}{k} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{red!30}{e} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} \\ \hline
+    \end{tabular}
+  \caption{An example of suboptimal and improved record placement into blocks. 
+  The block size is assumed to be only 3 vertex records and 2 node records respectively. 
+  For larger block size, the same principle applies.}
+   \label{blocks}
+   \end{table}
+    
+  Next \ref{order} shows two different orderings of the blocks, this time with a focus on the edges only. 
+  In the upper table, an edge is stored in the neighbourhood of its source node, but appart from its target node.
+  Thus two single reads are required to go from one vertex over an edge to another vertex and retreive it's incident edges. 
+  In the lower table, the blocks are adjacent and one sequential read  is enough to go from source to target and fetch the target't incidence list.
+  
+     \begin{table}[htp]
+          \centering
+    \begin{tabular}{|l | c | c | c | c | c | c|} \hline
+    &&&&&&\\[-1em]
+     edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h}   & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{red!30}{e} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} & \colorbox{green!30}{g}, \colorbox{green!30}{k} \\ \hline
+    \end{tabular}
+    \vspace{0.5cm}
+    
+    \begin{tabular}{|l | c | c | c | c | c | c|}\hline
+    &&&&&&\\[-1em]
+     edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h} & \colorbox{green!30}{g}, \colorbox{green!30}{k} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} & \colorbox{red!30}{e} \\ \hline
+    \end{tabular}
+      \caption{Suboptimal and improved block order.}
+    \label{order}
+       \end{table}
+  
+  Finally: Consider the visualization of the incidence list of the node 3, given the page placement in the upper part of \ref{blocks} in \ref{inc-ord}. 
+  Theoretically the only difference is the order in which the list points to the relationships. 
+  In terms of traversed blocks, we need to do four single reads when using the order given in the upper table. 
+  If we rearrange the pointers according to the lower table, the list may be loaded sequentially with one read operation instead of four single reads. 
+  This phenomenon may also appear when the blocks are formed and ordered in an improved way, but only when scaling up to a graph with larger neighbourhoods.
+  Given that an edge can be placed either near the other edges of the source or the target node, the impact when jumping back and forth will grow along with the gaps between blocks in which the edges are stored.
+  Finally if the blocks are cached, this induces a higher load on the buffer manager, as more pages need to reside in memory at the same time and as they are frequently rereferenced instead of being read once and evicted then.
+  The higher the degree --- i.e. the length of the incidence list --- of the node, the more severe the effect.
+  % TODO validate!
+
+\begin{table}[htp]
+          \centering
+    \begin{tabular}{|l | c | c | c | c |}\hline
+     incidence list of node 3 &  c & a & d & b\\ \hline
+    \end{tabular}
+    \vspace{0.5cm}
+    
+    \begin{tabular}{|l | c | c | c | c |}\hline
+     incidence list for node 3 &  a & b & c & d\\ \hline
+    \end{tabular}
+      \caption{Suboptimal and improved incidence list order.}
+    \label{inc-ord}
+       \end{table}

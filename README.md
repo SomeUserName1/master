@@ -73,6 +73,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 #### Others
 - [x] Title page
 - [ ] Acknowledgements
+- [ ] Abstract
 - [ ] Bibliography
 
 **Overall 55 P. Contents + 5-10 P. Title, TOC, Abstract, Bibliography --> 60P.**

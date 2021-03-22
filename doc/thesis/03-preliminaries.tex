@@ -13,7 +13,7 @@
     But it is also able to store orders of magnitude more data. 
     \begin{figure}[htp]
         \begin{center}
-        \includegraphics[keepaspectratio,width=0.7\textwidth]{img/03-preliminaries/mem-hierarch.png}
+        \includegraphics[keepaspectratio,width=0.8\textwidth]{img/03-preliminaries/mem-hierarch.png}
         \end{center}
         \caption{The memory hierarchy used in today's computing systems.} 
         \label{mem-hier}
@@ -30,7 +30,7 @@
 
     \begin{figure}[htp]
     \begin{center}
-    \includegraphics[keepaspectratio,width=0.7\textwidth]{img/03-preliminaries/RDBMS.png}
+    \includegraphics[keepaspectratio,width=.5\textwidth]{img/03-preliminaries/RDBMS.png}
     \end{center}
     \caption{The typical structure of a relational database management system~\autocite{ramakrishnan2000database}.}
     \label{dbms_arch}
@@ -137,18 +137,11 @@ In this section we first give a definition of graphs as discrete structures and 
             Otherwise it's called unweighted.
             Similarly labels can be assigned to both nodes and edges. 
             In some cases these labels may encode the type of the entity.
-            Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so called properties. An example of an unweighted and undirected, a directed and a weighted graph is shown in figure \ref{di-we}.            
+            Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so called properties.           
             An example for a weighted graph is a road network: 
             The vertices are crossings between roads, the roads are the edges and the edge weights represent the distances between the crossings that are connected by the road.
             To include labels, one could distinguish between highways and minor roads or simply assign the name of the road. 
             The former would model the type of the road, while the latter would be an (potentially non-unique) identifier.
-            
-        \begin{figure}
-         \begin{center}
-          \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/03-preliminaries/graph_di_we.png}
-         \end{center}
-          \caption{An undirected, a directed and a weighted graph.}\label{di-we}
-        \end{figure}
             
             In case there may exist multiple edges between the same pair of nodes in the same direction, then the graph is called \textbf{multigraph}. 
             That is, $E_M = (E, M)$ is a multiset, with $M: E \rightarrow \mathbb{N}$. 
@@ -183,8 +176,15 @@ In this section we first give a definition of graphs as discrete structures and 
         Most of the following data structures can be extended to include labels and properties either by using additional fields or pointers. 
         The definitions of the data types and parts of the complexity analysis are based upon~\autocite{Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA, steinhaus2010g}. 
         Besides the ones elaborated on below there are the compressed sparse column and row (CSC/CSR) representations, which are used for sparse matrices in arithmetics-heavy applications, like in the library Eigen or Matlab. 
-        For more information on these the reader is reffered to~\autocite{steinhaus2010g, Eisenstat1982YaleSM}
-        % TODO Figure of example graph
+        For more information on these the reader is reffered to~\autocite{steinhaus2010g, Eisenstat1982YaleSM}. In~\ref{data_struct-ex} you can see a visualization of the graph that is used as an example troughout this section.
+        
+        \begin{figure}[htp]
+            \begin{center}
+                \includegraphics[keepaspectratio,width=0.5\textwidth]{img/03-preliminaries/data_struct_gr.png}
+            \end{center}
+            \caption{An example graph used throughout this section.} 
+            \label{data_struct-ex}
+        \end{figure}
         
         \subsubsection*{Unordered Edge List}
         The simplest representation uses an unordered list of edges. 
@@ -440,30 +440,29 @@ In this section we first give a definition of graphs as discrete structures and 
         When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. 
         
         In the table \ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations that act upon them. 
-                
-        \newpage
-        \begin{landscape}
-            \begin{longtable}[c]{llllll} \toprule
+        
+        \begin{table}
+            \begin{tabular}[c]{p{3cm} p{2cm} p{2cm} p{2cm} p{2cm} p{2cm}} \toprule
             & Edge List & Adjacency Matrix & Incidence Matrix & Adjacency List & Incidence List \\ \midrule
             Space Complexity & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V| + |E|)$ \\
             Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
             Retrieve $|E|$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ \\
             Find $v \in V$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
             Insert $v$ to $V$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
-            Remove $v$ from $|V|$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
+            Remove $v$ from $V$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
             Find $e \in E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
             Insert $e$ to $E$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
             Remove $e$ from $E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
             $u, v$ adjacent? & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
-            $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$\footnote{\label{fn}For directed graphs, for undirected ones it's $\mathcal{O}(1)$} & $\mathcal{O}(1)$ \\
-            $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$\footref{fn} & $\mathcal{O}(\text{deg}(V))$ \\
+            $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ \\
+            $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
             $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(\text{deg}(V))$ \\ \bottomrule
-           \caption{Space and runtime complexity comparison of the different data types.}
-           \label{sumtabds}
-         \end{longtable}
-        \end{landscape}
+         \end{tabular}
+         \caption{Space and runtime complexity comparison of the different data types.}
+        \label{sumtabds}
+        \end{table}
 
-
+    \newpage
     \subsection{Traversal-based Algorithms}\label{queries}
         \subsubsection*{Random Walk}
             A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
@@ -808,9 +807,9 @@ In this section we first give a definition of graphs as discrete structures and 
         
         \begin{figure}
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-preliminaries/property_graph_elements.jpg}
+                \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-preliminaries/property_graph_elements.png}
             \end{center}
-            \caption{A schematic visualization of the property graph model~\autocite{property-graph-img}.} 
+            \caption{A schematic visualization of the property graph model.} 
             \label{propertygraph}
         \end{figure}
 
@@ -834,7 +833,7 @@ In this section we first give a definition of graphs as discrete structures and 
         \subsubsection*{High-level Architecture}
         \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-preliminaries/N4J_HLA_Emil.png}
+                \includegraphics[keepaspectratio,width=0.25\textwidth]{img/03-preliminaries/N4J_HLA_Emil.png}
             \end{center}
             \caption{The high level architecture of Neo4J~\autocite{robinson2015graph}.} 
             \label{N4J_HLA_Emil}
