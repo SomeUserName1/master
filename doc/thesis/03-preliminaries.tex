@@ -7,9 +7,9 @@
 \section{Database Architecture}\label{db-arch}
     The reason why we use databases is twofold:
     First, every computer is equipped with different kinds of memory, which differ in size, capacity, speed and price per byte. 
-    This induces the so called memory hierarchy, the principle, that few fast, expensive, low capacity memory is used close to the central processing unit, that gets augmented with slower, less expensive, higher capacity memory. 
-    The largest memory unit defines the overall capacity, while the smallest one is a crucial factor for performance.
-    Thus what is shown as secondary storage, as shown in \ref{mem-hier}, is orders of magnitude slower in terms of both latency and throughput.
+    This induces the so called memory hierarchy, the principle, that few fast, expensive, low capacity memory is used close to the central processing unit, that gets layerwise augmented with inccreasingly slower, less expensive, higher capacity memory. 
+    The last layer, which has the highest capacity, defines the overall capacity, while the smallest one is a crucial factor for performance.
+    Thus what is shown as secondary storage in \ref{mem-hier} is orders of magnitude slower in terms of both latency and throughput.
     But it is also able to store orders of magnitude more data. 
     \begin{figure}[htp]
         \begin{center}
@@ -19,9 +19,9 @@
         \label{mem-hier}
     \end{figure}
     In order to mitigate the effects of this, the accesses between primary and secondary memory need to be handled very carefully for data intensive --- also called IO bound --- applications.
-    Second, the operating system actually handles the first reason. 
+    Second, the operating system (OS) actually handles the first reason. 
     However application specific payloads enable further optimizations when it comes to how data is stored and accessed.
-    Put differently, the operating system is not able to infer certain information as it does not constrain how data is stored and as it does not know how data is queried by the application.
+    Put differently, the operating system is not able to infer certain information, as it does not constrain how data is stored, and as it does not profile in what patterns data is referenced or queried.
     Databases take care of these issues by different mechanisms, which will be lined out from a high level perspective, in order to understand how a database works on its architectural lower levels.
     Put differently, we are not going to discuss query processing, transactions, concurrency related components and recovery facilities.
     Most of the information below is outlined comprehensively in~\autocite{ramakrishnan2000database, silberschatz1997database}
@@ -36,19 +36,21 @@
     \label{dbms_arch}
     \end{figure}
 
-    The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a page: One or many disk blocks brought into main memory (RAM) --- called a page.
+    The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a block: One or many physical disk blocks are grouped to a logical disk block.
+    These logical disk blocks are again grouped and brought into main memory (RAM) --- these groups are called a page.
     Optimally both a disk block and a page are of the same size or at least a multiple of each other. 
     Further the database needs to keep track of free blocks in the file: 
-    A linked list or a directory must record free pages and some structure needs to keep track of the free slots either globally or per block. 
+    A linked list or a directory must record free blocks and some structure needs to keep track of the free slots either globally or per block. 
     Data locality is a concept that we examine closely in an extra chapter later on.
     To summarize the two most important objectives of a storage manager are to
     \begin{enumerate} 
      \item take care of (de-)allocations of disk space,
-     \item abstract physical storage: Files, split into disk blocks and pages of memory, and
-     \item provide data structures in order to maintain records within a file, blocks or pages.
+     \item abstract storing data on a physical device using the operating system: Files, split into logical disk blocks, accessed using OS facilities, and
+     \item provide data structures in order to maintain records within a file, blocks.
     \end{enumerate}
     
-    A buffer manager is used to mediate between external storage and main memory. It maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory~\autocite{ramakrishnan2000database}.
+    A buffer manager is used to mediate between external storage and main memory. 
+    It provides the concept of a page and maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory~\autocite{ramakrishnan2000database}.
     A conceptual illustration of this is shown in \ref{buf-man}.
     It's objective is to minimize the number of disk reads to be executed by caching, pre-fetching and the usage of suitable replacement policies. 
     It also needs to take care of allocating a certain fraction of pages to each transaction.
@@ -61,10 +63,10 @@
         \label{buf-man}
     \end{figure}
 
-    The final component that is crucial to the storage of data the  of a database management system is the file layout and possible index structures --- also called the access layer. 
+    The final component that is crucial to the storage of data the  of a database management system is the file and record layout, along with possible index structures --- also called the access layer. 
     In order to store data a DBMS may either use one single or multiple files to maintain records. 
 
-    A file consists of a set of blocks/pages containing split into slots.
+    A file consists of a set of blocks split into slots.
     A slot stores one record with each record containing a set of fields.
     Records can be layout in row or column major order.
     That is one can store sequences of tuples or sequences of fields.
@@ -83,7 +85,7 @@
     An index over field $F$ is called clustered if the underlying data file is sorted according to the values of $F$. 
     Otherwise the index is called unclustered
     In a similar way indexes can be sparse or dense. 
-    A sparse index has less index entries than records, mostly one index entry per block/page. 
+    A sparse index has less index entries than records, mostly one index entry per block. 
     This can of course only be done for clustered indexes as the sorting of the data file keeps the elements between index keys in order. 
     An index is dense if there is a one to one correspondence between records and index entries. 
     All unclustered indexes are dense indexes.
@@ -376,7 +378,7 @@ In this section we first give a definition of graphs as discrete structures and 
          \label{adjl}
         \end{figure}
         
-        \subsubsection*{Incidence List}
+        \subsubsection*{Incidence List}\label{inci}
         This representation is also called incidence table in \autocite{Gross1998GraphTA}.
         The incidence list of a graph $G$ stores for each vertex $v \in V$ the list of edges it is conencted to. 
         The space requirements are thus $\mathcal{O}(|V| + |V| \cdot \text{deg}(V) + |E|) = \mathcal{O}(|V| + |E|)$. 
@@ -462,7 +464,7 @@ In this section we first give a definition of graphs as discrete structures and 
         \end{landscape}
 
 
-    \subsection{Traversal-based Algorithms}\label{\positionnumber}
+    \subsection{Traversal-based Algorithms}\label{queries}
         \subsubsection*{Random Walk}
             A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
             \begin{quote}
@@ -779,7 +781,7 @@ In this section we first give a definition of graphs as discrete structures and 
     
     In contrast to relational data base management systems, native graph databases use structures specialised for these kinds of queries.
             
-    \subsection{The Property Graph Model}\label{\positionnumber}
+    \subsection{The Property Graph Model}\label{prop-graph-model}
         The property graph model is a widely adopted data model to represent graphs in databases.
         It is not only able to represent the structure of directed or undirected, weighted or unweighted, but also of typed graphs having additional properties.
 
@@ -970,7 +972,7 @@ In this section we first give a definition of graphs as discrete structures and 
             Thus in order to traverse from one node's incidence list to another, there is no need to load the node record itself.
             It suffices to just dereference the next element in the incidence list stored by the relationships, along with storing the ID of the edge that started the traversal.
             This makes the assumption, that the doubly linked incidence lists is circular, i.e. the head's pervious element is the tail and reciprocally.
-            
+
             To conclude this example, we briefly visualize the just described storage schema. 
             The high-level graph is shown in \ref{n4j-ex-gr}.
             It contains four nodes and five edges.

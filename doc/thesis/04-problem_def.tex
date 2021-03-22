@@ -1,28 +1,127 @@
 \chapter{Problem Definition}\label{\positionnumber}
 \section{Locality}\label{\positionnumber}
-- in memory hierarchy, disk <-> main memory is handeld by SW, rest by HW \\
-
-given sequence of address references \\
-- Temporal (caching) \\
-        small distance in time for the same address. \\
-        DB buffer exploits this. \\
-        
-- spatial (record & block ordering) \\
-    small distance in time for a SIMILAR address \\
-    generalization of temporal locality (== instead of ~) \\
-    similar: delta page no < X \\
-    Record order & prefetch/``read adjacent'' exploits this. \\
-    2 aspects: intra vs. inter blocks \\
-
-    % FIXME!! blocks on disk page in memory
+    The memory hierarchy was introduced in \ref{db-arch} and \ref{mem-hier}. 
+    In summary it tries to unify the strengths of fast, low capacity memory --- caches (SRAM) ---, with slower but larger memory --- main memory (DRAM), with orders of magnitude slower but orders of magnitude larger memory --- disks (HDD) and more recently flash storage (SSD, SD-Cards).
+    But how can this actually work? 
+    Given that only a tiny fraction of fast memory is available to hold the necessarry parts, while additional loads of data are transfered in time --- ``desirably fast enough''.
     
+    The key principle for the memory hierarchy to work is what is called \textit{locality of reference} in the literature~\autocite{jacob2010memory, tanenbaum2015modern}. 
+    This principle expresses, that most programs do not access their address space uniformly or randomly, but rather tend to access small subsets of all addresses in certain time intervals, depending on the program state.
+    Locality comes in two flavors: 
     
+    \begin{itemize}
+     \item \textit{Temporal locality} refers to the number of other references between two accesses of the same memory location. 
+     \item \textit{Spatial locality} refers to the number of accesses and the radius of the neighbourhood that is accessed in a number of steps.
+    \end{itemize}
     
-    \subsection*{Metrics} 
-    record ordering (intra-block)
-    block ordering (inter-block)
-        
+    If the same location is accessed multiple times in a short amount of time, the temporal locality is high.
+    Thus temporal locality can be measured using reference frequencies.
+    From a bayesian point of view, one can say that temporal locality is the probability of an object being rereferenced after the first usage~\autocite{gupta2013locality}. 
+    \[ P (X_{t + \Delta} = A | X_t = A) \]
+    $X_t$ is the reference at time step $t$, $A$ is an address and $\Delta$ is a parameter, which depends not only on the system specifications (like the CPU and memory clock), but also on the program and the scale of interest.
+    
+    If a small range of addresses is accessed very often then spatial locality is high.
+    If the range is limited to one address, then spatial locality is equivalent to temporal locality. Thus temporal locality is a special case of temporal locality~\autocite{gupta2013locality}.
+    With $\varepsilon$ a radius we can characterize spatial locality by:
+    \[ P(X_{t + \Delta} = A \pm \varepsilon | X_t = A) \]
+    Spatial locality is thus a function of time $\Delta$ and neighbourhood range $\varepsilon$. 
+    
+    In order to leverage these concepts, several components profile the memory usage.
+    In the memory hierarchy, all on and off chip caches (i.e. SRAM) are handled by hardware~\autocite{jacob2010memory}.
+    
+    At the level of main memory (DRAM), the operating system manages what is fetched, buffered and evicted from disk to main memory. 
+    The optimal buffering strategy is to load what is needed before its usage and evict the objects whos usage is furthest in the future~\autocite{tanenbaum2015modern}. 
+    
+    When it comes to eviction the best approximation to the optimal strategy is the least recently used algorithm. 
+    It aims to keep things in memory, that have the highest chance to exhibit temporal locality.
+    That is, the things in memory, that have not been referenced for the longest time, have a lower chance to be temporally local in the future~\autocite{silberschatz2006operating}.
+    Put differently \textit{caches and buffers exploit temporal locality}.
+    
+    As this information is not available in general, objects are loaded when they are referenced, often with additional addresses which are hoped to be needed, too --- this is called prefetch or predicitve fetching~\autocite{stallings2012operating, jacob2010memory}. 
+    Prefetch tries to exploit spatial locality. There are several components that try to exploit this:
+    \begin{itemize}
+     \item Compiler generated prefetches: 
+     The compiler knows what addresses the program accesses in which sequence and tries to minimize the time that is spent waiting for IO. 
+     This is called instruction scheduling~\autocite{aho1986compilers}. 
+     Other compiler generated heuristics are applied e.g. in domain specific compilers, like in the TVM compiler for neural networks~\autocite{chen2018tvm}.
+     
+     \item The operating system may use specialized data structures and algorithms to estimate, if prefetching should be done, based on the previous accesses. 
+     An example is the ``spatial look-ahead'' algorithm by Baier and Sager~\autocite{jacob2010memory, baier1976dynamic}, but there exist many more e.g. \autocite{joseph1999prefetching, griffioen1994reducing, kroeger1997exploring, cooksey2002stateless}. 
+     Most of these methods are capable to find correlations between addresses and their neighbourhood, file accesses and pointed-to objects.
+     
+     \item A special role in the context of prefetches and spatial locality take databases. 
+     As these are not only able to predict content-based correlations, e.g. by knowing what table is queried in the case of relational databases, but also can augment data by using auxiliary data structures like indices. 
+     The most remarkable capability in this context is to be able to reorganize data, based upon how it is queried.
+     Relational databases store data in tables and often sort these tables based upon either a certain field (like the primary key) or a set of fields. 
+     This in combination with being able to analyze the query before executing it allows reordering the memory accesses, such that as many accesses as possible are sequential~\autocite{ramakrishnan2000database, silberschatz1997database}.
+    \end{itemize}
+    
+    Spatial locality depends on how data is ordered:
+    If semantically closely coupled data is spread out as wide as possible, the program or file of interest will harldy exhibit locality. 
+    As an example consider a program with $n$ instructions, with logical addresses from $0, \dots, n-1$. 
+    An inversion is a change of position of two lines $l_1, l_2$, such that the line that gets executed earlier $l_1$ has a higher address than one that gets executed later $l_2$.
+    Such a program can maximally have $\frac{n (n-1)}{2}$ inversions. 
+    If it has that many inversion, the program is layed out in the opposite direction and the spatial locality would be similar to the original program.
+    Thus lets assume only every second instruction is misplaced. 
+    In effect, to execute the program two pages must always remain in memory instead of one and the radius of the neighbourhood doubles.
+    
+    In short: 
+    The layout of the data or records in the address space --- on file or in memory --- is crucial to the concept of spatial locality. 
+    Achieving optimal temporal locality is a matter of grouping and ordering data such that what is referenced together is in a neighbourhood in terms of addressing.
+    
+          
 \section{Problem Definition}\label{\positionnumber}
-
+    In order to optimize spatial locality for traversal-based queries, the graph needs to be grouped and ordered.
+    Ultimately disk storage is block-based and disk access is page-based. 
+    That is the vertices and edges must be grouped into blocks.
+    
+    \paragraph{Assumptions:}
+    In the remainder of this thesis we are assuming that the graph is represented in the property graph model~\ref{prop-graph-model} and uses incidence lists~\ref{inci} as the storage schema. 
+    We are not taking properties, labels and relationship types into account.
+    We are focusing on spatial locality here, that is the page replacement algorithm is fixed but arbitrary.
+    Finally in the remainder of the thesis when talking about traversal-based queries, we mean all queries described in \ref{queries}, but the random walk.
+    
+    \paragraph{Problem Definition:} Given a graph $G$, logical block size $b$, page size $p$. \\
+    Desired is 
+    \begin{enumerate}
+     \item A partition of $G$ into blocks of vertex records $V_i$ and $E_i$ relationship records, 
+     \item orderings or permutations $\pi_v, \pi_e$ of the blocks of vertex and edge records $V_i, E_i$,
+     \item a reordering of the incidence list pointers
+    \end{enumerate}
+    such that spatial locality is as high as possible for traversal-based queries.
+    
+    As partitioning a graph optimally~\autocite{andreev2006balanced}, as well as finding an optimal linear arrangement~\autocite{garey1974some} are both NP-complete problems~\autocite{lewis1983computers}, we use the formulation ``as high as possible'' instead of optimal or maximal.
+    
+    In order to measure the spatial locality we introduce two measures that are used in the evaluation chapter:
+    \begin{enumerate}
+     \item Number of block accesses.
+     \item Number of non-consecutive block accesses.
+    \end{enumerate}
+    The first measure is to take the neighbourhood within a block into account: If vertices and edges that are accessed together are stored in the same block, this measure should be as small as possible.
+    The second measure takes the order of the blocks into account: 
+    If vertices and edges that are connected or ``close'' to each other are stored in adjacent blocks, they can be loaded with one sequential read.
+    But the second measure also takes into account how the traversal is executed in terms of pointer chasing with respect to the incidence list.
+    
 \section{Example: Vertex, Edge and Incidence List Order}
+  Why are these three criteria neccessary? Why are there only two measurements for three criteria? \\
+  This is what shall be explained in an example.
+  Something that is of importance for the traversal --- but not as straight forward to see as node and edge grouping and order --- is the order of the pointers in the incidence list, as we are going to see.
+  
+  The graph used in the below example looks as shown in \ref{}.
+  We use a storage schema that is motivated by the one of Neo4J, that is nodes and relationships are stored in separated files, the incidence list is stored in the records of the edges and the nodes conatain a pointer to the head relationship of their incidence list each.
+  
+    % TODO Figure
+  
+  First consider the left grouping of vertices and edges into blocks in \ref{}. Here we need none of the vertices in the partition are neighbouring to each other and when traversing the graph the page contains no referenced information until the neighbourhood of one of the other vertices are reached.
+  The same is true for the edges: None of the edges are connected to the same vertex. Each edge causes a page fault and a load of another page.
+  On the right handside, the vertices are grouped into blocks according to their neighbourhood and the edges are grouped by the vertices they are connected to. One problem that arises is that an edge appears in the neighbourhood of two vertices and it is to be determined in which neighbourhood an edge is to be grouped in.
+  
+    % TODO Figure
+  
+  Next we show two different orderings of the blocks, this time with a focus on the edges only. on the left handside an edge is stored in the neighbourhood of its source node, but far appart from its target node, which requires three single reads to go from one vertex over the edge to another vertex. On the right handside, the block are adjacent and one sequential read per file is enough to do the step from source to target.
+  
+  % TODO Figure
+  
+  Finally: Consider the visualization of an incidence list on the left and compare it to the one on the right. Theoretically the only difference is the order in which the list points to the relationships. In terms of traversed blocks, we access many blocks more than acutally necessarry on the left list. If we rearrange the pointers, the list may be loaded sequentially and at least the jumps are omitted.
 
+  % TODO Figure

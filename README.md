@@ -8,11 +8,10 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] Register Colloquium
 
 ## Timetable
-:pencil: = Writing thesis
-:computer: = write code
-:floppy_disk: = Buffer for debugging and rerunning experiments
-:bar_chart: = create slides
-:speaking_head: = practice
+<p style="text-align: center;">
+<progress id="time" value="1" max="26">Time</progress>
+
+
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
@@ -22,8 +21,19 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 | 12.4 :pencil: Introduction & Conclusion  	| 13.04 :pencil: Abstract & Figures   	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
 | 26.4  :bar_chart: 	|   27.4 :speaking_head: |  28.4  :speaking_head:	|   29.4 :speaking_head:	|   30.4 :dart: Defense	:checkered_flag: |  01.5 :beers:	|   02.5 :beers:	|
+</p>
+
+:pencil: = Writing thesis  
+:computer: = write code  
+:floppy_disk: = Buffer for debugging and rerunning experiments  
+:bar_chart: = create slides  
+:speaking_head: = practice  
 
 ## Thesis  
+<p style="text-align: center;">
+<progress id="write" value="2" max="7">Thesis</progress>
+</p>
+
 #### Introduction ~ 2 P. 
 - [ ] Essay ~ 1 P.
 - [ ] brief problem statement ~ 0.3 P.
@@ -39,9 +49,9 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] Neo4J & Index-free Incidence List ~ 5 P.
 
 #### Problem Def. ~ 5 P.
-- [ ] Locality & Measures
-- [ ] Problem definition
-- [ ] Example
+- [x] Locality ~ 2 P.
+- [x] Problem definition ~ 0.5 P.
+- [ ] Example ~ 2 P.
 
 #### Related Work ~ 5 P.
 - [ ] G-Store
@@ -65,9 +75,22 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] Acknowledgements
 - [ ] Bibliography
 
-**Overall 48 P. Contents + 10 P. Title, TOC, Abstract, Bibliography --> 60P.**
+**Overall 55 P. Contents + 5-10 P. Title, TOC, Abstract, Bibliography --> 60P.**
+
 
 ## Implementation
+<p style="text-align: center;">
+<progress id="file" value="0" max="6">Implementation</progress>
+</p>  
+
+- [-] G-Store  [Steinhaus, Olteanu].
+- [-] ICBL [Yasar, Gedik]
+- [ ] Record remapping
+- [ ] Adapt louvain to problem
+- [ ] Incidence List Reordering
+- [ ] Evaluation main
+
+#### Done
 - [x] Record structures  
 - [x] Data Structures (hash table, array list, queue)
 - [x] SNAP importer
@@ -80,11 +103,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] Dijkstra
 - [x] A\*
 - [x] ALT
-- [-] G-Store  [Steinhaus, Olteanu].
-- [-] ICBL [Yasar, Gedik]
-- [ ] Record remapping
-- [ ] Adapt louvain to problem
-- [ ] Incidence List Reordering
+
 
 
 ## Future Improvements
