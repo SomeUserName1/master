@@ -9,16 +9,16 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 ## Timetable
 <p style="text-align: center;">
-<progress id="time" value="1" max="26">Time</progress>
+<progress id="time" value="2" max="26">Time</progress>
 
 
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
-|22.3 :pencil:   Problem Definition - Locality & PD | 23.3 :pencil:  Problem Definition - PD & example |  24.3 :pencil: Related Work: ICBL  	|   25.3 :computer: ICBL 	|   26.3 :pencil: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
-|  29.3 :pencil: Own Method: Louvain w. Adaptions 	| 30.3 :pencil: Own Method Incidence List reord.  	| 31.3 :computer: Adapt Louvain  	| 01.4 :computer: Rearrange Incidence list   	|  02.4 :pencil: block ordering 	| 03.4 :computer: block ordering  	| 04.4 :computer: debugging  	|
+|22.3  :ballot_box_with_check: | 23.3 :pencil: ICBL   |  24.3 :computer: ICBL 	|   25.3 :computer: ICBL 	|   26.3 :pencil: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
+|  29.3 :pencil: Own Method: Louvain w. Adaptions 	| 30.3 :pencil: block ordering   | 31.3 :pencil: Own Method Incidence List reord.  	| 01.4 :computer: Adapt Louvain |  02.4  :computer: block ordering 	| 03.4 :computer: Rearrange Incidence list 	| 04.4 :computer: debugging  	|
 | 05.4 :pencil: Setup & Impl.  	| 06.04  :pencil: Data Sets, Queries 	|  07.4 :computer: write code for exp.	| 08.4 :computer: run experiments & generate plots  	| 09.4 :pencil: result discussion   | 10.4  :floppy_disk: 	|  11.4 :floppy_disk: 	|
-| 12.4 :pencil: Introduction & Conclusion  	| 13.04 :pencil: Abstract & Figures   	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
+| 12.4 :pencil: Introduction & Conclusion  	| 13.04 :pencil: Abstract & Figures  & Ack  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
 | 26.4  :bar_chart: 	|   27.4 :speaking_head: |  28.4  :speaking_head:	|   29.4 :speaking_head:	|   30.4 :dart: Defense	:checkered_flag: |  01.5 :beers:	|   02.5 :beers:	|
 </p>
@@ -39,19 +39,6 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] brief problem statement ~ 0.3 P.
 - [ ] Organization ~ 0.3 P.
 - [ ] Contributions! ~ 0.3 P.
-
-#### Background ~ 22 P.
-- [x] Low-level Database Arch. ~ 3 P.
-- [x] Graphs ~ 2 P
-- [x] Data structures ~ 5.5 P.
-- [x] traversal-based algos ~ 5 P.
-- [x] Property Graph Model ~ 1.5 P.
-- [x] Neo4J & Index-free Incidence List ~ 5 P.
-
-#### Problem Def. ~ 5 P.
-- [x] Locality ~ 2 P.
-- [x] Problem definition ~ 0.5 P.
-- [ ] Example ~ 2 P.
 
 #### Related Work ~ 5 P.
 - [ ] G-Store
@@ -78,16 +65,30 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 **Overall 55 P. Contents + 5-10 P. Title, TOC, Abstract, Bibliography --> 60P.**
 
+#### Done
+#### Background ~ 22 P.
+- [x] Low-level Database Arch. ~ 3 P.
+- [x] Graphs ~ 2 P
+- [x] Data structures ~ 5.5 P.
+- [x] traversal-based algos ~ 5 P.
+- [x] Property Graph Model ~ 1.5 P.
+- [x] Neo4J & Index-free Incidence List ~ 5 P.
+
+#### Problem Def. ~ 5 P.
+- [x] Locality ~ 2 P.
+- [x] Problem definition ~ 0.5 P.
+- [x] Example ~ 2 P.
 
 ## Implementation
 <p style="text-align: center;">
-<progress id="file" value="0" max="6">Implementation</progress>
+<progress id="file" value="0" max="7">Implementation</progress>
 </p>  
 
 - [-] G-Store  [Steinhaus, Olteanu].
 - [-] ICBL [Yasar, Gedik]
 - [ ] Record remapping
 - [ ] Adapt louvain to problem
+- [ ] Reorder blocks
 - [ ] Incidence List Reordering
 - [ ] Evaluation main
 
