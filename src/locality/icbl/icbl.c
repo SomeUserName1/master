@@ -48,7 +48,7 @@ get_num_walks(in_memory_file_t* db)
 static inline size_t
 get_num_coarse_clusters(in_memory_file_t* db)
 {
-    return ceil(((double)(sizeof(node_t) * db->node_id_counter)) /
+    return ceil(((double)((sizeof(node_t) + log(db->node_id_counter)) * db->node_id_counter)) /
                 sqrt(SHARE_OF_MEMORY * MEMORY));
 }
 
@@ -177,7 +177,7 @@ initialize_centers(in_memory_file_t* db,
     if (!max_degrees || !max_degree_nodes) {
         exit(-1);
     }
-
+    // FIXME check distance first
     for (size_t i = 0; i < num_nodes; ++i) {
         rels = in_memory_expand(db, i, BOTH);
         degree = list_relationship_size(rels);
@@ -264,7 +264,7 @@ updated_centers(size_t num_nodes,
         }
         dict_ul_ul_iterator_destroy(it);
     }
-
+    
     for (size_t i = 0; i < num_clusters; ++i) {
         it = create_dict_ul_ul_iterator(cluster_counts[i]);
         while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
@@ -504,6 +504,7 @@ compare_by_label(const void* a, const void* b, void* array2)
     return (0 < diff) - (diff < 0);
 }
 
+// FIXME does not order the blocks properly, does it?
 unsigned long*
 sort_by_label(dendrogram_t** blocks, unsigned long size)
 {

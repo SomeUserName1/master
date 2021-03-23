@@ -5,7 +5,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 ## Formalities
 - [x] Master Thesis Registration: Last handing in date is the 25th of May 2021  
 - [ ] Hand-in Thesis: 16.04
-- [ ] Register Colloquium
+- [ ] Register Colloquium: Form filled besides M.Scholl (TODO on submission day)
 
 ## Timetable
 <p style="text-align: center;">
@@ -15,7 +15,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
-|22.3  :ballot_box_with_check: | 23.3 :pencil: ICBL   |  24.3 :computer: ICBL 	|   25.3 :computer: ICBL 	|   26.3 :pencil: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
+|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :computer: ICBL 	|   25.3 :computer: ICBL 	|   26.3 :computer: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
 |  29.3 :pencil: Own Method: Louvain w. Adaptions 	| 30.3 :pencil: block ordering   | 31.3 :pencil: Own Method Incidence List reord.  	| 01.4 :computer: Adapt Louvain |  02.4  :computer: block ordering 	| 03.4 :computer: Rearrange Incidence list 	| 04.4 :computer: debugging  	|
 | 05.4 :pencil: Setup & Impl.  	| 06.04  :pencil: Data Sets, Queries 	|  07.4 :computer: write code for exp.	| 08.4 :computer: run experiments & generate plots  	| 09.4 :pencil: result discussion   | 10.4  :floppy_disk: 	|  11.4 :floppy_disk: 	|
 | 12.4 :pencil: Introduction & Conclusion  	| 13.04 :pencil: Abstract & Figures  & Ack  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
@@ -31,7 +31,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 ## Thesis  
 <p style="text-align: center;">
-<progress id="write" value="2" max="7">Thesis</progress>
+<progress id="write" value="3" max="7">Thesis</progress>
 </p>
 
 #### Introduction ~ 2 P. 
@@ -39,10 +39,6 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] brief problem statement ~ 0.3 P.
 - [ ] Organization ~ 0.3 P.
 - [ ] Contributions! ~ 0.3 P.
-
-#### Related Work ~ 5 P.
-- [ ] G-Store
-- [ ] ICBL
 
 #### Method ~ 5 P.
 - [ ] Louvain + customizations
@@ -66,7 +62,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 **Overall 55 P. Contents + 5-10 P. Title, TOC, Abstract, Bibliography --> 60P.**
 
 #### Done
-#### Background ~ 22 P.
+** Background ~ 22 P.**  
 - [x] Low-level Database Arch. ~ 3 P.
 - [x] Graphs ~ 2 P
 - [x] Data structures ~ 5.5 P.
@@ -74,10 +70,22 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] Property Graph Model ~ 1.5 P.
 - [x] Neo4J & Index-free Incidence List ~ 5 P.
 
-#### Problem Def. ~ 5 P.
+**Problem Def. ~ 5 P.**  
 - [x] Locality ~ 2 P.
 - [x] Problem definition ~ 0.5 P.
 - [x] Example ~ 2 P.
+
+**Related Work ~ 6 P.**  
+- [x] G-Store
+- [x] ICBL
+- [x] Bondhu
+
+### Notes
+- Make (Graph Databases) an own chapter or split it in Graphs, Databases
+- move analysis of non-adj & incidence list to appendix
+- Include permutation, inversion, min-cut in perliminaries?
+- Include complexity analysis for g-store/icbl?
+- Some feedback on problem definition
 
 ## Implementation
 <p style="text-align: center;">

@@ -75,10 +75,13 @@ unsigned long
 compute_total_e_w_btw_blocks(multi_level_graph_t* graph,
                              const unsigned int* partition)
 {
+    // FIXME Compute acutally what steinhaus means;
+    // for num parts, for num parts, for edges
+    // if edge exists +1 break else continue
     if (!graph || !partition) {
         exit(-1);
     }
-
+    
     list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t* rel;
     long total_e_w = 0;
@@ -513,12 +516,18 @@ project(multi_level_graph_t* graph,
         // Compute tensions
         tensions = compute_tension(graph, nodes_coarser_p, true);
         // sort & group by tension
+        // FIXME actually fixed point op:
+        // remove min, insert, update keys of neighs 
+        // & do it again until all are placed
+        // maybe use fib_heap:
+        // deg v * log n decrease keys + extract min
         unsigned long* sorted_nodes_p =
               sort_by_tension(nodes_coarser_p, tensions, num_nodes_p);
 
         free(tensions);
 
         for (size_t i = 0; i < num_nodes_p; ++i) {
+            // FIXME why ?
             if (finer->partition_aggregation_weight[graph->num_partitions] >
                       0 &&
                 (float)(finer->partition_aggregation_weight
@@ -686,7 +695,8 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
                 }
 
                 temp_p[i] = k;
-
+                
+                // FIXME
                 occupancy_factor =
                       1 - (float)(finer->node_aggregation_weight[i] +
                                   finer->partition_aggregation_weight[k]) /
@@ -709,7 +719,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     }
     free(score);
     free(temp_p);
-
+    // FIXME implement what is actually desired
 }
 
 int
@@ -741,6 +751,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         list_ul_destroy(nodes_per_part[i]);
     }
+    // FIXME free coarser graph & part_nos
 
     reorder(graph, part_type);
     free(part_type);

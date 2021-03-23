@@ -464,7 +464,7 @@ In this section we first give a definition of graphs as discrete structures and 
 
     \newpage
     \subsection{Traversal-based Algorithms}\label{queries}
-        \subsubsection*{Random Walk}
+        \subsubsection*{Random Walk}\label{rand-w}
             A random walk is a stochastic process, originally defined by Karl Pearson posing the following probelm to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
             \begin{quote}
                 A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. 
@@ -778,7 +778,7 @@ In this section we first give a definition of graphs as discrete structures and 
     But still one has to compute joins in order to continue the traversal in terms of depth.
     Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins.
     
-    In contrast to relational data base management systems, native graph databases use structures specialised for these kinds of queries.
+    In contrast to relational databases, native graph databases use structures specialised for these kinds of queries.
             
     \subsection{The Property Graph Model}\label{prop-graph-model}
         The property graph model is a widely adopted data model to represent graphs in databases.
@@ -797,12 +797,8 @@ In this section we first give a definition of graphs as discrete structures and 
             \item  $f_L: V \rightarrow 2^L$ a binary relation that assigns a node a set of labels.
         \end{itemize} 
         \smallskip
-        The property graph model reflects a directed, node-labeled and relationship-typed multigraph $G$, where each node and relationship can hold a set of properties~\cite{angles2018property, rodriguez2012graph}.
+        The property graph model reflects a directed, node-labeled and relationship-typed multigraph $G$, where each node and relationship can hold a set of properties~\cite{angles2018property, rodriguez2012graph, Rodriguez2010ConstructionsFD}.
         In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them records on their own. 
-        This means they either need to be addressed explicitly or one needs to store all information, including the properties, consecutively. 
-        The latter approach has the downside, that when the type or a property contain a variable length string, the relationships have to be variable length records. 
-        This would cause the lookup of a relationship's property to be not only indirected via a node index, but also requires an additional mechanism to be able to tell the beginning and length of the record. 
-        Further deleting a record would cause non-uniform shifts of the other elements or cause fragmentation.
         An illustration of this model is shown in \ref{propertygraph}.
         
         \begin{figure}
@@ -980,7 +976,7 @@ In this section we first give a definition of graphs as discrete structures and 
             The colored boxes on the edges and nodes represent the data structures.
             The brighter red edges represent the doubly linked incidence lists.
             Notice, that the heads and tails of the doubly linked incidence lists are marked by ''X`` to avoid to draw additional edges.
-            The brighter green arrows represent the source and target nodes, as stored by the edges. \\
+            The brighter green arrows represent the source and target nodes, as stored by the edges.
             \vfill
             \begin{figure}[htp]
                 \begin{center}

@@ -1,0 +1,38 @@
+\section{Related work: Complexities} 
+Coarsening \\
+    The worst case runtime of the coarsening algorithm is $\mathcal{O}(|E| \cdot |V| \cdot \text{deg}(V))$.
+    For each node we have to consider the edges to find the one with the highest weight. 
+    This is done $\frac{|E|}{2}$ times, for the first level, $\frac{|E|}{4}$ for the second level and so on until all edges are merged.
+    From thinking about this procedure as a (merge) tree, it should be clear the it takes $\log_2 |E|$ steps (the tree's height). 
+    In total we have $\sum_{k = 0}^{\log_2 |E|} \frac{1}{2}^k |E|$ iterations of the matching procedure. 
+    As $|E|$ is independent of the counter of the sum we can move it out.
+    We can then find an upper bound of the sum using the geometric series: $|E| \sum_{k = 0}^{\log_2 |E|} \frac{1}{2}^k \leq |E| \cdot 2$.
+    
+Turnaround \\
+    This part of the algorithm is in $\mathcal{O}(1)$ in the best case and $\mathcal{O}(|V|)$ worst case, as the number of nodes in the coarsest graph corresponds to the number of disconnected components in the original graph.
+    
+Uncoarsening \\
+    projection \\
+    As we need to compute the modified tension for all nodes in a partition and for all partitions, we can estimate that by multiplying the number of partitions by the average partition size, which is in turn the number of nodes: $|\phi_i| \cdot \overline{|\phi_{i,j}|} = |V_i|$.
+        Computing the modified tensions takes for all nodes $\mathcal{O}(|V_i| \cdot \text{deg}(V_i))$. 
+        Remembering the minimum can be done without additional costs while computing the modified tension. 
+        Updating all neighbours accordingly takes $\mathcal{O}(\text{deg}(V_i))$ as each node in the neighbourhood of the just placed node needs to be updated (i.e. removing the term for the previous tension between the two nodes and adding the new one).
+        Searching for the minimum subsequently takes $\mathcal{O}(\log |V_i|)$ when using a specialised data structure, e.g. a priority quque based on a fibonacci heap.
+        Updating and searching for the minimum needs to be done for all nodes in the partition and for all partitions in the worst case, thus it's done $|V_i|$ times.
+        Overall we have: $\mathcal{O}(|V_i| \cdot \text{deg}(V_i) + |V_i| \cdot (\log^2 |V_i|)) = \mathcal{O}(|V_i| \cdot (\log^2 |V_i|))$.
+        
+    Reordering \\
+    For each group we need to compute the tension for each possible swap. 
+        We have $|\phi_{i + 1}|$ many groups.
+        Each group can be estimated to have $\frac{|\phi_{i}|}{|\phi_{i + 1}|}$ many subpartitions.
+        There are $\frac{n(n-1)}{2}$ possible swaps in an array. 
+        The computation of the tension for all nodes is $|V_i| \cdot \text{deg}(V_i)$.
+        In summary we have a complexity of $\mathcal{O}(|\phi_{i + 1}| \cdot \frac{\frac{|\phi_{i}|}{|\phi_{i + 1}|}(\frac{|\phi_{i}|}{|\phi_{i + 1}|} - 1}{2}) \cdot |V_i| \cdot \text{deg}(V_i)) = \mathcal{O}(\frac{|\phi_{i}|^2}{|\phi_{i + 1}|} \cdot |V_i| \cdot \text{deg}(V_i))$. 
+        Assuming $\frac{|\phi_{i}|}{|\phi_{i + 1}|}$ is a constant we get $\mathcal{O}(|\phi_{i}| \cdot |V_i| \cdot \text{deg}(V_i))$.
+        
+    Refinement \\
+    Here we need to iterate over all partitions and over all nodes per partition in order to find the neighbouring partitions and their neighbourhood. 
+        Further we need to itarate over all nodes and over all edges to compute the objective functions per neighbouring partiton.
+        Finding the entry with the highest score repeatedly means $|\phi_{i,j}| \times |P_{i,j}|$ steps to find the minimum.
+        The iteration may be repeated $|\phi_{i,j}|$ times in the worst-case.
+        The result is a complexity of $\mathcal{O}(|\phi_{i}| \cdot \overline{|\phi_{i,j}|} (\overline{|\phi_{i,j}|} + (|V_i| \text{deg}(V_i)) + |E| + (|\phi_{i,j}| \cdot |P_{i,j}|)))$
