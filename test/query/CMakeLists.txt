@@ -2,4 +2,29 @@ find_package(ZLIB)
 add_executable(louvain-test  louvain_test.c)
 target_link_libraries(louvain-test -lz -lcurl query import)
 
+add_executable(bfs-test  bfs_test.c)
+target_link_libraries(bfs-test -lz -lcurl query import)
+
+add_executable(dfs-test  dfs_test.c)
+target_link_libraries(dfs-test -lz -lcurl query import)
+
+add_executable(dijkstra-test  dijkstra_test.c)
+target_link_libraries(dijkstra-test -lz -lcurl query import)
+
+add_executable(a-star-test  a-star_test.c)
+target_link_libraries(a-star-test -lz -lcurl query import)
+
+add_executable(alt-test  alt_test.c)
+target_link_libraries(alt-test -lz -lcurl query import)
+
+add_executable(random-walk-test  random-walk_test.c)
+target_link_libraries(random-walk-test -lz -lcurl query import)
+
+
 add_test("Louvain Test" louvain-test)
+add_test("BFS Test" bfs-test)
+add_test("DFS Test" dfs-test)
+add_test("Dijkstra's Test" dijkstra-test)
+add_test("A* Test" a-star-test)
+add_test("ALT Test" alt-test)
+add_test("Random Walk Test" random-walk-test)

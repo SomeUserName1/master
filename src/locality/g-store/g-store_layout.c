@@ -166,8 +166,8 @@ compute_tension(multi_level_graph_t* graph,
     for (size_t i = 0; i < num_nodes_p; ++i) {
         node_id = list_ul_get(nodes_in_p, i);
 
-        p1 = modified_t ? graph->partition[finer->map_to_coarser[node_id]]
-                        : finer->partition[node_id];
+        p1 = modified_t ? (long)graph->partition[finer->map_to_coarser[node_id]]
+                        : (long)finer->partition[node_id];
 
         rels = in_memory_expand(finer->records, node_id, BOTH);
 
@@ -495,8 +495,11 @@ project(multi_level_graph_t* graph,
     size_t finer_partition = 0;
     list_ul_t* nodes_coarser_p;
     size_t num_nodes_p;
+    size_t num_nodes_before;
     long* tensions;
-    unsigned long node_id;
+    unsigned long ext_node_id;
+    long ext_tension;
+    bool min;
     float weight_threshold =
           block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
 
@@ -524,50 +527,39 @@ project(multi_level_graph_t* graph,
 
             continue;
         }
-        // Compute tensions
-        tensions = compute_tension(graph, nodes_coarser_p, true);
-        // Build fibonacci heap based on tensions
 
-        fib_heap_t* prio_queue = create_fib_heap();
-        for (size_t i = 0; i < num_nodes_p; ++i) {
-            node_id = list_ul_get(nodes_coarser_p, i);
-            ;
-            fib_heap_insert((double)prio_queue,
-                            create_fib_node(tensions[node_id], node_id));
-        }
+        min = true;
+        num_nodes_before = num_nodes_p;
+        do {
+            ext_tension = min ? LONG_MAX : LONG_MIN;
+            tensions = compute_tension(graph, nodes_coarser_p, true);
 
-        // FIXME actually fixed point op:
-        // remove min, insert, update keys of neighs
-        // & do it again until all are placed
-        // maybe use fib_heap:
-        // deg v * log n decrease keys + extract min
-        //        unsigned long* sorted_nodes_p =
-        //              sort_by_tension(nodes_coarser_p, tensions, num_nodes_p);
-        //
-        //        free(tensions);
-        //
-        //        for (size_t i = 0; i < num_nodes_p; ++i) {
-        //            // FIXME why ?
-        //            if
-        //            (finer->partition_aggregation_weight[graph->num_partitions]
-        //            >
-        //                      0 &&
-        //                (float)(finer->partition_aggregation_weight
-        //                              [graph->num_partitions] +
-        //                        finer->node_aggregation_weight[sorted_nodes_p[i]])
-        //                        >
-        //                      weight_threshold) {
-        //
-        //                part_type[finer_partition] =
-        //                      i < num_nodes_p / 2 + 1 ? false : true;
-        //
-        //                finer_partition++;
-        //            }
-        //            finer->partition[sorted_nodes_p[i]] = finer_partition;
-        //            finer->partition_aggregation_weight[finer_partition] +=
-        //                  finer->node_aggregation_weight[sorted_nodes_p[i]];
-        //        }
-        //        free(sorted_nodes_p);
+            for (size_t i = 0; i < num_nodes_p; ++i) {
+                if (min && tensions[i] < ext_tension ||
+                    !min && tensions[i] > ext_tension) {
+                    ext_tension = tensions[i];
+                    ext_node_id = list_ul_get(nodes_coarser_p, i);
+                }
+            }
+            min = !min;
+            free(tensions);
+
+            if ((double)(finer->partition_aggregation_weight[finer_partition] +
+                         finer->node_aggregation_weight[ext_node_id]) >
+                weight_threshold) {
+
+                part_type[finer_partition] =
+                      num_nodes_p < num_nodes_before / 2 + 1 ? false : true;
+                finer_partition++;
+            }
+
+            finer->partition[ext_node_id] = finer_partition;
+            finer->partition_aggregation_weight[finer_partition] +=
+                  finer->node_aggregation_weight[ext_node_id];
+
+            list_ul_remove_elem(nodes_coarser_p, ext_node_id);
+            num_nodes_p--;
+        } while (num_nodes_p > 0);
     }
     finer_partition++;
     finer->num_partitions = finer_partition;

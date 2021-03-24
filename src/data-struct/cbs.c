@@ -6,6 +6,12 @@
 #include "../record/node.h"
 #include "../record/relationship.h"
 
+bool
+ptr_eq(const void* a, const void* b)
+{
+    return a == b;
+}
+
 size_t
 fnv_hash_ul(const void* in, unsigned int seed)
 {

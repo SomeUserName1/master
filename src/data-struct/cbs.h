@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+bool
+ptr_eq(const void* a, const void* b);
+
 size_t
 fnv_hash_ul(const void* in, unsigned int seed);
 bool

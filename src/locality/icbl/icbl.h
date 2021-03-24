@@ -22,21 +22,26 @@ typedef struct dendrogram
 
 int
 identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
+
 int
 cluster_coarse(in_memory_file_t* db,
                dict_ul_ul_t** dif_sets,
                unsigned long* parts);
+
 int
 block_formation(in_memory_file_t* db,
                 dict_ul_ul_t** dif_sets,
                 const unsigned long* parts,
                 dendrogram_t*** blocks,
                 unsigned long* block_count);
+
 int
 layout_blocks(in_memory_file_t* db,
               dendrogram_t*** blocks,
-              unsigned long* block_count);
-int
+              unsigned long* block_count,
+              unsigned long* partitions);
+
+unsigned long*
 icbl(in_memory_file_t* db);
 
 #endif
