@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../data-struct/fibonacci_heap.h"
 #include "../../data-struct/list_ul.h"
 
 void
@@ -44,7 +45,7 @@ insert_match(size_t* matches,
 
 unsigned long
 compute_abs_tension(multi_level_graph_t* graph,
-                    const unsigned int* partition_p_node)
+                    const unsigned long* partition_p_node)
 {
     if (!graph || !partition_p_node || !graph->finer ||
         !graph->finer->edge_aggregation_weight) {
@@ -72,35 +73,46 @@ compute_abs_tension(multi_level_graph_t* graph,
 }
 
 unsigned long
-compute_total_e_w_btw_blocks(multi_level_graph_t* graph,
-                             const unsigned int* partition)
+compute_conn_parts(multi_level_graph_t* graph, const unsigned long* partition)
 {
-    // FIXME Compute acutally what steinhaus means;
-    // for num parts, for num parts, for edges
-    // if edge exists +1 break else continue
     if (!graph || !partition) {
         exit(-1);
     }
-    
+
     list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t* rel;
-    long total_e_w = 0;
+    long conn_parts = 0;
+    bool found;
 
-    for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
-        rel = list_relationship_get(rels, i);
-        if (partition[rel->source_node] != partition[rel->target_node]) {
-            total_e_w += (long)graph->edge_aggregation_weight[i];
+    for (size_t i = 0; i < graph->num_partitions; ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            if (i == j) {
+                continue;
+            }
+
+            for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
+                rel = list_relationship_get(rels, i);
+                if (partition[rel->source_node] !=
+                          partition[rel->target_node] &&
+                    (partition[rel->source_node] == i ||
+                     partition[rel->source_node] == j) &&
+                    (partition[rel->target_node] == i ||
+                     partition[rel->target_node] == j)) {
+                    conn_parts++;
+                    break;
+                }
+            }
         }
     }
 
     list_relationship_destroy(rels);
 
-    return total_e_w;
+    return conn_parts;
 }
 
 long
-compute_num_e_btw_blocks(multi_level_graph_t* graph,
-                         const unsigned int* partition)
+compute_num_e_btw_parts(multi_level_graph_t* graph,
+                        const unsigned long* partition)
 {
     if (!graph || !partition) {
         exit(-1);
@@ -213,15 +225,15 @@ sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
     return s_nodes;
 }
 
-unsigned int*
+unsigned long*
 swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 {
     if (!graph) {
         exit(-1);
     }
 
-    unsigned int* new_partition =
-          malloc(graph->records->node_id_counter * sizeof(unsigned int));
+    unsigned long* new_partition =
+          malloc(graph->records->node_id_counter * sizeof(unsigned long));
 
     if (new_partition == NULL) {
         exit(-1);
@@ -260,8 +272,7 @@ coarsen(multi_level_graph_t* graph,
     unsigned long other_node_id;
     unsigned long new_rel_id;
     size_t num_rels;
-    // If we want to match n nodes together we need n-1 edges and other nodes as
-    // one is fixed by the iteration
+    // If we want to match n nodes together we need n-1 edges and other nodes
     size_t* matches = calloc(*num_v_matches - 1, sizeof(size_t));
     size_t* matches_weights = calloc(*num_v_matches - 1, sizeof(size_t));
     size_t num_matched = 0;
@@ -426,7 +437,7 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
 
     size_t num_nodes = graph->records->node_id_counter;
     graph->num_partitions = 0;
-    graph->partition = calloc(num_nodes, sizeof(unsigned int));
+    graph->partition = calloc(num_nodes, sizeof(unsigned long));
     graph->partition_aggregation_weight = calloc(num_nodes, sizeof(size_t));
 
     if (!graph->partition || !graph->partition_aggregation_weight) {
@@ -467,7 +478,6 @@ project(multi_level_graph_t* graph,
         float c_ratio_avg,
         list_ul_t** nodes_per_part)
 {
-
     if (!graph || !graph->finer || !part_type || !nodes_per_part) {
         exit(-1);
     }
@@ -475,7 +485,7 @@ project(multi_level_graph_t* graph,
     multi_level_graph_t* finer = graph->finer;
     size_t num_nodes_f = finer->records->node_id_counter;
     finer->num_partitions = 0;
-    finer->partition = calloc(num_nodes_f, sizeof(unsigned int));
+    finer->partition = calloc(num_nodes_f, sizeof(unsigned long));
     finer->partition_aggregation_weight = calloc(num_nodes_f, sizeof(size_t));
 
     if (!finer->partition || !finer->partition_aggregation_weight) {
@@ -486,6 +496,7 @@ project(multi_level_graph_t* graph,
     list_ul_t* nodes_coarser_p;
     size_t num_nodes_p;
     long* tensions;
+    unsigned long node_id;
     float weight_threshold =
           block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
 
@@ -515,36 +526,48 @@ project(multi_level_graph_t* graph,
         }
         // Compute tensions
         tensions = compute_tension(graph, nodes_coarser_p, true);
-        // sort & group by tension
+        // Build fibonacci heap based on tensions
+
+        fib_heap_t* prio_queue = create_fib_heap();
+        for (size_t i = 0; i < num_nodes_p; ++i) {
+            node_id = list_ul_get(nodes_coarser_p, i);
+            ;
+            fib_heap_insert((double)prio_queue,
+                            create_fib_node(tensions[node_id], node_id));
+        }
+
         // FIXME actually fixed point op:
-        // remove min, insert, update keys of neighs 
+        // remove min, insert, update keys of neighs
         // & do it again until all are placed
         // maybe use fib_heap:
         // deg v * log n decrease keys + extract min
-        unsigned long* sorted_nodes_p =
-              sort_by_tension(nodes_coarser_p, tensions, num_nodes_p);
-
-        free(tensions);
-
-        for (size_t i = 0; i < num_nodes_p; ++i) {
-            // FIXME why ?
-            if (finer->partition_aggregation_weight[graph->num_partitions] >
-                      0 &&
-                (float)(finer->partition_aggregation_weight
-                              [graph->num_partitions] +
-                        finer->node_aggregation_weight[sorted_nodes_p[i]]) >
-                      weight_threshold) {
-
-                part_type[finer_partition] =
-                      i < num_nodes_p / 2 + 1 ? false : true;
-
-                finer_partition++;
-            }
-            finer->partition[sorted_nodes_p[i]] = finer_partition;
-            finer->partition_aggregation_weight[finer_partition] +=
-                  finer->node_aggregation_weight[sorted_nodes_p[i]];
-        }
-        free(sorted_nodes_p);
+        //        unsigned long* sorted_nodes_p =
+        //              sort_by_tension(nodes_coarser_p, tensions, num_nodes_p);
+        //
+        //        free(tensions);
+        //
+        //        for (size_t i = 0; i < num_nodes_p; ++i) {
+        //            // FIXME why ?
+        //            if
+        //            (finer->partition_aggregation_weight[graph->num_partitions]
+        //            >
+        //                      0 &&
+        //                (float)(finer->partition_aggregation_weight
+        //                              [graph->num_partitions] +
+        //                        finer->node_aggregation_weight[sorted_nodes_p[i]])
+        //                        >
+        //                      weight_threshold) {
+        //
+        //                part_type[finer_partition] =
+        //                      i < num_nodes_p / 2 + 1 ? false : true;
+        //
+        //                finer_partition++;
+        //            }
+        //            finer->partition[sorted_nodes_p[i]] = finer_partition;
+        //            finer->partition_aggregation_weight[finer_partition] +=
+        //                  finer->node_aggregation_weight[sorted_nodes_p[i]];
+        //        }
+        //        free(sorted_nodes_p);
     }
     finer_partition++;
     finer->num_partitions = finer_partition;
@@ -584,8 +607,8 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     list_ul_append(groups[0], 0);
     long* gains;
     long max_gain;
-    unsigned int* swap_p;
-    unsigned int* max_gain_p;
+    unsigned long* swap_p;
+    unsigned long* max_gain_p;
     size_t max_gain_idx1;
     size_t max_gain_idx2;
     size_t temp;
@@ -671,7 +694,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     float weight_threshold =
           block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
 
-    unsigned int* temp_p = calloc(num_nodes, sizeof(unsigned int));
+    unsigned long* temp_p = calloc(num_nodes, sizeof(unsigned long));
 
     if (!score || !temp_p) {
         exit(-1);
@@ -695,7 +718,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
                 }
 
                 temp_p[i] = k;
-                
+
                 // FIXME
                 occupancy_factor =
                       1 - (float)(finer->node_aggregation_weight[i] +
@@ -704,8 +727,8 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
                 score[i * finer->num_partitions + k] =
                       -(ALPHA * (float)compute_abs_tension(finer, temp_p) +
-                        BETA * compute_total_e_w_btw_blocks(graph, temp_p) +
-                        GAMMA * compute_num_e_btw_blocks(graph, temp_p));
+                        BETA * compute_conn_parts(graph, temp_p) +
+                        GAMMA * compute_num_e_btw_parts(graph, temp_p));
             }
         }
         max_score = 0.0F;
@@ -751,7 +774,6 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         list_ul_destroy(nodes_per_part[i]);
     }
-    // FIXME free coarser graph & part_nos
 
     reorder(graph, part_type);
     free(part_type);
@@ -761,7 +783,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     return 0;
 }
 
-void
+unsigned long*
 g_store_layout(in_memory_file_t* db, size_t block_size)
 {
     multi_level_graph_t* graph = malloc(sizeof(*graph));
@@ -778,6 +800,7 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
         graph->node_aggregation_weight[i] = 1;
     }
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
+
     graph->finer = NULL;
 
     if (!graph->node_aggregation_weight || !graph->edge_aggregation_weight) {
@@ -800,7 +823,21 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
 
     while (uncoarsen(graph, block_size, c_ratio_avg) == 0) {
         graph = graph->finer;
+        free(graph->coarser->map_to_coarser);
+        free(graph->coarser->node_aggregation_weight);
+        free(graph->coarser->edge_aggregation_weight);
+        free(graph->coarser->partition_aggregation_weight);
+        free(graph->coarser->partition);
+        in_memory_file_destroy(graph->coarser->records);
+        free(graph->coarser);
     }
 
-    // TODO Write result to file or sth.
+    free(graph->map_to_coarser);
+    free(graph->node_aggregation_weight);
+    free(graph->edge_aggregation_weight);
+    free(graph->partition_aggregation_weight);
+    unsigned long* result = graph->partition;
+    free(graph);
+
+    return result;
 }
