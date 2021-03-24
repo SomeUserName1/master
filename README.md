@@ -9,13 +9,13 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 ## Timetable
 <p style="text-align: center;">
-<progress id="time" value="2" max="26">Time</progress>
+<progress id="time" value="3" max="26">Time</progress>
 
 
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
-|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :computer: ICBL 	|   25.3 :computer: ICBL 	|   26.3 :computer: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
+|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :computer: ICBL 	|   26.3 :computer: G-Store	|  27.3 :computer: G-Store 	| 28.3 :computer: remap IDs & Debugging  	|
 |  29.3 :pencil: Own Method: Louvain w. Adaptions 	| 30.3 :pencil: block ordering   | 31.3 :pencil: Own Method Incidence List reord.  	| 01.4 :computer: Adapt Louvain |  02.4  :computer: block ordering 	| 03.4 :computer: Rearrange Incidence list 	| 04.4 :computer: debugging  	|
 | 05.4 :pencil: Setup & Impl.  	| 06.04  :pencil: Data Sets, Queries 	|  07.4 :computer: write code for exp.	| 08.4 :computer: run experiments & generate plots  	| 09.4 :pencil: result discussion   | 10.4  :floppy_disk: 	|  11.4 :floppy_disk: 	|
 | 12.4 :pencil: Introduction & Conclusion  	| 13.04 :pencil: Abstract & Figures  & Ack  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
