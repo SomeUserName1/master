@@ -35,7 +35,7 @@ main(void)
     assert(dict_ul_rel_size(db->cache_rels) == EMAIL_EU_CORE_NO_RELS);
     printf("Success\n");
 
-    free(map);
+    dict_ul_ul_destroy(map);
     in_memory_file_destroy(db);
     return 0;
 }

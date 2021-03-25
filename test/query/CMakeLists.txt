@@ -17,7 +17,7 @@ target_link_libraries(a-star-test -lz -lcurl query import)
 add_executable(alt-test  alt_test.c)
 target_link_libraries(alt-test -lz -lcurl query import)
 
-add_executable(random-walk-test  random-walk_test.c)
+add_executable(random-walk-test  random_walk_test.c)
 target_link_libraries(random-walk-test -lz -lcurl query import)
 
 

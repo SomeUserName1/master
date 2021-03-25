@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 traversal_result*
-create_search_result(unsigned long* traversal_numbers, unsigned long* parents)
+create_traversal_result(unsigned long* traversal_numbers,
+                        unsigned long* parents)
 {
     if (!traversal_numbers || !parents) {
         exit(-1);
@@ -21,7 +22,7 @@ create_search_result(unsigned long* traversal_numbers, unsigned long* parents)
 }
 
 void
-search_result_destroy(traversal_result* result)
+traversal_result_destroy(traversal_result* result)
 {
     if (!result) {
         return;

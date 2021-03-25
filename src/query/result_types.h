@@ -27,7 +27,8 @@ typedef struct path
 } path;
 
 traversal_result*
-create_traversal_result(unsigned long* search_numbers, unsigned long* parents);
+create_traversal_result(unsigned long* traversal_numbers,
+                        unsigned long* parents);
 
 void
 traversal_result_destroy(traversal_result* result);

@@ -106,7 +106,7 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           record->first_property,
                           record->node_type);
 
-    if (length > buffer_size) {
+    if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote node string representation to a buffer that was too "
                "small!");
         return EOVERFLOW;
@@ -125,7 +125,7 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           record->first_property,
                           record->node_type);
 
-    return 0;
+    return result > 0 ? 0 : result;
 }
 
 void

@@ -111,7 +111,7 @@ relationship_to_string(const relationship_t* record,
                           record->next_rel_target,
                           record->weight);
 
-    if ((size_t)length > buffer_size) {
+    if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote relationship string representation to a buffer that was "
                "too small!");
         return -1;
@@ -140,7 +140,7 @@ relationship_to_string(const relationship_t* record,
                           record->next_rel_target,
                           record->weight);
 
-    return 0;
+    return result > 0 ? 0 : result;
 }
 
 void

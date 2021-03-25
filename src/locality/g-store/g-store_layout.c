@@ -82,7 +82,6 @@ compute_conn_parts(multi_level_graph_t* graph, const unsigned long* partition)
     list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t* rel;
     long conn_parts = 0;
-    bool found;
 
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         for (size_t j = 0; j < i; ++j) {
@@ -535,8 +534,8 @@ project(multi_level_graph_t* graph,
             tensions = compute_tension(graph, nodes_coarser_p, true);
 
             for (size_t i = 0; i < num_nodes_p; ++i) {
-                if (min && tensions[i] < ext_tension ||
-                    !min && tensions[i] > ext_tension) {
+                if ((min && tensions[i] < ext_tension) ||
+                    (!min && tensions[i] > ext_tension)) {
                     ext_tension = tensions[i];
                     ext_node_id = list_ul_get(nodes_coarser_p, i);
                 }

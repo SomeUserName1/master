@@ -7,20 +7,20 @@
 #include "../data-struct/list_rel.h"
 #include "../record/relationship.h"
 
-// FIXME Implementation currently assumes undirected graphs
-
 void
 update_partition(louvain_partition_t* p,
                  unsigned long* part,
                  unsigned long size)
 {
     if (!p || !part) {
+        printf("louvain: update partition: Passed NULL ptr as argument!\n");
         exit(-1);
     }
     // Renumber the communities in p
     unsigned long* renumber = calloc(p->size, sizeof(unsigned long));
 
     if (!renumber) {
+        printf("louvain: update partition: Allocating memory failed!\n");
         exit(-1);
     }
 
@@ -44,6 +44,8 @@ louvain_graph_t*
 louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
 {
     if (!p || !g) {
+        printf("louvain: louvain_partition_to_graph: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -52,6 +54,8 @@ louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
     unsigned long* renumber = calloc(num_nodes, sizeof(unsigned long));
 
     if (!renumber) {
+        printf("louvain: louvain_partition_to_graph: Allocating memory "
+               "failed!\n");
         exit(-1);
     }
 
@@ -74,6 +78,8 @@ louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
     louvain_graph_t* res = malloc(sizeof(*res));
 
     if (!res) {
+        printf("louvain: louvain_partition_to_graph: Allocating memory "
+               "failed!\n");
         exit(-1);
     }
 
@@ -122,8 +128,8 @@ louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
         // add neighbors of node i
         get_neighbouring_communities_all(p, g, node);
     }
-    printf("bad exit\n");
-    return res;
+    printf("Should be unreachable\n");
+    exit(-1);
 }
 
 void
@@ -132,6 +138,8 @@ get_neighbouring_communities(louvain_partition_t* p,
                              unsigned long node)
 {
     if (!p || !g) {
+        printf("louvain: get_neighbouring_communities: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -171,6 +179,8 @@ get_neighbouring_communities_all(louvain_partition_t* p,
                                  unsigned long node)
 {
     if (!p || !g) {
+        printf("louvain: get_neighbouring_communities_all: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -209,12 +219,16 @@ unsigned long*
 sort_by_partition(unsigned long* part, unsigned long size)
 {
     if (!part) {
+        printf("louvain: sort_by_partition: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
     unsigned long* nodes = malloc(size * sizeof(unsigned long));
 
     if (!nodes) {
+        printf("louvain: sort_by_partition: Allocating memory failed!\n");
+
         exit(-1);
     }
 
@@ -233,6 +247,8 @@ double
 degree_weighted(louvain_graph_t* g, unsigned long node)
 {
     if (!g) {
+        printf("louvain: degree_weighted: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -253,6 +269,8 @@ double
 selfloop_weighted(louvain_graph_t* g, unsigned long node)
 {
     if (!g) {
+        printf("louvain: selfloop_weighted: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -274,12 +292,16 @@ louvain_partition_t*
 create_louvain_partition(louvain_graph_t* g)
 {
     if (!g) {
+        printf("louvain: create_louvain_partition: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
     louvain_partition_t* p = malloc(sizeof(*p));
 
     if (!p) {
+        printf(
+              "louvain: create_louvain_partition: Allocating memory failed!\n");
         exit(-1);
     }
 
@@ -308,6 +330,8 @@ void
 louvain_part_destroy(louvain_partition_t* p)
 {
     if (!p) {
+        printf("louvain: louvain_part_destroy: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -327,6 +351,8 @@ louvain_part_remove_node(louvain_partition_t* p,
                          double dnodecomm)
 {
     if (!p || !g) {
+        printf("louvain: louvain_part_remove_node: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -342,6 +368,8 @@ louvain_part_insert_node(louvain_partition_t* p,
                          double dnodecomm)
 {
     if (!p || !g) {
+        printf("louvain: louvain_part_insert_node: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -358,6 +386,8 @@ gain(louvain_partition_t* p,
      double d_node)
 { // degc ? long double???
     if (!p || !g) {
+        printf("louvain: gain: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -371,6 +401,7 @@ double
 compute_modularity(louvain_partition_t* p, louvain_graph_t* g)
 {
     if (!p || !g) {
+        printf("louvain: compute_modularity: Passed NULL ptr as argument!\n");
         exit(-1);
     }
 
@@ -390,6 +421,8 @@ void
 init_neighbouring_communities(louvain_partition_t* p)
 {
     if (!p) {
+        printf("louvain: init_neighbouring_communities: Passed NULL ptr as "
+               "argument!\n");
         exit(-1);
     }
 
@@ -402,7 +435,8 @@ init_neighbouring_communities(louvain_partition_t* p)
 double
 louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
 {
-        if (!p || !g) {
+    if (!p || !g) {
+        printf("louvain: louvain_one_level: Passed NULL ptr as argument!\n");
         exit(-1);
     }
 
@@ -425,6 +459,7 @@ louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
     unsigned long* rand_ord = malloc(p->size * sizeof(unsigned long));
 
     if (!rand_ord) {
+        printf("louvain: louvain_one_level: Allocating memory failed!\n");
         exit(-1);
     }
 
@@ -501,6 +536,7 @@ unsigned long*
 louvain(in_memory_file_t* db)
 {
     if (!db) {
+        printf("louvain: louvain: Passed NULL ptr as argument!\n");
         exit(-1);
     }
 
@@ -508,6 +544,7 @@ louvain(in_memory_file_t* db)
     unsigned long* partition = calloc(original_size, sizeof(unsigned long));
 
     if (!partition) {
+        printf("louvain: louvain: Allocating memory failed!\n");
         exit(-1);
     }
 
@@ -542,7 +579,9 @@ louvain(in_memory_file_t* db)
         g = g2;
     }
 
+    louvain_graph_destroy(g);
     free(original);
+
     return partition;
 }
 
@@ -550,12 +589,15 @@ louvain_graph_t*
 louvain_graph_init(in_memory_file_t* db)
 {
     if (!db) {
+
+        printf("louvain: louvain_graph_init: Passed NULL ptr as argument!\n");
         exit(-1);
     }
 
     louvain_graph_t* result = malloc(sizeof(*result));
 
     if (!result) {
+        printf("louvain: louvain_graph_init: Allocating memory failed!\n");
         exit(-1);
     }
 

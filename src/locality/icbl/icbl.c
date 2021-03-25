@@ -528,7 +528,6 @@ block_formation(in_memory_file_t* db,
 {
     size_t n_nodes = db->node_id_counter;
     size_t num_clusters = get_num_coarse_clusters(db);
-    float* dist;
     blocks = malloc(num_clusters * sizeof(dendrogram_t**));
     if (blocks == NULL) {
         return -1;
@@ -662,7 +661,6 @@ order_subgraphs(dendrogram_t* hierarchy,
         list_append(stack, (void*)&(current->children.dendro[1]));
     }
 
-    unsigned long* temp_arr;
     dendrogram_t** temp_dendro;
     for (size_t i = 0; i < n_subgraphs; ++i) {
         temp_dendro = blocks[i];
@@ -713,13 +711,12 @@ layout_blocks(in_memory_file_t* db,
               unsigned long* partition)
 {
     size_t num_clusters = get_num_coarse_clusters(db);
-    dendrogram_t* temp_dendro;
 
     for (size_t i = 0; i < num_clusters; ++i) {
         sort_by_label(blocks[i], block_count[i]);
     }
 
-    dendrogram_t** hierarchy;
+    dendrogram_t** hierarchy = NULL;
     cluster_hierarchical(num_clusters,
                          subgraph_distance(db, partition, num_clusters),
                          initialize_subgraph_dendrograms(num_clusters),

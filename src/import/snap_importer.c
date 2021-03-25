@@ -13,8 +13,9 @@
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
-#define CHUNK 524288
-#define IMPORT_FIELDS 2
+#define CHUNK (524288)
+#define IMPORT_FIELDS (2)
+#define STATUS_LINES 10000
 
 static size_t
 write_data(void* ptr, size_t size, size_t nmemb, void* stream)
@@ -299,7 +300,7 @@ import_from_txt(in_memory_file_t* db, const char* path)
     result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
     while (result == 2) {
-        if (lines % 10000 == 0) {
+        if (lines % STATUS_LINES == 0) {
             printf("%s %lu\n", "Processed", lines);
         }
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
