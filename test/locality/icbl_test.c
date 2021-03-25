@@ -18,7 +18,7 @@ main(void)
           db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
 
-    printf("Start applying the G-Store multilevel partitioning algorithm.\n");
+    printf("Start applying the ICBL multilevel partitioning algorithm.\n");
     unsigned long* partition = icbl(db);
     printf("Done.\n");
 

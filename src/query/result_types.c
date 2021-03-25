@@ -65,7 +65,10 @@ sssp_result_destroy(sssp_result* result)
 }
 
 path*
-create_path(double distance, list_ul_t* edges)
+create_path(unsigned long source_node_id,
+            unsigned long target_node_id,
+            double distance,
+            list_ul_t* edges)
 {
     if (!distance || !edges) {
         exit(-1);
@@ -77,6 +80,8 @@ create_path(double distance, list_ul_t* edges)
         exit(-1);
     }
 
+    result->source = source_node_id;
+    result->target = target_node_id;
     result->distance = distance;
     result->edges = edges;
 
@@ -100,11 +105,12 @@ path_extract_vertices(path* p, in_memory_file_t* db)
     list_ul_t* nodes = create_list_ul();
 
     list_ul_append(nodes, p->source);
-    unsigned long prev_node = p->source;
+    unsigned long prev_node;
     relationship_t* rel;
 
     for (size_t i = 0; i < list_ul_size(p->edges); ++i) {
         rel = in_memory_get_relationship(db, list_ul_get(p->edges, i));
+        prev_node = list_ul_get(nodes, list_ul_size(nodes) - 1);
 
         if (rel->source_node == prev_node) {
             list_ul_append(nodes, rel->target_node);

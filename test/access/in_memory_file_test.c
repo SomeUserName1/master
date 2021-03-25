@@ -357,6 +357,41 @@ test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
     // 73.
 }
 
+void
+test_get_nodes(in_memory_file_t* db)
+{
+    size_t n_nodes_before = db->node_id_counter;
+    list_node_t* nodes = in_memory_get_nodes(db);
+    assert(list_node_size(nodes) == db->node_id_counter);
+
+    node_t* node;
+    for (size_t i = 0; i < list_node_size(nodes); ++i) {
+        node = list_node_get(nodes, i);
+        list_node_remove_elem(nodes, node);
+        assert(!list_node_contains(nodes, node));
+    }
+    list_node_destroy(nodes);
+    assert(n_nodes_before == db->node_id_counter);
+}
+
+void
+test_get_rels(in_memory_file_t* db)
+{
+    size_t n_rels_before = db->rel_id_counter;
+    list_relationship_t* rels = in_memory_get_relationships(db);
+    assert(list_relationship_size(rels) == db->rel_id_counter);
+
+    relationship_t* rel;
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        rel = list_relationship_get(rels, i);
+        list_relationship_remove_elem(rels, rel);
+        assert(!list_relationship_contains(rels, rel));
+    }
+
+    list_relationship_destroy(rels);
+    assert(n_rels_before == db->rel_id_counter);
+}
+
 int
 main(void)
 {
@@ -366,6 +401,8 @@ main(void)
           db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);
+    test_get_nodes(db);
+    test_get_rels(db);
 
     in_memory_file_destroy(db);
     dict_ul_ul_destroy(map);

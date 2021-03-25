@@ -26,6 +26,7 @@ get_num_walks(in_memory_file_t* db)
     size_t max_deg = get_max_degree(db, BOTH);
     size_t range = max_deg - min_deg + 1;
     size_t nodes_per_step = db->node_id_counter / range;
+    size_t num_walks = 1;
 
     list_relationship_t* rels;
 
@@ -33,18 +34,23 @@ get_num_walks(in_memory_file_t* db)
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         rels = in_memory_expand(db, i, BOTH);
-        degree_hist[min_deg - list_relationship_size(rels)]++;
+        degree_hist[list_relationship_size(rels) - min_deg]++;
         list_relationship_destroy(rels);
     }
 
     for (size_t i = 0; i < range; ++i) {
         if (degree_hist[i] > nodes_per_step) {
-            return i;
+            if (i == 0 && min_deg == 0) {
+                num_walks = 1;
+            } else {
+                num_walks = i + min_deg;
+            }
+            break;
         }
     }
     free(degree_hist);
 
-    return max_deg;
+    return num_walks;
 }
 
 static inline size_t
@@ -103,10 +109,14 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     unsigned long value_a = 0;
     unsigned long value_b = 0;
 
+    unsigned long* key_p = &key;
+    unsigned long* value_a_p = &value_a;
+    unsigned long* value_b_p = &value_b;
+
     unsigned long intersect_sum = 0;
     unsigned long union_sum = 0;
 
-    while (dict_ul_ul_iterator_next(it, &key, &value_a) > -1) {
+    while (dict_ul_ul_iterator_next(it, key_p, value_a_p) > -1) {
         if (dict_ul_ul_contains(dif_set_b, key)) {
             list_ul_append(visited_elems_b, key);
             value_b = dict_ul_ul_get_direct(dif_set_b, key);
@@ -120,7 +130,7 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     dict_ul_ul_iterator_destroy(it);
     it = create_dict_ul_ul_iterator(dif_set_b);
 
-    while (dict_ul_ul_iterator_next(it, &key, &value_b) > -1) {
+    while (dict_ul_ul_iterator_next(it, key_p, value_b_p) > -1) {
         if (!list_ul_contains(visited_elems_b, key)) {
             union_sum += value_b;
         }
@@ -145,7 +155,7 @@ insert_match(size_t* max_degree_nodes,
     unsigned long temp_id;
     unsigned long temp1_id;
 
-    for (size_t i = 0; i < num_clusters; i++) {
+    for (size_t i = 0; i < num_clusters; ++i) {
         if (placed) {
             temp1_id = max_degree_nodes[i];
             temp1_d = max_degrees[i];
@@ -169,6 +179,7 @@ initialize_centers(in_memory_file_t* db,
                    size_t num_clusters)
 {
     if (!db || !centers) {
+        printf("icbl.c: initialize_centers: Invalid Argument!\n");
         exit(-1);
     }
 
@@ -180,6 +191,7 @@ initialize_centers(in_memory_file_t* db,
     unsigned long degree;
 
     if (!max_degrees || !max_degree_nodes) {
+        printf("icbl.c: initialize_centers: Memory allocation failed!\n");
         exit(-1);
     }
     // FIXME check distance first
@@ -188,13 +200,16 @@ initialize_centers(in_memory_file_t* db,
         degree = list_relationship_size(rels);
         if (degree > max_degrees[num_clusters - 1]) {
             insert_match(
-                  max_degree_nodes, max_degrees, i, num_clusters, degree);
+                  max_degree_nodes, max_degrees, i, degree, num_clusters);
         }
+        list_relationship_destroy(rels);
     }
-    list_relationship_destroy(rels);
     free(max_degrees);
 
-    centers = &max_degree_nodes;
+    for (size_t i = 0; i < num_clusters; ++i) {
+        printf("max_degree_nodes: %lu\n", max_degree_nodes[i]);
+    }
+    *centers = max_degree_nodes;
     return 0;
 }
 
@@ -232,7 +247,8 @@ updated_centers(size_t num_nodes,
                 unsigned long* centers,
                 size_t num_clusters)
 {
-    if (!dif_sets || !part || !centers) {
+    if (!dif_sets || !part || !centers || num_clusters < 1) {
+        printf("icbl.c: update_centers: Invalid Argument!\n");
         exit(-1);
     }
 
@@ -249,20 +265,23 @@ updated_centers(size_t num_nodes,
 
     dict_ul_ul_iterator_t* it;
     unsigned long node_id;
-    unsigned long count;
+    unsigned long count = 0;
 
     unsigned long max_node_id = UNINITIALIZED_LONG;
     unsigned int max_count = 0;
 
     for (size_t i = 0; i < num_nodes; ++i) {
         it = create_dict_ul_ul_iterator(dif_sets[i]);
+
         while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
             if (dict_ul_ul_contains(cluster_counts[part[i]], node_id)) {
+
                 dict_ul_ul_insert(
                       cluster_counts[part[i]],
                       node_id,
                       dict_ul_ul_get_direct(cluster_counts[part[i]], node_id) +
                             count);
+
             } else {
                 dict_ul_ul_insert(dif_sets[part[i]], node_id, count);
             }
@@ -281,6 +300,7 @@ updated_centers(size_t num_nodes,
         max_count = 0;
         max_node_id = UNINITIALIZED_LONG;
         dict_ul_ul_iterator_destroy(it);
+        dict_ul_ul_destroy(cluster_counts[i]);
     }
 
     free(cluster_counts);
@@ -734,7 +754,7 @@ unsigned long*
 icbl(in_memory_file_t* db)
 {
     dict_ul_ul_t** diff_sets =
-          malloc(db->node_id_counter * sizeof(dict_ul_ul_t*));
+          calloc(db->node_id_counter, sizeof(dict_ul_ul_t*));
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         diff_sets[i] = create_dict_ul_ul();

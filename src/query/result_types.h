@@ -43,7 +43,10 @@ path*
 sssp_extract_path(sssp_result* result, in_memory_file_t db);
 
 path*
-create_path(double distance, list_ul_t* edges);
+create_path(unsigned long source_node_id,
+            unsigned long target_node_id,
+            double distance,
+            list_ul_t* edges);
 
 void
 path_destroy(path* p);

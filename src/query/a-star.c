@@ -39,7 +39,7 @@ construct_path(in_memory_file_t* db,
     }
     list_ul_destroy(edges_reverse);
 
-    return create_path(distance, edges);
+    return create_path(source_node_id, target_node_id, distance, edges);
 }
 
 path*
@@ -120,5 +120,6 @@ a_star(in_memory_file_t* db,
     destroy_fib_heap(prio_queue);
     fclose(log_file);
 
-    return create_path(DBL_MAX, create_list_ul());
+    return create_path(
+          source_node_id, target_node_id, DBL_MAX, create_list_ul());
 }

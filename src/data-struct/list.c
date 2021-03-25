@@ -150,7 +150,7 @@ list_index_of(list_t* l, void* v, size_t* idx)
     }
 
     for (size_t i = 0; i < l->len; ++i) {
-        if (l->cbs.leq(&v, &l->elements[i]) == true) {
+        if (l->cbs.leq(v, l->elements[i])) {
             *idx = i;
             return 0;
         }
