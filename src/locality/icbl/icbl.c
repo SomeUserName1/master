@@ -364,6 +364,7 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
         snprintf(dendros[i]->label, length, "%lu", n_id);
         dendros[i]->size = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;
+        dendros[i]->block_no = ULONG_MAX;
     }
 
     return dendros;
@@ -668,17 +669,40 @@ order_subgraphs(dendrogram_t* hierarchy,
         blocks[i] = blocks[subgraph_order[i]];
         blocks[subgraph_order[i]] = temp_dendro;
     }
+    free(subgraph_order);
 }
 
 void
 map_to_partitions(unsigned long* partition,
                   dendrogram_t*** blocks,
-                  unsigned long* block_count,
+                  const unsigned long* block_count,
                   unsigned long num_subgraphs)
 {
     unsigned long partition_counter = 0;
+    list_cbs_t cbs = { ptr_eq, NULL, NULL };
+    list_t* stack = create_list(&cbs);
+    dendrogram_t* current;
 
     for (size_t i = 0; i < num_subgraphs; ++i) {
+        for (size_t j = 0; j < block_count[i]; ++j) {
+            list_append(stack, blocks[i][j]);
+
+            while (list_size(stack) > 0) {
+                current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
+
+                if (current->block_no == ULONG_MAX) {
+                    continue;
+                }
+
+                if (current->size == 1) {
+                    partition[current->children.node] = partition_counter;
+                }
+
+                list_append(stack, (void*)&(current->children.dendro[0]));
+                list_append(stack, (void*)&(current->children.dendro[1]));
+            }
+            partition_counter++;
+        }
     }
 }
 
@@ -705,8 +729,7 @@ layout_blocks(in_memory_file_t* db,
     order_subgraphs(hierarchy[0], blocks, num_clusters);
 
     map_to_partitions(partition, blocks, block_count, num_clusters);
-    // impl mapping function from dendros 2 node ids
-    // map_blocks_to_node_ids(blocks, order);
+
     return 0;
 }
 
