@@ -105,34 +105,30 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dif_set_a);
     list_ul_t* visited_elems_b = create_list_ul();
 
-    unsigned long key = 0;
-    unsigned long value_a = 0;
-    unsigned long value_b = 0;
-
-    unsigned long* key_p = &key;
-    unsigned long* value_a_p = &value_a;
-    unsigned long* value_b_p = &value_b;
+    unsigned long* key = NULL;
+    unsigned long* value_a = NULL;
+    unsigned long* value_b = NULL;
 
     unsigned long intersect_sum = 0;
     unsigned long union_sum = 0;
 
-    while (dict_ul_ul_iterator_next(it, key_p, value_a_p) > -1) {
-        if (dict_ul_ul_contains(dif_set_b, key)) {
-            list_ul_append(visited_elems_b, key);
-            value_b = dict_ul_ul_get_direct(dif_set_b, key);
+    while (dict_ul_ul_iterator_next(it, &key, &value_a) > -1) {
+        if (dict_ul_ul_contains(dif_set_b, *key)) {
+            list_ul_append(visited_elems_b, *key);
+            *value_b = dict_ul_ul_get_direct(dif_set_b, *key);
 
-            intersect_sum += value_a > value_b ? value_b : value_a;
-            union_sum += value_a > value_b ? value_a : value_b;
+            intersect_sum += *value_a > *value_b ? *value_b : *value_a;
+            union_sum += *value_a > *value_b ? *value_a : *value_b;
         } else {
-            union_sum += value_a;
+            union_sum += *value_a;
         }
     }
     dict_ul_ul_iterator_destroy(it);
     it = create_dict_ul_ul_iterator(dif_set_b);
 
-    while (dict_ul_ul_iterator_next(it, key_p, value_b_p) > -1) {
-        if (!list_ul_contains(visited_elems_b, key)) {
-            union_sum += value_b;
+    while (dict_ul_ul_iterator_next(it, &key, &value_b) > -1) {
+        if (!list_ul_contains(visited_elems_b, *key)) {
+            union_sum += *value_b;
         }
     }
 
@@ -264,8 +260,8 @@ updated_centers(size_t num_nodes,
     }
 
     dict_ul_ul_iterator_t* it;
-    unsigned long node_id;
-    unsigned long count = 0;
+    unsigned long* node_id;
+    unsigned long* count = 0;
 
     unsigned long max_node_id = UNINITIALIZED_LONG;
     unsigned int max_count = 0;
@@ -274,16 +270,16 @@ updated_centers(size_t num_nodes,
         it = create_dict_ul_ul_iterator(dif_sets[i]);
 
         while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
-            if (dict_ul_ul_contains(cluster_counts[part[i]], node_id)) {
+            if (dict_ul_ul_contains(cluster_counts[part[i]], *node_id)) {
 
                 dict_ul_ul_insert(
                       cluster_counts[part[i]],
-                      node_id,
-                      dict_ul_ul_get_direct(cluster_counts[part[i]], node_id) +
-                            count);
+                      *node_id,
+                      dict_ul_ul_get_direct(cluster_counts[part[i]], *node_id) +
+                            *count);
 
             } else {
-                dict_ul_ul_insert(dif_sets[part[i]], node_id, count);
+                dict_ul_ul_insert(dif_sets[part[i]], *node_id, *count);
             }
         }
         dict_ul_ul_iterator_destroy(it);
@@ -292,8 +288,8 @@ updated_centers(size_t num_nodes,
     for (size_t i = 0; i < num_clusters; ++i) {
         it = create_dict_ul_ul_iterator(cluster_counts[i]);
         while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
-            if (count > max_count) {
-                max_node_id = node_id;
+            if (*count > max_count) {
+                max_node_id = *node_id;
             }
         }
         centers[i] = max_node_id;
@@ -432,11 +428,11 @@ assign_dendro_label(dendrogram_t* dendro,
 
         if (fst_child->size > snd_child->size) {
             strncat(dendro->label, fst_child->label, strlen(fst_child->label));
-            strcat(dendro->label, ":");
+            strncat(dendro->label, ":", 1);
             strncat(dendro->label, snd_child->label, strlen(snd_child->label));
         } else {
             strncat(dendro->label, snd_child->label, strlen(snd_child->label));
-            strcat(dendro->label, ":");
+            strncat(dendro->label, ":", 1);
             strncat(dendro->label, fst_child->label, strlen(fst_child->label));
         }
         dendro->label[length] = '\0';

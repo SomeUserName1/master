@@ -1,8 +1,11 @@
 #include "../../src/data-struct/dict_ul.h"
 #include "../../src/data-struct/htable.h"
+#include "../../src/record/node.h"
+#include "../../src/record/relationship.h"
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define TEST_KEY (42)
 #define TEST_VAL (777)
@@ -111,21 +114,21 @@ test_dict_ul_ul_destroy(void)
         perror("Failed to open file to read from");
         return;
     }
-    result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
-    while (result == 2) {
+    do {
         if (lines % PROGRESS_LINES == 0) {
             printf("%s %lu\n", "Processed", lines);
         }
 
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
         if (dict_ul_ul_insert(dict, fromTo[0], fromTo[1])) {
             printf("Failes to insert\n");
-            return;
+            assert(false);
         }
 
-        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
         lines++;
-    }
+    } while (result == 2);
 
     fclose(in_file);
 
@@ -144,31 +147,516 @@ test_dict_ul_ul_it(void)
 
     dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dict);
 
-    unsigned long k = 0;
-    unsigned long v = 0;
+    unsigned long* key = NULL;
+    unsigned long* value = NULL;
 
-    unsigned long* key = &k;
-    unsigned long* value = &v;
-    unsigned int count = 0;
-
-    while (htable_iterator_next(
-                 (htable_iterator_t*)it, (void**)&key, (void**)&value) > -1) {
-        if (count == 0) {
-            count++;
-            assert(*key == TEST_KEY);
-            assert(*value == TEST_VAL);
-        }
-        if (count == 1) {
-            assert(*key == TEST_KEY_1);
-            assert(*value == TEST_VALUE_1);
-            count++;
-        } else {
-            assert(false);
+    while (dict_ul_ul_iterator_next(it, &key, &value) > -1) {
+        if (*key == TEST_KEY || *key == TEST_KEY_1) {
+            if (*key == TEST_KEY) {
+                assert(*key == TEST_KEY);
+                assert(*value == TEST_VAL);
+            } else if (*key == TEST_KEY_1) {
+                assert(*key == TEST_KEY_1);
+                assert(*value == TEST_VALUE_1);
+            } else {
+                printf("key: %lu\n", *key);
+                assert(false);
+            }
         }
     }
 
     dict_ul_ul_iterator_destroy(it);
     dict_ul_ul_destroy(dict);
+}
+
+void
+test_create_dict_ul_int(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+
+    assert(dict != NULL);
+    assert(((htable_t*)dict)->num_used == 0);
+    assert(((htable_t*)dict)->num_buckets == BUCKET_START);
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_size(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+
+    assert(((htable_t*)dict)->num_used == dict_ul_int_size(dict));
+
+    unsigned long key = TEST_KEY;
+    int val = TEST_VAL;
+    htable_insert(((htable_t*)dict), (void*)&key, (void*)&val);
+    assert(((htable_t*)dict)->num_used == dict_ul_int_size(dict));
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_insert(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+    assert(((htable_t*)dict)->num_used == 1);
+    unsigned long key = TEST_KEY;
+    assert(*((int*)htable_get_direct((htable_t*)dict, (void*)&key)) ==
+           TEST_VAL);
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_remove(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+    assert(dict_ul_int_size(dict) == 1);
+    dict_ul_int_remove(dict, TEST_KEY);
+    assert(dict_ul_int_size(dict) == 0);
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_get(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+
+    int* val = NULL;
+    unsigned long key = TEST_KEY;
+    dict_ul_int_get(dict, key, &val);
+    assert(*val == TEST_VAL);
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_get_direct(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+
+    assert(dict_ul_int_get_direct(dict, TEST_KEY) == TEST_VAL);
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_contains(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+
+    assert(dict_ul_int_contains(dict, TEST_KEY));
+    dict_ul_int_destroy(dict);
+}
+
+// Used to check for memory leaks
+void
+test_dict_ul_int_destroy(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long from;
+    int to;
+    int result;
+    size_t lines = 1;
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("Failed to open file to read from");
+        return;
+    }
+
+    do {
+        if (lines % PROGRESS_LINES == 0) {
+            printf("%s %lu\n", "Processed", lines);
+        }
+
+        result = fscanf(in_file, "%lu %i\n", &from, &to);
+
+        if (dict_ul_int_insert(dict, from, to)) {
+            printf("Failes to insert\n");
+            assert(false);
+        }
+
+        lines++;
+    } while (result == 2);
+
+    fclose(in_file);
+
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_dict_ul_int_it(void)
+{
+    dict_ul_int_t* dict = create_dict_ul_int();
+    dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
+    dict_ul_int_insert(dict, TEST_KEY_1, TEST_VALUE_1);
+
+    assert(dict_ul_int_contains(dict, TEST_KEY));
+    assert(dict_ul_int_contains(dict, TEST_KEY_1));
+
+    dict_ul_int_iterator_t* it = create_dict_ul_int_iterator(dict);
+
+    unsigned long* key = NULL;
+    int* value = NULL;
+
+    while (dict_ul_int_iterator_next(it, &key, &value) > -1) {
+        if (*key == TEST_KEY || *key == TEST_KEY_1) {
+            if (*key == TEST_KEY) {
+                assert(*key == TEST_KEY);
+                assert(*value == TEST_VAL);
+            } else if (*key == TEST_KEY_1) {
+                assert(*key == TEST_KEY_1);
+                assert(*value == TEST_VALUE_1);
+            } else {
+                printf("key: %lu\n", *key);
+                assert(false);
+            }
+        }
+    }
+
+    dict_ul_int_iterator_destroy(it);
+    dict_ul_int_destroy(dict);
+}
+
+void
+test_create_dict_ul_node(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+
+    assert(dict != NULL);
+    assert(((htable_t*)dict)->num_used == 0);
+    assert(((htable_t*)dict)->num_buckets == BUCKET_START);
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_size(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+
+    assert(((htable_t*)dict)->num_used == dict_ul_node_size(dict));
+
+    unsigned long key = TEST_KEY;
+    node_t* val = new_node();
+    htable_insert(((htable_t*)dict), (void*)&key, (void*)val);
+    assert(((htable_t*)dict)->num_used == dict_ul_node_size(dict));
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_insert(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* val = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, val);
+    assert(((htable_t*)dict)->num_used == 1);
+    unsigned long key = TEST_KEY;
+    assert(node_equals((node_t*)htable_get_direct((htable_t*)dict, (void*)&key),
+                       val));
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_remove(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* val = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, val);
+    assert(dict_ul_node_size(dict) == 1);
+    dict_ul_node_remove(dict, TEST_KEY);
+    assert(dict_ul_node_size(dict) == 0);
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_get(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* val = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, val);
+
+    node_t* value = NULL;
+    unsigned long key = TEST_KEY;
+    dict_ul_node_get(dict, key, &value);
+    assert(node_equals(value, val));
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_get_direct(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* val = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, val);
+
+    assert(node_equals(dict_ul_node_get_direct(dict, TEST_KEY), val));
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_contains(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* val = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, val);
+
+    assert(dict_ul_node_contains(dict, TEST_KEY));
+
+    dict_ul_node_destroy(dict);
+}
+
+// Used to check for memory leaks
+void
+test_dict_ul_node_destroy(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long fromTo[2];
+    int result;
+    size_t lines = 1;
+    node_t* node;
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("Failed to open file to read from");
+        return;
+    }
+
+    do {
+        if (lines % PROGRESS_LINES == 0) {
+            printf("%s %lu\n", "Processed", lines);
+        }
+
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
+        node = new_node();
+        if (dict_ul_node_insert(dict, fromTo[0], node)) {
+            printf("Failes to insert\n");
+            assert(false);
+        }
+
+        lines++;
+    } while (result == 2);
+
+    fclose(in_file);
+
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_dict_ul_node_it(void)
+{
+    dict_ul_node_t* dict = create_dict_ul_node();
+    node_t* node = new_node();
+    node_t* node1 = new_node();
+    dict_ul_node_insert(dict, TEST_KEY, node);
+    dict_ul_node_insert(dict, TEST_KEY_1, node1);
+
+    assert(dict_ul_node_contains(dict, TEST_KEY));
+    assert(dict_ul_node_contains(dict, TEST_KEY_1));
+
+    dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(dict);
+
+    unsigned long* key = NULL;
+    node_t* value = NULL;
+
+    while (dict_ul_node_iterator_next(it, &key, &value) > -1) {
+        if (*key == TEST_KEY || *key == TEST_KEY_1) {
+            if (*key == TEST_KEY) {
+                assert(*key == TEST_KEY);
+                assert(node_equals(value, node));
+            } else if (*key == TEST_KEY_1) {
+                assert(*key == TEST_KEY_1);
+                assert(node_equals(value, node1));
+            } else {
+                printf("key: %lu\n", *key);
+                assert(false);
+            }
+        }
+    }
+
+    dict_ul_node_iterator_destroy(it);
+    dict_ul_node_destroy(dict);
+}
+
+void
+test_create_dict_ul_rel(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+
+    assert(dict != NULL);
+    assert(((htable_t*)dict)->num_used == 0);
+    assert(((htable_t*)dict)->num_buckets == BUCKET_START);
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_size(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+
+    assert(((htable_t*)dict)->num_used == dict_ul_rel_size(dict));
+
+    unsigned long key = TEST_KEY;
+    relationship_t* val = new_relationship();
+    htable_insert(((htable_t*)dict), (void*)&key, (void*)&val);
+    assert(((htable_t*)dict)->num_used == dict_ul_rel_size(dict));
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_insert(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+
+    relationship_t* val = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, val);
+    assert(((htable_t*)dict)->num_used == 1);
+    unsigned long key = TEST_KEY;
+    assert(relationship_equals(htable_get_direct((htable_t*)dict, (void*)&key),
+                               val));
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_remove(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    relationship_t* val = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, val);
+    assert(dict_ul_rel_size(dict) == 1);
+    dict_ul_rel_remove(dict, TEST_KEY);
+    assert(dict_ul_rel_size(dict) == 0);
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_get(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    relationship_t* val = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, val);
+
+    relationship_t* value = NULL;
+    unsigned long key = TEST_KEY;
+    dict_ul_rel_get(dict, key, &val);
+    assert(relationship_equals(value, val));
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_get_direct(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    relationship_t* val = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, val);
+
+    assert(relationship_equals(dict_ul_rel_get_direct(dict, TEST_KEY), val));
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_contains(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    relationship_t* val = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, val);
+
+    assert(dict_ul_rel_contains(dict, TEST_KEY));
+
+    dict_ul_rel_destroy(dict);
+}
+
+// Used to check for memory leaks
+void
+test_dict_ul_rel_destroy(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long fromTo[2];
+    int result;
+    size_t lines = 1;
+    relationship_t* val = new_relationship();
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("Failed to open file to read from");
+        return;
+    }
+
+    do {
+        if (lines % PROGRESS_LINES == 0) {
+            printf("%s %lu\n", "Processed", lines);
+        }
+
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
+        if (dict_ul_rel_insert(dict, fromTo[0], val)) {
+            printf("Failes to insert\n");
+            assert(false);
+        }
+
+        lines++;
+    } while (result == 2);
+
+    fclose(in_file);
+
+    dict_ul_rel_destroy(dict);
+}
+
+void
+test_dict_ul_rel_it(void)
+{
+    dict_ul_rel_t* dict = create_dict_ul_rel();
+    relationship_t* rel = new_relationship();
+    relationship_t* rel1 = new_relationship();
+    dict_ul_rel_insert(dict, TEST_KEY, rel);
+    dict_ul_rel_insert(dict, TEST_KEY_1, rel1);
+
+    assert(dict_ul_rel_contains(dict, TEST_KEY));
+    assert(dict_ul_rel_contains(dict, TEST_KEY_1));
+
+    dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(dict);
+
+    unsigned long* key = NULL;
+    relationship_t* value = NULL;
+
+    while (dict_ul_rel_iterator_next(it, &key, &value) > -1) {
+        if (*key == TEST_KEY || *key == TEST_KEY_1) {
+            if (*key == TEST_KEY) {
+                assert(*key == TEST_KEY);
+                assert(relationship_equals(value, rel));
+            } else if (*key == TEST_KEY_1) {
+                assert(*key == TEST_KEY_1);
+                assert(relationship_equals(value, rel1));
+            } else {
+                printf("key: %lu\n", *key);
+                assert(false);
+            }
+        }
+    }
+
+    dict_ul_rel_iterator_destroy(it);
+    dict_ul_rel_destroy(dict);
 }
 
 int
@@ -183,5 +671,36 @@ main(void)
     test_dict_ul_ul_contains();
     test_dict_ul_ul_destroy();
     test_dict_ul_ul_it();
-    printf("%s", "All tests for dict_ul_ul successfull\n");
+
+    test_create_dict_ul_int();
+    test_dict_ul_int_size();
+    test_dict_ul_int_insert();
+    test_dict_ul_int_remove();
+    test_dict_ul_int_get();
+    test_dict_ul_int_get_direct();
+    test_dict_ul_int_contains();
+    test_dict_ul_int_destroy();
+    test_dict_ul_int_it();
+
+    test_create_dict_ul_node();
+    test_dict_ul_node_size();
+    test_dict_ul_node_insert();
+    test_dict_ul_node_remove();
+    test_dict_ul_node_get();
+    test_dict_ul_node_get_direct();
+    test_dict_ul_node_contains();
+    test_dict_ul_node_destroy();
+    test_dict_ul_node_it();
+
+    test_create_dict_ul_rel();
+    test_dict_ul_rel_size();
+    test_dict_ul_rel_insert();
+    test_dict_ul_rel_remove();
+    test_dict_ul_rel_get();
+    test_dict_ul_rel_get_direct();
+    test_dict_ul_rel_contains();
+    test_dict_ul_rel_destroy();
+    test_dict_ul_rel_it();
+
+    printf("%s", "All tests for dict_ul successfull\n");
 }

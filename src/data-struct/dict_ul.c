@@ -70,11 +70,11 @@ create_dict_ul_ul_iterator(dict_ul_ul_t* ht)
 
 int
 dict_ul_ul_iterator_next(dict_ul_ul_iterator_t* hi,
-                         unsigned long* key,
-                         unsigned long* value)
+                         unsigned long** key,
+                         unsigned long** value)
 {
     return htable_iterator_next(
-          (htable_iterator_t*)hi, (void**)&key, (void**)&value);
+          (htable_iterator_t*)hi, (void**)key, (void**)value);
 }
 
 void
@@ -145,18 +145,18 @@ dict_ul_int_contains(dict_ul_int_t* ht, unsigned long key)
 }
 
 dict_ul_int_iterator_t*
-create_dict_ul_int_iterator(htable_t* ht)
+create_dict_ul_int_iterator(dict_ul_int_t* ht)
 {
     return (dict_ul_int_iterator_t*)create_htable_iterator((htable_t*)ht);
 }
 
 int
 dict_ul_int_iterator_next(dict_ul_int_iterator_t* hi,
-                          unsigned long* key,
-                          int* value)
+                          unsigned long** key,
+                          int** value)
 {
     return htable_iterator_next(
-          (htable_iterator_t*)hi, (void**)&key, (void**)&value);
+          (htable_iterator_t*)hi, (void**)key, (void**)value);
 }
 
 void
@@ -234,11 +234,11 @@ create_dict_ul_node_iterator(dict_ul_node_t* ht)
 
 int
 dict_ul_node_iterator_next(dict_ul_node_iterator_t* hi,
-                           unsigned long* key,
+                           unsigned long** key,
                            node_t** value)
 {
     return htable_iterator_next(
-          (htable_iterator_t*)hi, (void**)&key, (void**)value);
+          (htable_iterator_t*)hi, (void**)key, (void**)value);
 }
 
 void
@@ -316,11 +316,11 @@ create_dict_ul_rel_iterator(dict_ul_rel_t* ht)
 
 int
 dict_ul_rel_iterator_next(dict_ul_rel_iterator_t* hi,
-                          unsigned long* key,
+                          unsigned long** key,
                           relationship_t** value)
 {
     return htable_iterator_next(
-          (htable_iterator_t*)hi, (void**)&key, (void**)value);
+          (htable_iterator_t*)hi, (void**)key, (void**)value);
 }
 
 void
