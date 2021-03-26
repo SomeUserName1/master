@@ -1,24 +1,6 @@
 % Introduction
 
-% Background
-%% DB Arch
-@book{ramakrishnan2000database,
-  title={Database Management Systems},
-  author={Ramakrishnan, Raghu and Gehrke, Johannes},
-  year={2000},
-  publisher={McGraw-Hill}
-}
-  
-@book{silberschatz1997database,
-  title={Database system concepts},
-  author={Silberschatz, Abraham and Korth, Henry F and Sudarshan, Shashank and others},
-  volume={4},
-  year={1997},
-  publisher={Mcgraw-hill New York}
-}
-
-
-%% Graphs
+% Graphs
 %%% Diskrete Strukturen
 @book{steger2007diskrete,
   title={Diskrete Strukturen: Band 1: Kombinatorik, Graphentheorie, Algebra},
@@ -254,7 +236,163 @@
   year={2005}
 }
 
+%%% KL
+@article{kl,
+  title={An efficient heuristic procedure for partitioning graphs},
+  author={Kernighan, Brian W and Lin, Shen},
+  journal={The Bell system technical journal},
+  volume={49},
+  number={2},
+  pages={291--307},
+  year={1970},
+  publisher={Nokia Bell Labs}
+}
 
+@inproceedings{fm,
+  title={A linear-time heuristic for improving network partitions},
+  author={Fiduccia, Charles M and Mattheyses, Robert M},
+  booktitle={19th design automation conference},
+  pages={175--181},
+  year={1982},
+  organization={IEEE}
+}
+
+
+%%% METIS & Multilevel partitioning
+
+@article{spectral,
+  added-at = {2006-05-19T11:57:44.000+0200},
+  author = {Donath, W.E. and Hoffman, A.J.},
+  biburl = {https://www.bibsonomy.org/bibtex/20302cd05477d3be28a12fa1b2c1d1151/jaeschke},
+  interhash = {4172462d6dfc92a1eab76d4ad5b5e3c3},
+  intrahash = {0302cd05477d3be28a12fa1b2c1d1151},
+  journal = {IBM Technical Disclosure Bulletin},
+  keywords = {clustering matrix graph network},
+  number = 3,
+  pages = {938-944},
+  timestamp = {2014-07-28T15:57:31.000+0200},
+  title = {Algorithms for partitioning graphs and computer logic based on eigenvectors of connection matrices},
+  volume = 15,
+  year = 1972
+}
+
+@article{uvl,
+  title={A tutorial on spectral clustering},
+  author={Von Luxburg, Ulrike},
+  journal={Statistics and computing},
+  volume={17},
+  number={4},
+  pages={395--416},
+  year={2007},
+  publisher={Springer}
+}
+
+@article{ng,
+  title={On spectral clustering: Analysis and an algorithm},
+  author={Ng, Andrew Y and Jordan, Michael I and Weiss, Yair and others},
+  journal={Advances in neural information processing systems},
+  volume={2},
+  pages={849--856},
+  year={2002},
+  publisher={MIT; 1998}
+}
+
+
+
+@article{hendrickson1995multi,
+  title={A Multi-Level Algorithm For Partitioning Graphs.},
+  author={Hendrickson, Bruce and Leland, Robert W},
+  journal={SC},
+  volume={95},
+  number={28},
+  pages={1--14},
+  year={1995}
+}
+
+@article{karypis,
+    author = {Karypis, George and Kumar, Vipin},
+    title = {A Fast and High Quality Multilevel Scheme for Partitioning Irregular Graphs},
+    journal = {SIAM Journal on Scientific Computing},
+    volume = {20},
+    number = {1},
+    pages = {359-392},
+    year = {1998},
+    doi = {10.1137/S1064827595287997},
+    URL = {https://doi.org/10.1137/S1064827595287997},
+    eprint = {https://doi.org/10.1137/S1064827595287997}
+}
+
+%%% Louvain
+@article{blondel2008fast,
+  title={Fast unfolding of communities in large networks},
+  author={Blondel, Vincent D and Guillaume, Jean-Loup and Lambiotte, Renaud and Lefebvre, Etienne},
+  journal={Journal of statistical mechanics: theory and experiment},
+  volume={2008},
+  number={10},
+  pages={P10008},
+  year={2008},
+  publisher={IOP Publishing}
+}
+
+@incollection{conde2017comparison,
+  title={Comparison of linear modularization criteria using the relational formalism, an approach to easily identify resolution limit},
+  author={Conde-C{\'e}spedes, Patricia and Marcotorchino, Jean-Fran{\c{c}}ois and Viennet, Emmanuel},
+  booktitle={Advances in Knowledge Discovery and Management},
+  pages={101--120},
+  year={2017},
+  publisher={Springer}
+}
+
+@article{traag2019louvain,
+  title={From Louvain to Leiden: guaranteeing well-connected communities},
+  author={Traag, Vincent A and Waltman, Ludo and Van Eck, Nees Jan},
+  journal={Scientific reports},
+  volume={9},
+  number={1},
+  pages={1--12},
+  year={2019},
+  publisher={Nature Publishing Group}
+}
+
+%% DB Arch
+@book{ramakrishnan2000database,
+  title={Database Management Systems},
+  author={Ramakrishnan, Raghu and Gehrke, Johannes},
+  year={2000},
+  publisher={McGraw-Hill}
+}
+  
+@book{silberschatz1997database,
+  title={Database system concepts},
+  author={Silberschatz, Abraham and Korth, Henry F and Sudarshan, Shashank and others},
+  volume={4},
+  year={1997},
+  publisher={Mcgraw-hill New York}
+}
+
+@Online {ArangoDB,  
+    title = {ArangoDB, the multi-model database for graph and beyond},  
+    date = {2021-03-26},  
+    file = {:./references/.html:html},  
+    url = {https://www.arangodb.com/},  
+    urldate = {2021-03-26}
+}
+
+@Online {AmazonNeptune,  
+    title = {Amazon Neptune},  
+    date = {2021-02-23},  
+    file = {:./references/de-neptune-.html:html},  
+    url = {https://aws.amazon.com/de/neptune/},  
+    urldate = {2021-03-26}
+}
+
+@Online {RedisGraph,  
+    title = {RedisGraph - a graph database module for Redis},  
+    date = {2021-03-19},  
+    file = {:./references/redisgraph-.html:html},  
+    url = {https://oss.redislabs.com/redisgraph/},  
+    urldate = {2021-03-26}
+}
 
 %%% Property Graph Model
 @inproceedings{angles2018property,
@@ -506,40 +644,6 @@
   school={University of Oxford}
 }
 
-@article{hendrickson1995multi,
-  title={A Multi-Level Algorithm For Partitioning Graphs.},
-  author={Hendrickson, Bruce and Leland, Robert W},
-  journal={SC},
-  volume={95},
-  number={28},
-  pages={1--14},
-  year={1995}
-}
-
-@article{karypis,
-    author = {Karypis, George and Kumar, Vipin},
-    title = {A Fast and High Quality Multilevel Scheme for Partitioning Irregular Graphs},
-    journal = {SIAM Journal on Scientific Computing},
-    volume = {20},
-    number = {1},
-    pages = {359-392},
-    year = {1998},
-    doi = {10.1137/S1064827595287997},
-    URL = {https://doi.org/10.1137/S1064827595287997},
-    eprint = {https://doi.org/10.1137/S1064827595287997}
-}
-
-@article{lin1973effective,
-  title={An effective heuristic algorithm for the traveling-salesman problem},
-  author={Lin, Shen and Kernighan, Brian W},
-  journal={Operations research},
-  volume={21},
-  number={2},
-  pages={498--516},
-  year={1973},
-  publisher={Informs}
-}
-
 
 %% ICBL
 @article{yacsar2017distributed,
@@ -618,27 +722,6 @@
 }
   
 % Method
-%% Louvain
-@article{blondel2008fast,
-  title={Fast unfolding of communities in large networks},
-  author={Blondel, Vincent D and Guillaume, Jean-Loup and Lambiotte, Renaud and Lefebvre, Etienne},
-  journal={Journal of statistical mechanics: theory and experiment},
-  volume={2008},
-  number={10},
-  pages={P10008},
-  year={2008},
-  publisher={IOP Publishing}
-}
-
-@incollection{conde2017comparison,
-  title={Comparison of linear modularization criteria using the relational formalism, an approach to easily identify resolution limit},
-  author={Conde-C{\'e}spedes, Patricia and Marcotorchino, Jean-Fran{\c{c}}ois and Viennet, Emmanuel},
-  booktitle={Advances in Knowledge Discovery and Management},
-  pages={101--120},
-  year={2017},
-  publisher={Springer}
-}
-
 
 
 
@@ -647,13 +730,4 @@
 % Conclusion
 %% Future Work
 %%% Leiden
-@article{traag2019louvain,
-  title={From Louvain to Leiden: guaranteeing well-connected communities},
-  author={Traag, Vincent A and Waltman, Ludo and Van Eck, Nees Jan},
-  journal={Scientific reports},
-  volume={9},
-  number={1},
-  pages={1--12},
-  year={2019},
-  publisher={Nature Publishing Group}
-}
+
