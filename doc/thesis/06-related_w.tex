@@ -15,9 +15,9 @@
     Thus we are more interested here in the differences from the reference algorithm.
     A broad overview of the method is shown in \ref{g-store}.
     
-    \begin{figure}
+    \begin{figure}[htp]
         \begin{center}
-            \includegraphics[keepaspectratio,width=0.7\textwidth]{img/05-rel_w/g-store.png}
+            \includegraphics[keepaspectratio,width=0.7\textwidth]{img/06-rel_w/g-store.png}
         \end{center}
         \caption{A broad overview of the multilevel partitioning method applied by G-Store~\autocite{steinhaus2010g}.} 
         \label{g-store}
@@ -131,7 +131,7 @@
     
     \begin{figure}[htp]
         \begin{center}
-            \includegraphics[keepaspectratio,width=0.8\textwidth]{img/05-rel_w/icbl.png}
+            \includegraphics[keepaspectratio,width=0.8\textwidth]{img/06-rel_w/icbl.png}
         \end{center}
         \caption{A broad overview of the ICBL method by Ya\c{c}ar and Gedik~\autocite{yacsar2015scalable}.} 
         \label{icbl}
@@ -196,6 +196,15 @@
     Bondhu~\autocite{hoque2012disk} is a data layout technique for online social network data. 
     The authors define the cost of a placement similar to the ranking locality above, with $r$ defined as before: \[ \text{cost} = \sum_{(u, v) \in E} |r(v) - r(u)| \]   
     Without citing G-Store, Hoque and Gupta propose to use the multilevel partitioning algorithm implemented in METIS~\autocite{karypis} to partition the graph. Additionally the authors propose to use the Louvain method~\autocite{blondel2008fast} to find communities, but they don't provide results on this method. The louvain method is described in more detail in the next section. \\
+    
+    \begin{figure}[htp]
+        \begin{center}
+            \includegraphics[keepaspectratio,width=0.8\textwidth]{img/06-rel_w/bondhu.png}
+        \end{center}
+        \caption{Broad steps performed by the bondhu algorithm~\autocite{hoque2012disk}.} 
+        \label{bondhu-fig}
+    \end{figure}
+
     The authors propose an incremental placement schema within a block:
     Place the node with the highest degree in the middle of the block, then select the node with the heaviest edge connected to the first node and place it next to the first node. 
     After these two placements, a new graph is created, where the two already placed nodes are merged and their relationships are aggregated. 

@@ -42,37 +42,43 @@ encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:03-preliminaries.tex]
+[item:03-graphs.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:04-problem_def.tex]
+[item:04-databases.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:05-related_w.tex]
+[item:05-problem_def.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:06-methods.tex]
+[item:06-related_w.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:07-eval.tex]
+[item:07-methods.tex]
+archive=true
+encoding=UTF-8
+highlight=LaTeX
+mode=LaTeX
+
+[item:08-eval.tex]
 archive=true
 encoding=
 highlight=
 mode=
 
-[item:08-conclusions.tex]
+[item:09-conclusions.tex]
 archive=true
 encoding=
 highlight=

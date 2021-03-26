@@ -84,7 +84,7 @@
         
         \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.5\textwidth]{img/03-preliminaries/data_struct_gr.png}
+                \includegraphics[keepaspectratio,width=0.5\textwidth]{img/03-graphs/data_struct_gr.png}
             \end{center}
             \caption{An example graph used throughout this section.} 
             \label{data_struct-ex}
@@ -432,9 +432,9 @@
                 That means it inspects the element that was inserted first.
                 An illustrative comparison of DFS and BFS is shown in figure \ref{dfs-bfs}. 
                 
-                \begin{figure}
+                \begin{figure}[htp]
                 \begin{center}
-                \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/03-preliminaries/bfs-dfs.png}
+                \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/03-graphs/bfs-dfs.png}
                 \end{center}
                 \caption{Comparison between a DFS and a BFS traversal.}\label{dfs-bfs}
                 \end{figure}
@@ -697,12 +697,25 @@
             One method that is of considerable importance is spectral clustering, which we will not elaborate on here in depth.
             Briefly, the algorithm computes the laplacian matrix, extracts $k$ eigenvectors, changes the basis of the matrix according the the $k$ eigenvectors and clusters the nodes then using a simpler algorithm, like agglomerative cluistering~\autocite{hac} or k-means~\autocite{lloyd1982least}
             The interested reader is referred to~\autocite{spectral, uvl, ng}.
+            Apart from methods considering the graph structure as part of the algorithm itself, all other clustering algorithms can be applied, if suitable features are extracted based upon the graph structure.
+            As we will see later, one of the methods that are related work extracts graph features by executing multiple random walks per node and aggregates them into a multi set in order to characterize the neighbourhood of a node.
+            A comprehensive survey of non graph based algorithms can be found for example in~\autocite{overview_clust, berkhin2006survey, xu2005survey, han2011data}.
+            Other graph feature extraction methods are for example described in~\autocite{neumann2011characteristic, henderson2011s, henderson2012rolx}.
+            
             
             \subsubsection*{Kernighan-Lin Algorithm}\label{kla}
                 The Kernighan-Lin (KL) algorithm~\autocite{kl} was invented by by Brain Kernighan --- one of the creators of Unix and co-author of the de facto standard book ''The C Programming Language`` and  Shen Lin.
                 It was developed and is used for laying out digital circuits on a chips. 
                 It is also used by many other more complex graph partitionging algorithms as the multilevel partitioning algorithm implementation of Karypis and Kumar~\autocite{karypis} described in the next part.
                 
+                \begin{figure}[htp]
+                    \begin{center}
+                        \includegraphics[keepaspectratio,width=0.55\textwidth]{img/03-graphs/kl.png}
+                    \end{center}
+                    \caption{A flow diagram of the KL algorithm~\autocite{kl}.} 
+                    \label{kl-fig}
+                \end{figure}
+                    
                 The KL algorithm in its most basic form finds a minimal cut of the graph into two dijoint partitions of the same size. 
                 It assumes an undirected graph and is extended to unequally sized partitions and $k$-way partitioning. 
                 To decide which node has to be in which partition a cost function $D(v)$ is used. 
@@ -728,7 +741,7 @@
                  \[ G = \sum^k_{i = 0} g_i \]
                  \item If $G > 0$ apply the swaps and goto 2. Else terminate
                 \end{enumerate}
-                
+                The steps are summarized in the flow diagram in~\ref{kl-fig}.
                 Regarding the extensions, an improvement schema is provided to avoid local optima:
                 Apply the algorithm to the so created partitions and union the partitions alternatingly (i.e. $A_1 \cup B_2, A_2 \cup B_1$) and use these partitions as initialization of the algorithm.
                 In order to create partitions of unequal size with $n_1$ being the minimal desired partition size and $n_2$ the maximal desired partition size, add dummy vertices, such that we have $2n_2$ vertices in total and restrict the number of changes that are allowed to $n_1$.
@@ -739,12 +752,21 @@
 
             \subsubsection*{Multi-Level Partitioning}\label{mlp}
                 The multilevel partitioning algorithm was first described by Henderson and Leland~\autocite{hendrickson1995multi}. 
-                Its steps are the following:
+                Its steps are visualized schematically in~\ref{mlp-fig} and given below:
                 \begin{enumerate}
                     \item Coarsen the graph by contracting edges between neighbouring vertices
                     \item Partition the graph unsing e.g. spectral clustering or the KL algorithm
                     \item Uncoarsen the graph, projecting the above derived partitioning downwards and refining it by applying th KL algorithm.
                 \end{enumerate}
+                
+                \begin{figure}[htp]
+                    \begin{center}
+                        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-graphs/multilevel.png}
+                    \end{center}
+                    \caption{A visualization of how the multilevel partitioning algorithm works~\autocite{karypis}.} 
+                    \label{mlp-fig}
+                \end{figure}
+                    
                 A particular implementation of Karypis and Kumar~\autocite{karypis} introduces a couple of improvements:
                 A matching scheme for the coarsening stage called heavy edge matching.
                 It works by iterating over all vertices and matching each one with the vertex that is attached to the edge carrying the heaviest weight.
@@ -763,7 +785,58 @@
                 The overall runime depends heavily on $|V_c|$. 
                 The refinement phase is the most costly step as it needs to be done for the last level too, resulting in an asymptotic complexity of $\mathcal{O}(\mathcal{O}(k^2 \cdot |V|^2 \cdot \log^2(|V|)))$.
                 
-
             \subsubsection*{Louvain Method}
+                The Louvain method~\autocite{blondel2008fast} is an algorithm for community detection. 
+                The authors define community detection as a graph partitioning problem, where nodes within a partition shall be densely connected, while nodes belonging to different partitions shall be sparsely connected~\autocite{blondel2008fast}.
+                Measuring the quality of such partitioning can be done using the modularity of the partition as introducted by Newman and Girvan~\autocite{girvan2002community}:
+                \[ Q = \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{k_u k_v}{2m} \right) \cdot \delta (c_u, c_v) \]
+                $w_{(u,v)}$ is the weight of the edge between $u$ and $v$ (or $0$ if the edge does not exist). 
+                $c_u$ and $c_v$ are the communities the respective nodes are assigned to, and $\delta$ is the Kronecker delta function, i.e. $1$ if $c_u = c_v$ and $0$ otherwise. 
+                $k_u$ is the sum of the edge weight connected to $u$ and $m$ is the total edge weight $m = \frac{1}{2} \sum_{e \in E} w_e$.
+                Overall the modularity is in the range $[-1, 1]$ and can be interpreted as measure for the edge (weight) density inside of a partition in contrast to the edge density in the network overall.
+                
+                \begin{figure}[htp]
+                    \begin{center}
+                        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-graphs/louvain.png}
+                    \end{center}
+                    \caption{The steps that the lovain method comprises~\autocite{blondel2008fast}.} 
+                    \label{louvain-fig}
+                \end{figure}
+                
+                Optimizing the modularity exactly is computationally hard, so as soon as the graph size increases, approximate optimization is required.
+                The Louvain method is such an approximation.
+                It's broad control flow comprises the following steps and is visualized in ~\ref{louvain-fig}:
+                \begin{enumerate}
+                \item Initialize the initial partition with each node in an own community
+                \item $\forall v \in V \forall u \in N_v:$ Compute the gain in modularity $\Delta Q(u,v)$ when merging $v$ into the community of $u$. Place $v$ into the community of the neighbouring node $u$ where $\Delta Q(u,v)$ is maximal, if the gain is positive.
+                \item Goto step 2 until the improvement is below a threshold.
+                \item Construct a new graph $G_i$ with the communities of the previous graph being the vertices of the new one and Aggregate the edge weights. Links between nodes of the same communities are aggregated to self-loops.
+                \item if the previous graph and the new graph differ, goto step 2 using the $G_i$ as input graph, else terminate.
+                \end{enumerate}
+                The gain in modularity is computed using a specific formulation, that eases computation:
+                \[ 
+                  \Delta Q(v, C) = \left( \frac{I_c + 2w_{v, C}}{2m} - \left( \frac{w_C + w_v}{2m} \right)^2 \right) - \left( \frac{I_c}{2m} - \left( \frac{w_C}{2m} \right)^2 - \left( \frac{w_v}{2m} \right)^2 \right)  
+                \]
+                with $I_C$ is the sum of edge weights within the community $C$, $w_C$ is the sum of the edge weights incident to nodes in $C$, $w_{v, C}$ is the sum of edge weights between $v$ and nodes in $C$, $w_v$ is the sum of all edge weights incident to $v$ and $m$ is again the sum of all edge weights.
+                
+                Many of these quantities can be precomputed and easily updated:
+                $m$ is constant, $w_v$ is constant, $I_C$ can be updated by adding $w_{v, C}$, $w_C$ can be updated by adding $w_v$, only $w_{v, C}$ needs to be recomputed for every community to consider. 
+                It requires to iterate over all edges of $v$ and check if the other incident node is in the community, thus $\text{deg}(V)$
+                The complexity of the algorithm is determined by computing the gain in modularity for each node and its neighbourhood: $\mathcal{O}(|V| \cdot \text{deg}(V)^2)$.
+                Notice, that this algorithm is similar to the coarsening phase of the multilevel algorithm: 
+                The contraction is done by calculating the modularity gain.
+                However, not only two vertices are matched during an iteration but arbitrarily many until convergence. 
+                Both partitioning and refinement are not done, as the special contraction mechanism already partitions the graph.
+                That is, opposed to the top-down partitioning of the multilevel partitioning algorithm, the louvain method works bottom-up.
+                Both algorithms however generate a hierarchy.
+                
+                One problem of the louvain method is its resolution limit:
+                For very large and dense graphs, the total edge weight grows extremely large and thus the modularity is always small.
+                This problem is approached by two different ways:
+                Conde-C{\'e}spedes et al.~\autocite{conde2017comparison} experiment with different other modularity measures, that are provably stable with respect to the graph size.
+                However those measures that provide good results require user defined parameters, which in turn requires either domain specific knowledge of the data or parameter optimization, which implies multiple executions of the algorithm. 
+                The Leiden method~\autocite{traag2019louvain} also introduces an additional parameter by changing the quality function, but also an additional step.
+                It adds a refinement stage after the first step is finished, where the nodes in each partition are again instantiated as a single refined partition and merged in a different way. 
+                Empirically, the Leiden algorithm converges faster with higher modularity score, whith appropriate values for $\gamma$.
 
  

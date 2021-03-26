@@ -12,7 +12,7 @@ First we are going to elaborate on the storage-related architecture of databases
     But it is also able to store orders of magnitude more data. 
     \begin{figure}[htp]
         \begin{center}
-        \includegraphics[keepaspectratio,width=0.8\textwidth]{img/03-preliminaries/mem-hierarch.png}
+        \includegraphics[keepaspectratio,width=0.8\textwidth]{img/04-databases/mem-hierarch.png}
         \end{center}
         \caption{The memory hierarchy used in today's computing systems.} 
         \label{mem-hier}
@@ -29,7 +29,7 @@ First we are going to elaborate on the storage-related architecture of databases
 
     \begin{figure}[htp]
     \begin{center}
-    \includegraphics[keepaspectratio,width=.5\textwidth]{img/03-preliminaries/RDBMS.png}
+    \includegraphics[keepaspectratio,width=.5\textwidth]{img/04-databases/RDBMS.png}
     \end{center}
     \caption{The typical structure of a relational database management system~\autocite{ramakrishnan2000database}.}
     \label{dbms_arch}
@@ -56,7 +56,7 @@ First we are going to elaborate on the storage-related architecture of databases
 
     \begin{figure}[htp]\label{dbms_memory}
         \begin{center}
-        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/03-preliminaries/RDBMS_memory_view.png}
+        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/04-databases/RDBMS_memory_view.png}
         \end{center}
         \caption{A visualization of the interaction of a database with memory~\autocite{ramakrishnan2000database}.}
         \label{buf-man}
@@ -130,9 +130,9 @@ First we are going to elaborate on the storage-related architecture of databases
         In a graph the edges are normally defined as $E \subseteq (V \times V)$, but in the property graph model edges have sets of properties and a type, which makes them records on their own. 
         An illustration of this model is shown in \ref{propertygraph}.
         
-        \begin{figure}
+        \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-preliminaries/property_graph_elements.png}
+                \includegraphics[keepaspectratio,width=0.6\textwidth]{img/04-databases/property_graph_elements.png}
             \end{center}
             \caption{A schematic visualization of the property graph model.} 
             \label{propertygraph}
@@ -158,7 +158,7 @@ First we are going to elaborate on the storage-related architecture of databases
         \subsubsection*{High-level Architecture}
         \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.25\textwidth]{img/03-preliminaries/N4J_HLA_Emil.png}
+                \includegraphics[keepaspectratio,width=0.25\textwidth]{img/04-databases/N4J_HLA_Emil.png}
             \end{center}
             \caption{The high level architecture of Neo4J~\autocite{robinson2015graph}.} 
             \label{N4J_HLA_Emil}
@@ -174,7 +174,7 @@ First we are going to elaborate on the storage-related architecture of databases
         
         \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,width=0.33\textwidth,height=0.3\textheight]{img/03-preliminaries/N4J_Storage.png}
+                \includegraphics[keepaspectratio,width=0.33\textwidth,height=0.3\textheight]{img/04-databases/N4J_Storage.png}
             \end{center}
             \caption{A visualization of the broad the storage and memory organization of Neo4J.} \label{N4J_Storage}
         \end{figure}
@@ -203,7 +203,7 @@ First we are going to elaborate on the storage-related architecture of databases
         This is visualized in~\ref{n4j-disk}.
         \begin{figure}[htp]
             \begin{center}
-                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/03-preliminaries/N4J_disk_view.png}
+                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/04-databases/N4J_disk_view.png}
             \end{center}
             \caption{A visualization of how the files are arranged of Neo4J.}
             \label{n4j-disk}
@@ -220,7 +220,7 @@ First we are going to elaborate on the storage-related architecture of databases
         \subsection*{Nodes}
             \begin{figure}[htp]
                 \begin{center}
-                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/03-preliminaries/node_record.png}
+                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/04-databases/node_record.png}
                 \end{center}
                 \caption{A visualization of the record structure of a node record~\autocite{neo4jNodeRecordFormat}.}
                 \label{node-record-format}
@@ -247,7 +247,7 @@ First we are going to elaborate on the storage-related architecture of databases
         \subsubsection*{Relationships}
             \begin{figure}[htp]
                 \begin{center}
-                    \includegraphics[keepaspectratio,height=0.9\textheight,width=0.9\textwidth]{img/03-preliminaries/relationship_record.png}
+                    \includegraphics[keepaspectratio,height=0.9\textheight,width=0.9\textwidth]{img/04-databases/relationship_record.png}
                 \end{center}
                 \caption{A visualization of the record structure of a relationship in Neo4J.}
                 \label{rel_record}
@@ -276,7 +276,7 @@ First we are going to elaborate on the storage-related architecture of databases
             
             \begin{figure}[htp]
                 \begin{center}
-                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.3\textwidth]{img/03-preliminaries/graph.png}
+                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.3\textwidth]{img/04-databases/graph.png}
                 \end{center}
                 \caption{An example graph.}
                 \label{n4j-ex-gr}
@@ -309,7 +309,7 @@ First we are going to elaborate on the storage-related architecture of databases
             \vfill
             \begin{figure}[htp]
                 \begin{center}
-                    \includegraphics[keepaspectratio,height=\textheight,width=\textwidth]{img/03-preliminaries/example_structs.png}
+                    \includegraphics[keepaspectratio,height=\textheight,width=\textwidth]{img/04-databases/example_structs.png}
                 \end{center}
                 \caption{Visualization of the data structures, as initialized by the example graph shown in \ref{n4j-ex-gr}.}
                 \label{n4j-ex}
