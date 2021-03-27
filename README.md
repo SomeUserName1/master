@@ -2,26 +2,19 @@
 
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Dynamic data locality optimizing storage scheme for graph databases.  
 
-## Formalities
-- [x] Master Thesis Registration: Last handing in date is the 25th of May 2021  
-- [ ] Hand-in Thesis: 16.04
-- [ ] Register Colloquium: Form filled besides M.Scholl (TODO on submission day)
+## Timetable 
+<p style="text-align: center;"><font size="20"><progress id="time" value="6" max="26"></progress></font></p>
 
-## Timetable
-<p style="text-align: center;">
-<progress id="time" value="3" max="26">Time</progress>
-
-
+<font size="1">
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
-|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :pencil: Louvain, Multilevel p., KL	|  27.3 :pencil: Louvain Adaptions 	| 28.3 :pencil: Relationship block formation &ordering & incidence list sort   	|
-|  29.3 :pencil: Implementation, Queries, data sets | 30.3 :pencil: Abstract, Introduction, Conclusion, Ackknowled   | 31.3 :computer: Tests & Debug Data struct  	| 01.4 :computer: Test & Debug Queries |  02.4  :computer: Tests & Debug Access, ICBL  	| 03.4  :computer: Test & Debug G-Store	| 04.4 :floppy_disk: Debugging  	|
+|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3 :pencil: Implementation, Queries, data sets   	|
+|  29.3 :pencil: Abstract, Introduction, Conclusion, Ackknowled | 30.3  :computer: Tests & Debug Data struct  | 31.3 :computer: Tests & Debug Access & Queries 	| 01.4 :computer: Test & Debug  ICBL  |  02.4 :computer: Test & Debug G-Store 	| 03.4  :computer: Test & Debug Louvain	| 04.4 :floppy_disk: Debugging  	|
 | 05.4 :computer: Record Remapping Nodes  & rels  	| 06.04  :computer: remap rels & Incidence List sort 	|  07.4 :computer: adapt louvain 	| 08.4 :computer: adapt louvain  	| 09.4 :computer: evalutaion code   | 10.4 :computer: run Experiments 	|  11.4 :pencil: results 	|
 | 12.4 :floppy_disk:   	| 13.04 :floppy_disk:  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
 | 26.4  :bar_chart: 	|   27.4 :speaking_head: |  28.4  :speaking_head:	|   29.4 :speaking_head:	|   30.4 :dart: Defense	:checkered_flag: |  01.5 :beers:	|   02.5 :beers:	|
-</p>
 
 :pencil: = Writing thesis  
 :computer: = write code  
@@ -29,20 +22,15 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 :bar_chart: = create slides  
 :speaking_head: = practice  
 
-## Thesis  
-<p style="text-align: center;">
-<progress id="write" value="4" max="7">Thesis</progress>
-</p>
+</font>
 
-#### Method ~ 5 P.
-- [ ] Louvain Customizations: Formation & Ordering for nodes
-- [ ] Formation & ordering for edges
-- [ ] Incidence List rearrangement
+## Thesis 
 
-#### Evaluation ~ 15 P.
+<p style="text-align: center;"><font size="20"><progress id="write" value="5" max="8">Thesis</progress></font></p>
+
+#### Evaluation
 - [ ] Implementation 
 - [ ] Queries & data sets
-- [ ] Results & Visualize. ~ 10 P.
 
 #### Abstract, Introduction, Conclusion, Achknowledgement ~ 5-10 P. 
 - [ ] Acknowledgements
@@ -50,7 +38,17 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] Introduction
 - [ ] Conclusions
 
+#### Results & Figures
+- [ ] Results & Visualize. ~ 10 P.
+- [ ] Better Figures Problem Def
+- [ ] Figures own Method
+
 #### Done
+**Method ~ 2 P.**
+- [x] Louvain Customizations: Formation & Ordering for nodes
+- [x] Formation & ordering for edges
+- [x] Incidence List rearrangement
+
 **Graphs ~ 22 P.**  
 - [x] Definitions ~ 2 P
 - [x] Data structures ~ 5.5 P.
@@ -79,22 +77,21 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - Include complexity analysis for g-store/icbl?
 - Some feedback on problem definition
 - Which figures to draw
+- Contributions thin
 
 ## Implementation
-<p style="text-align: center;">
-<progress id="file" value="0" max="10">Implementation</progress>
-</p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="14" max="24">Implementation</progress></font></p>  
 
-- [ ] Debug data structures
-- [ ] Debug Access
-- [ ] Debug ICBL
-- [ ] Debug G-Store
-- [ ] Debug Queries
-- [ ] Record remapping vertices
-- [ ] Record remapping relationships
+- [ ] Debug & Test Data structures
+- [ ] Debug & Test Access
+- [ ] Debug & Test Queries
+- [ ] Debug & Test ICBL
+- [ ] Debug & Test G-Store
+- [ ] Debug & Test Louvain
+- [ ] Record remapping vertices & relationships
 - [ ] Incidence List Reordering
-- [ ] Adapt louvain to problem
-- [ ] Evaluation main
+- [ ] Adapt louvain
+- [ ] Evaluation code for ICBL, G-Store, Louvain, 
 
 #### Done
 - [x] Record structures  
@@ -109,21 +106,21 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] Dijkstra
 - [x] A\*
 - [x] ALT
-- [x] G-Store  [Steinhaus, Olteanu].
-- [x] ICBL [Yasar, Gedik]
+- [x] G-Store
+- [x] ICBL
 
 
 
 ## Future Improvements
 ### Implementation Features
-- [ ] Use initial community detection + data access history graph to update order subsequently based on queries (Paper)
+- [ ] __DOCUMENTATION__
 - [ ] IO
 - [ ] Cache
-- [ ] __DOCUMENTATION__
-- [ ] Tests
+- [ ] Non-consecutive IDs & support deletions
+- [ ] Dynamic Reorganization Impl. & Paper
 - [ ] BSD-style data structures (to avoid wrapper code)
-- [ ] Drop consecutive index assumptions & support deletions
 - [ ] Alternative record layouts (nodes + adj list in same file)
+- [ ] Thread-safety
+- [ ] Transactions/MVCC using git-like transaction logs
 - [ ] Distributed
 - [ ] Multi-Model
-- [ ] Transactions/MVCC using git-like transaction logs

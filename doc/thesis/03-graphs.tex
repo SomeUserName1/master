@@ -792,7 +792,7 @@
                 \[ Q = \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{w_u w_v}{2m} \right) \cdot \delta (c_u, c_v) \]
                 $w_{(u,v)}$ is the weight of the edge between $u$ and $v$ (or $0$ if the edge does not exist). 
                 $c_u$ and $c_v$ are the communities the respective nodes are assigned to, and $\delta$ is the Kronecker delta function, i.e. $1$ if $c_u = c_v$ and $0$ otherwise. 
-                $w_u$ is the sum of the edge weight incident to $u$ and $m$ is the total edge weight $m = \frac{1}{2} \sum_{e \in E} w_e$.
+                $w_u$ is the sum of the edge weights incident to $u$ and $m$ is the total edge weight $m = \frac{1}{2} \sum_{e \in E} w_e$.
                 Overall the modularity is in the range $[-1, 1]$ and can be interpreted as measure for the edge (weight) density inside of a partition in contrast to the edge density in the network overall.
                 
                 \begin{figure}[htp]
@@ -808,10 +808,13 @@
                 It's broad control flow comprises the following steps and is visualized in ~\ref{louvain-fig}:
                 \begin{enumerate}
                 \item Initialize the initial partition with each node in an own community
-                \item $\forall v \in V \forall u \in N_v:$ Compute the gain in modularity $\Delta Q(u,v)$ when merging $v$ into the community of $u$. Place $v$ into the community of the neighbouring node $u$ where $\Delta Q(u,v)$ is maximal, if the gain is positive.
+                \item $\forall v \in V \forall u \in N_v:$ 
+                Compute the gain in modularity $\Delta Q(u,v)$ when merging $v$ into the community of $u$. 
+                Place $v$ into the community of the neighbouring node $u$ where $\Delta Q(u,v)$ is maximal, if the gain is positive.
                 \item Goto step 2 until the improvement is below a threshold.
-                \item Construct a new graph $G_i$ with the communities of the previous graph being the vertices of the new one and Aggregate the edge weights. Links between nodes of the same communities are aggregated to self-loops.
-                \item if the previous graph and the new graph differ, goto step 2 using the $G_i$ as input graph, else terminate.
+                \item Construct a new graph $G_i$ with the communities of the previous graph being the vertices of the new one and Aggregate the edge weights. 
+                Links between nodes of the same communities are aggregated to self-loops.
+                \item If the previous graph and the new graph differ, go to step 2 using the $G_i$ as input graph, else terminate.
                 \end{enumerate}
                 The gain in modularity is computed using a specific formulation, that eases computation:
                 \[ 
@@ -821,8 +824,9 @@
                 
                 Many of these quantities can be precomputed and easily updated:
                 $m$ is constant, $w_v$ is constant, $I_C$ can be updated by adding $w_{v, C}$, $w_C$ can be updated by adding $w_v$, only $w_{v, C}$ needs to be recomputed for every community to consider. 
-                It requires to iterate over all edges of $v$ and check if the other incident node is in the community, thus $\text{deg}(V)$
-                The complexity of the algorithm is determined by computing the gain in modularity for each node and its neighbourhood: $\mathcal{O}(|V| \cdot \text{deg}(V)^2)$.
+                It requires to iterate over all edges of $v$ and check if the other incident node is in the community, thus $\text{deg}(V)$.
+                The complexity of the algorithm is determined by computing the gain in modularity for each node and its neighbourhood: 
+                $\mathcal{O}(|V| \cdot \text{deg}(V)^2)$.
                 Notice, that this algorithm is similar to the coarsening phase of the multilevel algorithm: 
                 The contraction is done by calculating the modularity gain.
                 However, not only two vertices are matched during an iteration but arbitrarily many until convergence. 
@@ -838,14 +842,39 @@
                 
             \subsubsection*{Leiden Method}
                 The Leiden method~\autocite{traag2019louvain} is an extension of the louvain method.
-                It changes and extends the louvain method in two respects:
+                It changes and extends the louvain method in three respects:
                 \begin{enumerate}
                  \item It changes the quality function introducing an additional resolution parameter.
+                 \item It incorporates improvements by other authors on how nodes are moved between partitions~\autocite{movd,movc,movb,mova}.
                  \item It adds a refinement stage after the contraction of the graph has converged.
                 \end{enumerate}
-                The quality function that is used by the Leiden method overcomes the probelm of the resolution limit~\autocite{traag2011narrow, potts1952some, }
-                , where the nodes in each partition are again instantiated as a single refined partition and merged in a different way. 
-                Empirically, the Leiden algorithm converges faster with higher modularity score, whith appropriate values for $\gamma$.
+                The quality function that is used by the Leiden method overcomes the probelm of the resolution limit~\autocite{traag2011narrow, fortunato2007resolution}.
+                It is called the Constant Potts Model~\autocite{potts1952some, traag2011narrow} and defined by 
+                \[ CPM = \sum_{u,v \in V}(w_{(u,v)} + \gamma) \delta(u, v) \]
+                where $G$ is a graph, $P$ is a partitioning of $G$, $w_{(u,v)}$ is the edge weight between $u$ and $v$, and $\gamma$ is the resolution parameter. 
+                Intuitively it controls the coarseness of the partition. and replaces the term $\frac{w_u w_v}{2m}$.
+                A partition is formed, if its density is at least $\gamma$ and the density between paritions should be less than $\gamma$~\autocite{traag2019louvain}.
+                
+                \begin{figure}[htp]
+                    \begin{center}
+                        \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-graphs/leiden.png}
+                    \end{center}
+                    \caption{The steps that the leiden algorithm executes~\autocite{traag2019louvain}.} 
+                    \label{leiden-fig}
+                \end{figure}
+                
+                The node movement is changed in a couple of ways: 
+                The Leiden algorithm keeps track of which neighbourhoods changed and only visits these nodes again, in contrast to louvain which keeps iterating all nodes\autocite{movb, movc}.
+                Initially it adds all nodes to a queue, removes the first on and adds the nodes neighbourhood to the queue only if it was moved.
+                
+                The refinement stage is added after moving nodes between communities and before aggregating the communities into a new graph.
+                Starting with the partitioning $P$, the algorithm derives a refined partitioning $P_{\text{ref}}$.
+                First all nodes are again initialized as an own singleton community. 
+                Now nodes which are in their own community $C^i_{\text{ref}}$ can again be merged with into another community $C^j_{\text{ref}}$, but this time only with those from the same community in the previous partitioning $C \in P$. 
+                In essence it forms from a given partitioning a finer grained partitioning within the communities.
+                Additionally not the merge with the highest increase in the quality function is chosen but the choice is made randomly with higher probability for better quality values, in order to avoid getting stuck in local optima~\autocite{mova}.
+                
+                Empirically, the Leiden algorithm converges faster with a higher modularity score, whith appropriate values for $\gamma$. A good value to start is $\gamma = \frac{1}{2}$, which results in an approximation of the louvain algorithm's quality function --- the modularity of Newman and Girvan~\autocite{girvan2002community}.
                 
             
 

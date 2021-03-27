@@ -1,29 +1,55 @@
-\chapter{Method}\label{\positionnumber}
-    In relational databases, the records are sorted to achieve locality. 
+\chapter{Methods}\label{\positionnumber}
+    In relational databases, the records are sorted to achieve locality~\autocite{ramakrishnan2000database, silberschatz1997database}. 
     Block formation is less of an issue there, as the sorting order of the records yields both, the formation and the order of the blocks.
     In contrast, graphs need to be partitioned into blocks and if this is done, the sorting order is far from trivial.
-    Both partitioning and linear arrangement are NP-complete problems.
+    Both partitioning and linear arrangement are NP-complete problems~\autocite{lewis1983computers}.
     
-     To summarize, previous methods first partitioned the graph by using an adapted version multilevel partitioning algorithm, combining feature extraction with traditional clustering algorithms, the louvain method or the METIS implementation of the multilevel partitioning algorithm.
+     To summarize, previous methods first partitioned the graph by using an adapted version multilevel partitioning algorithm, combining feature extraction with traditional clustering algorithms~\autocite{overview_clust}, the louvain method~\autocite{blondel2008fast} or the METIS implementation~\autocite{karypis} of the multilevel partitioning algorithm~\autocite{hendrickson1995multi}.
     Then based on the partitioning the blocks were formed and ordered.
-    In G-Store this is done in the uncoarsening phase.
-    In ICBL, hierarchical agglomerative clustering in combination with a labelling scheme is used.
-    Bondhu uses a scheme where the vertex with the highest partition is placed in the middle and then iteratively the neighbours with the highest edge weight is then placed next to it and the two nodes are merged in the graph. 
+    In G-Store~\autocite{steinhaus2010g} this is done in the uncoarsening phase.
+    In ICBL~\autocite{yacsar2017distributed, yacsar2015scalable}, hierarchical agglomerative clustering in combination with a labelling scheme is used.
+    Bondhu~\autocite{hoque2012disk} uses a scheme where the vertex with the highest partition is placed in the middle and then iteratively the neighbours with the highest edge weight is then placed next to it and the two nodes are merged in the graph. 
     
     G-Store uses adjacency lists as data structure.
     Thus the edges are placed directly next to the vertices in the very same file.
     For ICBL, the very same is true:
     They represent the graph unsing an adjacency list. 
-    In the evaluation part of Ya\c{c}ar's and Gedik's work, the authors apply their order to Neo4J's incidence list structure. 
+    In the evaluation part of Ya\c{c}ar's and Gedik's work, the authors apply their order to Neo4J's incidence list structure~\autocite{Rodriguez2010ConstructionsFD, robinson2015graph}. 
     As already discussed in \ref{n4j-rel}, the incidence list is implemented using an edge list with the incidence list included in the edge's record structure.
     To adapt ICBL's adjacency list to Neo4J, they insert the relations in the order of the adjacency list and store the nodes in order of their appearance in the edge list.    
     Regarding Bondhu, the relationship arrangement is not mentioned in the paper.
     
     In the following section an adaption of the louvain method is derived, that tries to add as little overhead as possible to, while using some aspects of the related technique.
     
-    \section{Block Formation}
+    \section{Adapted Louvain-like Block Formation and Ordering}
+        As a first step, contration algorithm that optimizes the modularity or the CPM~\autocite{traag2011narrow, potts1952some} function is executed.
+        During the contraction step of the louvain or the leiden algorithm~\autocite{traag2019louvain}, it is easy to stop merging when communities reach a certain number if nodes.
+        That is as soon as a community has $\frac{\text{Block Size}}{\text{node size}}$ nodes, then don't consider merging nodes into it anymore.
+        This results in block sized partitions.
+        The aggregation step of these algorithms can then be performed as is. 
+        Afterwards executing the algorithm in its standard form yields a hierarchy of graphs, similar to the method employed in G-Store.
     
-    
-    \section{Block Order}\label{\positionnumber}
+        This can then be used to achieve an ordering of the blocks:
+        Uncoarsen the graph by applying the Dewey numbering scheme~\autocite{dewey1894decimal}, employed by ICBL and G-Store.
+        Additionally, an heuristic for improving the vertex ordering can be applied layerwise. 
+        A recent comprehensive survey of minimum linear arrangement approximation algorithms can be found in~\autocite{barik2020vertex}.
+        An appealing option would be to apply the reverse Cuthill-McKee algorithm~\autocite{Cuthill1969ReducingTB}, that approximates the solution in $\mathcal{O}(|V| \cdot \text{deg}{V}) = \mathcal{O}(|E|)$. 
+        The quality of the algorithm is highly dependent on the input graph.
+        As the input graph is the already approximately ordered graph from the last level, the effects of input ordering should be mitigated.
+        
+        After the algorithms above are finished, the vertices are layed out in this order to file. 
+        The relationships are written to file in the very same order by grouping and storing the outgoing edges of a vertex together and following the vertex order.
+        That is, the outgoing edges of the vertex stored at the first slot in the vertex file are stored beginning at the first slot of the edge file. 
+        The outgoing edges of the second node start right after the edge group of the first node and so on.
+        This scheme is motivated by the asusmption that traversals in directed graphs follow the edge direction.
     
     \section{Incidence List Rearrangement}\label{\positionnumber}
+        Finally, as the just inserted edges contain the incidence lists of the vertices, the order of these changed.
+        If the edges are stored by insertion order, the incidence lists are sorted in a sense: 
+        Edges that were inserted earlier also appear earlier in the incidence list and the other way arround.
+        Thus, reordering the incidence lists such that the first element in the list is also the first appearing relationship of that list in the underlying file will result in less jumps as shown in~\ref{inc-ord}.
+        
+        Consider the case, in which we would reorganize the position of the edges in the file but not reoder the incidence lists. 
+        It is quite likely that relationships that are in the same block and in the same incidence list are not accessed sequentially.
+        Instead many accesses to other elements are made in between, that are potentially widely spread troughout the file.
+        Depending on the degree of the node (i.e. the length of the incidence list), the size of the graph, the capacity of the buffer and the number of queries that are concurrently executed this might cause a lot of additional IOs, as we desire to show in the evaluation chapter.
