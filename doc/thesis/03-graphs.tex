@@ -785,14 +785,14 @@
                 The overall runime depends heavily on $|V_c|$. 
                 The refinement phase is the most costly step as it needs to be done for the last level too, resulting in an asymptotic complexity of $\mathcal{O}(\mathcal{O}(k^2 \cdot |V|^2 \cdot \log^2(|V|)))$.
                 
-            \subsubsection*{Louvain Method}
+            \subsubsection*{Louvain Method}\label{louvain-desc}
                 The Louvain method~\autocite{blondel2008fast} is an algorithm for community detection. 
                 The authors define community detection as a graph partitioning problem, where nodes within a partition shall be densely connected, while nodes belonging to different partitions shall be sparsely connected~\autocite{blondel2008fast}.
                 Measuring the quality of such partitioning can be done using the modularity of the partition as introducted by Newman and Girvan~\autocite{girvan2002community}:
-                \[ Q = \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{k_u k_v}{2m} \right) \cdot \delta (c_u, c_v) \]
+                \[ Q = \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{w_u w_v}{2m} \right) \cdot \delta (c_u, c_v) \]
                 $w_{(u,v)}$ is the weight of the edge between $u$ and $v$ (or $0$ if the edge does not exist). 
                 $c_u$ and $c_v$ are the communities the respective nodes are assigned to, and $\delta$ is the Kronecker delta function, i.e. $1$ if $c_u = c_v$ and $0$ otherwise. 
-                $k_u$ is the sum of the edge weight connected to $u$ and $m$ is the total edge weight $m = \frac{1}{2} \sum_{e \in E} w_e$.
+                $w_u$ is the sum of the edge weight incident to $u$ and $m$ is the total edge weight $m = \frac{1}{2} \sum_{e \in E} w_e$.
                 Overall the modularity is in the range $[-1, 1]$ and can be interpreted as measure for the edge (weight) density inside of a partition in contrast to the edge density in the network overall.
                 
                 \begin{figure}[htp]
@@ -835,8 +835,18 @@
                 This problem is approached by two different ways:
                 Conde-C{\'e}spedes et al.~\autocite{conde2017comparison} experiment with different other modularity measures, that are provably stable with respect to the graph size.
                 However those measures that provide good results require user defined parameters, which in turn requires either domain specific knowledge of the data or parameter optimization, which implies multiple executions of the algorithm. 
-                The Leiden method~\autocite{traag2019louvain} also introduces an additional parameter by changing the quality function, but also an additional step.
-                It adds a refinement stage after the first step is finished, where the nodes in each partition are again instantiated as a single refined partition and merged in a different way. 
+                
+            \subsubsection*{Leiden Method}
+                The Leiden method~\autocite{traag2019louvain} is an extension of the louvain method.
+                It changes and extends the louvain method in two respects:
+                \begin{enumerate}
+                 \item It changes the quality function introducing an additional resolution parameter.
+                 \item It adds a refinement stage after the contraction of the graph has converged.
+                \end{enumerate}
+                The quality function that is used by the Leiden method overcomes the probelm of the resolution limit~\autocite{traag2011narrow, potts1952some, }
+                , where the nodes in each partition are again instantiated as a single refined partition and merged in a different way. 
                 Empirically, the Leiden algorithm converges faster with higher modularity score, whith appropriate values for $\gamma$.
+                
+            
 
  

@@ -1,6 +1,29 @@
 \chapter{Method}\label{\positionnumber}
-    \section{Block formation}
+    In relational databases, the records are sorted to achieve locality. 
+    Block formation is less of an issue there, as the sorting order of the records yields both, the formation and the order of the blocks.
+    In contrast, graphs need to be partitioned into blocks and if this is done, the sorting order is far from trivial.
+    Both partitioning and linear arrangement are NP-complete problems.
     
-    \section{Block order}\label{\positionnumber}
+     To summarize, previous methods first partitioned the graph by using an adapted version multilevel partitioning algorithm, combining feature extraction with traditional clustering algorithms, the louvain method or the METIS implementation of the multilevel partitioning algorithm.
+    Then based on the partitioning the blocks were formed and ordered.
+    In G-Store this is done in the uncoarsening phase.
+    In ICBL, hierarchical agglomerative clustering in combination with a labelling scheme is used.
+    Bondhu uses a scheme where the vertex with the highest partition is placed in the middle and then iteratively the neighbours with the highest edge weight is then placed next to it and the two nodes are merged in the graph. 
+    
+    G-Store uses adjacency lists as data structure.
+    Thus the edges are placed directly next to the vertices in the very same file.
+    For ICBL, the very same is true:
+    They represent the graph unsing an adjacency list. 
+    In the evaluation part of Ya\c{c}ar's and Gedik's work, the authors apply their order to Neo4J's incidence list structure. 
+    As already discussed in \ref{n4j-rel}, the incidence list is implemented using an edge list with the incidence list included in the edge's record structure.
+    To adapt ICBL's adjacency list to Neo4J, they insert the relations in the order of the adjacency list and store the nodes in order of their appearance in the edge list.    
+    Regarding Bondhu, the relationship arrangement is not mentioned in the paper.
+    
+    In the following section an adaption of the louvain method is derived, that tries to add as little overhead as possible to, while using some aspects of the related technique.
+    
+    \section{Block Formation}
+    
+    
+    \section{Block Order}\label{\positionnumber}
     
     \section{Incidence List Rearrangement}\label{\positionnumber}
