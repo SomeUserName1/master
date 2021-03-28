@@ -3,14 +3,14 @@
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Dynamic data locality optimizing storage scheme for graph databases.  
 
 ## Timetable 
-<p style="text-align: center;"><font size="20"><progress id="time" value="6" max="26"></progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="time" value="7" max="26"></progress></font></p>
 
 <font size="1">
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
-|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3 :pencil: Implementation, Queries, data sets   	|
-|  29.3 :pencil: Abstract, Introduction, Conclusion, Ackknowled | 30.3  :computer: Tests & Debug Data struct  | 31.3 :computer: Tests & Debug Access & Queries 	| 01.4 :computer: Test & Debug  ICBL  |  02.4 :computer: Test & Debug G-Store 	| 03.4  :computer: Test & Debug Louvain	| 04.4 :floppy_disk: Debugging  	|
+|22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3  :ballot_box_with_check:	|
+|  29.3 :pencil:  Implementation, Queries, data sets, abstract, Introduction, Conclusion, Ackknowled | 30.3  :computer: Tests & Debug Data struct  | 31.3 :computer: Tests & Debug Access & Queries 	| 01.4 :computer: Test & Debug  ICBL  |  02.4 :computer: Test & Debug G-Store 	| 03.4  :computer: Test & Debug Louvain	| 04.4 :floppy_disk: Debugging  	|
 | 05.4 :computer: Record Remapping Nodes  & rels  	| 06.04  :computer: remap rels & Incidence List sort 	|  07.4 :computer: adapt louvain 	| 08.4 :computer: adapt louvain  	| 09.4 :computer: evalutaion code   | 10.4 :computer: run Experiments 	|  11.4 :pencil: results 	|
 | 12.4 :floppy_disk:   	| 13.04 :floppy_disk:  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
@@ -28,8 +28,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 <p style="text-align: center;"><font size="20"><progress id="write" value="5" max="8">Thesis</progress></font></p>
 
-#### Evaluation
-- [ ] Implementation 
+#### Evaluation 1 P
+- [x] Implementation 
 - [ ] Queries & data sets
 
 #### Abstract, Introduction, Conclusion, Achknowledgement ~ 5-10 P. 
