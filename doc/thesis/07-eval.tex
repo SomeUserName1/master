@@ -1,0 +1,21 @@
+\chapter{Experimental Evaluation}\label{\positionnumber} 
+\section{Implementation}\label{\positionnumber}
+    The implementation is written in C and has currently approximately $10 000$ lines of code.
+    It comprises data structures, likehash tables, lists, queues and fibonacci heaps. 
+    The database currently only operates in-memory, implementing an access layer using the \mintinline{c}{expand} and \mintinline{c}{get_nodes} operations.
+    The record structures are similar to those used in Neo4J. 
+    The difference to the structures of Neo4J is that properties, labels and relationship types are currently not supported.
+    Besides these differences, the data structures are described as in \ref{n4j}.
+    Instead of using two files, two hash tables are used to store the records --- one for nodes and one for edges.
+    
+    Atop of the access layer, all traversal, shortest path and the louvain algorithm is implemented. These algorithms are augmented to log the IDs of accessed nodes and relationships.
+    Further the locality optimizing data layout algorithms of G-Store and ICBL are contained, along with an implementation of the louvain based formation and the RCM-based ordering of blocks.
+    Additionally routines for counting the number of blocks that are accessed based on a sequence of accessed nodes and relationhips, an importer for datasets from the SNAP collection and means of sorting the incidence lists are provided.
+    
+\section{Experimental Setup}\label{\positionnumber}
+    \subsection{Data Sets and Queries}\label{\positionnumber}
+    SNAP, traversal, shortest path
+    \subsection{Environment}\label{\positionnumber}
+    MBP, Desktop
+    
+\section{Results}\label{\positionnumber}

@@ -97,10 +97,23 @@
      \item Number of block accesses.
      \item Number of non-consecutive block accesses.
     \end{enumerate}
-    The first measure is to take the neighbourhood within a block into account: If vertices and edges that are accessed together are stored in the same block, this measure should be as small as possible.
+    The first measure is to take the locality within a block into account:
+    If those vertices and edges that are accessed together are stored in the same block, this measure should be as small as possible.
     The second measure takes the order of the blocks into account: 
     If vertices and edges that are connected or ``close'' to each other are stored in adjacent blocks, they can be loaded with one sequential read.
     But the second measure also takes into account how the traversal is executed in terms of pointer chasing with respect to the incidence list.
+    
+    As we change the unit of access from addresses of records to blocks on a disk, the definition of locality needs to be adapted.
+    Temporal locality is now based on blocks instead of addresses.
+     \[ P (X_{t + \Delta} = B | X_t = B) \]
+     Here we have a block $B$ instead of an address $A$. 
+     If blocks are well formed, the number of blocks that are accessed should decrease overall.
+     This is due to the fact that multiple elements that are accessed in a short amount of time are stored in the same block instead of several. \\
+     Spatial locality can be reformulated in the same sense:
+      \[ P(X_{t + \Delta} = B \pm \varepsilon | X_t = B) \]
+      With a well-suited ordering of the blocks, the probablity that neighbouring blocks are accessed should be increased.
+      Finally when the incidence list is ordered, the access to blocks should be in a monotonely increasing sequence of block addresses. 
+      Thus the access should be sequential and thus the probability to access adjacent blocks inceases as oposed with unordered access that jumps back and forth.
     
 \section{Example: Vertex, Edge and Incidence List Order}
   Why are these three criteria neccessary? Why are there only two measurements for three criteria? \\

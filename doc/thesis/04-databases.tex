@@ -187,7 +187,7 @@ First we are going to elaborate on the storage-related architecture of databases
         It also handles the management of free slots something usually done by the disk space manager.
         To summarize: The buffer manager and the access layer correspond closely to these two packages, while the disk space manager is distributed mainly over these two packages.        
 
-        \subsubsection*{Record and File Structures}
+        \subsubsection*{Record and File Structures}\label{n4j-struct}
         Neo4J uses several different record types. They can be split broadly in the following categories:
         \begin{itemize}
          \item Variable size records: Strings, Arrays
@@ -217,7 +217,7 @@ First we are going to elaborate on the storage-related architecture of databases
         Only one thing is to be mentioned: 
         Properties are stored as a linked list for each nodes and relationships.
         
-        \subsection*{Nodes}
+        \subsubsection*{Nodes}
             \begin{figure}[htp]
                 \begin{center}
                     \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/04-databases/node_record.png}
