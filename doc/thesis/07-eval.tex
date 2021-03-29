@@ -1,21 +1,69 @@
 \chapter{Experimental Evaluation}\label{\positionnumber} 
-\section{Implementation}\label{\positionnumber}
-    The implementation is written in C and has currently approximately $10 000$ lines of code.
-    It comprises data structures, likehash tables, lists, queues and fibonacci heaps. 
-    The database currently only operates in-memory, implementing an access layer using the \mintinline{c}{expand} and \mintinline{c}{get_nodes} operations.
-    The record structures are similar to those used in Neo4J. 
-    The difference to the structures of Neo4J is that properties, labels and relationship types are currently not supported.
-    Besides these differences, the data structures are described as in \ref{n4j}.
-    Instead of using two files, two hash tables are used to store the records --- one for nodes and one for edges.
+\section{Setup}\label{\positionnumber}
+    \subsection*{Implementation}
+        The implementation is written in C and has currently approximately $10 000$ lines of code.
+        At the most basic level, it comprises data structures, likehash tables, lists, queues and fibonacci heaps, but also record structures. 
+        These are similar to the ones used in Neo4J. 
+        The difference to the structures of Neo4J is, that properties, labels and relationship types are currently not supported.
+        Besides that, the data structures are described as in \ref{n4j}.
+        The database currently only operates in-memory, implementing an access layer using the \mintinline{c}{expand} and \mintinline{c}{get_nodes} operations.
+        Instead of using two files, two hash tables are used to store the records --- one for nodes and one for edges. \\
+        Atop of the access layer, all traversal, shortest path algorithms and the louvain method is implemented. These algorithms are augmented to log the IDs of accessed nodes and relationships.
+        Further the static locality optimizing data layout algorithms of G-Store and ICBL are contained, along with an implementation of the louvain based formation, the RCM-based ordering of blocks and the ordering of the incidence list.
+        Additionally routines for counting the number of blocks that are accessed, based on the logged sequence of nodes and relationhips and an importer for datasets from the SNAP dataset collection.
     
-    Atop of the access layer, all traversal, shortest path and the louvain algorithm is implemented. These algorithms are augmented to log the IDs of accessed nodes and relationships.
-    Further the locality optimizing data layout algorithms of G-Store and ICBL are contained, along with an implementation of the louvain based formation and the RCM-based ordering of blocks.
-    Additionally routines for counting the number of blocks that are accessed based on a sequence of accessed nodes and relationhips, an importer for datasets from the SNAP collection and means of sorting the incidence lists are provided.
     
-\section{Experimental Setup}\label{\positionnumber}
-    \subsection{Data Sets and Queries}\label{\positionnumber}
-    SNAP, traversal, shortest path
-    \subsection{Environment}\label{\positionnumber}
-    MBP, Desktop
+    \subsection*{Cost Model}
+        The cost model, that is used to quantify the improvement in locality is based on the sequence of nodes and relationhips that are accessed. 
+        We assume, that the cache or buffer has the size of exactly one block, such that only the accessed block is to be considered ``in memory''.
+        First, the block number of the accessed record is calculated by 
+        \[ \frac{\text{record ID} \cdot \text{record size}}{\text{block size}} \]
+        As long as consecutive accesses to records produce the same block number, the access is counted as one block IO.
+        Otherwise, --- i.e. if the block number changes --- it is counted as another block IO. 
+        If the change in the block number differs only by one block, it is counted as a sequential block IO.
+        When considering the definition of block-based spatial temporal locality
+        \[ P(X_{t + \Delta} = B + \varepsilon | X_t = B) \]
+        we set $\varepsilon$ to 1. 
+        It can be quite reasonable to set $\varepsilon$ to e.g. $8$.
+        This would correspond to a system with a block size of $512$ Bytes and a page size of $4096$.
+        Further when also using prefetching, even larger values for $\varepsilon$ can occur.  \\
+        The above described model should correspond closely to how the disk is actually stored. 
+        Besides an offset of one (or multiple) blocks for the maintenance of free blocks and eventually free slots, the block alignment is the same:
+        All IDs in this schema are stored implictly by the nodes position in the file. 
+        That is --- as described in \ref{n4j}--- with a node size of 64 bytes, when the node record starts at 192 bytes + header offset, then it has the ID $3$. \\
+        Finally, we are only going to measure the number of block IOs and the number of non-sequential IOs as mentioned above and in~\ref{prob-def}.
+    
+    \subsection*{Data Sets and Queries}
+        We use datasets from the Stanford Network Analysis Project~\autocite{snap}.
+        More specifically we use datasets starting from 1005 nodes and $25571$ edges, ranging to $65608366$ nodes and $1806067135$ edges.
+        All datasets that are used so far are unweighted, (i.e. all edges have a weight of $1$).
+        A summary of the considered networks is shown in table~\ref{datasets}.
+        \begin{table}
+        \begin{center}
+            \begin{tabular}[c]{p{2.3cm} l r r p{6cm}} \toprule
+                Name & Type & Nodes & Edges & Description \\ \midrule
+                 C.elegans & Directed & $131$ & $764$ & Frontal part of the neural network of a C. elegans~\autocite{celegans} \\ [0.8cm]
+                 Email & Directed & $1005$ & $25571$ & E-Mail traffic between european research institutions~\autocite{email} \\ [0.8cm]
+                 DBLP & Undirected & $317080$ & $1049866$ & Computer science citation network~\autocite{lj}. \\ [0.8cm]
+                 Amazon & Undirected & $334863$ & $925872$ & Co-purchased items network crawled from Amazon~\autocite{lj}. \\ [0.8cm]
+                 YouTube & Undirected & $1134890$ & $2987624$ & YouTube social network~\autocite{mislove}. \\ [0.5cm]
+                 Wikipedia & Directed & $1791489$ & $28511807$ & Hyperlink network of the top categories on Wikipedia~\autocite{wiki} \\ [0.8cm]
+                LiveJournal & Undirected & $3997962$ & $34681189$ & Live Journal social network~\autocite{lj}. \\ [0.8cm]
+                Orkut & Undirected & $3072441$ & $117185083$ & Orkut social network~\autocite{mislove}. \\ [0.8cm]
+                Friendster & Undirected & $65608366$ & $1806067135$ & Friendster social network~\autocite{friendster}. \\ \bottomrule
+            \end{tabular}
+            \end{center}
+            \caption{Details on the datasets that are used during evaluation.}
+            \label{datasets}
+        \end{table}
+        The queries executed to gather the access sequences are breadth first searchm depth first search, Dijkstra's algorithm, the A$^*$ algorithm and the ALT algorithm.
+        As described above the accessed nodes and relationship IDs are logged by the implementation of these algorithms.
+
+    \subsection*{Environment}
+        The evaluation is executed on a 2015 MacBook Pro with an Intel Core i5-4278U processor running at $2.6$ GHz, with boosting to $3.1$GHz. The bus width is 64 bits. 
+        It was manufactured using a 22nm process, has 2 cores with 2 threads each, has $128$ KiB L1 with $64$ KiB for instructions and data each, $512$KiB L2 and 3MiB L3 Cache.
+        The main memory consist of $2 \cdot 4$GiB SODIMM DDR3 RAM clocked at 1600 MHz by Micron Technology.
+        We are not using the disk directly, but it may be indirectly used by the operating system when paging or swapping is exchanging pages or process images.
+        The disk is a $256$GB SSD produced by Samsung and uses the SATA protocol over the PCIe 3.0 x4 interface.
     
 \section{Results}\label{\positionnumber}

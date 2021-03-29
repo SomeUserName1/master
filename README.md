@@ -1,6 +1,6 @@
 # Master Thesis:  Locality Optimization for traversal-based queries on graph databases
 
-Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Dynamic data locality optimizing storage scheme for graph databases.  
+Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Static data locality optimizing storage scheme for graph databases.  
 
 ## Timetable 
 <p style="text-align: center;"><font size="20"><progress id="time" value="7" max="26"></progress></font></p>
@@ -90,7 +90,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [ ] Debug & Test Louvain
 - [ ] Record remapping vertices & relationships
 - [ ] Incidence List Reordering
-- [ ] Adapt louvain
+- [ ] Adapt louvain w RCM
 - [ ] Evaluation code for ICBL, G-Store, Louvain, 
 
 #### Done
@@ -109,7 +109,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] G-Store
 - [x] ICBL
 
-
+#### Notes
+- Maybe include road networks (i.e. adapt snap importer with flag), dimacs format importer, CC-neuron dataset, connectomes
 
 ## Future Improvements
 ### Implementation Features

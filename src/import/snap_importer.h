@@ -1,39 +1,45 @@
 #include "../access/in_memory_file.h"
 #include "../data-struct/dict_ul.h"
 
-#define EMAIL_EU_CORE_URL "https://snap.stanford.edu/data/email-Eu-core.txt.gz"
-#define DBLP_URL "https://snap.stanford.edu/data/com-DBLP.html"
+#define C_ELEGANS_URL                                                          \
+    ("https://snap.stanford.edu/data/C-elegans-frontal.txt.gz")
+#define EMAIL_EU_CORE_URL                                                      \
+    ("https://snap.stanford.edu/data/email-Eu-core.txt.gz")
+#define DBLP_URL ("https://snap.stanford.edu/data/com-DBLP.html")
 #define AMAZON_URL                                                             \
-    "https://snap.stanford.edu/data/bigdata/communities/"                      \
-    "com-amazon.ungraph.txt.gz"
-#define YOUTUBE_URL "https://snap.stanford.edu/data/com-Youtube.html"
-#define WIKIPEDIA_URL "https://snap.stanford.edu/data/wiki-topcats.txt.gz"
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-amazon.ungraph.txt.gz")
+#define YOUTUBE_URL ("https://snap.stanford.edu/data/com-Youtube.html")
+#define WIKIPEDIA_URL ("https://snap.stanford.edu/data/wiki-topcats.txt.gz")
 #define LIVE_JOURNAL_URL                                                       \
-    "https://snap.stanford.edu/data/bigdata/communities/com-lj.ungraph.txt.gz"
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-lj.ungraph.txt.gz")
 #define ORKUT_URL                                                              \
-    "https://snap.stanford.edu/data/bigdata/communities/"                      \
-    "com-orkut.ungraph.txt.gz"
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-orkut.ungraph.txt.gz")
 #define FRIENDSTER_URL                                                         \
-    "https://snap.stanford.edu/data/bigdata/communities/"                      \
-    "com-friendster.ungraph.txt.gz"
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-friendster.ungraph.txt.gz")
 
-#define EMAIL_EU_CORE_NO_NODES 1005
-#define DBLP_NO_NODES 317080
-#define AMAZON_NO_NODES 334863
-#define YOUTUBE_NO_NODES 1134890
-#define WIKIPEDIA_NO_NODES 1791489
-#define LIVE_JOURNAL_NO_NODES 3997962
-#define ORKUT_NO_NODES 3072441
-#define FRIENDSTER_NO_NODES 65608366
+#define C_ELEGANS_NO_NODES (131)
+#define EMAIL_EU_CORE_NO_NODES (1005)
+#define DBLP_NO_NODES (317080)
+#define AMAZON_NO_NODES (334863)
+#define YOUTUBE_NO_NODES (1134890)
+#define WIKIPEDIA_NO_NODES (1791489)
+#define LIVE_JOURNAL_NO_NODES (3997962)
+#define ORKUT_NO_NODES (3072441)
+#define FRIENDSTER_NO_NODES (65608366)
 
-#define EMAIL_EU_CORE_NO_RELS 25571
-#define DBLP_NO_RELS 1049866
-#define AMAZON_NO_RELS 925872
-#define YOUTUBE_NO_RELS 2987624
-#define WIKIPEDIA_NO_RELS 28511807
-#define LIVE_JOURNAL_NO_RELS 34681189
-#define ORKUT_NO_RELS 117185083
-#define FRIENDSTER_NO_RELS 1806067135
+#define C_ELEGANS_NO_RELS (764)
+#define EMAIL_EU_CORE_NO_RELS (25571)
+#define DBLP_NO_RELS (1049866)
+#define AMAZON_NO_RELS (925872)
+#define YOUTUBE_NO_RELS (2987624)
+#define WIKIPEDIA_NO_RELS (28511807)
+#define LIVE_JOURNAL_NO_RELS (34681189)
+#define ORKUT_NO_RELS (117185083)
+#define FRIENDSTER_NO_RELS (1806067135)
 
 /* Number of columns/values per row encoding a relationship in a text file */
 #define ENTRIES 2

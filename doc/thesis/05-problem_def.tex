@@ -70,10 +70,13 @@
     Achieving optimal temporal locality is a matter of grouping and ordering data such that what is referenced together is in a neighbourhood in terms of addressing.
     
           
-\section{Problem Definition}\label{\positionnumber}
+\section{Problem Definition}\label{prob-def}
     In order to optimize spatial locality for traversal-based queries, the graph needs to be grouped and ordered.
-    Ultimately disk storage is block-based and disk access is page-based. 
+    Ultimately disk storage and IO is block-based and disk access is page-based. 
     That is the vertices and edges must be grouped into blocks.
+    This can happen statically or dynamically. 
+    We focus here on the static reordering.
+    That is the underlying data is stored only on request.
     
     \paragraph{Assumptions:}
     In the remainder of this thesis we are assuming that the graph is represented in the property graph model~\ref{prop-graph-model} and uses incidence lists~\ref{inci} as the storage schema. 
@@ -217,4 +220,4 @@
     \end{tabular}
       \caption{Suboptimal and improved incidence list order.}
     \label{inc-ord}
-       \end{table}
+\end{table}
