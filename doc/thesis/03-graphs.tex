@@ -5,7 +5,7 @@
     Finally algorithms for traversals, path finding and partitioning or community detection are considered.
     
     \section{Definitions}\label{\positionnumber}
-        Most of the definitions below follow the notations intorduced in ~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}
+        Most of the definitions below follow the notations intorduced in ~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}.
     
         A \textbf{graph} $G$ is a tuple $(V, E)$ where $V$ is a non-empty set of vertices (also called nodes). 
         $E$ is a subset of cartesian product of the set vertices $E \subseteq V \times V$, called edges.
@@ -336,8 +336,7 @@
             
             Finally the adjacency and incidence lists are quite similar in many respects: Both require linear storage space --- which is optimal without further compression. 
             Even tough not optimal for the operations find, insert and remove, both data structures provide access times that are asymptotically better than linear in most cases.
-            If the edges are distributed uniformly, we have an average degree of 
-            \[ \text{deg}(V) = \frac{2|E|}{|V|} \leq \frac{2 |V|^2}{|V|} = 2 |V| \]
+            If the edges are distributed uniformly, we have an upper bound for the  average degree of $\text{deg}(V) = \frac{2|E|}{|V|} \leq \frac{2 |V|^2}{|V|} = 2 |V|$
             In real networks, the distribution is often non-uniform but can be modeled using e.g. binomial, poisson or power law type~\autocite{holme2019rare}. 
             A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. 
             What is also very applealing is the fact that the adjacency list and especially the incidence list enable one to return the neighbourhood of a vertex in constant or degree-based amount of time. 
@@ -346,28 +345,34 @@
             In the table \ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations that act upon them. 
             
             \begin{table}
-                \begin{tabular}[c]{p{3cm} p{2cm} p{2cm} p{2cm} p{2cm} p{2cm}} \toprule
-                & Edge List & Adjacency Matrix & Incidence Matrix & Adjacency List & Incidence List \\ \midrule
-                Space Complexity & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V| + |E|)$ \\
-                Retrieve $|V|$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+            \begin{center}
+                \begin{tabular}[c]{l l l l l l} \toprule
+                \multirow{2}{*}{} & Edge List & Adjacency & Incidence & Adjacency  & Incidence \\ 
+                & &  Matrix & Matrix & List & List \\ \midrule
+                Space & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|V| + |E|)$ & $\mathcal{O}(|V| + |E|)$ \\
                 Retrieve $|E|$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ \\
-                Find $v \in V$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
-                Insert $v$ to $V$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
-                Remove $v$ from $V$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
-                Find $e \in E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
-                Insert $e$ to $E$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
-                Remove $e$ from $E$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
+                Find $v$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+                Insert $v$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+                Remove $v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|^2)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
+                Find $e$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
+                Insert $e$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(1)$ \\
+                Remove $e$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|V| \cdot |E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
                 $u, v$ adjacent? & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ & $\mathcal{O}(\text{deg}(V))$ \\
                 $N_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ \\
                 $\text{In}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(\text{deg}(V))$ \\
                 $\text{Out}_v$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(|V|)$ & $\mathcal{O}(|E|)$ & $\mathcal{O}(1)$ & $\mathcal{O}(\text{deg}(V))$ \\ \bottomrule
             \end{tabular}
+            \end{center}
             \caption{Space and runtime complexity comparison of the different data types.}
             \label{sumtabds}
             \end{table}
 
     \newpage
     \section{Algorithms}\label{queries}
+        There are many kinds of graph problems and algiorithms tackling them. As we are interested in the access patterns of traversal based queries we are going to focus on traversal and shortest path algorithms. We also look at some partitioning methods as these are used quite frequently when addressing the issues in the next chapter.
+        Never the less other classes of algorithms are of equal importance and have many use cases, like flow problems, finding graph isomorphisms, identifying minmal spanning trees, determining the centrality of a node and others.
+        Comprehensive resources for these problems can be found in~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}.
+        
         \subsection{Traversal Algorithms}
             Visiting the nodes in a graph is known as graph traversal. 
             The order in which the nodes are visited is given by the respective algorithm. 

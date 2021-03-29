@@ -1,9 +1,53 @@
-\chapter{Introduction}\label{\positionnumber}  
-\paragraph{Essay-like Intro.}
+\chapter{Introduction}\label{\positionnumber}
+Graph-like strucutres are omnipresent in out world:
+Places, like cities and roads like highways are naturally modelled using graphs.
+When thinking about social structures, people can be modelled as nodes and interactions as edges. 
+In dynamical systems like the brain, the structure of the system can be modelled as a graph and the dynamics of the process can be modelled as algorithms on the graph structure like the spreading activation algorithm and by changes to the network itself~\autocite{anderson, dayan1991reinforcing}.
+The internet and routing protocols used by the hardware nodes rely on graph theory to optimize the flow of information~\autocite{bgp}.
+Especially in the recent years, modelling pandemic dynamics using graph-based models, like the susceptible-infected-recovered and the susceptible-infected-susceptible model, has gained a lot of attention~\autocite{kermack1927contribution, dawood2012estimated, sridhar2020modelling, chang2020modelling}.
 
-\paragraph{Organisation} 
+As the graphs grow larger and more complex, the need to store it reliable, maintainable and scalable emerges.
+In addition to accountability issues, databases provide exceptional performance for some operations. 
+In the context of graphs, one set of operations that are executed frequently in broad range of problems are traversal-based queries.
+Given a knowledge graph, if we want to retrieve related concepts to a given one, then a breadth first traversal is appropriate. If you want to find connections between concepts, a shortest path finding algorithm provides means to examine connections~\autocite{minsky1982semantic}.
+Similarly, when planning a route, shortest path finding algorithms are employed. Further, when searching for some specific kind place in the surrounding like when looking for a bar, the next theater, or the next gas station, then another kind of shortest path algorithm is applied as we will see.~\autocite{bast2016route} 
 
-\paragraph{Contributions}
-Static/offline rearrangement scheme
-incidence list reordering
-block IO-based measurement
+But how do you make sure that these algorithms are exceptionally fast?
+The bottleneck for algorithms operating on large scales of input data is mostly the time spent to load the data. 
+This is due to that caches are about $50$ times faster than DDR4 RAM, which is in turn $1,000$ times faster than a solid state drive and about $100,000$ times faster then a hard disk drive~\autocite{mem-h}.
+In effect, we want to minimize the number of disk IO operations that needs to be done when executing a query.
+This topic has already been tackled in other types of databases, like in relational databases.
+A key element to this is the concept of locality. 
+The reason why caches and buffering works is the so called locality of reference~\autocite{tanenbaum2015modern, jacob2010memory}. 
+That is most of the memory accesses target only a fraction of the overall data. 
+Here we are going to focus on spatial locality: 
+We want to order the data such that, when an element is accessed, the elements that are accessed next are within the neighbourhood of the last one. 
+As disks read and write data based on chunks --- so called blocks --- packing data such that accesses remain local saves IO operations. More concretely, whenever a subsequent access stays within a block, we need one loading operation less.
+
+In order to do this sort of reorganization, one can reorganize them statically like in relational databases. 
+In relational databases this is based on the value of certain fields.
+For graphs, the structure is crucial to the traversal based queries.
+Thus we are going to address the issue by elaborating on static data rearrangement  methods based on the structure of the graph.
+
+The contributions of this theis are 
+\begin{itemize}
+ \item a comprehensive introduction to the topic.
+ \item a concise description of the problem.
+ \item a pragmatic comparative metric to measure the impact of data organization on the performance of queries.
+ \item a survey of existing static rearrangement methods.
+ \item the proposition of two extensions to the state of the art methods:
+ \begin{itemize}
+  \item Use a recent community detection method to form blocks and a bandwidth reducing algorithm for ordering these blocks
+  \item Reorder the incidence lists after reorganizing the data, to reestablish locality and sequential access after rearrangement.
+ \end{itemize}
+
+ \item the implementation of an in-memory graph database, traversal-based queries and the above rearrangement algorithms.
+ \item an extensive evaluation of existing and the proposed method.
+\end{itemize}
+
+The rest of this thesis is organized as follows.
+In the first chapter, graphs are defined formally, along with concepts based upon this definition which we are going to use throughout the thesis. 
+Further data structures and algorithms are described.
+Next we elaborate on the architecture of databases and a common data model for graph databases. The second chapter concludes with an example of a popular graph database called Neo4J.
+After setting the context, locality is defined and an explicit problem definition is given.
+Recent methods and an extension of those are discussed then, concluded by an experimental evaluation.
