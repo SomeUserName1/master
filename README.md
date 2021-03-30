@@ -30,7 +30,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 #### Results & Figures
 - [ ] Results & Visualize. ~ 10 P.
-- [ ] Better Figures Problem Def
+- [ ] Better Figures Problem Def (incidence list)
+- [ ] Add attribution to figure
 - [ ] Figures own Method
 - [ ] Complete Conclusion
 
