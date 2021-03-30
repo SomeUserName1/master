@@ -29,7 +29,6 @@ create_list(list_cbs_t* cbs)
 
     list->alloced = list_block_size;
     list->len = 0;
-    list->inbulk = false;
 
     memset(&(list->cbs), 0, sizeof(list->cbs));
     if (cbs != NULL) {

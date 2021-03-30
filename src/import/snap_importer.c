@@ -176,6 +176,9 @@ get_url(dataset_t data)
 {
     const char* result;
     switch (data) {
+        case C_ELEGANS:
+            result = C_ELEGANS_URL;
+            break;
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_URL;
             break;
@@ -199,86 +202,6 @@ get_url(dataset_t data)
             break;
         case FRIENDSTER:
             result = FRIENDSTER_URL;
-    }
-    return result;
-}
-
-unsigned long int
-get_no_nodes(dataset_t data)
-{
-    unsigned long int result;
-    switch (data) {
-        case EMAIL_EU_CORE:
-            result = EMAIL_EU_CORE_NO_NODES;
-            break;
-
-        case DBLP:
-            result = DBLP_NO_NODES;
-            break;
-
-        case AMAZON:
-            result = AMAZON_NO_NODES;
-            break;
-
-        case YOUTUBE:
-            result = YOUTUBE_NO_NODES;
-            break;
-
-        case WIKIPEDIA:
-            result = WIKIPEDIA_NO_NODES;
-            break;
-
-        case LIVE_JOURNAL:
-            result = LIVE_JOURNAL_NO_NODES;
-            break;
-
-        case ORKUT:
-            result = ORKUT_NO_NODES;
-            break;
-
-        case FRIENDSTER:
-            result = FRIENDSTER_NO_NODES;
-            break;
-    }
-    return result;
-}
-
-unsigned long int
-get_no_rels(dataset_t data)
-{
-    unsigned long int result;
-    switch (data) {
-        case EMAIL_EU_CORE:
-            result = EMAIL_EU_CORE_NO_RELS;
-            break;
-
-        case DBLP:
-            result = DBLP_NO_RELS;
-            break;
-
-        case AMAZON:
-            result = AMAZON_NO_RELS;
-            break;
-
-        case YOUTUBE:
-            result = YOUTUBE_NO_RELS;
-            break;
-
-        case WIKIPEDIA:
-            result = WIKIPEDIA_NO_RELS;
-            break;
-
-        case LIVE_JOURNAL:
-            result = LIVE_JOURNAL_NO_RELS;
-            break;
-
-        case ORKUT:
-            result = ORKUT_NO_RELS;
-            break;
-
-        case FRIENDSTER:
-            result = FRIENDSTER_NO_RELS;
-            break;
     }
     return result;
 }

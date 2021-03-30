@@ -6,5 +6,7 @@ add_library(data-struct  cbs.c
                          list_node.c
                          list_rel.c
                          list_ul.c
-                         queue_ul.c)
+                         list_l.c
+                         queue_ul.c
+                         fibonacci_heap.c)
 target_link_libraries(data-struct PUBLIC record)

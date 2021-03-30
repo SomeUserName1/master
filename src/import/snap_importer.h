@@ -46,14 +46,15 @@
 
 typedef enum dataset
 {
-    EMAIL_EU_CORE = 0, /* 0.1 MB */
-    DBLP = 1,          /* 3.9 MB */
-    AMAZON = 2,        /* 4.1 MB */
-    YOUTUBE = 3,       /* 10 MB */
-    WIKIPEDIA = 4,     /* 95 MB */
-    LIVE_JOURNAL = 5,  /* 119 MB */
-    ORKUT = 6,         /* 427 MB */
-    FRIENDSTER = 7     /* 8.7 GB */
+    C_ELEGANS,     /* 19 KB */
+    EMAIL_EU_CORE, /* 0.1 MB */
+    DBLP,          /* 3.9 MB */
+    AMAZON,        /* 4.1 MB */
+    YOUTUBE,       /* 10 MB */
+    WIKIPEDIA,     /* 95 MB */
+    LIVE_JOURNAL,  /* 119 MB */
+    ORKUT,         /* 427 MB */
+    FRIENDSTER     /* 8.7 GB */
 } dataset_t;
 
 /* Downloading and uncompressing */

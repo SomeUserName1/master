@@ -29,14 +29,7 @@ list_ul_contains(list_ul_t* l, unsigned long v);
 
 unsigned long
 list_ul_get(list_ul_t* l, size_t idx);
-unsigned long
+unsigned long*
 list_ul_take(list_ul_t* l, size_t idx);
-
-int
-list_ul_start_bulk_add(list_ul_t* l);
-int
-list_ul_end_bulk_add(list_ul_t* l);
-int
-list_ul_sort(list_ul_t* l);
 
 #endif

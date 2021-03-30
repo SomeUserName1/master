@@ -1,7 +1,7 @@
 add_executable(dict-test dict_ul_test.c)
 target_link_libraries(dict-test data-struct)
 
-add_executable(list-test list_ul_test.c)
+add_executable(list-test list_test.c)
 target_link_libraries(list-test data-struct)
 
 add_executable(queue-test queue_ul_test.c)

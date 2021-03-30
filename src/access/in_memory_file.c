@@ -61,10 +61,11 @@ list_node_t*
 in_memory_get_nodes(in_memory_file_t* db)
 {
     list_node_t* nodes = create_list_node();
+    unsigned long* id = NULL;
     node_t* node = NULL;
     dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
 
-    while (dict_ul_node_iterator_next(it, NULL, &node) > -1) {
+    while (dict_ul_node_iterator_next(it, &id, &node) > -1) {
         list_node_append(nodes, node);
     }
     dict_ul_node_iterator_destroy(it);
@@ -81,10 +82,11 @@ list_relationship_t*
 in_memory_get_relationships(in_memory_file_t* db)
 {
     list_relationship_t* rels = create_list_relationship();
+    unsigned long* id = NULL;
     relationship_t* rel = NULL;
     dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
 
-    while (dict_ul_rel_iterator_next(it, NULL, &rel) > -1) {
+    while (dict_ul_rel_iterator_next(it, &id, &rel) > -1) {
         list_relationship_append(rels, rel);
     }
     dict_ul_rel_iterator_destroy(it);

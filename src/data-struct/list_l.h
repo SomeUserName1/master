@@ -31,7 +31,7 @@ list_l_contains(list_l_t* l, long v);
 
 long
 list_l_get(list_l_t* l, size_t idx);
-long
+long*
 list_l_take(list_l_t* l, size_t idx);
 
 #endif

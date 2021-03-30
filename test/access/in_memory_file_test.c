@@ -6,7 +6,11 @@
 #include "../../src/record/relationship.h"
 
 #include <assert.h>
+#include <curl/urlapi.h>
 #include <stdio.h>
+
+#define NUM_NODES (10)
+#define NUM_EDGES (9)
 
 void
 test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
@@ -392,6 +396,32 @@ test_get_rels(in_memory_file_t* db)
     assert(n_rels_before == db->rel_id_counter);
 }
 
+void
+test_in_memory_contains_rel(void)
+{
+    in_memory_file_t* db = create_in_memory_file();
+    for (size_t i = 0; i < NUM_NODES; ++i) {
+        in_memory_create_node(db);
+    }
+
+    for (size_t i = NUM_EDGES; i > 0; --i) {
+        in_memory_create_relationship(db, i - 1, i);
+    }
+
+    relationship_t* rel;
+    for (int i = 0; i < NUM_EDGES; ++i) {
+        rel = in_memory_contains_relationship_from_to(db, i, i + 1, OUTGOING);
+        assert(rel);
+
+        rel = in_memory_contains_relationship_from_to(db, i, i + 1, INCOMING);
+        assert(!rel);
+
+        rel = in_memory_contains_relationship_from_to(db, i, i + 1, BOTH);
+        assert(rel);
+    }
+    in_memory_file_destroy(db);
+}
+
 int
 main(void)
 {
@@ -403,6 +433,7 @@ main(void)
     test_create_rel_chain(db, map);
     test_get_nodes(db);
     test_get_rels(db);
+    test_in_memory_contains_rel();
 
     in_memory_file_destroy(db);
     dict_ul_ul_destroy(map);

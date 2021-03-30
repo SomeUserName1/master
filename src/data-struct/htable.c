@@ -356,17 +356,8 @@ create_htable_iterator(htable_t* ht)
 int
 htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
 {
-    if (!hi || hi->idx >= hi->ht->num_buckets) {
+    if (!hi || !key || !value || hi->idx >= hi->ht->num_buckets) {
         return -1;
-    }
-
-    if (!key) {
-        void* mkey = NULL;
-        key = &mkey;
-    }
-    if (!value) {
-        void* mvalue = NULL;
-        value = &mvalue;
     }
 
     if (!hi->cur) {

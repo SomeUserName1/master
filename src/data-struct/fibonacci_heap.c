@@ -140,7 +140,7 @@ fib_heap_consolidate(fib_heap_t* fh)
         exit(-1);
     }
 
-    int max_degree = 2 * (int)log((double)fh->num_nodes);
+    unsigned int max_degree = 2 * (int)log((double)fh->num_nodes);
     fib_node** nodes_w_degree = calloc(max_degree, sizeof(fib_node*));
 
     fib_node* node = fh->min->right;

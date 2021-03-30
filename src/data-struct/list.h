@@ -23,7 +23,6 @@ typedef struct list
     size_t alloced;
     size_t len;
     list_cbs_t cbs;
-    bool inbulk;
 } list_t;
 
 list_t*

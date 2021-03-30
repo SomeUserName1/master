@@ -66,8 +66,8 @@ list_l_get(list_l_t* l, size_t idx)
     return *((long*)list_get((list_t*)l, idx));
 }
 
-long
+long*
 list_l_take(list_l_t* l, size_t idx)
 {
-    return *((long*)list_take((list_t*)l, idx));
+    return (long*)list_take((list_t*)l, idx);
 }

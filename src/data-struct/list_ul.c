@@ -67,8 +67,8 @@ list_ul_get(list_ul_t* l, size_t idx)
     return *((unsigned long*)list_get((list_t*)l, idx));
 }
 
-unsigned long
+unsigned long*
 list_ul_take(list_ul_t* l, size_t idx)
 {
-    return *((unsigned long*)list_take((list_t*)l, idx));
+    return (unsigned long*)list_take((list_t*)l, idx);
 }

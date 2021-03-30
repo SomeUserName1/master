@@ -116,10 +116,6 @@ test_dict_ul_ul_destroy(void)
     }
 
     do {
-        if (lines % PROGRESS_LINES == 0) {
-            printf("%s %lu\n", "Processed", lines);
-        }
-
         result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
         if (dict_ul_ul_insert(dict, fromTo[0], fromTo[1])) {
@@ -131,6 +127,8 @@ test_dict_ul_ul_destroy(void)
     } while (result == 2);
 
     fclose(in_file);
+
+    dict_ul_ul_print(dict);
 
     dict_ul_ul_destroy(dict);
 }
@@ -166,6 +164,50 @@ test_dict_ul_ul_it(void)
     }
 
     dict_ul_ul_iterator_destroy(it);
+    dict_ul_ul_destroy(dict);
+}
+
+void
+test_htable_iter(void)
+{
+    dict_ul_ul_t* dict = create_dict_ul_ul();
+    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long int fromTo[2];
+    int result;
+    size_t lines = 1;
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("Failed to open file to read from");
+        return;
+    }
+
+    do {
+
+        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+
+        if (dict_ul_ul_insert(dict, fromTo[0], fromTo[1])) {
+            printf("Failes to insert\n");
+            assert(false);
+        }
+
+        lines++;
+    } while (result == 2);
+    fclose(in_file);
+
+    htable_iterator_t* it = create_htable_iterator((htable_t*)dict);
+
+    void* key = NULL;
+    void* value = NULL;
+    size_t size = dict_ul_ul_size(dict);
+
+    while (htable_iterator_next(it, &key, &value) > -1) {
+        dict_ul_ul_remove(dict, *((unsigned long*)key));
+        size--;
+        assert(size == dict_ul_ul_size(dict));
+    }
+
+    htable_iterator_destroy(it);
     dict_ul_ul_destroy(dict);
 }
 
@@ -288,6 +330,8 @@ test_dict_ul_int_destroy(void)
     } while (result == 2);
 
     fclose(in_file);
+
+    dict_ul_int_print(dict);
 
     dict_ul_int_destroy(dict);
 }
@@ -454,6 +498,8 @@ test_dict_ul_node_destroy(void)
 
     fclose(in_file);
 
+    dict_ul_node_print(dict);
+
     dict_ul_node_destroy(dict);
 }
 
@@ -514,7 +560,7 @@ test_dict_ul_rel_size(void)
 
     unsigned long key = TEST_KEY;
     relationship_t* val = new_relationship();
-    htable_insert(((htable_t*)dict), (void*)&key, (void*)&val);
+    htable_insert(((htable_t*)dict), (void*)&key, (void*)val);
     assert(((htable_t*)dict)->num_used == dict_ul_rel_size(dict));
 
     dict_ul_rel_destroy(dict);
@@ -557,7 +603,7 @@ test_dict_ul_rel_get(void)
 
     relationship_t* value = NULL;
     unsigned long key = TEST_KEY;
-    dict_ul_rel_get(dict, key, &val);
+    dict_ul_rel_get(dict, key, &value);
     assert(relationship_equals(value, val));
 
     dict_ul_rel_destroy(dict);
@@ -595,7 +641,7 @@ test_dict_ul_rel_destroy(void)
     unsigned long fromTo[2];
     int result;
     size_t lines = 1;
-    relationship_t* val = new_relationship();
+    relationship_t* val;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -610,6 +656,7 @@ test_dict_ul_rel_destroy(void)
 
         result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
+        val = new_relationship();
         if (dict_ul_rel_insert(dict, fromTo[0], val)) {
             printf("Failes to insert\n");
             assert(false);
@@ -619,6 +666,8 @@ test_dict_ul_rel_destroy(void)
     } while (result == 2);
 
     fclose(in_file);
+
+    dict_ul_rel_print(dict);
 
     dict_ul_rel_destroy(dict);
 }
