@@ -5,11 +5,15 @@
     ("https://snap.stanford.edu/data/C-elegans-frontal.txt.gz")
 #define EMAIL_EU_CORE_URL                                                      \
     ("https://snap.stanford.edu/data/email-Eu-core.txt.gz")
-#define DBLP_URL ("https://snap.stanford.edu/data/com-DBLP.html")
+#define DBLP_URL                                                               \
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-dblp.ungraph.txt.gz")
 #define AMAZON_URL                                                             \
     ("https://snap.stanford.edu/data/bigdata/communities/"                     \
      "com-amazon.ungraph.txt.gz")
-#define YOUTUBE_URL ("https://snap.stanford.edu/data/com-Youtube.html")
+#define YOUTUBE_URL                                                            \
+    ("https://snap.stanford.edu/data/bigdata/communities/"                     \
+     "com-youtube.ungraph.txt.gz")
 #define WIKIPEDIA_URL ("https://snap.stanford.edu/data/wiki-topcats.txt.gz")
 #define LIVE_JOURNAL_URL                                                       \
     ("https://snap.stanford.edu/data/bigdata/communities/"                     \

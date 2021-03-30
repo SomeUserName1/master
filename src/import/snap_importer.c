@@ -15,7 +15,8 @@
 /* 512 KB Buffer/Chunk size */
 #define CHUNK (524288)
 #define IMPORT_FIELDS (2)
-#define STATUS_LINES 10000
+#define STATUS_LINES (100000)
+#define TIMEOUT (999)
 
 static size_t
 write_data(void* ptr, size_t size, size_t nmemb, void* stream)
@@ -83,7 +84,6 @@ uncompress_dataset(const char* gz_path, const char* out_path)
     stream.next_in = Z_NULL;
     ret = inflateInit2(&stream, (32 + MAX_WBITS));
     if (ret != Z_OK) {
-        zlib_error(ret);
         return -1;
     }
 
@@ -120,12 +120,10 @@ uncompress_dataset(const char* gz_path, const char* out_path)
             assert(ret != Z_STREAM_ERROR);
             switch (ret) {
                 case Z_NEED_DICT:
-                    ret = Z_DATA_ERROR;
                 case Z_DATA_ERROR:
                 case Z_MEM_ERROR:
                     printf("Error: %s\n", stream.msg);
                     inflateEnd(&stream);
-                    zlib_error(ret);
                     fclose(out_file);
                     fclose(in_gz_file);
                     return -1;
@@ -134,7 +132,6 @@ uncompress_dataset(const char* gz_path, const char* out_path)
             have = CHUNK - stream.avail_out;
             if (fwrite(out, 1, have, out_file) != have || ferror(out_file)) {
                 inflateEnd(&stream);
-                zlib_error(ret);
                 fclose(out_file);
                 fclose(in_gz_file);
                 return -1;
@@ -146,29 +143,6 @@ uncompress_dataset(const char* gz_path, const char* out_path)
     fclose(in_gz_file);
     inflateEnd(&stream);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
-}
-
-void
-zlib_error(int ret)
-{
-    fputs("Uncompressing failed: ", stderr);
-    switch (ret) {
-        case Z_ERRNO:
-            fputs("error reading the input or writing the outputfile\n",
-                  stderr);
-            break;
-        case Z_STREAM_ERROR:
-            fputs("invalid compression level\n", stderr);
-            break;
-        case Z_DATA_ERROR:
-            fputs("invalid or incomplete deflate data\n", stderr);
-            break;
-        case Z_MEM_ERROR:
-            fputs("out of memory\n", stderr);
-            break;
-        case Z_VERSION_ERROR:
-            fputs("zlib version mismatch!\n", stderr);
-    }
 }
 
 const char*
@@ -210,7 +184,8 @@ dict_ul_ul_t*
 import_from_txt(in_memory_file_t* db, const char* path)
 {
     unsigned long int fromTo[IMPORT_FIELDS];
-    int result;
+    char buf[CHUNK];
+    int result = 2;
     size_t lines = 1;
     dict_ul_ul_t* txt_to_db_id = create_dict_ul_ul();
     unsigned long db_id = 0;
@@ -220,12 +195,17 @@ import_from_txt(in_memory_file_t* db, const char* path)
         perror("Failed to open file to read from");
         exit(-1);
     }
-    result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
 
-    while (result == 2) {
+    while (fgets(buf, sizeof buf, in_file) && result == 2) {
         if (lines % STATUS_LINES == 0) {
             printf("%s %lu\n", "Processed", lines);
         }
+
+        if (*buf == '#') {
+            continue;
+        }
+
+        result = sscanf(buf, "%lu %lu\n", &fromTo[0], &fromTo[1]);
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
             if (dict_ul_ul_contains(txt_to_db_id, fromTo[i])) {
                 fromTo[i] = dict_ul_ul_get_direct(txt_to_db_id, fromTo[i]);
@@ -237,14 +217,13 @@ import_from_txt(in_memory_file_t* db, const char* path)
         }
         in_memory_create_relationship(db, fromTo[0], fromTo[1]);
 
-        result = fscanf(in_file, "%lu %lu\n", &fromTo[0], &fromTo[1]);
         lines++;
     }
 
     fclose(in_file);
 
-    if (result != EOF) {
-        printf("%s", "Failed to read line from file");
+    if (result != 2) {
+        printf("%s\n", "Failed to read line from file");
         exit(-1);
     }
 

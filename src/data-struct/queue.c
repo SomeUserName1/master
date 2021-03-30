@@ -67,14 +67,17 @@ queue_destroy(queue_t* queue)
     if (queue == NULL) {
         return;
     }
-    queue_node_t* cur;
-    queue_node_t* next = queue->head;
-    while (next != NULL) {
-        cur = next;
+
+    queue_node_t* cur = queue->head;
+    queue_node_t* next;
+
+    for (size_t i = 0; i < queue->len; ++i) {
         queue->cbs.qfree(cur->element);
         next = cur->next;
         free(cur);
+        cur = next;
     }
+
     free(queue);
 }
 
@@ -98,14 +101,24 @@ queue_add(queue_t* queue, void* elem)
     if (queue->tail == NULL) {
         queue->head = node;
         queue->tail = node;
+
+        node->next = node;
+        node->prev = node;
+
         queue->len++;
+
         return 0;
     }
 
     node->prev = queue->tail;
+    node->next = queue->head;
+
     queue->tail->next = node;
+    queue->head->prev = node;
+
     queue->tail = node;
     queue->len++;
+
     return 0;
 }
 
@@ -127,7 +140,11 @@ queue_insert(queue_t* queue, void* elem, size_t idx)
     if (queue->len == 0 && idx == 0) {
         queue->head = new;
         queue->tail = new;
+
+        new->prev = new;
+        new->next = new;
         queue->len++;
+
         return 0;
     }
 
@@ -136,16 +153,34 @@ queue_insert(queue_t* queue, void* elem, size_t idx)
         return -1;
     }
 
-    queue_node_t* cur = queue->head;
-    queue_node_t* next = queue->head;
-    for (size_t i = 0; i < (idx + 1); ++i) {
-        cur = next;
-        next = cur->next;
+    if (idx == 0 || idx == queue->len) {
+        new->prev = queue->tail;
+        new->next = queue->head;
+
+        queue->head->prev = new;
+        queue->tail->next = new;
+
+        if (idx == 0) {
+            queue->head = new;
+        } else {
+            queue->tail = new;
+        }
+    } else {
+        queue_node_t* cur = queue->head;
+        queue_node_t* next = queue->head;
+
+        for (size_t i = 0; i < idx; ++i) {
+            cur = next;
+            next = cur->next;
+        }
+
+        new->next = next;
+        new->prev = cur;
+
+        cur->next = new;
+        next->prev = new;
     }
-    new->next = next;
-    new->prev = cur;
-    cur->next = new;
-    next->prev = new;
+
     queue->len++;
 
     return 0;
@@ -241,12 +276,11 @@ queue_index_of(queue_t* queue, void* elem, size_t* idx)
     }
 
     queue_node_t* cur = queue->head;
-    *idx = 0;
-    while (cur != NULL) {
+    for (size_t i = 0; i < queue->len; ++i) {
         if (queue->cbs.qeq(cur->element, elem)) {
+            *idx = i;
             return 0;
         }
-        idx++;
         cur = cur->next;
     }
     return -1;
@@ -256,7 +290,7 @@ bool
 queue_contains(queue_t* queue, void* elem)
 {
     size_t idx;
-    return (queue_index_of(queue, elem, &idx) > 0);
+    return (queue_index_of(queue, elem, &idx) == 0);
 }
 
 void*

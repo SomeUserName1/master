@@ -371,7 +371,7 @@ test_get_nodes(in_memory_file_t* db)
     node_t* node;
     for (size_t i = 0; i < list_node_size(nodes); ++i) {
         node = list_node_get(nodes, i);
-        list_node_remove_elem(nodes, node);
+        list_node_remove(nodes, i);
         assert(!list_node_contains(nodes, node));
     }
     list_node_destroy(nodes);
@@ -388,7 +388,7 @@ test_get_rels(in_memory_file_t* db)
     relationship_t* rel;
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
-        list_relationship_remove_elem(rels, rel);
+        list_relationship_remove(rels, i);
         assert(!list_relationship_contains(rels, rel));
     }
 

@@ -28,19 +28,19 @@ set_ul_size(set_ul_t* set)
 }
 
 int
-set_ul_insert(set_t* set, unsigned long elem)
+set_ul_insert(set_ul_t* set, unsigned long elem)
 {
     return set_insert((set_t*)set, &elem);
 }
 
 int
-set_ul_remove(set_t* set, unsigned long elem)
+set_ul_remove(set_ul_t* set, unsigned long elem)
 {
     return set_remove((set_t*)set, &elem);
 }
 
 bool
-set_ul_contains(set_t* set, unsigned long elem)
+set_ul_contains(set_ul_t* set, unsigned long elem)
 {
     return set_contains((set_t*)set, &elem);
 }

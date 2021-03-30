@@ -13,6 +13,12 @@ set_destroy(set_t* set)
     htable_destroy((htable_t*)set);
 }
 
+size_t
+set_size(set_t* set)
+{
+    return htable_size((htable_t*)set);
+}
+
 int
 set_insert(set_t* set, void* elem)
 {
