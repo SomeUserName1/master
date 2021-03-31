@@ -31,12 +31,12 @@ unsigned long
 in_memory_create_node(in_memory_file_t* db);
 unsigned long
 in_memory_create_relationship(in_memory_file_t* db,
-                              unsigned long nodeFrom,
-                              unsigned long nodeTo);
+                              unsigned long node_from,
+                              unsigned long node_to);
 unsigned long
 in_memory_create_relationship_weighted(in_memory_file_t* db,
-                                       unsigned long nodeFrom,
-                                       unsigned long nodeTo,
+                                       unsigned long node_from,
+                                       unsigned long node_to,
                                        double weight);
 
 node_t*

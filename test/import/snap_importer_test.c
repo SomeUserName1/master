@@ -181,7 +181,7 @@ main(void)
     test_amazon();
     test_youtube();
     test_wikipedia();
-    test_live_journal();
-    test_orkut();
-    test_friendster();
+    // test_live_journal();
+    // test_orkut();
+    // test_friendster();
 }

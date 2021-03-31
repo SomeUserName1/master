@@ -12,6 +12,25 @@
 #define NUM_NODES (10)
 #define NUM_EDGES (9)
 
+static const unsigned long rel_ids_n0[] = {
+    0,     411,   2181,  2266,  2388,  2430,  3476,  3854,  4278,  4741,  5671,
+    5742,  5744,  5751,  5768,  5826,  5871,  5875,  6301,  6618,  7100,  7960,
+    8517,  8518,  8548,  9155,  9696,  10385, 10654, 10655, 10895, 10990, 11093,
+    11096, 11102, 11120, 11121, 11147, 11149, 11555, 11562, 11585, 11687, 11695,
+    12931, 13120, 13225, 13233, 13565, 14670, 14735, 15113, 15309, 16514, 16515,
+    16528, 16907, 16911, 17094, 19095, 20155, 20281, 20282, 21485, 21497, 23641,
+    23754, 23905, 24729, 25269, 25374, 25511
+};
+
+static const size_t ids_n0_out[] = { 0,  2,  4,  7,  8,  9,  11, 12, 15, 17, 18,
+                                     19, 20, 22, 23, 25, 28, 30, 31, 33, 34, 35,
+                                     36, 38, 39, 41, 42, 45, 46, 49, 51, 53, 54,
+                                     57, 59, 60, 62, 63, 65, 66, 72 };
+
+static const size_t ids_n0_inc[] = { 1,  3,  5,  6,  10, 13, 14, 16, 21, 24, 26,
+                                     27, 29, 32, 37, 40, 43, 44, 47, 48, 50, 52,
+                                     55, 56, 58, 61, 64, 67, 68, 69, 70, 71 };
+
 void
 test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
 {
@@ -22,9 +41,9 @@ test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
     assert(rel->id == 0);
     assert(rel->source_node == dict_ul_ul_get_direct(map, 0));
     assert(rel->target_node == dict_ul_ul_get_direct(map, 1));
-    assert(rel->prev_rel_source == UNINITIALIZED_LONG);
+    assert(rel->prev_rel_source == 25511);
     assert(rel->next_rel_source == 411);
-    assert(rel->prev_rel_target == UNINITIALIZED_LONG);
+    assert(rel->prev_rel_target == 25223);
     assert(rel->next_rel_target == 225);
 
     rel = in_memory_get_relationship(db, rel->next_rel_source);
@@ -397,6 +416,71 @@ test_get_rels(in_memory_file_t* db)
 }
 
 void
+test_in_memory_next_rel(in_memory_file_t* db)
+{
+    relationship_t* rel = in_memory_get_relationship(db, 0);
+
+    unsigned long next_rel_id =
+          in_memory_next_relationship(db, 0, rel, OUTGOING);
+    assert(next_rel_id == 2181);
+
+    next_rel_id = in_memory_next_relationship(db, 0, rel, INCOMING);
+    assert(next_rel_id == 411);
+
+    next_rel_id = in_memory_next_relationship(db, 0, rel, BOTH);
+    assert(next_rel_id == 411);
+
+    next_rel_id = in_memory_next_relationship(db, 1, rel, OUTGOING);
+    assert(next_rel_id == 2334);
+
+    next_rel_id = in_memory_next_relationship(db, 1, rel, INCOMING);
+    assert(next_rel_id == 225);
+
+    next_rel_id = in_memory_next_relationship(db, 1, rel, BOTH);
+    assert(next_rel_id == 225);
+}
+
+void
+test_in_memory_next_rel_none(void)
+{
+    in_memory_file_t* db = create_in_memory_file();
+    for (size_t i = 0; i < NUM_NODES; ++i) {
+        in_memory_create_node(db);
+    }
+
+    in_memory_create_relationship(db, 0, 1);
+    relationship_t* rel = in_memory_get_relationship(db, 0);
+
+    unsigned long rel_id = in_memory_next_relationship(db, 0, rel, BOTH);
+    assert(rel_id == UNINITIALIZED_LONG);
+
+    in_memory_file_destroy(db);
+}
+
+void
+test_in_memory_expand(in_memory_file_t* db)
+{
+    list_relationship_t* rels = in_memory_expand(db, 0, BOTH);
+    assert(list_relationship_size(rels) == 73);
+
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        assert(list_relationship_get(rels, i)->id == rel_ids_n0[i]);
+    }
+    list_relationship_destroy(rels);
+
+    rels = in_memory_expand(db, 0, OUTGOING);
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_out[i]]);
+    }
+    list_relationship_destroy(rels);
+
+    rels = in_memory_expand(db, 0, INCOMING);
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_inc[i]]);
+    }
+}
+
+void
 test_in_memory_contains_rel(void)
 {
     in_memory_file_t* db = create_in_memory_file();
@@ -426,13 +510,14 @@ int
 main(void)
 {
     in_memory_file_t* db = create_in_memory_file();
-    printf("Import\n");
     dict_ul_ul_t* map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);
     test_get_nodes(db);
     test_get_rels(db);
+    test_in_memory_next_rel(db);
+    test_in_memory_next_rel_none();
     test_in_memory_contains_rel();
 
     in_memory_file_destroy(db);

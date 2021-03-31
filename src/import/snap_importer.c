@@ -183,7 +183,7 @@ get_url(dataset_t data)
 dict_ul_ul_t*
 import_from_txt(in_memory_file_t* db, const char* path)
 {
-    unsigned long int fromTo[IMPORT_FIELDS];
+    unsigned long int from_to[IMPORT_FIELDS];
     char buf[CHUNK];
     int result = 2;
     size_t lines = 1;
@@ -205,18 +205,17 @@ import_from_txt(in_memory_file_t* db, const char* path)
             continue;
         }
 
-        result = sscanf(buf, "%lu %lu\n", &fromTo[0], &fromTo[1]);
+        result = sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]);
         for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
-            if (dict_ul_ul_contains(txt_to_db_id, fromTo[i])) {
-                fromTo[i] = dict_ul_ul_get_direct(txt_to_db_id, fromTo[i]);
+            if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
+                from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
             } else {
                 db_id = in_memory_create_node(db);
-                dict_ul_ul_insert(txt_to_db_id, fromTo[i], db_id);
-                fromTo[i] = db_id;
+                dict_ul_ul_insert(txt_to_db_id, from_to[i], db_id);
+                from_to[i] = db_id;
             }
         }
-        in_memory_create_relationship(db, fromTo[0], fromTo[1]);
-
+        in_memory_create_relationship(db, from_to[0], from_to[1]);
         lines++;
     }
 
