@@ -1,3 +1,4 @@
+add_subdirectory(record)
 add_subdirectory(data-struct)
 add_subdirectory(access)
 add_subdirectory(import)

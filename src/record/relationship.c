@@ -171,11 +171,27 @@ relationship_pretty_print(const relationship_t* record)
 void
 relationship_set_first_source(relationship_t* rel)
 {
-    rel->flags = rel->flags | FIRST_REL_SOURCE_FLAG;
+    if (!rel) {
+        exit(-1);
+    }
+
+    if (rel->flags == UNINITIALIZED_BYTE) {
+        rel->flags = FIRST_REL_SOURCE_FLAG;
+    } else {
+        rel->flags = rel->flags | FIRST_REL_SOURCE_FLAG;
+    }
 }
 
 void
 relationship_set_first_target(relationship_t* rel)
 {
-    rel->flags = rel->flags | FIRST_REL_TARGET_FLAG;
+    if (!rel) {
+        exit(-1);
+    }
+
+    if (rel->flags == UNINITIALIZED_BYTE) {
+        rel->flags = FIRST_REL_TARGET_FLAG;
+    } else {
+        rel->flags = rel->flags | FIRST_REL_TARGET_FLAG;
+    }
 }

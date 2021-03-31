@@ -131,6 +131,10 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
 void
 node_pretty_print(const node_t* record)
 {
+    if (!record) {
+        printf("NULL pointer argument in pretty print node!\n");
+        return;
+    }
     printf("Node ID: %#lX\n"
            "In-Use: %#hhX\n"
            "First Relationship: %#lX\n"

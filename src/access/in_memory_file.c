@@ -258,19 +258,30 @@ in_memory_expand(in_memory_file_t* db,
                  direction_t direction)
 {
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
+
     if (node == NULL || db == NULL) {
         printf("Arguments must be not NULL!");
         exit(-1);
     }
+
     list_relationship_t* result = create_list_relationship();
-    relationship_t* rel = NULL;
     unsigned long rel_id = node->first_relationship;
-    unsigned long start_id = rel_id;
+    relationship_t* rel = in_memory_get_relationship(db, rel_id);
+    unsigned long start_id;
+
+    if ((rel->source_node == node_id && direction != INCOMING) ||
+        (rel->target_node == node_id && direction != OUTGOING)) {
+        start_id = rel_id;
+    } else {
+        rel_id = in_memory_next_relationship(db, node_id, rel, direction);
+        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
+        start_id = rel_id;
+    }
 
     do {
-        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
         list_relationship_append(result, rel);
         rel_id = in_memory_next_relationship(db, node->id, rel, direction);
+        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
     } while (rel_id != start_id && rel_id != UNINITIALIZED_LONG);
 
     return result;

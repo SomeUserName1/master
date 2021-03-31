@@ -13,7 +13,7 @@
 #define NUM_EDGES (9)
 
 static const unsigned long rel_ids_n0[] = {
-    0,     411,   2181,  2266,  2388,  2430,  3476,  3854,  4278,  4741,  5671,
+    0,     411,   2181,  2265,  2388,  2430,  3476,  3854,  4278,  4741,  5671,
     5742,  5744,  5751,  5768,  5826,  5871,  5875,  6301,  6618,  7100,  7960,
     8517,  8518,  8548,  9155,  9696,  10385, 10654, 10655, 10895, 10990, 11093,
     11096, 11102, 11120, 11121, 11147, 11149, 11555, 11562, 11585, 11687, 11695,
@@ -25,11 +25,11 @@ static const unsigned long rel_ids_n0[] = {
 static const size_t ids_n0_out[] = { 0,  2,  4,  7,  8,  9,  11, 12, 15, 17, 18,
                                      19, 20, 22, 23, 25, 28, 30, 31, 33, 34, 35,
                                      36, 38, 39, 41, 42, 45, 46, 49, 51, 53, 54,
-                                     57, 59, 60, 62, 63, 65, 66, 72 };
+                                     57, 59, 60, 62, 63, 65, 66, 70 };
 
-static const size_t ids_n0_inc[] = { 1,  3,  5,  6,  10, 13, 14, 16, 21, 24, 26,
-                                     27, 29, 32, 37, 40, 43, 44, 47, 48, 50, 52,
-                                     55, 56, 58, 61, 64, 67, 68, 69, 70, 71 };
+static const size_t ids_n0_inc[] = { 1,  3,  5,  6,  10, 13, 14, 16, 18, 21, 24,
+                                     26, 27, 29, 32, 37, 40, 43, 44, 47, 48, 50,
+                                     52, 55, 56, 58, 61, 64, 67, 68, 69, 71 };
 
 void
 test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
@@ -377,7 +377,7 @@ test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
     assert(rel->next_rel_target == 11106);
 
     // [...]
-    // 73.
+    // 72.
 }
 
 void
@@ -386,13 +386,6 @@ test_get_nodes(in_memory_file_t* db)
     size_t n_nodes_before = db->node_id_counter;
     list_node_t* nodes = in_memory_get_nodes(db);
     assert(list_node_size(nodes) == db->node_id_counter);
-
-    node_t* node;
-    for (size_t i = 0; i < list_node_size(nodes); ++i) {
-        node = list_node_get(nodes, i);
-        list_node_remove(nodes, i);
-        assert(!list_node_contains(nodes, node));
-    }
     list_node_destroy(nodes);
     assert(n_nodes_before == db->node_id_counter);
 }
@@ -403,14 +396,6 @@ test_get_rels(in_memory_file_t* db)
     size_t n_rels_before = db->rel_id_counter;
     list_relationship_t* rels = in_memory_get_relationships(db);
     assert(list_relationship_size(rels) == db->rel_id_counter);
-
-    relationship_t* rel;
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        rel = list_relationship_get(rels, i);
-        list_relationship_remove(rels, i);
-        assert(!list_relationship_contains(rels, rel));
-    }
-
     list_relationship_destroy(rels);
     assert(n_rels_before == db->rel_id_counter);
 }
@@ -461,7 +446,7 @@ void
 test_in_memory_expand(in_memory_file_t* db)
 {
     list_relationship_t* rels = in_memory_expand(db, 0, BOTH);
-    assert(list_relationship_size(rels) == 73);
+    assert(list_relationship_size(rels) == 72);
 
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         assert(list_relationship_get(rels, i)->id == rel_ids_n0[i]);
@@ -469,15 +454,20 @@ test_in_memory_expand(in_memory_file_t* db)
     list_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, OUTGOING);
+    assert(list_relationship_size(rels) == 41);
+
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_out[i]]);
     }
     list_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, INCOMING);
+    assert(list_relationship_size(rels) == 32);
+
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_inc[i]]);
     }
+    list_relationship_destroy(rels);
 }
 
 void
@@ -514,11 +504,19 @@ main(void)
           db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);
+    printf("Testing chains finished!\n");
     test_get_nodes(db);
+    printf("Testing get_nodes finished!\n");
     test_get_rels(db);
+    printf("Testing get rels finished!\n");
     test_in_memory_next_rel(db);
+    printf("Testing rel iter finished!\n");
     test_in_memory_next_rel_none();
+    printf("Testing rel iter in case of no further elements finished!\n");
+    test_in_memory_expand(db);
+    printf("Testing expand operator finished!\n");
     test_in_memory_contains_rel();
+    printf("Testing contains rels finished!\n");
 
     in_memory_file_destroy(db);
     dict_ul_ul_destroy(map);

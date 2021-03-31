@@ -179,8 +179,8 @@ main(void)
     test_email();
     test_dblp();
     test_amazon();
-    test_youtube();
-    test_wikipedia();
+    // test_youtube();
+    // test_wikipedia();
     // test_live_journal();
     // test_orkut();
     // test_friendster();
