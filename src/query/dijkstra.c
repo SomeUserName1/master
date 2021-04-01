@@ -21,7 +21,7 @@ dijkstra(in_memory_file_t* db,
          const char* log_path)
 {
     unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    double* distance = malloc(db->node_id_counter * sizeof(distance));
+    double* distance = malloc(db->node_id_counter * sizeof(*distance));
     if (!parents || !distance) {
         exit(-1);
     }
@@ -37,7 +37,7 @@ dijkstra(in_memory_file_t* db,
     if (log_file == NULL) {
         free(parents);
         free(distance);
-        destroy_fib_heap(prio_queue);
+        fib_heap_destroy(prio_queue);
         printf("dijkstra: Failed to open log file, %d\n", errno);
         return NULL;
     }
@@ -49,6 +49,7 @@ dijkstra(in_memory_file_t* db,
     fib_node* fh_node =
           create_fib_node(distance[source_node_id], source_node_id);
     fib_heap_insert(prio_queue, fh_node);
+    distance[source_node_id] = 0;
 
     while (prio_queue->num_nodes > 0) {
         fh_node = fib_heap_extract_min(prio_queue);
@@ -77,8 +78,8 @@ dijkstra(in_memory_file_t* db,
         free(fh_node);
         list_relationship_destroy(current_rels);
     }
-    destroy_fib_heap(prio_queue);
+    fib_heap_destroy(prio_queue);
     fclose(log_file);
 
-    return create_sssp_result(distance, parents);
+    return create_sssp_result(source_node_id, distance, parents);
 }

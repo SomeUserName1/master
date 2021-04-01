@@ -99,7 +99,7 @@ relationship_to_string(const relationship_t* record,
                           "Source node's next relationship: %#lX\n"
                           "Target node's previous relationship: %#lX\n"
                           "Target node's next relationship: %#lX\n"
-                          "First Property: %f\n",
+                          "First Property: %.1f\n",
                           record->id,
                           record->flags,
                           record->source_node,
@@ -113,7 +113,11 @@ relationship_to_string(const relationship_t* record,
 
     if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote relationship string representation to a buffer that was "
-               "too small!");
+               "too small!\n");
+        printf("String length: %lu, Buffer size, %lu\n",
+               (size_t)length,
+               buffer_size);
+
         return -1;
     }
 
@@ -128,7 +132,7 @@ relationship_to_string(const relationship_t* record,
                           "Source node's next relationship: %#lX\n"
                           "Target node's previous relationship: %#lX\n"
                           "Target node's next relationship: %#lX\n"
-                          "First Property: %f\n",
+                          "First Property: %.1f\n",
                           record->id,
                           record->flags,
                           record->source_node,
@@ -155,7 +159,7 @@ relationship_pretty_print(const relationship_t* record)
            "Source node's next relationship: %#lX\n"
            "Target node's previous relationship: %#lX\n"
            "Target node's next relationship: %#lX\n"
-           "Weight: %f\n",
+           "Weight: %.1f\n",
            record->id,
            record->flags,
            record->source_node,

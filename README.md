@@ -3,14 +3,14 @@
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Static data locality optimizing storage scheme for graph databases.  
 
 ## Timetable 
-<p style="text-align: center;"><font size="20"><progress id="time" value="10" max="26"></progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="time" value="11" max="26"></progress></font></p>
 
 <font size="1">
 
 | Mon  	| Tue  	| Wed  	| Thu  	| Fri  	| Sat  	| Sun  	|
 |---	|---	|---	|---	|---	|---	|---	|
 |22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3  :ballot_box_with_check:	|
-|  29.3 :ballot_box_with_check: | 30.3  :ballot_box_with_check: | 31.3 :ballot_box_with_check: 	| 01.4 :computer: Test & Debug Queries | 02.4 :computer: Test & Debug  ICBL  |  03.4 :computer: Test & Debug G-Store 	| 04.4  :computer: Test & Debug Louvain	| 
+|  29.3 :ballot_box_with_check: | 30.3  :ballot_box_with_check: | 31.3 :ballot_box_with_check: 	| 01.4 :ballot_box_with_check: | 02.4 :computer:  Test & Debug G-Store 	 |  03.4 :computer: Test & Debug	FibHeap, Dijkstra, A*, ALT | 04.4  :computer: Test & Debug  ICBL | 
 | 05.4 :computer: Record Remapping Nodes  & rels  	| 06.04  :computer: remap rels & Incidence List sort 	|  07.4 :computer: adapt louvain 	| 08.4 :computer: adapt louvain  	| 09.4 :computer: evalutaion code   | 10.4 :computer: run Experiments 	|  11.4 :pencil: results 	|
 | 12.4 :floppy_disk:   	| 13.04 :floppy_disk:  	| 14.4 :pencil: Proof reading & layout  	|  15.4 :pencil: Proof reading, layout, printing 	|  16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
@@ -82,19 +82,19 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - Contributions thin
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="16" max="24">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="17" max="25">Implementation</progress></font></p>  
 
-- [ ] Debug & Test Queries
+- [ ] Debug & Test Queries (DFS, BFS done. Dijkstra/Fibonacci heap WIP)
 - [ ] Debug & Test ICBL
 - [ ] Debug & Test G-Store
-- [ ] Debug & Test Louvain
 - [ ] Record remapping vertices & relationships
 - [ ] Incidence List Reordering
+- [ ] Debug & Test ids_to_io, remap, reorder incidence list
 - [ ] Evaluation code for ICBL, G-Store, Louvain, 
 - [ ] Adapt louvain w RCM
 
 ### Coverage
-<p style="text-align: center;"><font size="16"><progress id="file" value="1230" max="3330">Coverage</progress></font></p>  
+<p style="text-align: center;"><font size="14"><progress id="file" value="1908" max="3467">Coverage</progress></font></p>  
 
 #### Done
 - [x] Record structures  
@@ -112,7 +112,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] G-Store
 - [x] ICBL
 - [x] Debug & Test Data structures & Record structures
-- [x] Debug & Test Access
+- [x] Debug & Test Access & Importer
+- [x] Debug & Test Louvain
 
 #### Notes
 - Maybe include road networks (i.e. adapt snap importer with flag), dimacs format importer, CC-neuron dataset, connectomes

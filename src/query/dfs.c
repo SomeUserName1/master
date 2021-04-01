@@ -48,17 +48,20 @@ dfs(in_memory_file_t* db,
     size_t stack_size = list_ul_size(node_stack);
 
     while (stack_size > 0) {
+        for (size_t j = 0; j < list_ul_size(node_stack); ++j) {
+        }
+
         node_id = list_ul_take(node_stack, stack_size - 1);
         current_rels = in_memory_expand(db, *node_id, direction);
         fprintf(log_file, "%s %lu\n", "dfs: Node: ", *node_id);
 
-        temp = *node_id;
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
             fprintf(
                   log_file, "%s %lu\n", "dfs: Relationship: ", current_rel->id);
-            temp = temp == current_rel->source_node ? current_rel->target_node
-                                                    : current_rel->source_node;
+            temp = *node_id == current_rel->source_node
+                         ? current_rel->target_node
+                         : current_rel->source_node;
 
             if (dfs[temp] == ULONG_MAX) {
                 dfs[temp] = dfs[*node_id] + 1;
@@ -73,5 +76,5 @@ dfs(in_memory_file_t* db,
     list_ul_destroy(node_stack);
     fclose(log_file);
 
-    return create_traversal_result(dfs, parents);
+    return create_traversal_result(source_node_id, dfs, parents);
 }

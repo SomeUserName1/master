@@ -6,7 +6,6 @@
 #include "../../src/record/relationship.h"
 
 #include <assert.h>
-#include <curl/urlapi.h>
 #include <stdio.h>
 
 #define NUM_NODES (10)

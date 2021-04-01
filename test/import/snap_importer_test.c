@@ -42,9 +42,9 @@ test_email(void)
     dataset_t dataset = EMAIL_EU_CORE;
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
-    assert(uncompress_dataset(DATASET_TEMP, PATH_CELEGANS) == 0);
+    assert(uncompress_dataset(DATASET_TEMP, PATH_EMAIL) == 0);
     in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(db, PATH_CELEGANS);
+    dict_ul_ul_t* map = import_from_txt(db, PATH_EMAIL);
 
     assert(dict_ul_node_size(db->cache_nodes) == EMAIL_EU_CORE_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == EMAIL_EU_CORE_NO_RELS);
@@ -176,9 +176,9 @@ int
 main(void)
 {
     test_celegans();
-    test_email();
-    test_dblp();
-    test_amazon();
+    // test_email();
+    // test_dblp();
+    // test_amazon();
     // test_youtube();
     // test_wikipedia();
     // test_live_journal();

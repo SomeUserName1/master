@@ -67,7 +67,7 @@ a_star(in_memory_file_t* db,
     if (log_file == NULL) {
         free(parents);
         free(distance);
-        destroy_fib_heap(prio_queue);
+        fib_heap_destroy(prio_queue);
         printf("dijkstra: Failed to open log file, %d\n", errno);
         return NULL;
     }
@@ -117,7 +117,7 @@ a_star(in_memory_file_t* db,
         free(fh_node);
         list_relationship_destroy(current_rels);
     }
-    destroy_fib_heap(prio_queue);
+    fib_heap_destroy(prio_queue);
     fclose(log_file);
 
     return create_path(

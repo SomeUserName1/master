@@ -74,5 +74,5 @@ bfs(in_memory_file_t* db,
     queue_ul_destroy(nodes_queue);
     fclose(log_file);
 
-    return create_traversal_result(bfs, parents);
+    return create_traversal_result(source_node_id, bfs, parents);
 }

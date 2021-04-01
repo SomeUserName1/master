@@ -1,11 +1,15 @@
 #ifndef CONSTANTS
-#define CONSTANTS ()
-#define UNINITIALIZED_LONG (0xFFFFFFFFFFFFFFFF)
-#define UNINITIALIZED_BYTE (0xFF)
-#define UNINITIALIZED_WEIGHT (1.0F)
-#define FIRST_REL_SOURCE_FLAG (00000010)
-#define FIRST_REL_TARGET_FLAG (00000100)
+#define CONSTANTS
 
-#define BLOCK_SIZE (512)
-#define PAGE_SIZE (512)
+#include <float.h>
+#include <stddef.h>
+
+static const unsigned long UNINITIALIZED_LONG = 0xFFFFFFFFFFFFF666;
+static const unsigned char UNINITIALIZED_BYTE = 0xF6;
+static const double UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
+static const unsigned char FIRST_REL_SOURCE_FLAG = 0x02;
+static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
+
+static const size_t BLOCK_SIZE = 512;
+static const size_t PAGE_SIZE = 4096;
 #endif

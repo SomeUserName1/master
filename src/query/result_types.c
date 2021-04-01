@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 traversal_result*
-create_traversal_result(unsigned long* traversal_numbers,
+create_traversal_result(unsigned long source_node,
+                        unsigned long* traversal_numbers,
                         unsigned long* parents)
 {
     if (!traversal_numbers || !parents) {
@@ -15,6 +16,7 @@ create_traversal_result(unsigned long* traversal_numbers,
         exit(-1);
     }
 
+    result->source = source_node;
     result->traversal_numbers = traversal_numbers;
     result->parents = parents;
 
@@ -34,7 +36,9 @@ traversal_result_destroy(traversal_result* result)
 }
 
 sssp_result*
-create_sssp_result(double* distances, unsigned long* parents)
+create_sssp_result(unsigned long source_node,
+                   double* distances,
+                   unsigned long* parents)
 {
     if (!distances || !parents) {
         exit(-1);
@@ -46,6 +50,7 @@ create_sssp_result(double* distances, unsigned long* parents)
         exit(-1);
     }
 
+    result->source = source_node;
     result->distances = distances;
     result->pred_edges = parents;
 

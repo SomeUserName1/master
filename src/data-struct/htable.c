@@ -31,7 +31,8 @@ htable_pasthrough_print(const void* in)
 static size_t
 htable_bucket_idx(htable_t* ht, void* key)
 {
-    return (ht->hash_fn(key, ht->seed) % ht->num_buckets);
+    return ht->num_buckets > 0 ? (ht->hash_fn(key, ht->seed) % ht->num_buckets)
+                               : ht->hash_fn(key, ht->seed);
 }
 
 static int

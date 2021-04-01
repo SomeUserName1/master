@@ -28,7 +28,7 @@ fib_heap_t*
 create_fib_heap(void);
 
 void
-destroy_fib_heap(fib_heap_t* fh);
+fib_heap_destroy(fib_heap_t* fh);
 
 void
 fib_heap_insert(fib_heap_t* fh, fib_node* node);

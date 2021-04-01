@@ -134,6 +134,9 @@ test_relationship_to_string(void)
     char too_small_buf[SMALL_BUF_SIZE];
     char buf[SUFFICENT_BUF_SIZE];
 
+    printf("Result: %d\n buffer:\n %s\n",
+           relationship_to_string(relationship, buf, SUFFICENT_BUF_SIZE),
+           buf);
     assert(!relationship_to_string(relationship, buf, SUFFICENT_BUF_SIZE));
     assert(relationship_to_string(relationship, too_small_buf, SMALL_BUF_SIZE));
 
