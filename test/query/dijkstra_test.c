@@ -142,25 +142,25 @@ main(void)
     assert(result->pred_edges[n(9)] == 69);
 
     assert(result->distances[n(1)] == 2);
-    assert(result->pred_edges[n(1)] == 103);
+    assert(result->pred_edges[n(1)] == 539);
 
     assert(result->distances[n(72)] == 2);
-    assert(result->pred_edges[n(72)] == 108);
+    assert(result->pred_edges[n(72)] == 479);
 
     assert(result->distances[n(21)] == 2);
     assert(result->pred_edges[n(21)] == 149);
 
     assert(result->distances[n(42)] == 2);
-    assert(result->pred_edges[n(42)] == 241);
+    assert(result->pred_edges[n(42)] == 244);
 
     assert(result->distances[n(13)] == 2);
     assert(result->pred_edges[n(13)] == 101);
 
     assert(result->distances[n(27)] == 2);
-    assert(result->pred_edges[n(27)] == 166);
+    assert(result->pred_edges[n(27)] == 542);
 
     assert(result->distances[n(30)] == 2);
-    assert(result->pred_edges[n(30)] == 182);
+    assert(result->pred_edges[n(30)] == 563);
 
     assert(result->distances[n(33)] == 2);
     assert(result->pred_edges[n(33)] == 198);
@@ -175,7 +175,7 @@ main(void)
     assert(result->pred_edges[n(47)] == 269);
 
     assert(result->distances[n(49)] == 2);
-    assert(result->pred_edges[n(49)] == 278);
+    assert(result->pred_edges[n(49)] == 544);
 
     sssp_result_destroy(result);
     dict_ul_ul_destroy(map);

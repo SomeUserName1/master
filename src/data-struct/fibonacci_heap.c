@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static const double log_golden_ratio_factor = 2.1;
+
 fib_node*
 create_fib_node(double key, unsigned long value)
 {
@@ -164,8 +166,8 @@ fib_heap_consolidate(fib_heap_t* fh)
     if (!fh || !fh->min) {
         exit(-1);
     }
-
-    unsigned int max_degree = 2 * (int)log((double)fh->num_nodes);
+    unsigned int max_degree =
+          floor(log_golden_ratio_factor * logf((float)fh->num_nodes));
     fib_node** nodes_w_degree = calloc(max_degree, sizeof(fib_node*));
 
     fib_node* first = fh->min->right;
@@ -173,43 +175,22 @@ fib_heap_consolidate(fib_heap_t* fh)
     fib_node* x = fh->min->right;
     fib_node* y;
     unsigned int d;
-    printf("~~~~~~~~~~~~~~~~~~~~ Start: num nodes: %lu, max degree: %u  "
-           "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
-           fh->num_nodes,
-           max_degree);
+
     /* Collapse all nodes with the same degree until all degrees are unique */
     do {
         d = x->degree;
-        //        printf("========================== outer
-        //        =====================\n"); printf("x %p,\t key %.3f,\t degree
-        //        %d\n left %p,\t right %p \n "
-        //               "parent %p,\t child%p\n",
-        //               x,
-        //               x->key,
-        //               x->degree,
-        //               x->left,
-        //               x->right,
-        //               x->parent,
-        //               x->child);
-
-        //        for (size_t i = 0; i < max_degree; ++i) {
-        //            printf("nodes with degree %lu, \t %p\n", i,
-        //            nodes_w_degree[i]);
-        //        }
+        assert(x->parent == NULL);
+        assert(d == x->degree);
 
         /* Find roots with the same degree */
         while (nodes_w_degree[d]) {
-            assert(d == x->degree);
-            assert(x->parent == NULL);
             y = nodes_w_degree[d];
-            assert(y->parent == NULL);
+            if (x == y) {
+                break;
+            }
             assert(x != y);
-
-            //            printf("===== inner ========\n");
-            //            for (size_t i = 0; i < max_degree; ++i) {
-            //                printf("nodes with degree %lu, \t %p\n", i,
-            //                nodes_w_degree[i]);
-            //            }
+            assert(y->parent == NULL);
+            assert(x->parent == NULL);
 
             /* Make the root with the smaller key a child of the other. */
             /* Clear mark, increment degree */
@@ -217,77 +198,23 @@ fib_heap_consolidate(fib_heap_t* fh)
                 temp = x;
                 x = y;
                 y = temp;
-
-                if (y == first) {
-                    first = x;
-                }
             }
 
             fib_heap_make_child(x, y);
 
-            if (y->right == x) {
+            if (y == first) {
                 first = x;
             }
-            printf("----- x after merge --------\n");
-            printf("x %p,\t key %.3f,\t degree %d\n left %p,\t right %p \n "
-                   "parent %p,\t child%p\n",
-                   x,
-                   x->key,
-                   x->degree,
-                   x->left,
-                   x->right,
-                   x->parent,
-                   x->child);
-
-            printf("----- y after merge --------\n");
-            printf("y %p,\t key %.3f,\t degree %d\n left %p,\t right %p \n "
-                   "parent %p,\t child%p\n",
-                   y,
-                   y->key,
-                   y->degree,
-                   y->left,
-                   y->right,
-                   y->parent,
-                   y->child);
-            printf("----- y->left after merge --------\n");
-            printf("y %p,\t key %.3f,\t degree %d\n left %p,\t right %p \n "
-                   "parent %p,\t child%p\n",
-                   y->left,
-                   y->left->key,
-                   y->left->degree,
-                   y->left->left,
-                   y->left->right,
-                   y->left->parent,
-                   y->left->child);
-            printf("----- y->right after merge --------\n");
-            printf("y %p,\t key %.3f,\t degree %d\n left %p,\t right %p \n "
-                   "parent %p,\t child%p\n",
-                   y->right,
-                   y->right->key,
-                   y->right->degree,
-                   y->right->left,
-                   y->right->right,
-                   y->right->parent,
-                   y->right->child);
-            printf("==================\n");
 
             nodes_w_degree[d] = NULL;
             ++d;
         }
         nodes_w_degree[d] = x;
         x = x->right;
-        while (x->parent != NULL) {
-            x = x->parent;
-        }
-        assert(x->parent == NULL);
     } while (x != first);
 
     /* rebuild root list */
     fh->min = NULL;
-    printf("After merging:\n");
-    for (size_t i = 0; i < max_degree; ++i) {
-        printf("nodes with degree %lu, \t %p\n", i, nodes_w_degree[i]);
-    }
 
     for (size_t i = 0; i < max_degree; ++i) {
         if (nodes_w_degree[i]) {
@@ -322,9 +249,9 @@ fib_heap_extract_min(fib_heap_t* fh)
     if (z) {
         fib_node* node = z->child;
         fib_node* next;
+
         /* iterate over all trees */
         while (node != NULL) {
-
             if (node->right != node) {
                 next = node->right;
             } else {
@@ -332,6 +259,12 @@ fib_heap_extract_min(fib_heap_t* fh)
             }
 
             node->parent = NULL;
+
+            // Remove node from min's children
+            node->left->right = node->right;
+            node->right->left = node->left;
+
+            // Insert node to the right of min
             node->left = z;
             node->right = z->right;
             z->right->left = node;
@@ -340,6 +273,7 @@ fib_heap_extract_min(fib_heap_t* fh)
             node = next;
         }
 
+        // Remove min from the root list.
         z->left->right = z->right;
         z->right->left = z->left;
 

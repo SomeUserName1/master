@@ -1,4 +1,8 @@
 #include "result_types.h"
+
+#include "../constants.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 
 traversal_result*
@@ -75,7 +79,8 @@ create_path(unsigned long source_node_id,
             double distance,
             list_ul_t* edges)
 {
-    if (!distance || !edges) {
+    if (!edges || source_node_id == UNINITIALIZED_LONG) {
+        printf("Tried to create path with null pointer as argument\n");
         exit(-1);
     }
 
@@ -100,7 +105,7 @@ path_destroy(path* p)
         return;
     }
 
-    free(p->edges);
+    list_ul_destroy(p->edges);
     free(p);
 }
 

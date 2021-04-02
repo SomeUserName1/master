@@ -15,17 +15,16 @@
 
 path*
 construct_path(in_memory_file_t* db,
-               unsigned long source_node_id,
-               unsigned long target_node_id,
-               unsigned long* parents,
-               double distance)
+               unsigned long     source_node_id,
+               unsigned long     target_node_id,
+               unsigned long*    parents,
+               double            distance)
 {
-    unsigned long node_id = target_node_id;
-    list_ul_t* edges_reverse = create_list_ul();
+    unsigned long   node_id       = target_node_id;
+    list_ul_t*      edges_reverse = create_list_ul();
     relationship_t* rel;
     do {
         list_ul_append(edges_reverse, parents[node_id]);
-
         rel = in_memory_get_relationship(db, parents[node_id]);
 
         node_id =
@@ -34,35 +33,39 @@ construct_path(in_memory_file_t* db,
 
     list_ul_t* edges = create_list_ul();
 
-    for (size_t i = list_ul_size(edges_reverse); i > -1; --i) {
-        list_ul_append(edges, list_ul_get(edges_reverse, i));
+    for (size_t i = 1; i < list_ul_size(edges_reverse) + 1; ++i) {
+        list_ul_append(
+              edges,
+              list_ul_get(edges_reverse, list_ul_size(edges_reverse) - i));
     }
     list_ul_destroy(edges_reverse);
+    free(parents);
 
     return create_path(source_node_id, target_node_id, distance, edges);
 }
 
 path*
 a_star(in_memory_file_t* db,
-       const double* heuristic,
-       unsigned long source_node_id,
-       unsigned long target_node_id,
-       direction_t direction,
-       const char* log_path)
+       const double*     heuristic,
+       unsigned long     source_node_id,
+       unsigned long     target_node_id,
+       direction_t       direction,
+       const char*       log_path)
 {
-    unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    double* distance = malloc(db->node_id_counter * sizeof(distance));
-    if (!parents || !distance) {
+    unsigned long* parents  = malloc(db->node_id_counter * sizeof(*parents));
+    double*        distance = malloc(db->node_id_counter * sizeof(*distance));
+    if (!parents || !distance || !log_path) {
+        printf("A*: invalid arguments or memory allocation failed!\n");
         exit(-1);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
-        parents[i] = UNINITIALIZED_LONG;
+        parents[i]  = UNINITIALIZED_LONG;
         distance[i] = DBL_MAX;
     }
 
     fib_heap_t* prio_queue = create_fib_heap();
-    FILE* log_file = fopen(log_path, "w");
+    FILE*       log_file   = fopen(log_path, "w");
 
     if (log_file == NULL) {
         free(parents);
@@ -73,22 +76,24 @@ a_star(in_memory_file_t* db,
     }
 
     list_relationship_t* current_rels;
-    relationship_t* current_rel;
-    unsigned long temp;
-    double new_dist;
-    fib_node* fh_node =
+    relationship_t*      current_rel;
+    unsigned long        temp;
+    double               new_dist;
+    fib_node*            fh_node =
           create_fib_node(distance[source_node_id], source_node_id);
     fib_heap_insert(prio_queue, fh_node);
+    distance[source_node_id] = 0;
 
     while (prio_queue->num_nodes > 0) {
         fh_node = fib_heap_extract_min(prio_queue);
 
         if (fh_node->value == target_node_id) {
-            return construct_path(db,
-                                  source_node_id,
-                                  target_node_id,
-                                  parents,
-                                  distance[target_node_id]);
+            new_dist = distance[target_node_id];
+            free(distance);
+            free(fh_node);
+            fib_heap_destroy(prio_queue);
+            return construct_path(
+                  db, source_node_id, target_node_id, parents, new_dist);
         }
 
         current_rels = in_memory_expand(db, fh_node->value, direction);
@@ -105,11 +110,11 @@ a_star(in_memory_file_t* db,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            new_dist = distance[fh_node->value] + current_rel->weight +
-                       heuristic[fh_node->value];
+            new_dist = distance[fh_node->value] + current_rel->weight
+                       + heuristic[fh_node->value];
             if (distance[temp] > new_dist) {
                 distance[temp] = new_dist;
-                parents[temp] = current_rel->id;
+                parents[temp]  = current_rel->id;
                 fib_heap_insert(prio_queue,
                                 create_fib_node(distance[temp], temp));
             }
@@ -118,6 +123,8 @@ a_star(in_memory_file_t* db,
         list_relationship_destroy(current_rels);
     }
     fib_heap_destroy(prio_queue);
+    free(parents);
+    free(distance);
     fclose(log_file);
 
     return create_path(

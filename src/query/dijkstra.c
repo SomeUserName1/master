@@ -16,23 +16,24 @@
 
 sssp_result*
 dijkstra(in_memory_file_t* db,
-         unsigned long source_node_id,
-         direction_t direction,
-         const char* log_path)
+         unsigned long     source_node_id,
+         direction_t       direction,
+         const char*       log_path)
 {
-    unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    double* distance = malloc(db->node_id_counter * sizeof(*distance));
+    unsigned long* parents  = malloc(db->node_id_counter * sizeof(*parents));
+    double*        distance = malloc(db->node_id_counter * sizeof(*distance));
     if (!parents || !distance) {
+        printf("Dijkstra: invalid arguments or memory allocation failed!\n");
         exit(-1);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
-        parents[i] = UNINITIALIZED_LONG;
+        parents[i]  = UNINITIALIZED_LONG;
         distance[i] = DBL_MAX;
     }
 
     fib_heap_t* prio_queue = create_fib_heap();
-    FILE* log_file = fopen(log_path, "w");
+    FILE*       log_file   = fopen(log_path, "w");
 
     if (log_file == NULL) {
         free(parents);
@@ -43,16 +44,16 @@ dijkstra(in_memory_file_t* db,
     }
 
     list_relationship_t* current_rels;
-    relationship_t* current_rel;
-    unsigned long temp;
-    double new_dist;
-    fib_node* fh_node =
+    relationship_t*      current_rel;
+    unsigned long        temp;
+    double               new_dist;
+    fib_node*            fh_node =
           create_fib_node(distance[source_node_id], source_node_id);
     fib_heap_insert(prio_queue, fh_node);
     distance[source_node_id] = 0;
 
     while (prio_queue->num_nodes > 0) {
-        fh_node = fib_heap_extract_min(prio_queue);
+        fh_node      = fib_heap_extract_min(prio_queue);
         current_rels = in_memory_expand(db, fh_node->value, direction);
 
         fprintf(log_file, "%s %lu\n", "bfs: Node: ", fh_node->value);
@@ -70,7 +71,7 @@ dijkstra(in_memory_file_t* db,
             new_dist = distance[fh_node->value] + current_rel->weight;
             if (distance[temp] > new_dist) {
                 distance[temp] = new_dist;
-                parents[temp] = current_rel->id;
+                parents[temp]  = current_rel->id;
                 fib_heap_insert(prio_queue,
                                 create_fib_node(distance[temp], temp));
             }
