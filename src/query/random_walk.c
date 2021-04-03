@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 path*
 random_walk(in_memory_file_t* db,
@@ -22,8 +21,6 @@ random_walk(in_memory_file_t* db,
     list_relationship_t* cur_rels;
     relationship_t*      rel;
     unsigned long        current_node = node_id;
-
-    srand(time(NULL));
 
     for (size_t i = 0; i < num_steps; ++i) {
         cur_rels = in_memory_expand(db, current_node, direction);

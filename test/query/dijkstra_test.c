@@ -15,8 +15,11 @@ main(void)
     dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/celegans.txt");
 
-    sssp_result* result = dijkstra(
-          db, n(11), BOTH, "/home/someusername/workspace_local/bfs_test.txt");
+    sssp_result* result =
+          dijkstra(db,
+                   n(11),
+                   BOTH,
+                   "/home/someusername/workspace_local/dijkstra_test.txt");
 
     assert(result->source == n(11));
     assert(result->distances[n(11)] == 0);

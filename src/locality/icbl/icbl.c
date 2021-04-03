@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../../constants.h"
 #include "../../data-struct/cbs.h"
@@ -19,9 +20,14 @@
 
 #define SHARE_OF_MEMORY (0.8)
 
-static size_t
+inline size_t
 get_num_walks(in_memory_file_t* db)
 {
+    if (!db) {
+        printf("ICBL - get_num_walks: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     size_t min_deg        = get_min_degree(db, BOTH);
     size_t max_deg        = get_max_degree(db, BOTH);
     size_t range          = max_deg - min_deg + 1;
@@ -40,44 +46,111 @@ get_num_walks(in_memory_file_t* db)
 
     for (size_t i = 0; i < range; ++i) {
         if (degree_hist[i] > nodes_per_step) {
-            if (i == 0 && min_deg == 0) {
-                num_walks = 1;
-            } else {
-                num_walks = i + min_deg;
-            }
+            num_walks = i + min_deg;
             break;
         }
     }
     free(degree_hist);
 
-    return num_walks;
+    return num_walks > 0 ? num_walks : 1;
 }
 
 static inline size_t
 get_num_coarse_clusters(in_memory_file_t* db)
 {
-    return ceil(((double)((sizeof(node_t) + log((double)db->node_id_counter))
-                          * (double)db->node_id_counter))
-                / sqrt(SHARE_OF_MEMORY * MEMORY));
+    if (!db) {
+        printf("ICBL - get_num_coarse_clusters: Invalid Arguments!\n");
+        exit(-1);
+    }
+
+    size_t result =
+          ceil(((double)((sizeof(node_t) + log((double)db->node_id_counter))
+                         * (double)db->node_id_counter))
+               / sqrt(SHARE_OF_MEMORY * MEMORY));
+    return result > 0 ? result : 1;
 }
 
-static inline size_t
+inline size_t
 get_num_steps(in_memory_file_t* db)
 {
-    return 1
+    if (!db) {
+        printf("ICBL - get_num_steps: Invalid Arguments!\n");
+        exit(-1);
+    }
+
+    return (unsigned long)1
            + ceil(log2((float)db->node_id_counter)
                   / get_num_coarse_clusters(db));
+}
+
+void
+dendrogram_destroy(dendrogram_t* root, bool subgraph)
+{
+    list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
+    list_t*       stack = create_list(&cbs);
+    dendrogram_t* current;
+
+    list_append(stack, root);
+
+    while (list_size(stack) > 0) {
+        current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
+
+        if ((!subgraph && current->size > sizeof(node_t))
+            || (subgraph && current->size > 1)) {
+            list_append(stack, current->children.dendro[0]);
+            list_append(stack, current->children.dendro[1]);
+        }
+        free(current->label);
+        free(current);
+    }
+    list_destroy(stack);
+}
+
+void
+dendrogram_print(dendrogram_t* root, bool subgraph)
+{
+    list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
+    list_t*       stack = create_list(&cbs);
+    dendrogram_t* current;
+
+    list_append(stack, root);
+
+    while (list_size(stack) > 0) {
+        current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
+
+        printf("current: %p, \t size: %lu, \t block? %ld\n",
+               current,
+               current->size,
+               current->block_no == ULONG_MAX ? -1 : current->block_no);
+        if ((!subgraph && current->size > sizeof(node_t))
+            || (subgraph && current->size > 1)) {
+            printf("\t child1: %p, \t child2: %p",
+                   current->children.dendro[0],
+                   current->children.dendro[1]);
+            list_append(stack, current->children.dendro[0]);
+            list_append(stack, current->children.dendro[1]);
+        }
+        printf("\n");
+    }
+    list_destroy(stack);
 }
 
 int
 identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 {
+    if (!db || !dif_sets) {
+        printf("ICBL - identify_diffustion_sets: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     size_t        num_nodes = db->node_id_counter;
     size_t        num_walks = get_num_walks(db);
     size_t        num_steps = get_num_steps(db);
     path*         result;
     unsigned long node_id;
     list_ul_t*    visited_nodes;
+
+    // srand(time(NULL));
 
     for (size_t i = 0; i < num_nodes; ++i) {
         for (size_t j = 0; j < num_walks; ++j) {
@@ -86,6 +159,7 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 
             for (size_t k = 0; k < list_ul_size(visited_nodes); ++k) {
                 node_id = list_ul_get(visited_nodes, k);
+                printf("node %lu visited node %lu\n", i, node_id);
                 if (dict_ul_ul_contains(dif_sets[i], node_id)) {
                     dict_ul_ul_insert(
                           dif_sets[i],
@@ -95,20 +169,29 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
                     dict_ul_ul_insert(dif_sets[i], node_id, 1);
                 }
             }
+            path_destroy(result);
+            list_ul_destroy(visited_nodes);
         }
     }
+
     return 0;
 }
 
-static float
+float
 weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
 {
+    if (!dif_set_a || !dif_set_b) {
+        printf("ICBL - weighted_jaccard_dist: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dif_set_a);
     list_ul_t*             visited_elems_b = create_list_ul();
 
     unsigned long* key     = NULL;
     unsigned long* value_a = NULL;
-    unsigned long* value_b = NULL;
+    unsigned long  value_b;
+    unsigned long* value_b_ptr = &value_b;
 
     unsigned long intersect_sum = 0;
     unsigned long union_sum     = 0;
@@ -116,10 +199,10 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     while (dict_ul_ul_iterator_next(it, &key, &value_a) > -1) {
         if (dict_ul_ul_contains(dif_set_b, *key)) {
             list_ul_append(visited_elems_b, *key);
-            *value_b = dict_ul_ul_get_direct(dif_set_b, *key);
+            value_b = dict_ul_ul_get_direct(dif_set_b, *key);
 
-            intersect_sum += *value_a > *value_b ? *value_b : *value_a;
-            union_sum += *value_a > *value_b ? *value_a : *value_b;
+            intersect_sum += *value_a > value_b ? value_b : *value_a;
+            union_sum += *value_a > value_b ? *value_a : value_b;
         } else {
             union_sum += *value_a;
         }
@@ -127,9 +210,9 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     dict_ul_ul_iterator_destroy(it);
     it = create_dict_ul_ul_iterator(dif_set_b);
 
-    while (dict_ul_ul_iterator_next(it, &key, &value_b) > -1) {
+    while (dict_ul_ul_iterator_next(it, &key, &value_b_ptr) > -1) {
         if (!list_ul_contains(visited_elems_b, *key)) {
-            union_sum += *value_b;
+            union_sum += *value_b_ptr;
         }
     }
 
@@ -146,6 +229,11 @@ insert_match(size_t*       max_degree_nodes,
              unsigned long degree,
              size_t        num_clusters)
 {
+    if (!max_degree_nodes || !max_degrees) {
+        printf("ICBL - insert_match: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     bool          placed = false;
     unsigned long temp_d;
     unsigned long temp1_d;
@@ -176,13 +264,14 @@ initialize_centers(in_memory_file_t* db,
                    size_t            num_clusters)
 {
     if (!db || !centers) {
-        printf("icbl.c: initialize_centers: Invalid Argument!\n");
+        printf("ICBL - initialize_centers: Invalid Argument!\n");
         exit(-1);
     }
 
     unsigned long  num_nodes = db->node_id_counter;
     unsigned long* max_degree_nodes =
           calloc(num_clusters, sizeof(unsigned long));
+
     unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
     list_relationship_t* rels;
     unsigned long        degree;
@@ -203,9 +292,6 @@ initialize_centers(in_memory_file_t* db,
     }
     free(max_degrees);
 
-    for (size_t i = 0; i < num_clusters; ++i) {
-        printf("max_degree_nodes: %lu\n", max_degree_nodes[i]);
-    }
     *centers = max_degree_nodes;
     return 0;
 }
@@ -217,9 +303,20 @@ assign_to_cluster(size_t               num_nodes,
                   const unsigned long* centers,
                   size_t               num_clusters)
 {
+    if (!dif_sets || !part || !centers) {
+        printf("ICBL - assign_to_cluster: Invalid Argument!\n");
+        exit(-1);
+    }
+
     float         min_dist = FLT_MAX;
     float         dist;
     unsigned long best_center_idx = ULONG_MAX;
+
+    if (num_clusters == 1) {
+        for (size_t i = 0; i < num_nodes; ++i) {
+            part[i] = 0;
+        }
+    }
 
     for (size_t i = 0; i < num_nodes; ++i) {
         for (size_t j = 0; j < num_clusters; ++j) {
@@ -228,9 +325,14 @@ assign_to_cluster(size_t               num_nodes,
                 best_center_idx = j;
             }
         }
-        part[i] = best_center_idx;
+        if (best_center_idx < ULONG_MAX) {
+            part[i] = best_center_idx;
+        } else {
+            printf("Couldn't find an appropriate center; sth is wrong!\n");
+            exit(-1);
+        }
 
-        min_dist        = 0;
+        min_dist        = FLT_MAX;
         best_center_idx = ULONG_MAX;
     }
 
@@ -245,12 +347,11 @@ updated_centers(size_t               num_nodes,
                 size_t               num_clusters)
 {
     if (!dif_sets || !part || !centers || num_clusters < 1) {
-        printf("icbl.c: update_centers: Invalid Argument!\n");
+        printf("ICBL - update_centers: Invalid Argument!\n");
         exit(-1);
     }
 
-    dict_ul_ul_t** cluster_counts =
-          malloc(num_clusters * sizeof(dict_ul_ul_t*));
+    dict_ul_ul_t** cluster_counts = calloc(num_clusters, sizeof(dict_ul_ul_t*));
 
     if (!cluster_counts) {
         return -1;
@@ -262,7 +363,8 @@ updated_centers(size_t               num_nodes,
 
     dict_ul_ul_iterator_t* it;
     unsigned long*         node_id;
-    unsigned long*         count = 0;
+    unsigned long          i_count = 0;
+    unsigned long*         count   = &i_count;
 
     unsigned long max_node_id = UNINITIALIZED_LONG;
     unsigned int  max_count   = 0;
@@ -270,7 +372,7 @@ updated_centers(size_t               num_nodes,
     for (size_t i = 0; i < num_nodes; ++i) {
         it = create_dict_ul_ul_iterator(dif_sets[i]);
 
-        while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
+        while (dict_ul_ul_iterator_next(it, &node_id, &count) == 0) {
             if (dict_ul_ul_contains(cluster_counts[part[i]], *node_id)) {
 
                 dict_ul_ul_insert(
@@ -280,7 +382,7 @@ updated_centers(size_t               num_nodes,
                             + *count);
 
             } else {
-                dict_ul_ul_insert(dif_sets[part[i]], *node_id, *count);
+                dict_ul_ul_insert(cluster_counts[part[i]], *node_id, *count);
             }
         }
         dict_ul_ul_iterator_destroy(it);
@@ -288,7 +390,8 @@ updated_centers(size_t               num_nodes,
 
     for (size_t i = 0; i < num_clusters; ++i) {
         it = create_dict_ul_ul_iterator(cluster_counts[i]);
-        while (dict_ul_ul_iterator_next(it, &node_id, &count) > -1) {
+
+        while (dict_ul_ul_iterator_next(it, &node_id, &count) == 0) {
             if (*count > max_count) {
                 max_node_id = *node_id;
             }
@@ -311,6 +414,7 @@ cluster_coarse(in_memory_file_t* db,
                unsigned long*    part)
 {
     if (!db || !dif_sets || !part) {
+        printf("ICBL - cluster_coarse: Invalid arguments!\n");
         exit(-1);
     }
 
@@ -323,7 +427,7 @@ cluster_coarse(in_memory_file_t* db,
         return -1;
     }
 
-    changes = assign_to_cluster(
+    assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
 
     do {
@@ -344,9 +448,13 @@ find_min_dist(const float*   pairwise_diff,
               unsigned long* idx,
               dendrogram_t** dendros)
 {
+    if (!pairwise_diff || !idx || !dendros) {
+        printf("ICBL - find_min_dist: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     float min_dist = FLT_MAX;
 
-    // Compute pairwise distance matrix
     for (size_t i = 0; i < n_nodes; ++i) {
         for (size_t j = 0; j < n_nodes - i; ++j) {
             // Checking if both are the same dendrogram ensures, that already
@@ -367,8 +475,13 @@ find_min_dist(const float*   pairwise_diff,
 dendrogram_t**
 initialize_node_dendrograms(list_ul_t* nodes_of_p)
 {
+    if (!nodes_of_p) {
+        printf("ICBL - initialize_node_dendrograms: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     unsigned long  n_nodes_of_p = list_ul_size(nodes_of_p);
-    dendrogram_t** dendros      = malloc(n_nodes_of_p * sizeof(dendrogram_t*));
+    dendrogram_t** dendros      = calloc(n_nodes_of_p, sizeof(dendrogram_t*));
     unsigned long  n_id;
     size_t         length;
 
@@ -376,8 +489,8 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
         n_id                      = list_ul_get(nodes_of_p, i);
         dendros[i]                = malloc(sizeof(dendrogram_t));
         dendros[i]->children.node = n_id;
-        length                    = snprintf(NULL, 0, "%lu", n_id);
-        dendros[i]->label         = malloc(length + 1);
+        length                    = snprintf(NULL, 0, "%lu", n_id) + 1;
+        dendros[i]->label         = malloc(length);
         snprintf(dendros[i]->label, length, "%lu", n_id);
         dendros[i]->size     = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;
@@ -390,6 +503,11 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
 float*
 node_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
 {
+    if (!dif_sets || !nodes_of_p) {
+        printf("ICBL - node_distance_matrix: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     unsigned long n_nodes_of_p = list_ul_size(nodes_of_p);
     float* pairwise_dist = calloc(n_nodes_of_p * n_nodes_of_p, sizeof(float));
 
@@ -399,7 +517,7 @@ node_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
             if (i == j) {
                 continue;
             }
-            pairwise_dist[j * n_nodes_of_p + j] =
+            pairwise_dist[j * n_nodes_of_p + i] =
                   weighted_jaccard_dist(dif_sets[list_ul_get(nodes_of_p, i)],
                                         dif_sets[list_ul_get(nodes_of_p, j)]);
 
@@ -417,14 +535,21 @@ assign_dendro_label(dendrogram_t* dendro,
                     dendrogram_t* snd_child,
                     bool          new_block)
 {
+    if (!dendro || !fst_child || !snd_child) {
+        printf("ICBL - assign_dendro_label: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     if (fst_child->size > BLOCK_SIZE && snd_child->size > BLOCK_SIZE) {
         // block label of first + : + block label of snd + \0
         size_t length =
               strlen(fst_child->label) + 1 + strlen(snd_child->label) + 1;
         dendro->label = malloc(length * sizeof(char));
+
         if (dendro->label == NULL) {
             exit(-1);
         }
+
         dendro->label[0] = '\0';
 
         if (fst_child->size > snd_child->size) {
@@ -436,7 +561,7 @@ assign_dendro_label(dendrogram_t* dendro,
             strncat(dendro->label, ":", 1);
             strncat(dendro->label, fst_child->label, strlen(fst_child->label));
         }
-        dendro->label[length] = '\0';
+        dendro->label[length - 1] = '\0';
     } else {
         char* label = fst_child->size > snd_child->size ? fst_child->label
                                                         : snd_child->label;
@@ -444,6 +569,7 @@ assign_dendro_label(dendrogram_t* dendro,
             size_t block_num_length =
                   snprintf(NULL, 0, "%lu", dendro->block_no);
 
+            // node_id + . + block num + \0
             dendro->label = malloc((strlen(label) + 1 + block_num_length + 1)
                                    * sizeof(char));
 
@@ -456,35 +582,69 @@ assign_dendro_label(dendrogram_t* dendro,
             dendro->label[strlen(label)] = '.';
 
             snprintf(dendro->label + strlen(label) + 1,
-                     block_num_length,
+                     block_num_length + 1,
                      "%lu",
                      dendro->block_no);
         } else {
-            dendro->label = label;
+            dendro->label = malloc((strlen(label) + 1) * sizeof(char));
+
+            if (dendro->label == NULL) {
+                return -1;
+            }
+
+            strncpy(dendro->label, label, (strlen(label) + 1) * sizeof(char));
         }
     }
     return 0;
 }
 
-int
-cluster_hierarchical(unsigned long  n_nodes,
-                     float*         dist,
-                     dendrogram_t** dendros,
-                     bool           block_formation,
-                     dendrogram_t** blocks,
-                     unsigned long* block_count)
+void
+mark_subtrees(dendrogram_t* new,
+              dendrogram_t** dendros,
+              unsigned long  first,
+              unsigned long  second)
 {
+    list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
+    list_t*       stack = create_list(&cbs);
+    dendrogram_t* current;
+
+    list_append(stack, dendros[first]);
+    list_append(stack, dendros[second]);
+
+    while (list_size(stack) > 0) {
+        current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
+
+        if (current->size == sizeof(node_t)) {
+            dendros[current->children.node] = new;
+        } else {
+            list_append(stack, current->children.dendro[0]);
+            list_append(stack, current->children.dendro[1]);
+        }
+    }
+    list_destroy(stack);
+}
+
+int
+cluster_hierarchical(unsigned long   n_nodes,
+                     float*          dist,
+                     dendrogram_t**  dendros,
+                     bool            block_formation,
+                     dendrogram_t*** blocks,
+                     unsigned long*  block_count)
+{
+    if (!dist || !dendros || !blocks || (block_formation && !block_count)) {
+        printf("ICBL - cluster_hierarchical: Invalid Arguments!\n");
+        printf("%p, \t %p, \t %p, \t %p\n", dist, dendros, blocks, block_count);
+        exit(-1);
+    }
     size_t        n_clusters = n_nodes;
     unsigned long min_idx[2];
     dendrogram_t* dendro;
 
-    if (dist == NULL || dendros == NULL) {
-        exit(-1);
-    }
-
     if (block_formation) {
-        blocks = malloc(n_nodes * sizeof(dendrogram_t*));
-        if (blocks == NULL) {
+        *blocks = calloc(n_nodes, sizeof(dendrogram_t*));
+        if (!*blocks) {
+            printf("ICBL - cluster_hierarchical: Memory allocation failed!\n");
             exit(-1);
         }
     }
@@ -492,10 +652,13 @@ cluster_hierarchical(unsigned long  n_nodes,
     while (n_clusters > 1) {
         find_min_dist(dist, n_nodes, min_idx, dendros);
 
-        dendro = malloc(sizeof(dendrogram_t));
+        dendro = calloc(1, sizeof(dendrogram_t));
+
         if (dendro == NULL) {
+            printf("ICBL - cluster_hierarchical: Memory allocation failed!\n");
             exit(-1);
         }
+
         dendro->children.dendro[0] = dendros[min_idx[0]];
         dendro->children.dendro[1] = dendros[min_idx[1]];
         dendro->size = dendros[min_idx[0]]->size + dendros[min_idx[1]]->size;
@@ -504,9 +667,9 @@ cluster_hierarchical(unsigned long  n_nodes,
 
         if (block_formation) {
             if (dendro->uncapt_s > BLOCK_SIZE) {
+                dendro->block_no        = *block_count;
+                (*blocks)[*block_count] = dendro;
                 (*block_count)++;
-                dendro->block_no           = *block_count;
-                blocks[(*block_count) - 1] = dendro;
                 assign_dendro_label(
                       dendro, dendros[min_idx[0]], dendros[min_idx[1]], true);
                 dendro->uncapt_s = 0;
@@ -516,21 +679,29 @@ cluster_hierarchical(unsigned long  n_nodes,
             }
         }
 
+        mark_subtrees(dendro, dendros, min_idx[0], min_idx[1]);
+
         dendros[min_idx[0]] = dendro;
         dendros[min_idx[1]] = dendro;
         n_clusters--;
     }
 
-    free(dendros);
     free(dist);
 
     if (block_formation) {
-        blocks = realloc(blocks, *block_count * sizeof(dendrogram_t*));
-        if (blocks == NULL) {
+        if (*block_count == 0) {
+            (*blocks)[0] = dendros[0];
+            *block_count = 1;
+        }
+
+        *blocks = realloc(*blocks, *block_count * sizeof(dendrogram_t*));
+
+        if (!blocks) {
             exit(-1);
         }
     } else {
-        blocks = dendros;
+        free(*blocks);
+        *blocks = dendros;
     }
 
     return 0;
@@ -541,14 +712,16 @@ block_formation(in_memory_file_t*    db,
                 dict_ul_ul_t**       dif_sets,
                 const unsigned long* parts,
                 dendrogram_t***      blocks,
-                unsigned long*       block_count)
+                unsigned long*       block_count,
+                dendrogram_t****     block_roots)
 {
+    if (!db || !dif_sets || !parts || !blocks || !block_count) {
+        printf("ICBL - block_formation: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     size_t n_nodes      = db->node_id_counter;
     size_t num_clusters = get_num_coarse_clusters(db);
-    blocks              = malloc(num_clusters * sizeof(dendrogram_t**));
-    if (blocks == NULL) {
-        return -1;
-    }
 
     list_ul_t* nodes_per_part[num_clusters];
 
@@ -561,12 +734,18 @@ block_formation(in_memory_file_t*    db,
     }
 
     for (size_t i = 0; i < num_clusters; ++i) {
+        (*block_roots)[i] = initialize_node_dendrograms(nodes_per_part[i]);
+
         cluster_hierarchical(list_ul_size(nodes_per_part[i]),
                              node_distance_matrix(dif_sets, nodes_per_part[i]),
-                             initialize_node_dendrograms(nodes_per_part[i]),
+                             (*block_roots)[i],
                              true,
-                             blocks[i],
+                             &(blocks[i]),
                              &(block_count[i]));
+    }
+
+    for (size_t i = 0; i < num_clusters; ++i) {
+        list_ul_destroy(nodes_per_part[i]);
     }
 
     return 0;
@@ -588,6 +767,11 @@ compare_by_label(const void* a, const void* b, void* array2)
 void
 sort_by_label(dendrogram_t** blocks, unsigned long size)
 {
+    if (!blocks) {
+        printf("ICBL - sort_by_label: Invalid Arguments!\n");
+        exit(-1);
+    }
+
     unsigned long* order = malloc(size * sizeof(unsigned long));
     if (order == NULL) {
         exit(-1);
@@ -616,9 +800,15 @@ subgraph_distance(in_memory_file_t*    db,
                   const unsigned long* partition,
                   size_t               num_clusters)
 {
+    if (!db || !partition || num_clusters < 1) {
+        printf("ICBL - subgraph_distance: Invalid Arguments");
+        exit(-1);
+    }
+
     list_relationship_t* rels = in_memory_get_relationships(db);
     relationship_t*      rel;
-    float* subgraph_dist = calloc(num_clusters * num_clusters, sizeof(long));
+    float*               subgraph_dist =
+          calloc(num_clusters * num_clusters, sizeof(*subgraph_dist));
 
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
@@ -629,20 +819,48 @@ subgraph_distance(in_memory_file_t*    db,
                           + num_clusters * partition[rel->source_node]]++;
         }
     }
+    list_relationship_destroy(rels);
+
     return subgraph_dist;
 }
 
 dendrogram_t**
 initialize_subgraph_dendrograms(unsigned long n_subgraphs)
 {
+    if (n_subgraphs < 1) {
+        printf("ICBL - initialize_subgraph_dendrograms: Invalid Arguments!\n");
+        exit(-1);
+        ;
+    }
+
     dendrogram_t** dendros = malloc(n_subgraphs * sizeof(dendrogram_t*));
     size_t         length;
 
+    if (!dendros) {
+        printf("ICBL - initialize_subgraph_dendrograms: Allocating memory "
+               "failed\n");
+        exit(-1);
+    }
+
     for (size_t i = 0; i < n_subgraphs; ++i) {
-        dendros[i]                = malloc(sizeof(dendrogram_t));
+        dendros[i] = malloc(sizeof(dendrogram_t));
+
+        if (!dendros[i]) {
+            printf("ICBL - initialize_subgraph_dendrograms: Allocating memory "
+                   "failed\n");
+            exit(-1);
+        }
+
         dendros[i]->children.node = i;
         length                    = snprintf(NULL, 0, "%lu", i);
         dendros[i]->label         = malloc(length + 1);
+
+        if (!dendros[i]->label) {
+            printf("ICBL - initialize_subgraph_dendrograms: Allocating memory "
+                   "failed\n");
+            exit(-1);
+        }
+
         snprintf(dendros[i]->label, length, "%lu", i);
         dendros[i]->size     = 1;
         dendros[i]->uncapt_s = dendros[i]->size;
@@ -652,19 +870,26 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
 }
 
 void
-order_subgraphs(dendrogram_t*   hierarchy,
+order_subgraphs(dendrogram_t**  hierarchy,
                 dendrogram_t*** blocks,
                 unsigned long   n_subgraphs)
 {
     unsigned long* subgraph_order =
-          malloc(n_subgraphs * sizeof(*subgraph_order));
+          calloc(n_subgraphs, sizeof(*subgraph_order));
+
+    if (!subgraph_order || !hierarchy || !blocks || !*blocks || !**blocks) {
+        printf("ICBL - order_subgraphs: Invalid argument or memory allocation "
+               "failed!\n");
+        exit(-1);
+    }
+
     unsigned long rank = 0;
 
     list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
     list_t*       stack = create_list(&cbs);
     dendrogram_t* current;
 
-    list_append(stack, (void*)&hierarchy);
+    list_append(stack, *hierarchy);
 
     while (list_size(stack) > 0) {
         current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
@@ -672,11 +897,12 @@ order_subgraphs(dendrogram_t*   hierarchy,
         if (current->size == 1) {
             subgraph_order[rank] = current->children.node;
             rank++;
+        } else {
+            list_append(stack, current->children.dendro[0]);
+            list_append(stack, current->children.dendro[1]);
         }
-
-        list_append(stack, (void*)&(current->children.dendro[0]));
-        list_append(stack, (void*)&(current->children.dendro[1]));
     }
+    list_destroy(stack);
 
     dendrogram_t** temp_dendro;
     for (size_t i = 0; i < n_subgraphs; ++i) {
@@ -693,6 +919,10 @@ map_to_partitions(unsigned long*       partition,
                   const unsigned long* block_count,
                   unsigned long        num_subgraphs)
 {
+    if (!partition || !blocks || !*blocks || !**blocks) {
+        printf("ICBL - map_to_partitions: Invalid arguments failed!\n");
+        exit(-1);
+    }
     unsigned long partition_counter = 0;
     list_cbs_t    cbs               = { ptr_eq, NULL, NULL };
     list_t*       stack             = create_list(&cbs);
@@ -717,20 +947,26 @@ map_to_partitions(unsigned long*       partition,
                     partition[current->children.node] = partition_counter;
                 }
 
-                list_append(stack, (void*)&(current->children.dendro[0]));
-                list_append(stack, (void*)&(current->children.dendro[1]));
+                list_append(stack, current->children.dendro[0]);
+                list_append(stack, current->children.dendro[1]);
             }
             partition_counter++;
         }
     }
+    list_destroy(stack);
 }
 
 int
 layout_blocks(in_memory_file_t* db,
               dendrogram_t***   blocks,
               unsigned long*    block_count,
-              unsigned long*    partition)
+              unsigned long*    partition,
+              dendrogram_t***   block_roots)
 {
+    if (!db || !blocks || !*blocks || !**blocks || !block_count || !partition) {
+        printf("ICBL - layout_blocks: Invalid Arguments!\n");
+        exit(-1);
+    }
     size_t num_clusters = get_num_coarse_clusters(db);
 
     for (size_t i = 0; i < num_clusters; ++i) {
@@ -738,15 +974,25 @@ layout_blocks(in_memory_file_t* db,
     }
 
     dendrogram_t** hierarchy = NULL;
+    dendrogram_t** dendros   = initialize_subgraph_dendrograms(num_clusters);
     cluster_hierarchical(num_clusters,
                          subgraph_distance(db, partition, num_clusters),
-                         initialize_subgraph_dendrograms(num_clusters),
+                         dendros,
                          false,
-                         hierarchy,
+                         &hierarchy,
                          NULL);
-    order_subgraphs(hierarchy[0], blocks, num_clusters);
+    order_subgraphs(hierarchy, blocks, num_clusters);
 
     map_to_partitions(partition, blocks, block_count, num_clusters);
+
+    for (size_t i = 0; i < num_clusters; ++i) {
+        dendrogram_destroy(block_roots[i][0], false);
+        free(block_roots[i]);
+    }
+    free(block_roots);
+
+    dendrogram_destroy(dendros[0], true);
+    free(dendros);
 
     return 0;
 }
@@ -754,6 +1000,10 @@ layout_blocks(in_memory_file_t* db,
 unsigned long*
 icbl(in_memory_file_t* db)
 {
+    if (!db) {
+        printf("ICBL - icbl: Invalid Arguments!\n");
+        exit(-1);
+    }
     dict_ul_ul_t** diff_sets =
           calloc(db->node_id_counter, sizeof(dict_ul_ul_t*));
 
@@ -764,14 +1014,28 @@ icbl(in_memory_file_t* db)
     identify_diffustion_sets(db, diff_sets);
 
     unsigned long* partition =
-          malloc(db->node_id_counter * sizeof(unsigned long));
+          calloc(db->node_id_counter, sizeof(unsigned long));
+
     cluster_coarse(db, diff_sets, partition);
 
-    dendrogram_t*** blocks      = NULL;
-    unsigned long*  block_count = NULL;
-    block_formation(db, diff_sets, partition, blocks, block_count);
+    unsigned long   num_clusters = get_num_coarse_clusters(db);
+    dendrogram_t*** blocks       = calloc(num_clusters, sizeof(dendrogram_t**));
+    unsigned long*  block_count  = calloc(num_clusters, sizeof(*block_count));
+    dendrogram_t*** block_roots  = calloc(num_clusters, sizeof(dendrogram_t**));
 
-    layout_blocks(db, blocks, block_count, partition);
+    block_formation(
+          db, diff_sets, partition, blocks, block_count, &block_roots);
+
+    for (size_t i = 0; i < db->node_id_counter; ++i) {
+        dict_ul_ul_destroy(diff_sets[i]);
+    }
+    free(diff_sets);
+
+    layout_blocks(db, blocks, block_count, partition, block_roots);
+
+    free(*blocks);
+    free(blocks);
+    free(block_count);
 
     return partition;
 }

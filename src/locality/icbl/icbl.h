@@ -20,6 +20,15 @@ typedef struct dendrogram
     } children;
 } dendrogram_t;
 
+size_t
+get_num_steps(in_memory_file_t* db);
+
+size_t
+get_num_walks(in_memory_file_t* db);
+
+float
+weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b);
+
 int
 identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
 
@@ -33,13 +42,15 @@ block_formation(in_memory_file_t*    db,
                 dict_ul_ul_t**       dif_sets,
                 const unsigned long* parts,
                 dendrogram_t***      blocks,
-                unsigned long*       block_count);
+                unsigned long*       block_count,
+                dendrogram_t****     block_roots);
 
 int
 layout_blocks(in_memory_file_t* db,
               dendrogram_t***   blocks,
               unsigned long*    block_count,
-              unsigned long*    partitions);
+              unsigned long*    partitions,
+              dendrogram_t***   block_roots);
 
 unsigned long*
 icbl(in_memory_file_t* db);
