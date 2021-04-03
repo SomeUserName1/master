@@ -13,10 +13,10 @@
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
-#define CHUNK (524288)
+#define CHUNK         (524288)
 #define IMPORT_FIELDS (2)
-#define STATUS_LINES (100000)
-#define TIMEOUT (999)
+#define STATUS_LINES  (100000)
+#define TIMEOUT       (999)
 
 static size_t
 write_data(void* ptr, size_t size, size_t nmemb, void* stream)
@@ -28,9 +28,9 @@ write_data(void* ptr, size_t size, size_t nmemb, void* stream)
 int
 download_dataset(dataset_t data, const char* gz_path)
 {
-    CURL* curl;
+    CURL*    curl;
     CURLcode result;
-    FILE* gz_file;
+    FILE*    gz_file;
 
     curl = curl_easy_init();
     if (!curl) {
@@ -69,20 +69,20 @@ download_dataset(dataset_t data, const char* gz_path)
 int
 uncompress_dataset(const char* gz_path, const char* out_path)
 {
-    int ret;
-    unsigned have;
-    z_stream stream;
-    FILE* out_file;
-    FILE* in_gz_file;
+    int           ret;
+    unsigned      have;
+    z_stream      stream;
+    FILE*         out_file;
+    FILE*         in_gz_file;
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
 
-    stream.zalloc = Z_NULL;
-    stream.zfree = Z_NULL;
-    stream.opaque = Z_NULL;
+    stream.zalloc   = Z_NULL;
+    stream.zfree    = Z_NULL;
+    stream.opaque   = Z_NULL;
     stream.avail_in = 0;
-    stream.next_in = Z_NULL;
-    ret = inflateInit2(&stream, (32 + MAX_WBITS));
+    stream.next_in  = Z_NULL;
+    ret             = inflateInit2(&stream, (32 + MAX_WBITS));
     if (ret != Z_OK) {
         return -1;
     }
@@ -114,7 +114,7 @@ uncompress_dataset(const char* gz_path, const char* out_path)
         stream.next_in = in;
         do {
             stream.avail_out = CHUNK;
-            stream.next_out = out;
+            stream.next_out  = out;
 
             ret = inflate(&stream, Z_SYNC_FLUSH);
             assert(ret != Z_STREAM_ERROR);
@@ -184,11 +184,11 @@ dict_ul_ul_t*
 import_from_txt(in_memory_file_t* db, const char* path)
 {
     unsigned long int from_to[IMPORT_FIELDS];
-    char buf[CHUNK];
-    int result = 2;
-    size_t lines = 1;
-    dict_ul_ul_t* txt_to_db_id = create_dict_ul_ul();
-    unsigned long db_id = 0;
+    char              buf[CHUNK];
+    int               result       = 2;
+    size_t            lines        = 1;
+    dict_ul_ul_t*     txt_to_db_id = create_dict_ul_ul();
+    unsigned long     db_id        = 0;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {

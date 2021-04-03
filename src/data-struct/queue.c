@@ -35,7 +35,7 @@ create_queue(const queue_cbs_t* cbs)
         exit(-1);
     }
 
-    queue->len = 0;
+    queue->len  = 0;
     queue->head = NULL;
     queue->tail = NULL;
 
@@ -95,8 +95,8 @@ queue_add(queue_t* queue, void* elem)
     }
 
     node->element = queue->cbs.qcopy(elem);
-    node->next = NULL;
-    node->prev = NULL;
+    node->next    = NULL;
+    node->prev    = NULL;
 
     if (queue->tail == NULL) {
         queue->head = node;
@@ -166,18 +166,18 @@ queue_insert(queue_t* queue, void* elem, size_t idx)
             queue->tail = new;
         }
     } else {
-        queue_node_t* cur = queue->head;
+        queue_node_t* cur  = queue->head;
         queue_node_t* next = queue->head;
 
         for (size_t i = 0; i < idx; ++i) {
-            cur = next;
+            cur  = next;
             next = cur->next;
         }
 
         new->next = next;
         new->prev = cur;
 
-        cur->next = new;
+        cur->next  = new;
         next->prev = new;
     }
 
@@ -211,7 +211,7 @@ queue_remove_int(queue_t* queue, size_t idx, bool free_flag)
         }
         queue_node_t* temp = queue->head->next;
         free(queue->head);
-        queue->head = temp;
+        queue->head       = temp;
         queue->head->prev = NULL;
         queue->len--;
 
@@ -224,7 +224,7 @@ queue_remove_int(queue_t* queue, size_t idx, bool free_flag)
         }
         queue_node_t* temp = queue->tail->prev;
         free(queue->tail);
-        queue->tail = temp;
+        queue->tail       = temp;
         queue->tail->next = NULL;
         queue->len--;
 
@@ -234,14 +234,14 @@ queue_remove_int(queue_t* queue, size_t idx, bool free_flag)
     queue_node_t* cur;
     queue_node_t* next = queue->head;
     for (size_t i = 0; i < idx; ++i) {
-        cur = next;
+        cur  = next;
         next = cur->next;
     }
 
     queue_node_t* remove = next;
-    next = remove->next;
-    cur->next = next;
-    next->prev = cur;
+    next                 = remove->next;
+    cur->next            = next;
+    next->prev           = cur;
     queue->len--;
 
     if (free_flag) {

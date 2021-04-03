@@ -7,7 +7,7 @@ list_l_t*
 create_list_l()
 {
     list_cbs_t cbs = { unsigned_long_eq, unsigned_long_copy, free };
-    list_t* lst = create_list(&cbs);
+    list_t*    lst = create_list(&cbs);
 
     return (list_l_t*)lst;
 }

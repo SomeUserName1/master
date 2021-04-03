@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #define MAGIC_TEST_VALUE (42777)
-#define ANOTHER_TV (11)
-#define NON_EX_VAL (666)
+#define ANOTHER_TV       (11)
+#define NON_EX_VAL       (666)
 
 void
 test_create_queue_ul(void)
@@ -68,8 +68,8 @@ test_queue_ul_insert(void)
         exit(-1);
     }
     assert(((queue_t*)queue)->head == ((queue_t*)queue)->tail);
-    assert(*((unsigned long*)((queue_t*)queue)->head->element) ==
-           MAGIC_TEST_VALUE);
+    assert(*((unsigned long*)((queue_t*)queue)->head->element)
+           == MAGIC_TEST_VALUE);
     assert(1 == queue_ul_size(queue));
 
     queue_ul_insert(queue, 0, 0);
@@ -80,21 +80,21 @@ test_queue_ul_insert(void)
     assert(3 == queue_ul_size(queue));
     assert(*((unsigned long*)((queue_t*)queue)->head->element) == 0);
 
-    assert(*((unsigned long*)((queue_t*)queue)->head->next->element) ==
-           ANOTHER_TV);
-    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->element) ==
-           MAGIC_TEST_VALUE);
-    assert(*((unsigned long*)((queue_t*)queue)
-                   ->head->next->next->next->element) == 0);
+    assert(*((unsigned long*)((queue_t*)queue)->head->next->element)
+           == ANOTHER_TV);
+    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->element)
+           == MAGIC_TEST_VALUE);
+    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->next->element)
+           == 0);
 
     queue_ul_insert(queue, 1, 1);
     assert(4 == queue_ul_size(queue));
     assert(*((unsigned long*)((queue_t*)queue)->head->element) == 0);
     assert(*((unsigned long*)((queue_t*)queue)->head->next->element) == 1);
-    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->element) ==
-           ANOTHER_TV);
-    assert(*((unsigned long*)((queue_t*)queue)
-                   ->head->next->next->next->element) == MAGIC_TEST_VALUE);
+    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->element)
+           == ANOTHER_TV);
+    assert(*((unsigned long*)((queue_t*)queue)->head->next->next->next->element)
+           == MAGIC_TEST_VALUE);
 
     queue_ul_destroy(queue);
 }
@@ -110,8 +110,8 @@ test_queue_ul_remove(void)
 
     queue_ul_remove(queue, 0);
     assert(1 == queue_ul_size(queue));
-    assert(*((unsigned long*)((queue_t*)queue)->head->element) ==
-           MAGIC_TEST_VALUE);
+    assert(*((unsigned long*)((queue_t*)queue)->head->element)
+           == MAGIC_TEST_VALUE);
 
     queue_ul_remove(queue, 0);
     assert(0 == queue_ul_size(queue));
@@ -135,8 +135,8 @@ test_queue_ul_remove_elem(void)
 
     queue_ul_remove_elem(queue, 0);
     assert(1 == queue_ul_size(queue));
-    assert(*((unsigned long*)((queue_t*)queue)->head->element) ==
-           MAGIC_TEST_VALUE);
+    assert(*((unsigned long*)((queue_t*)queue)->head->element)
+           == MAGIC_TEST_VALUE);
 
     queue_ul_remove_elem(queue, MAGIC_TEST_VALUE);
     assert(0 == queue_ul_size(queue));

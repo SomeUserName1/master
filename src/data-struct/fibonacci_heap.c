@@ -24,14 +24,14 @@ create_fib_node(double key, unsigned long value)
         exit(-1);
     }
 
-    node->key = key;
-    node->value = value;
+    node->key    = key;
+    node->value  = value;
     node->parent = NULL;
-    node->child = NULL;
-    node->left = NULL;
-    node->right = NULL;
+    node->child  = NULL;
+    node->left   = NULL;
+    node->right  = NULL;
     node->degree = 0;
-    node->mark = false;
+    node->mark   = false;
 
     return node;
 }
@@ -45,7 +45,7 @@ create_fib_heap()
         exit(-1);
     }
 
-    heap->min = NULL;
+    heap->min       = NULL;
     heap->num_nodes = 0;
 
     return heap;
@@ -70,7 +70,7 @@ fib_heap_destroy(fib_heap_t* fh)
 
             // In a leaf, choose a sibling as next node to delete
             if (node->right != node) {
-                next = node->right;
+                next              = node->right;
                 node->right->left = node->left;
                 node->left->right = node->right;
             } else if (node->parent) {
@@ -104,14 +104,14 @@ fib_heap_insert(fib_heap_t* fh, fib_node* node)
     }
 
     if (!fh->min) {
-        fh->min = node;
-        node->left = node;
+        fh->min     = node;
+        node->left  = node;
         node->right = node;
     } else {
-        node->right = fh->min->right;
+        node->right       = fh->min->right;
         node->right->left = node;
-        node->left = fh->min;
-        fh->min->right = node;
+        node->left        = fh->min;
+        fh->min->right    = node;
 
         if (fh->min->key > node->key) {
             fh->min = node;
@@ -147,13 +147,13 @@ fib_heap_make_child(fib_node* x, fib_node* y)
     /* make y child of x */
     y->parent = x;
     if (x->child) {
-        y->right = x->child->right;
-        y->right->left = y;
-        y->left = x->child;
+        y->right        = x->child->right;
+        y->right->left  = y;
+        y->left         = x->child;
         x->child->right = y;
     } else {
         x->child = y;
-        y->left = y;
+        y->left  = y;
         y->right = y;
     }
     y->mark = false;
@@ -170,10 +170,10 @@ fib_heap_consolidate(fib_heap_t* fh)
           floor(log_golden_ratio_factor * logf((float)fh->num_nodes));
     fib_node** nodes_w_degree = calloc(max_degree, sizeof(fib_node*));
 
-    fib_node* first = fh->min->right;
-    fib_node* temp;
-    fib_node* x = fh->min->right;
-    fib_node* y;
+    fib_node*    first = fh->min->right;
+    fib_node*    temp;
+    fib_node*    x = fh->min->right;
+    fib_node*    y;
     unsigned int d;
 
     /* Collapse all nodes with the same degree until all degrees are unique */
@@ -196,8 +196,8 @@ fib_heap_consolidate(fib_heap_t* fh)
             /* Clear mark, increment degree */
             if (y->key < x->key) {
                 temp = x;
-                x = y;
-                y = temp;
+                x    = y;
+                y    = temp;
             }
 
             fib_heap_make_child(x, y);
@@ -210,7 +210,7 @@ fib_heap_consolidate(fib_heap_t* fh)
             ++d;
         }
         nodes_w_degree[d] = x;
-        x = x->right;
+        x                 = x->right;
     } while (x != first);
 
     /* rebuild root list */
@@ -220,14 +220,14 @@ fib_heap_consolidate(fib_heap_t* fh)
         if (nodes_w_degree[i]) {
             x = nodes_w_degree[i];
             if (!fh->min) {
-                fh->min = x;
-                x->left = x;
+                fh->min  = x;
+                x->left  = x;
                 x->right = x;
             } else {
-                x->right = fh->min->right;
-                x->left = fh->min;
+                x->right             = fh->min->right;
+                x->left              = fh->min;
                 fh->min->right->left = x;
-                fh->min->right = x;
+                fh->min->right       = x;
 
                 if (x->key < fh->min->key) {
                     fh->min = x;
@@ -265,10 +265,10 @@ fib_heap_extract_min(fib_heap_t* fh)
             node->right->left = node->left;
 
             // Insert node to the right of min
-            node->left = z;
-            node->right = z->right;
+            node->left     = z;
+            node->right    = z->right;
             z->right->left = node;
-            z->right = node;
+            z->right       = node;
 
             node = next;
         }
@@ -309,11 +309,11 @@ fib_heap_union(fib_heap_t* fh1, fib_heap_t* fh2)
 
         fh->min = fh1->min;
 
-        fh1_temp = fh1->min->right;
-        fh2_temp = fh2->min->left;
+        fh1_temp        = fh1->min->right;
+        fh2_temp        = fh2->min->left;
         fh1->min->right = fh2->min;
-        fh2->min->left = fh1->min;
-        fh1_temp->left = fh2_temp;
+        fh2->min->left  = fh1->min;
+        fh1_temp->left  = fh2_temp;
         fh2_temp->right = fh1_temp;
 
         if (fh2->min->key < fh->min->key) {
@@ -348,12 +348,12 @@ fib_heap_cut(fib_heap_t* fh, fib_node* node, fib_node* parent)
     }
     parent->degree--;
     node->parent = NULL;
-    node->mark = false;
+    node->mark   = false;
 
-    node->right = fh->min->right;
-    node->left = fh->min;
+    node->right          = fh->min->right;
+    node->left           = fh->min;
     fh->min->right->left = node;
-    fh->min->right = node;
+    fh->min->right       = node;
 }
 
 void
@@ -377,8 +377,8 @@ fib_heap_cascading_cut(fib_heap_t* fh, fib_node* node)
 
 void
 fib_heap_decrease_key_internal(fib_heap_t* fh,
-                               fib_node* node,
-                               double new_key,
+                               fib_node*   node,
+                               double      new_key,
                                bool delete)
 {
     if (!fh || !node || new_key > node->key) {
@@ -397,7 +397,7 @@ fib_heap_decrease_key_internal(fib_heap_t* fh,
     fib_node* parent;
 
     node->key = new_key;
-    parent = node->parent;
+    parent    = node->parent;
 
     if (parent && node->key < parent->key) {
         fib_heap_cut(fh, node, parent);

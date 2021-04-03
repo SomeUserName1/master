@@ -20,10 +20,10 @@ create_in_memory_file()
         exit(-1);
     }
 
-    file->cache_nodes = create_dict_ul_node();
-    file->cache_rels = create_dict_ul_rel();
+    file->cache_nodes     = create_dict_ul_node();
+    file->cache_rels      = create_dict_ul_rel();
     file->node_id_counter = 0;
-    file->rel_id_counter = 0;
+    file->rel_id_counter  = 0;
 
     return file;
 }
@@ -40,8 +40,8 @@ unsigned long
 in_memory_create_node(in_memory_file_t* db)
 {
     node_t* node = new_node();
-    node->id = db->node_id_counter++;
-    node->flags = 1;
+    node->id     = db->node_id_counter++;
+    node->flags  = 1;
 
     if (dict_ul_node_insert(db->cache_nodes, node->id, node) < 0) {
         printf("%s", "Inserting the new node failed\n");
@@ -70,9 +70,9 @@ in_memory_get_nodes(in_memory_file_t* db)
         return NULL;
     }
 
-    list_node_t* nodes = create_list_node();
-    unsigned long* id = NULL;
-    node_t* node = NULL;
+    list_node_t*             nodes = create_list_node();
+    unsigned long*           id    = NULL;
+    node_t*                  node  = NULL;
     dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
 
     while (dict_ul_node_iterator_next(it, &id, &node) > -1) {
@@ -96,10 +96,10 @@ in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
 list_relationship_t*
 in_memory_get_relationships(in_memory_file_t* db)
 {
-    list_relationship_t* rels = create_list_relationship();
-    unsigned long* id = NULL;
-    relationship_t* rel = NULL;
-    dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
+    list_relationship_t*    rels = create_list_relationship();
+    unsigned long*          id   = NULL;
+    relationship_t*         rel  = NULL;
+    dict_ul_rel_iterator_t* it   = create_dict_ul_rel_iterator(db->cache_rels);
 
     while (dict_ul_rel_iterator_next(it, &id, &rel) > -1) {
         list_relationship_append(rels, rel);
@@ -110,20 +110,20 @@ in_memory_get_relationships(in_memory_file_t* db)
 
 unsigned long
 in_memory_create_relationship(in_memory_file_t* db,
-                              unsigned long node_from,
-                              unsigned long node_to)
+                              unsigned long     node_from,
+                              unsigned long     node_to)
 {
     return in_memory_create_relationship_weighted(db, node_from, node_to, 1.0F);
 }
 
 unsigned long
 in_memory_create_relationship_weighted(in_memory_file_t* db,
-                                       unsigned long node_from,
-                                       unsigned long node_to,
-                                       double weight)
+                                       unsigned long     node_from,
+                                       unsigned long     node_to,
+                                       double            weight)
 {
-    if (!db || node_from == UNINITIALIZED_LONG ||
-        node_to == UNINITIALIZED_LONG || weight == UNINITIALIZED_WEIGHT) {
+    if (!db || node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG
+        || weight == UNINITIALIZED_WEIGHT) {
         printf("create_relationship: in memory file is NULL or invalid nodes "
                "or weight passed as "
                "argument!\n");
@@ -135,16 +135,16 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
                weight);
         exit(-1);
     }
-    unsigned long temp_id;
-    relationship_t* last_rel_source = NULL;
+    unsigned long   temp_id;
+    relationship_t* last_rel_source  = NULL;
     relationship_t* first_rel_source = NULL;
-    relationship_t* last_rel_target = NULL;
+    relationship_t* last_rel_target  = NULL;
     relationship_t* first_rel_target = NULL;
-    node_t* source_node = NULL;
-    node_t* target_node = NULL;
+    node_t*         source_node      = NULL;
+    node_t*         target_node      = NULL;
 
-    if (!(source_node = dict_ul_node_get_direct(db->cache_nodes, node_from)) ||
-        !(target_node = dict_ul_node_get_direct(db->cache_nodes, node_to))) {
+    if (!(source_node = dict_ul_node_get_direct(db->cache_nodes, node_from))
+        || !(target_node = dict_ul_node_get_direct(db->cache_nodes, node_to))) {
         printf("%s: %lu, %lu\n",
                "One of the nodes which are refered to by the relationship"
                "to create does not exist:",
@@ -154,15 +154,15 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
     }
 
     relationship_t* rel = new_relationship();
-    rel->source_node = node_from;
-    rel->target_node = node_to;
-    rel->id = db->rel_id_counter++;
-    rel->flags = 1;
-    rel->weight = weight;
+    rel->source_node    = node_from;
+    rel->target_node    = node_to;
+    rel->id             = db->rel_id_counter++;
+    rel->flags          = 1;
+    rel->weight         = weight;
 
     // Find first and last relationship in source node's chain
     if (source_node->first_relationship == UNINITIALIZED_LONG) {
-        last_rel_source = rel;
+        last_rel_source  = rel;
         first_rel_source = rel;
     } else {
         first_rel_source =
@@ -177,7 +177,7 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
 
     // Find first and last relationship in target node's chain
     if (target_node->first_relationship == UNINITIALIZED_LONG) {
-        last_rel_target = rel;
+        last_rel_target  = rel;
         first_rel_target = rel;
     } else {
         first_rel_target =
@@ -251,9 +251,9 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
 
 unsigned long
 in_memory_next_relationship(in_memory_file_t* db,
-                            unsigned long node_id,
-                            relationship_t* rel,
-                            direction_t direction)
+                            unsigned long     node_id,
+                            relationship_t*   rel,
+                            direction_t       direction)
 {
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
         printf("Arguments must be not NULL!");
@@ -267,9 +267,9 @@ in_memory_next_relationship(in_memory_file_t* db,
     do {
         rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
 
-        if (rel_id != start_rel_id &&
-            ((rel->source_node == node_id && direction != INCOMING) ||
-             (rel->target_node == node_id && direction != OUTGOING))) {
+        if (rel_id != start_rel_id
+            && ((rel->source_node == node_id && direction != INCOMING)
+                || (rel->target_node == node_id && direction != OUTGOING))) {
             return rel->id;
         }
         rel_id = node_id == rel->source_node ? rel->next_rel_source
@@ -282,8 +282,8 @@ in_memory_next_relationship(in_memory_file_t* db,
 
 list_relationship_t*
 in_memory_expand(in_memory_file_t* db,
-                 unsigned long node_id,
-                 direction_t direction)
+                 unsigned long     node_id,
+                 direction_t       direction)
 {
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
 
@@ -293,21 +293,21 @@ in_memory_expand(in_memory_file_t* db,
     }
 
     list_relationship_t* result = create_list_relationship();
-    unsigned long rel_id = node->first_relationship;
+    unsigned long        rel_id = node->first_relationship;
 
     if (rel_id == UNINITIALIZED_LONG) {
         return result;
     }
 
     relationship_t* rel = in_memory_get_relationship(db, rel_id);
-    unsigned long start_id;
+    unsigned long   start_id;
 
-    if ((rel->source_node == node_id && direction != INCOMING) ||
-        (rel->target_node == node_id && direction != OUTGOING)) {
+    if ((rel->source_node == node_id && direction != INCOMING)
+        || (rel->target_node == node_id && direction != OUTGOING)) {
         start_id = rel_id;
     } else {
-        rel_id = in_memory_next_relationship(db, node_id, rel, direction);
-        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
+        rel_id   = in_memory_next_relationship(db, node_id, rel, direction);
+        rel      = dict_ul_rel_get_direct(db->cache_rels, rel_id);
         start_id = rel_id;
     }
 
@@ -327,9 +327,9 @@ in_memory_expand(in_memory_file_t* db,
 
 relationship_t*
 in_memory_contains_relationship_from_to(in_memory_file_t* db,
-                                        unsigned long node_from,
-                                        unsigned long node_to,
-                                        direction_t direction)
+                                        unsigned long     node_from,
+                                        unsigned long     node_to,
+                                        direction_t       direction)
 {
     if (!db) {
         printf("in memory file is NULL! \n");
@@ -344,20 +344,20 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
     node_t* source_node = dict_ul_node_get_direct(db->cache_nodes, node_from);
     node_t* target_node = dict_ul_node_get_direct(db->cache_nodes, node_to);
 
-    if (source_node->first_relationship == UNINITIALIZED_LONG ||
-        target_node->first_relationship == UNINITIALIZED_LONG) {
+    if (source_node->first_relationship == UNINITIALIZED_LONG
+        || target_node->first_relationship == UNINITIALIZED_LONG) {
         return NULL;
     }
 
-    unsigned long next_id = source_node->first_relationship;
+    unsigned long next_id  = source_node->first_relationship;
     unsigned long start_id = next_id;
 
     do {
         rel = dict_ul_rel_get_direct(db->cache_rels, next_id);
-        if ((direction != INCOMING && rel->source_node == node_from &&
-             rel->target_node == node_to) ||
-            (direction != OUTGOING && rel->source_node == node_to &&
-             rel->target_node == node_from)) {
+        if ((direction != INCOMING && rel->source_node == node_from
+             && rel->target_node == node_to)
+            || (direction != OUTGOING && rel->source_node == node_to
+                && rel->target_node == node_from)) {
             return rel;
         }
         next_id = in_memory_next_relationship(db, node_from, rel, direction);

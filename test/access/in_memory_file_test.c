@@ -33,7 +33,7 @@ static const size_t ids_n0_inc[] = { 1,  3,  5,  6,  10, 13, 14, 16, 18, 21, 24,
 void
 test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
 {
-    node_t* node = in_memory_get_node(db, 0);
+    node_t*         node = in_memory_get_node(db, 0);
     relationship_t* rel =
           in_memory_get_relationship(db, node->first_relationship);
     // 1.
@@ -382,8 +382,8 @@ test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
 void
 test_get_nodes(in_memory_file_t* db)
 {
-    size_t n_nodes_before = db->node_id_counter;
-    list_node_t* nodes = in_memory_get_nodes(db);
+    size_t       n_nodes_before = db->node_id_counter;
+    list_node_t* nodes          = in_memory_get_nodes(db);
     assert(list_node_size(nodes) == db->node_id_counter);
     list_node_destroy(nodes);
     assert(n_nodes_before == db->node_id_counter);
@@ -392,8 +392,8 @@ test_get_nodes(in_memory_file_t* db)
 void
 test_get_rels(in_memory_file_t* db)
 {
-    size_t n_rels_before = db->rel_id_counter;
-    list_relationship_t* rels = in_memory_get_relationships(db);
+    size_t               n_rels_before = db->rel_id_counter;
+    list_relationship_t* rels          = in_memory_get_relationships(db);
     assert(list_relationship_size(rels) == db->rel_id_counter);
     list_relationship_destroy(rels);
     assert(n_rels_before == db->rel_id_counter);
@@ -498,8 +498,8 @@ test_in_memory_contains_rel(void)
 int
 main(void)
 {
-    in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(
+    in_memory_file_t* db  = create_in_memory_file();
+    dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);

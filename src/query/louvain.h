@@ -10,7 +10,7 @@ static const double MIN_IMPROVEMENT = 0.005F;
 typedef struct
 {
     in_memory_file_t* graph;
-    double m2;
+    double            m2;
 } louvain_graph_t;
 
 typedef struct
@@ -27,9 +27,9 @@ typedef struct
     // - neighCommWeights: stores weights to communities
     // - neighCommPos: stores list of neighbor communities
     // - neighCommNb: stores the number of neighbor communities
-    double* neigh_com_weights;
+    double*        neigh_com_weights;
     unsigned long* neigh_com_pos;
-    unsigned long neigh_com_nb;
+    unsigned long  neigh_com_nb;
     // TODO add pointer to finer and coarser partition
 } louvain_partition_t;
 
@@ -58,8 +58,8 @@ louvain_part_destroy(louvain_partition_t* p);
 // updates a given partition with the current Louvain partition
 void
 update_partition(louvain_partition_t* p,
-                 unsigned long* part,
-                 unsigned long size);
+                 unsigned long*       part,
+                 unsigned long        size);
 
 /**
  * generates the binary graph of communities as computed by one_level
@@ -86,9 +86,9 @@ init_neighbouring_communities(louvain_partition_t* p);
   */
 void
 get_neighbouring_communities(louvain_partition_t* p,
-                             louvain_graph_t* g,
-                             unsigned long node,
-                             bool all);
+                             louvain_graph_t*     g,
+                             unsigned long        node,
+                             bool                 all);
 
 double
 degree_weighted(louvain_graph_t* g, unsigned long node);

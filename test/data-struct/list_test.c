@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 #define MAGIC_TEST_VALUE (42777)
-#define NON_EX_VAL (666)
+#define NON_EX_VAL       (666)
 
 void
 test_create_list_ul(void)
@@ -400,12 +400,12 @@ test_list_node_append(void)
     assert(0 == list_node_size(list));
 
     node_t* val = new_node();
-    val->id = 0;
+    val->id     = 0;
     list_node_append(list, val);
     assert(1 == list_node_size(list));
 
     node_t* val1 = new_node();
-    val1->id = 1;
+    val1->id     = 1;
     list_node_append(list, val1);
     assert(2 == list_node_size(list));
 
@@ -424,13 +424,13 @@ test_list_node_insert(void)
     assert(0 == list_node_size(list));
 
     node_t* val = new_node();
-    val->id = 0;
+    val->id     = 0;
     list_node_append(list, val);
 
     assert(1 == list_node_size(list));
 
     node_t* val1 = new_node();
-    val1->id = 1;
+    val1->id     = 1;
     list_node_insert(list, val1, 0);
     assert(2 == list_node_size(list));
     assert(node_equals(((node_t*)((list_t*)list)->elements[0]), val1));
@@ -445,10 +445,10 @@ test_list_node_remove(void)
 {
     list_node_t* list = create_list_node();
 
-    node_t* val = new_node();
+    node_t* val  = new_node();
     node_t* val1 = new_node();
-    val->id = 0;
-    val1->id = 1;
+    val->id      = 0;
+    val1->id     = 1;
 
     list_node_append(list, val);
     list_node_insert(list, val1, 0);
@@ -472,10 +472,10 @@ test_list_node_remove_elem(void)
 {
     list_node_t* list = create_list_node();
 
-    node_t* val = new_node();
+    node_t* val  = new_node();
     node_t* val1 = new_node();
-    val->id = 0;
-    val1->id = 1;
+    val->id      = 0;
+    val1->id     = 1;
 
     list_node_append(list, val);
     list_node_insert(list, val1, 0);
@@ -500,12 +500,12 @@ test_list_node_index_of(void)
 
     list_node_t* list = create_list_node();
 
-    node_t* val = new_node();
-    node_t* val1 = new_node();
+    node_t* val     = new_node();
+    node_t* val1    = new_node();
     node_t* another = new_node();
-    val->id = 0;
-    val1->id = 1;
-    another->id = 2;
+    val->id         = 0;
+    val1->id        = 1;
+    another->id     = 2;
     list_node_append(list, val);
     list_node_insert(list, val1, 0);
 
@@ -530,12 +530,12 @@ test_list_node_contains(void)
 {
     list_node_t* list = create_list_node();
 
-    node_t* val = new_node();
-    node_t* val1 = new_node();
+    node_t* val     = new_node();
+    node_t* val1    = new_node();
     node_t* another = new_node();
-    val->id = 0;
-    val1->id = 1;
-    another->id = 2;
+    val->id         = 0;
+    val1->id        = 1;
+    another->id     = 2;
     list_node_append(list, val);
     list_node_insert(list, val1, 0);
 
@@ -553,10 +553,10 @@ test_list_node_get(void)
 {
     list_node_t* list = create_list_node();
 
-    node_t* val = new_node();
+    node_t* val  = new_node();
     node_t* val1 = new_node();
-    val->id = 0;
-    val1->id = 1;
+    val->id      = 0;
+    val1->id     = 1;
     list_node_append(list, val);
     list_node_insert(list, val1, 0);
 
@@ -572,8 +572,8 @@ void
 test_list_node_take(void)
 {
     list_node_t* list = create_list_node();
-    node_t* val = new_node();
-    val->id = 0;
+    node_t*      val  = new_node();
+    val->id           = 0;
     list_node_append(list, val);
 
     node_t* num = list_node_take(list, 0);
@@ -587,9 +587,9 @@ void
 test_list_node_destroy(void)
 {
     list_node_t* lst = create_list_node();
-    node_t* n;
+    node_t*      n;
     for (size_t i = 0; i < MAGIC_TEST_VALUE; ++i) {
-        n = new_node();
+        n     = new_node();
         n->id = i;
         list_node_append(lst, n);
         free(n);
@@ -635,13 +635,13 @@ test_list_relationship_append(void)
     assert(0 == list_relationship_size(list));
 
     relationship_t* val = new_relationship();
-    val->id = 0;
+    val->id             = 0;
     list_relationship_append(list, val);
 
     assert(1 == list_relationship_size(list));
 
     relationship_t* val1 = new_relationship();
-    val1->id = 1;
+    val1->id             = 1;
     list_relationship_append(list, val1);
 
     for (size_t i = 0; i < list_relationship_size(list); ++i) {
@@ -665,13 +665,13 @@ test_list_relationship_insert(void)
     assert(0 == list_relationship_size(list));
 
     relationship_t* val = new_relationship();
-    val->id = 0;
+    val->id             = 0;
     list_relationship_append(list, val);
 
     assert(1 == list_relationship_size(list));
 
     relationship_t* val1 = new_relationship();
-    val1->id = 1;
+    val1->id             = 1;
     list_relationship_insert(list, val1, 0);
     assert(2 == list_relationship_size(list));
     assert(relationship_equals(((relationship_t*)((list_t*)list)->elements[0]),
@@ -687,10 +687,10 @@ test_list_relationship_remove(void)
 {
     list_relationship_t* list = create_list_relationship();
 
-    relationship_t* val = new_relationship();
+    relationship_t* val  = new_relationship();
     relationship_t* val1 = new_relationship();
-    val->id = 0;
-    val1->id = 1;
+    val->id              = 0;
+    val1->id             = 1;
 
     list_relationship_append(list, val);
     list_relationship_insert(list, val1, 0);
@@ -715,10 +715,10 @@ test_list_relationship_remove_elem(void)
 {
     list_relationship_t* list = create_list_relationship();
 
-    relationship_t* val = new_relationship();
+    relationship_t* val  = new_relationship();
     relationship_t* val1 = new_relationship();
-    val->id = 0;
-    val1->id = 1;
+    val->id              = 0;
+    val1->id             = 1;
 
     list_relationship_append(list, val);
     list_relationship_insert(list, val1, 0);
@@ -744,12 +744,12 @@ test_list_relationship_index_of(void)
 
     list_relationship_t* list = create_list_relationship();
 
-    relationship_t* val = new_relationship();
-    relationship_t* val1 = new_relationship();
+    relationship_t* val     = new_relationship();
+    relationship_t* val1    = new_relationship();
     relationship_t* another = new_relationship();
-    val->id = 0;
-    val1->id = 1;
-    another->id = 2;
+    val->id                 = 0;
+    val1->id                = 1;
+    another->id             = 2;
     list_relationship_append(list, val);
     list_relationship_insert(list, val1, 0);
 
@@ -770,12 +770,12 @@ test_list_relationship_contains(void)
 {
     list_relationship_t* list = create_list_relationship();
 
-    relationship_t* val = new_relationship();
-    relationship_t* val1 = new_relationship();
+    relationship_t* val     = new_relationship();
+    relationship_t* val1    = new_relationship();
     relationship_t* another = new_relationship();
-    val->id = 0;
-    val1->id = 1;
-    another->id = 2;
+    val->id                 = 0;
+    val1->id                = 1;
+    another->id             = 2;
     list_relationship_append(list, val);
     list_relationship_insert(list, val1, 0);
 
@@ -793,10 +793,10 @@ test_list_relationship_get(void)
 {
     list_relationship_t* list = create_list_relationship();
 
-    relationship_t* val = new_relationship();
+    relationship_t* val  = new_relationship();
     relationship_t* val1 = new_relationship();
-    val->id = 0;
-    val1->id = 1;
+    val->id              = 0;
+    val1->id             = 1;
     list_relationship_append(list, val);
     list_relationship_insert(list, val1, 0);
 
@@ -812,8 +812,8 @@ void
 test_list_relationship_take(void)
 {
     list_relationship_t* list = create_list_relationship();
-    relationship_t* val = new_relationship();
-    val->id = 0;
+    relationship_t*      val  = new_relationship();
+    val->id                   = 0;
     list_relationship_append(list, val);
 
     relationship_t* num = list_relationship_take(list, 0);
@@ -827,9 +827,9 @@ void
 test_list_relationship_destroy(void)
 {
     list_relationship_t* lst = create_list_relationship();
-    relationship_t* n;
+    relationship_t*      n;
     for (size_t i = 0; i < MAGIC_TEST_VALUE; ++i) {
-        n = new_relationship();
+        n     = new_relationship();
         n->id = i;
         list_relationship_append(lst, n);
         free(n);

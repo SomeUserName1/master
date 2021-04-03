@@ -15,9 +15,9 @@ ptr_eq(const void* a, const void* b)
 size_t
 fnv_hash_ul(const void* in, unsigned int seed)
 {
-    size_t h = seed;
+    size_t             h     = seed;
     const unsigned int prime = 0xFDCFB7;
-    unsigned long ul = *((unsigned long*)in);
+    unsigned long      ul    = *((unsigned long*)in);
 
     return (h ^ ul) * prime;
 }
@@ -32,7 +32,7 @@ void*
 unsigned_long_copy(const void* orig)
 {
     unsigned long* copy = (unsigned long*)malloc(sizeof(*copy));
-    *copy = *((unsigned long*)orig);
+    *copy               = *((unsigned long*)orig);
     return (void*)copy;
 }
 
@@ -52,7 +52,7 @@ void*
 int_copy(const void* original)
 {
     int* copy = (int*)malloc(sizeof(*copy));
-    *copy = *((int*)original);
+    *copy     = *((int*)original);
     return copy;
 }
 

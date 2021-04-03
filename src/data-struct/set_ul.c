@@ -7,9 +7,9 @@
 set_ul_t*
 create_set_ul(void)
 {
-    htable_hash hash = fnv_hash_ul;
-    htable_keq keq = unsigned_long_eq;
-    htable_cbs_t cbs = {
+    htable_hash  hash = fnv_hash_ul;
+    htable_keq   keq  = unsigned_long_eq;
+    htable_cbs_t cbs  = {
         unsigned_long_copy, free, unsigned_long_print, NULL, NULL, NULL, NULL
     };
     return (set_ul_t*)create_set(hash, keq, &cbs);

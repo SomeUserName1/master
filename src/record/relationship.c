@@ -35,16 +35,16 @@ relationship_write(const relationship_t* record)
 void
 relationship_clear(relationship_t* record)
 {
-    record->id = UNINITIALIZED_LONG;
-    record->flags = UNINITIALIZED_BYTE;
-    record->source_node = UNINITIALIZED_LONG;
-    record->target_node = UNINITIALIZED_LONG;
+    record->id                = UNINITIALIZED_LONG;
+    record->flags             = UNINITIALIZED_BYTE;
+    record->source_node       = UNINITIALIZED_LONG;
+    record->target_node       = UNINITIALIZED_LONG;
     record->relationship_type = UNINITIALIZED_LONG;
-    record->prev_rel_source = UNINITIALIZED_LONG;
-    record->next_rel_source = UNINITIALIZED_LONG;
-    record->prev_rel_target = UNINITIALIZED_LONG;
-    record->next_rel_target = UNINITIALIZED_LONG;
-    record->weight = UNINITIALIZED_WEIGHT;
+    record->prev_rel_source   = UNINITIALIZED_LONG;
+    record->next_rel_source   = UNINITIALIZED_LONG;
+    record->prev_rel_target   = UNINITIALIZED_LONG;
+    record->next_rel_target   = UNINITIALIZED_LONG;
+    record->weight            = UNINITIALIZED_WEIGHT;
 }
 
 relationship_t*
@@ -56,16 +56,16 @@ relationship_copy(const relationship_t* original)
         return NULL;
     }
 
-    copy->id = original->id;
-    copy->flags = original->flags;
-    copy->source_node = original->source_node;
-    copy->target_node = original->target_node;
+    copy->id                = original->id;
+    copy->flags             = original->flags;
+    copy->source_node       = original->source_node;
+    copy->target_node       = original->target_node;
     copy->relationship_type = original->relationship_type;
-    copy->prev_rel_source = original->prev_rel_source;
-    copy->next_rel_source = original->next_rel_source;
-    copy->prev_rel_target = original->prev_rel_target;
-    copy->next_rel_target = original->next_rel_target;
-    copy->weight = original->weight;
+    copy->prev_rel_source   = original->prev_rel_source;
+    copy->next_rel_source   = original->next_rel_source;
+    copy->prev_rel_target   = original->prev_rel_target;
+    copy->next_rel_target   = original->next_rel_target;
+    copy->weight            = original->weight;
 
     return copy;
 }
@@ -73,20 +73,20 @@ relationship_copy(const relationship_t* original)
 bool
 relationship_equals(const relationship_t* first, const relationship_t* second)
 {
-    return ((first->id == second->id) && (first->flags == second->flags) &&
-            (first->source_node == second->source_node) &&
-            (first->target_node == second->target_node) &&
-            (first->relationship_type == second->relationship_type) &&
-            (first->prev_rel_source == second->prev_rel_source) &&
-            (first->next_rel_source == second->next_rel_source) &&
-            (first->prev_rel_target == second->prev_rel_target) &&
-            (first->weight == second->weight));
+    return ((first->id == second->id) && (first->flags == second->flags)
+            && (first->source_node == second->source_node)
+            && (first->target_node == second->target_node)
+            && (first->relationship_type == second->relationship_type)
+            && (first->prev_rel_source == second->prev_rel_source)
+            && (first->next_rel_source == second->next_rel_source)
+            && (first->prev_rel_target == second->prev_rel_target)
+            && (first->weight == second->weight));
 }
 
 int
 relationship_to_string(const relationship_t* record,
-                       char* buffer,
-                       size_t buffer_size)
+                       char*                 buffer,
+                       size_t                buffer_size)
 {
     int length = snprintf(NULL,
                           0,

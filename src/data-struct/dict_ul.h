@@ -8,14 +8,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef struct dict_ul_ul dict_ul_ul_t;
-typedef struct dict_ul_int dict_ul_int_t;
-typedef struct dict_ul_node dict_ul_node_t;
-typedef struct dict_ul_rel dict_ul_rel_t;
-typedef struct dict_ul_ul_iterator dict_ul_ul_iterator_t;
-typedef struct dict_ul_int_iterator dict_ul_int_iterator_t;
+typedef struct dict_ul_ul            dict_ul_ul_t;
+typedef struct dict_ul_int           dict_ul_int_t;
+typedef struct dict_ul_node          dict_ul_node_t;
+typedef struct dict_ul_rel           dict_ul_rel_t;
+typedef struct dict_ul_ul_iterator   dict_ul_ul_iterator_t;
+typedef struct dict_ul_int_iterator  dict_ul_int_iterator_t;
 typedef struct dict_ul_node_iterator dict_ul_node_iterator_t;
-typedef struct dict_ul_rel_iterator dict_ul_rel_iterator_t;
+typedef struct dict_ul_rel_iterator  dict_ul_rel_iterator_t;
 
 dict_ul_ul_t*
 create_dict_ul_ul(void);
@@ -45,8 +45,8 @@ create_dict_ul_ul_iterator(dict_ul_ul_t* ht);
 
 int
 dict_ul_ul_iterator_next(dict_ul_ul_iterator_t* hi,
-                         unsigned long** key,
-                         unsigned long** value);
+                         unsigned long**        key,
+                         unsigned long**        value);
 
 void
 dict_ul_ul_iterator_destroy(dict_ul_ul_iterator_t* hi);
@@ -83,8 +83,8 @@ create_dict_ul_int_iterator(dict_ul_int_t* ht);
 
 int
 dict_ul_int_iterator_next(dict_ul_int_iterator_t* hi,
-                          unsigned long** key,
-                          int** value);
+                          unsigned long**         key,
+                          int**                   value);
 
 void
 dict_ul_int_iterator_destroy(dict_ul_int_iterator_t* hi);
@@ -121,8 +121,8 @@ create_dict_ul_node_iterator(dict_ul_node_t* ht);
 
 int
 dict_ul_node_iterator_next(dict_ul_node_iterator_t* hi,
-                           unsigned long** key,
-                           node_t** value);
+                           unsigned long**          key,
+                           node_t**                 value);
 
 void
 dict_ul_node_iterator_destroy(dict_ul_node_iterator_t* hi);
@@ -159,8 +159,8 @@ create_dict_ul_rel_iterator(dict_ul_rel_t* ht);
 
 int
 dict_ul_rel_iterator_next(dict_ul_rel_iterator_t* hi,
-                          unsigned long** key,
-                          relationship_t** value);
+                          unsigned long**         key,
+                          relationship_t**        value);
 
 void
 dict_ul_rel_iterator_destroy(dict_ul_rel_iterator_t* hi);

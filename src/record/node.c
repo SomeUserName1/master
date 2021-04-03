@@ -48,11 +48,11 @@ node_clear(node_t* record)
         exit(-1);
     }
 
-    record->id = UNINITIALIZED_LONG;
-    record->flags = UNINITIALIZED_BYTE;
+    record->id                 = UNINITIALIZED_LONG;
+    record->flags              = UNINITIALIZED_BYTE;
     record->first_relationship = UNINITIALIZED_LONG;
-    record->first_property = UNINITIALIZED_LONG;
-    record->node_type = UNINITIALIZED_LONG;
+    record->first_property     = UNINITIALIZED_LONG;
+    record->node_type          = UNINITIALIZED_LONG;
 }
 
 node_t*
@@ -68,11 +68,11 @@ node_copy(const node_t* original)
         exit(-1);
     }
 
-    copy->id = original->id;
-    copy->flags = original->flags;
+    copy->id                 = original->id;
+    copy->flags              = original->flags;
     copy->first_relationship = original->first_relationship;
-    copy->first_property = original->first_property;
-    copy->node_type = original->node_type;
+    copy->first_property     = original->first_property;
+    copy->node_type          = original->node_type;
 
     return copy;
 }
@@ -84,10 +84,10 @@ node_equals(const node_t* first, const node_t* second)
         return false;
     }
 
-    return ((first->id == second->id) && (first->flags == second->flags) &&
-            (first->first_relationship == second->first_relationship) &&
-            (first->first_property == second->first_property) &&
-            (first->node_type == second->node_type));
+    return ((first->id == second->id) && (first->flags == second->flags)
+            && (first->first_relationship == second->first_relationship)
+            && (first->first_property == second->first_property)
+            && (first->node_type == second->node_type));
 }
 
 int

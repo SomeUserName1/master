@@ -5,13 +5,13 @@
 #include <assert.h>
 #include <stdio.h>
 
-static const float TRUE_AVG_DEG_BOTH_LOW = 2.4F;
+static const float TRUE_AVG_DEG_BOTH_LOW  = 2.4F;
 static const float TRUE_AVG_DEG_BOTH_HIGH = 2.6F;
 
-static const float TRUE_AVG_DEG_OUT_LOW = 1.1F;
+static const float TRUE_AVG_DEG_OUT_LOW  = 1.1F;
 static const float TRUE_AVG_DEG_OUT_HIGH = 1.3F;
 
-static const float TRUE_AVG_DEG_INC_LOW = 1.1F;
+static const float TRUE_AVG_DEG_INC_LOW  = 1.1F;
 static const float TRUE_AVG_DEG_INC_HIGH = 1.3F;
 
 void

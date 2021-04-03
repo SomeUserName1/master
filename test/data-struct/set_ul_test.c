@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #define MAGIC_TEST_VALUE (42777)
-#define ANOTHER_TV (11)
-#define NON_EX_VAL (666)
+#define ANOTHER_TV       (11)
+#define NON_EX_VAL       (666)
 
 void
 test_create_set_ul(void)

@@ -11,8 +11,8 @@
 int
 main(void)
 {
-    in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(
+    in_memory_file_t* db  = create_in_memory_file();
+    dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/celegans.txt");
 
     traversal_result* result = bfs(

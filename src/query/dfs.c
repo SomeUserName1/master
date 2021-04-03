@@ -11,12 +11,12 @@
 
 traversal_result*
 dfs(in_memory_file_t* db,
-    unsigned long source_node_id,
-    direction_t direction,
-    const char* log_path)
+    unsigned long     source_node_id,
+    direction_t       direction,
+    const char*       log_path)
 {
     unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    unsigned long* dfs = malloc(db->node_id_counter * sizeof(*dfs));
+    unsigned long* dfs     = malloc(db->node_id_counter * sizeof(*dfs));
 
     if (!parents || !dfs) {
         exit(-1);
@@ -24,11 +24,11 @@ dfs(in_memory_file_t* db,
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         parents[i] = UNINITIALIZED_LONG;
-        dfs[i] = ULONG_MAX;
+        dfs[i]     = ULONG_MAX;
     }
 
     list_ul_t* node_stack = create_list_ul();
-    FILE* log_file = fopen(log_path, "w");
+    FILE*      log_file   = fopen(log_path, "w");
 
     if (log_file == NULL) {
         free(parents);
@@ -39,9 +39,9 @@ dfs(in_memory_file_t* db,
     }
 
     list_relationship_t* current_rels = NULL;
-    relationship_t* current_rel = NULL;
-    unsigned long temp;
-    unsigned long* node_id;
+    relationship_t*      current_rel  = NULL;
+    unsigned long        temp;
+    unsigned long*       node_id;
     list_ul_append(node_stack, source_node_id);
     dfs[source_node_id] = 0;
 
@@ -51,7 +51,7 @@ dfs(in_memory_file_t* db,
         for (size_t j = 0; j < list_ul_size(node_stack); ++j) {
         }
 
-        node_id = list_ul_take(node_stack, stack_size - 1);
+        node_id      = list_ul_take(node_stack, stack_size - 1);
         current_rels = in_memory_expand(db, *node_id, direction);
         fprintf(log_file, "%s %lu\n", "dfs: Node: ", *node_id);
 
@@ -64,7 +64,7 @@ dfs(in_memory_file_t* db,
                          : current_rel->source_node;
 
             if (dfs[temp] == ULONG_MAX) {
-                dfs[temp] = dfs[*node_id] + 1;
+                dfs[temp]     = dfs[*node_id] + 1;
                 parents[temp] = current_rel->id;
                 list_ul_append(node_stack, temp);
             }

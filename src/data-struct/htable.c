@@ -53,13 +53,13 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
                 }
             }
         }
-        ht->buckets[idx].key = key;
+        ht->buckets[idx].key   = key;
         ht->buckets[idx].value = value;
         if (!rehash) {
             ht->num_used++;
         }
     } else {
-        htable_bucket_t* cur = ht->buckets + idx;
+        htable_bucket_t* cur  = ht->buckets + idx;
         htable_bucket_t* last = NULL;
         do {
             if (ht->keq(key, cur->key)) {
@@ -73,11 +73,11 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
                     }
                 }
                 cur->value = value;
-                last = NULL;
+                last       = NULL;
                 break;
             }
             last = cur;
-            cur = cur->next;
+            cur  = cur->next;
         } while (cur != NULL);
 
         if (last != NULL) {
@@ -102,7 +102,7 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
                     }
                 }
             }
-            cur->key = key;
+            cur->key   = key;
             cur->value = value;
             last->next = cur;
             if (!rehash) {
@@ -116,13 +116,13 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
 static int
 htable_rehash(htable_t* ht)
 {
-    if (ht->num_used + 1 < (size_t)(ht->num_buckets * REHASH_FILLING_RATIO) ||
-        ht->num_buckets >= 1UL << TOO_MANY_BUCKETS_BITS) {
+    if (ht->num_used + 1 < (size_t)(ht->num_buckets * REHASH_FILLING_RATIO)
+        || ht->num_buckets >= 1UL << TOO_MANY_BUCKETS_BITS) {
         return 0;
     }
 
-    size_t num_buckets = ht->num_buckets;
-    htable_bucket_t* buckets = ht->buckets;
+    size_t           num_buckets = ht->num_buckets;
+    htable_bucket_t* buckets     = ht->buckets;
 
     ht->num_buckets <<= 1UL;
     ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
@@ -131,7 +131,7 @@ htable_rehash(htable_t* ht)
         return -1;
     }
 
-    htable_bucket_t* cur = NULL;
+    htable_bucket_t* cur  = NULL;
     htable_bucket_t* next = NULL;
     for (size_t i = 0; i < num_buckets; ++i) {
         if (buckets[i].key == NULL) {
@@ -167,32 +167,32 @@ create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs)
     }
 
     ht->hash_fn = fn;
-    ht->keq = keq;
+    ht->keq     = keq;
 
-    ht->cbs.key_copy = cbs == NULL || cbs->key_copy == NULL
-                             ? htable_passthrough_copy
-                             : cbs->key_copy;
-    ht->cbs.key_free = cbs == NULL || cbs->key_free == NULL
-                             ? htable_passthrough_free
-                             : cbs->key_free;
-    ht->cbs.key_print = cbs == NULL || cbs->key_print == NULL
-                              ? htable_pasthrough_print
-                              : cbs->key_print;
-    ht->cbs.value_eq = cbs == NULL || cbs->value_eq == NULL
-                             ? htable_passthrough_eq
-                             : cbs->value_eq;
-    ht->cbs.value_copy = cbs == NULL || cbs->value_copy == NULL
-                               ? htable_passthrough_copy
-                               : cbs->value_copy;
-    ht->cbs.value_free = cbs == NULL || cbs->value_free == NULL
-                               ? htable_passthrough_free
-                               : cbs->value_free;
+    ht->cbs.key_copy    = cbs == NULL || cbs->key_copy == NULL
+                                ? htable_passthrough_copy
+                                : cbs->key_copy;
+    ht->cbs.key_free    = cbs == NULL || cbs->key_free == NULL
+                                ? htable_passthrough_free
+                                : cbs->key_free;
+    ht->cbs.key_print   = cbs == NULL || cbs->key_print == NULL
+                                ? htable_pasthrough_print
+                                : cbs->key_print;
+    ht->cbs.value_eq    = cbs == NULL || cbs->value_eq == NULL
+                                ? htable_passthrough_eq
+                                : cbs->value_eq;
+    ht->cbs.value_copy  = cbs == NULL || cbs->value_copy == NULL
+                                ? htable_passthrough_copy
+                                : cbs->value_copy;
+    ht->cbs.value_free  = cbs == NULL || cbs->value_free == NULL
+                                ? htable_passthrough_free
+                                : cbs->value_free;
     ht->cbs.value_print = cbs == NULL || cbs->value_print == NULL
                                 ? htable_pasthrough_print
                                 : cbs->value_print;
 
     ht->num_buckets = BUCKET_START;
-    ht->buckets = calloc(BUCKET_START, sizeof(*ht->buckets));
+    ht->buckets     = calloc(BUCKET_START, sizeof(*ht->buckets));
 
     if (!ht->buckets) {
         exit(-1);
@@ -212,7 +212,7 @@ htable_destroy(htable_t* ht)
     if (ht == NULL) {
         return -1;
     }
-    htable_bucket_t* cur = NULL;
+    htable_bucket_t* cur  = NULL;
     htable_bucket_t* next = NULL;
     for (size_t i = 0; i < ht->num_buckets; ++i) {
         if (ht->buckets[i].key == NULL) {
@@ -272,9 +272,9 @@ htable_remove(htable_t* ht, void* key)
 
         cur = ht->buckets[idx].next;
         if (cur != NULL) {
-            ht->buckets[idx].key = cur->key;
+            ht->buckets[idx].key   = cur->key;
             ht->buckets[idx].value = cur->value;
-            ht->buckets[idx].next = cur->next;
+            ht->buckets[idx].next  = cur->next;
             free(cur);
         }
         ht->num_used--;
@@ -282,7 +282,7 @@ htable_remove(htable_t* ht, void* key)
     }
 
     htable_bucket_t* last = ht->buckets + idx;
-    cur = last->next;
+    cur                   = last->next;
     while (cur != NULL) {
         if (ht->keq(cur->key, key)) {
             last->next = cur->next;
@@ -292,7 +292,7 @@ htable_remove(htable_t* ht, void* key)
             return 0;
         }
         last = cur;
-        cur = cur->next;
+        cur  = cur->next;
     }
     return -1;
 }
@@ -372,8 +372,8 @@ htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
         hi->idx++;
     }
 
-    *key = hi->cur->key;
-    *value = hi->cur->value;
+    *key    = hi->cur->key;
+    *value  = hi->cur->value;
     hi->cur = hi->cur->next;
 
     return 0;
@@ -393,7 +393,7 @@ htable_print(htable_t* ht)
 {
     htable_iterator_t* hi = create_htable_iterator(ht);
 
-    void* key = NULL;
+    void* key   = NULL;
     void* value = NULL;
     while (htable_iterator_next(hi, &key, &value) != -1) {
         printf("%s", "\n_______Next Entry:________ \n");

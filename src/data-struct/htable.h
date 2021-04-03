@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define REHASH_FILLING_RATIO (0.8F)
-#define BUCKET_START (8)
+#define REHASH_FILLING_RATIO  (0.8F)
+#define BUCKET_START          (8)
 #define TOO_MANY_BUCKETS_BITS (31U)
 
 typedef size_t (*htable_hash)(const void* in, unsigned int seed);
@@ -20,38 +20,38 @@ typedef void (*htable_vprint)(const void* in);
 
 typedef struct htable_cbs
 {
-    htable_kcopy key_copy;
-    htable_kfree key_free;
+    htable_kcopy  key_copy;
+    htable_kfree  key_free;
     htable_kprint key_print;
-    htable_veq value_eq;
-    htable_vcopy value_copy;
-    htable_vfree value_free;
+    htable_veq    value_eq;
+    htable_vcopy  value_copy;
+    htable_vfree  value_free;
     htable_vprint value_print;
 } htable_cbs_t;
 
 typedef struct htable_bucket
 {
-    void* key;
-    void* value;
+    void*                 key;
+    void*                 value;
     struct htable_bucket* next;
 } htable_bucket_t;
 
 typedef struct htable
 {
-    htable_hash hash_fn;
-    htable_keq keq;
-    htable_cbs_t cbs;
+    htable_hash      hash_fn;
+    htable_keq       keq;
+    htable_cbs_t     cbs;
     htable_bucket_t* buckets;
-    size_t num_buckets;
-    size_t num_used;
-    unsigned int seed;
+    size_t           num_buckets;
+    size_t           num_used;
+    unsigned int     seed;
 } htable_t;
 
 typedef struct htable_iterator
 {
-    htable_t* ht;
+    htable_t*        ht;
     htable_bucket_t* cur;
-    size_t idx;
+    size_t           idx;
 } htable_iterator_t;
 
 htable_t*

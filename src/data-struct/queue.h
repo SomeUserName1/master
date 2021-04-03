@@ -10,14 +10,14 @@ typedef void (*queue_free)(void* elem);
 
 typedef struct
 {
-    queue_eq qeq;
+    queue_eq   qeq;
     queue_copy qcopy;
     queue_free qfree;
 } queue_cbs_t;
 
 typedef struct queue_node
 {
-    void* element;
+    void*              element;
     struct queue_node* prev;
     struct queue_node* next;
 } queue_node_t;
@@ -26,8 +26,8 @@ typedef struct queue
 {
     queue_node_t* head;
     queue_node_t* tail;
-    size_t len;
-    queue_cbs_t cbs;
+    size_t        len;
+    queue_cbs_t   cbs;
 } queue_t;
 
 queue_t*

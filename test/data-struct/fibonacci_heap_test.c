@@ -19,7 +19,7 @@ test_create_fh(void)
 void
 test_create_fh_node(void)
 {
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
 
     fib_node* node = create_fib_node(key, value);
@@ -40,11 +40,11 @@ test_create_fh_node(void)
 void
 test_fh_insert(void)
 {
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
 
-    fib_heap_t* fh = create_fib_heap();
-    fib_node* node = create_fib_node(key, value);
+    fib_heap_t* fh   = create_fib_heap();
+    fib_node*   node = create_fib_node(key, value);
 
     fib_heap_insert(fh, node);
 
@@ -53,7 +53,7 @@ test_fh_insert(void)
     assert(node->left == node);
     assert(node->right == node);
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
 
     fib_node* s_node = create_fib_node(s_key, s_value);
@@ -67,7 +67,7 @@ test_fh_insert(void)
     assert(s_node->left == node);
     assert(s_node->right == node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
 
     fib_node* m_node = create_fib_node(m_key, m_value);
@@ -91,30 +91,30 @@ test_fh_min(void)
 {
     fib_heap_t* fh = create_fib_heap();
 
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
-    fib_node* node = create_fib_node(key, value);
+    fib_node*           node  = create_fib_node(key, value);
     fib_heap_insert(fh, node);
 
     assert(fh->min == node);
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
-    fib_node* s_node = create_fib_node(s_key, s_value);
+    fib_node*           s_node  = create_fib_node(s_key, s_value);
     fib_heap_insert(fh, s_node);
 
     assert(fh->min == s_node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
-    fib_node* m_node = create_fib_node(m_key, m_value);
+    fib_node*           m_node  = create_fib_node(m_key, m_value);
     fib_heap_insert(fh, m_node);
 
     assert(fh->min == s_node);
 
-    const double r_key = 1.14159265;
+    const double        r_key   = 1.14159265;
     const unsigned long r_value = 14;
-    fib_node* r_node = create_fib_node(r_key, r_value);
+    fib_node*           r_node  = create_fib_node(r_key, r_value);
     fib_heap_insert(fh, r_node);
 
     assert(fh->min == r_node);
@@ -127,9 +127,9 @@ test_fh_extract_min(void)
 {
     fib_heap_t* fh = create_fib_heap();
 
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
-    fib_node* node = create_fib_node(key, value);
+    fib_node*           node  = create_fib_node(key, value);
     fib_heap_insert(fh, node);
 
     assert(fh->min == node);
@@ -141,23 +141,23 @@ test_fh_extract_min(void)
 
     fib_heap_insert(fh, node);
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
-    fib_node* s_node = create_fib_node(s_key, s_value);
+    fib_node*           s_node  = create_fib_node(s_key, s_value);
     fib_heap_insert(fh, s_node);
 
     assert(fh->min == s_node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
-    fib_node* m_node = create_fib_node(m_key, m_value);
+    fib_node*           m_node  = create_fib_node(m_key, m_value);
     fib_heap_insert(fh, m_node);
 
     assert(fh->min == s_node);
 
-    const double r_key = 1.14159265;
+    const double        r_key   = 1.14159265;
     const unsigned long r_value = 14;
-    fib_node* r_node = create_fib_node(r_key, r_value);
+    fib_node*           r_node  = create_fib_node(r_key, r_value);
     fib_heap_insert(fh, r_node);
 
     assert(fh->min == r_node);
@@ -188,26 +188,26 @@ test_fh_extract_min(void)
 void
 test_fh_union(void)
 {
-    fib_heap_t* fh = create_fib_heap();
+    fib_heap_t* fh  = create_fib_heap();
     fib_heap_t* fh1 = create_fib_heap();
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
-    fib_node* s_node = create_fib_node(s_key, s_value);
+    fib_node*           s_node  = create_fib_node(s_key, s_value);
     fib_heap_insert(fh, s_node);
 
     assert(fh->min == s_node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
-    fib_node* m_node = create_fib_node(m_key, m_value);
+    fib_node*           m_node  = create_fib_node(m_key, m_value);
     fib_heap_insert(fh, m_node);
 
     assert(fh->min == s_node);
 
-    const double r_key = 1.14159265;
+    const double        r_key   = 1.14159265;
     const unsigned long r_value = 14;
-    fib_node* r_node = create_fib_node(r_key, r_value);
+    fib_node*           r_node  = create_fib_node(r_key, r_value);
     fib_heap_insert(fh1, r_node);
 
     fh = fib_heap_union(fh, fh1);
@@ -223,24 +223,24 @@ test_fh_decrease_key(void)
 {
     fib_heap_t* fh = create_fib_heap();
 
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
-    fib_node* node = create_fib_node(key, value);
+    fib_node*           node  = create_fib_node(key, value);
     fib_heap_insert(fh, node);
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
-    fib_node* s_node = create_fib_node(s_key, s_value);
+    fib_node*           s_node  = create_fib_node(s_key, s_value);
     fib_heap_insert(fh, s_node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
-    fib_node* m_node = create_fib_node(m_key, m_value);
+    fib_node*           m_node  = create_fib_node(m_key, m_value);
     fib_heap_insert(fh, m_node);
 
-    const double r_key = 1.14159265;
+    const double        r_key   = 1.14159265;
     const unsigned long r_value = 14;
-    fib_node* r_node = create_fib_node(r_key, r_value);
+    fib_node*           r_node  = create_fib_node(r_key, r_value);
     fib_heap_insert(fh, r_node);
 
     fib_heap_decrease_key(fh, r_node, 1);
@@ -260,24 +260,24 @@ test_fh_delete(void)
 {
     fib_heap_t* fh = create_fib_heap();
 
-    const double key = 42.42;
+    const double        key   = 42.42;
     const unsigned long value = 777;
-    fib_node* node = create_fib_node(key, value);
+    fib_node*           node  = create_fib_node(key, value);
     fib_heap_insert(fh, node);
 
-    const double s_key = 3.14159265;
+    const double        s_key   = 3.14159265;
     const unsigned long s_value = 11;
-    fib_node* s_node = create_fib_node(s_key, s_value);
+    fib_node*           s_node  = create_fib_node(s_key, s_value);
     fib_heap_insert(fh, s_node);
 
-    const double m_key = 9.14159265;
+    const double        m_key   = 9.14159265;
     const unsigned long m_value = 12;
-    fib_node* m_node = create_fib_node(m_key, m_value);
+    fib_node*           m_node  = create_fib_node(m_key, m_value);
     fib_heap_insert(fh, m_node);
 
-    const double r_key = 1.14159265;
+    const double        r_key   = 1.14159265;
     const unsigned long r_value = 14;
-    fib_node* r_node = create_fib_node(r_key, r_value);
+    fib_node*           r_node  = create_fib_node(r_key, r_value);
     fib_heap_insert(fh, r_node);
 
     fib_heap_delete(fh, s_node);

@@ -21,7 +21,7 @@ typedef struct RelationshipRecord
     unsigned long next_rel_source;
     unsigned long prev_rel_target;
     unsigned long next_rel_target;
-    double weight;
+    double        weight;
     // first_property; properties not impelemented yet
 } relationship_t;
 
@@ -95,8 +95,8 @@ relationship_equals(const relationship_t* first, const relationship_t* second);
  */
 int
 relationship_to_string(const relationship_t* record,
-                       char* buffer,
-                       size_t buffer_size);
+                       char*                 buffer,
+                       size_t                buffer_size);
 
 void
 relationship_pretty_print(const relationship_t* record);

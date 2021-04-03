@@ -9,19 +9,19 @@
 
 path*
 random_walk(in_memory_file_t* db,
-            unsigned long node_id,
-            size_t num_steps,
-            direction_t direction)
+            unsigned long     node_id,
+            size_t            num_steps,
+            direction_t       direction)
 {
     if (!db || node_id == UNINITIALIZED_LONG) {
         printf("DB is NULL or node id uninitialized");
     }
 
-    double distance = 0.0;
-    list_ul_t* visited_rels = create_list_ul();
+    double               distance     = 0.0;
+    list_ul_t*           visited_rels = create_list_ul();
     list_relationship_t* cur_rels;
-    relationship_t* rel;
-    unsigned long current_node = node_id;
+    relationship_t*      rel;
+    unsigned long        current_node = node_id;
 
     srand(time(NULL));
 

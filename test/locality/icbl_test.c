@@ -13,17 +13,17 @@ int
 main(void)
 {
     printf("Start importing\n");
-    in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(
+    in_memory_file_t* db  = create_in_memory_file();
+    dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
 
-    printf("Start applying the ICBL multilevel partitioning algorithm.\n");
+    printf("Start applying the ICBL layout algorithm.\n");
     unsigned long* partition = icbl(db);
     printf("Done.\n");
 
     FILE* out_f =
-          fopen("/home/someusername/workspace_local/g-g_store_layout.txt", "w");
+          fopen("/home/someusername/workspace_local/icbl_layout.txt", "w");
 
     if (!out_f) {
         printf("Couldn't open file");

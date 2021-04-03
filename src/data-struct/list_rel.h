@@ -26,8 +26,8 @@ list_relationship_remove_elem(list_relationship_t* l, relationship_t* elem);
 
 int
 list_relationship_index_of(list_relationship_t* l,
-                           relationship_t* v,
-                           size_t* idx);
+                           relationship_t*      v,
+                           size_t*              idx);
 bool
 list_relationship_contains(list_relationship_t* l, relationship_t* v);
 

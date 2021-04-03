@@ -12,7 +12,7 @@
 typedef struct NodeRecord
 {
     unsigned long int id;
-    unsigned char flags;
+    unsigned char     flags;
     unsigned long int first_relationship;
     unsigned long int first_property;
     unsigned long int node_type;

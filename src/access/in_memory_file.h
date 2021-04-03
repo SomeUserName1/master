@@ -11,15 +11,15 @@ typedef enum
 {
     OUTGOING = 0,
     INCOMING = 1,
-    BOTH = 2
+    BOTH     = 2
 } direction_t;
 
 typedef struct in_memory_file
 {
     dict_ul_node_t* cache_nodes;
-    dict_ul_rel_t* cache_rels;
-    unsigned long node_id_counter;
-    unsigned long rel_id_counter;
+    dict_ul_rel_t*  cache_rels;
+    unsigned long   node_id_counter;
+    unsigned long   rel_id_counter;
 } in_memory_file_t;
 
 in_memory_file_t*
@@ -31,13 +31,13 @@ unsigned long
 in_memory_create_node(in_memory_file_t* db);
 unsigned long
 in_memory_create_relationship(in_memory_file_t* db,
-                              unsigned long node_from,
-                              unsigned long node_to);
+                              unsigned long     node_from,
+                              unsigned long     node_to);
 unsigned long
 in_memory_create_relationship_weighted(in_memory_file_t* db,
-                                       unsigned long node_from,
-                                       unsigned long node_to,
-                                       double weight);
+                                       unsigned long     node_from,
+                                       unsigned long     node_to,
+                                       double            weight);
 
 node_t*
 in_memory_get_node(in_memory_file_t* db, unsigned long id);
@@ -51,16 +51,16 @@ in_memory_get_relationships(in_memory_file_t* db);
 
 unsigned long
 in_memory_next_relationship(in_memory_file_t* db,
-                            unsigned long node_id,
-                            relationship_t* rel,
-                            direction_t direction);
+                            unsigned long     node_id,
+                            relationship_t*   rel,
+                            direction_t       direction);
 list_relationship_t*
 in_memory_expand(in_memory_file_t* db,
-                 unsigned long node_id,
-                 direction_t direction);
+                 unsigned long     node_id,
+                 direction_t       direction);
 relationship_t*
 in_memory_contains_relationship_from_to(in_memory_file_t* db,
-                                        unsigned long node_from,
-                                        unsigned long node_to,
-                                        direction_t direction);
+                                        unsigned long     node_from,
+                                        unsigned long     node_to,
+                                        direction_t       direction);
 #endif

@@ -12,8 +12,8 @@ int
 main(void)
 {
     printf("Start importing\n");
-    in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_t* map = import_from_txt(
+    in_memory_file_t* db  = create_in_memory_file();
+    dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
 
@@ -46,12 +46,12 @@ main(void)
     fclose(in_c_file);
     fclose(in_cpp_file);
 
-    dict_ul_ul_t* c_mapping = create_dict_ul_ul();
-    dict_ul_ul_t* cpp_mapping = create_dict_ul_ul();
+    dict_ul_ul_t* c_mapping     = create_dict_ul_ul();
+    dict_ul_ul_t* cpp_mapping   = create_dict_ul_ul();
     dict_ul_ul_t* c_cpp_mapping = create_dict_ul_ul();
 
-    unsigned long c_error_count = 0;
-    unsigned long cpp_error_count = 0;
+    unsigned long c_error_count     = 0;
+    unsigned long cpp_error_count   = 0;
     unsigned long c_cpp_error_count = 0;
     printf("Node, this, C, C++\n");
 
@@ -60,22 +60,22 @@ main(void)
 
         if (!dict_ul_ul_contains(c_mapping, c_part[i])) {
             dict_ul_ul_insert(c_mapping, c_part[i], partition[i]);
-        } else if (!(dict_ul_ul_get_direct(c_mapping, c_part[i]) ==
-                     partition[i])) {
+        } else if (!(dict_ul_ul_get_direct(c_mapping, c_part[i])
+                     == partition[i])) {
             c_error_count++;
         }
 
         if (!dict_ul_ul_contains(cpp_mapping, cpp_part[i])) {
             dict_ul_ul_insert(cpp_mapping, cpp_part[i], partition[i]);
-        } else if (!(dict_ul_ul_get_direct(cpp_mapping, cpp_part[i]) ==
-                     partition[i])) {
+        } else if (!(dict_ul_ul_get_direct(cpp_mapping, cpp_part[i])
+                     == partition[i])) {
             cpp_error_count++;
         }
 
         if (!dict_ul_ul_contains(c_cpp_mapping, cpp_part[i])) {
             dict_ul_ul_insert(c_cpp_mapping, cpp_part[i], c_part[i]);
-        } else if (!(dict_ul_ul_get_direct(c_cpp_mapping, cpp_part[i]) ==
-                     c_part[i])) {
+        } else if (!(dict_ul_ul_get_direct(c_cpp_mapping, cpp_part[i])
+                     == c_part[i])) {
             c_cpp_error_count++;
         }
     }

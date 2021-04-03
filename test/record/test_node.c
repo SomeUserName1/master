@@ -7,9 +7,9 @@
 #include <stdlib.h>
 
 #define SUFFICENT_BUF_SIZE (512)
-#define SMALL_BUF_SIZE (32)
-#define NUM (123)
-#define OTHER_NUM (222)
+#define SMALL_BUF_SIZE     (32)
+#define NUM                (123)
+#define OTHER_NUM          (222)
 
 void
 test_new_node(void)
@@ -22,7 +22,7 @@ test_new_node(void)
 void
 test_node_read(void)
 {
-    node_t* node = new_node();
+    node_t*       node              = new_node();
     unsigned char a[SMALL_BUF_SIZE] = { 0 };
     assert(!node_read(node, a));
     free(node);
@@ -42,9 +42,9 @@ test_node_write(void)
 void
 test_node_clear(void)
 {
-    node_t* node = new_node();
-    node->id = 1;
-    node->node_type = 1;
+    node_t* node             = new_node();
+    node->id                 = 1;
+    node->node_type          = 1;
     node->first_relationship = 1;
 
     node_clear(node);
@@ -60,9 +60,9 @@ test_node_clear(void)
 void
 test_node_copy(void)
 {
-    node_t* node = new_node();
-    node->id = 1;
-    node->node_type = 1;
+    node_t* node             = new_node();
+    node->id                 = 1;
+    node->node_type          = 1;
     node->first_relationship = 1;
 
     node_t* copy = node_copy(node);
@@ -81,10 +81,10 @@ test_node_copy(void)
 void
 test_node_equals(void)
 {
-    node_t* node = new_node();
-    node->id = NUM;
+    node_t* node             = new_node();
+    node->id                 = NUM;
     node->first_relationship = NUM;
-    node_t* eq_node = node_copy(node);
+    node_t* eq_node          = node_copy(node);
 
     assert(node_equals(node, eq_node));
 
@@ -92,7 +92,7 @@ test_node_equals(void)
 
     assert(!node_equals(node, eq_node));
 
-    eq_node->id = node->id;
+    eq_node->id                 = node->id;
     eq_node->first_relationship = OTHER_NUM;
 
     assert(!node_equals(node, eq_node));
@@ -105,8 +105,8 @@ void
 test_node_to_string(void)
 {
     node_t* node = new_node();
-    char too_small_buf[SMALL_BUF_SIZE];
-    char buf[SUFFICENT_BUF_SIZE];
+    char    too_small_buf[SMALL_BUF_SIZE];
+    char    buf[SUFFICENT_BUF_SIZE];
 
     assert(!node_to_string(node, buf, SUFFICENT_BUF_SIZE));
     assert(node_to_string(node, too_small_buf, SMALL_BUF_SIZE));

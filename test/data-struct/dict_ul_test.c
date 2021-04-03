@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TEST_KEY (42)
-#define TEST_VAL (777)
-#define TEST_KEY_1 (11)
-#define TEST_VALUE_1 (666)
+#define TEST_KEY       (42)
+#define TEST_VAL       (777)
+#define TEST_KEY_1     (11)
+#define TEST_VALUE_1   (666)
 #define PROGRESS_LINES (10000)
 
 void
@@ -47,8 +47,8 @@ test_dict_ul_ul_insert(void)
     dict_ul_ul_insert(dict, TEST_KEY, TEST_VAL);
     assert(((htable_t*)dict)->num_used == 1);
     unsigned long key = TEST_KEY;
-    assert(*((unsigned long*)htable_get_direct((htable_t*)dict, (void*)&key)) ==
-           TEST_VAL);
+    assert(*((unsigned long*)htable_get_direct((htable_t*)dict, (void*)&key))
+           == TEST_VAL);
 
     dict_ul_ul_destroy(dict);
 }
@@ -72,7 +72,7 @@ test_dict_ul_ul_get(void)
     dict_ul_ul_insert(dict, TEST_KEY, TEST_VAL);
 
     unsigned long* val = NULL;
-    unsigned long key = TEST_KEY;
+    unsigned long  key = TEST_KEY;
     dict_ul_ul_get(dict, key, &val);
     assert(*val == TEST_VAL);
 
@@ -103,11 +103,11 @@ test_dict_ul_ul_contains(void)
 void
 test_dict_ul_ul_destroy(void)
 {
-    dict_ul_ul_t* dict = create_dict_ul_ul();
-    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    dict_ul_ul_t*     dict = create_dict_ul_ul();
+    const char*       path = "/home/someusername/workspace_local/email_eu.txt";
     unsigned long int fromTo[2];
-    int result;
-    size_t lines = 1;
+    int               result;
+    size_t            lines = 1;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -145,7 +145,7 @@ test_dict_ul_ul_it(void)
 
     dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dict);
 
-    unsigned long* key = NULL;
+    unsigned long* key   = NULL;
     unsigned long* value = NULL;
 
     while (dict_ul_ul_iterator_next(it, &key, &value) > -1) {
@@ -170,11 +170,11 @@ test_dict_ul_ul_it(void)
 void
 test_htable_iter(void)
 {
-    dict_ul_ul_t* dict = create_dict_ul_ul();
-    const char* path = "/home/someusername/workspace_local/email_eu.txt";
+    dict_ul_ul_t*     dict = create_dict_ul_ul();
+    const char*       path = "/home/someusername/workspace_local/email_eu.txt";
     unsigned long int fromTo[2];
-    int result;
-    size_t lines = 1;
+    int               result;
+    size_t            lines = 1;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -197,9 +197,9 @@ test_htable_iter(void)
 
     htable_iterator_t* it = create_htable_iterator((htable_t*)dict);
 
-    void* key = NULL;
-    void* value = NULL;
-    size_t size = dict_ul_ul_size(dict);
+    void*  key   = NULL;
+    void*  value = NULL;
+    size_t size  = dict_ul_ul_size(dict);
 
     while (htable_iterator_next(it, &key, &value) > -1) {
         dict_ul_ul_remove(dict, *((unsigned long*)key));
@@ -231,7 +231,7 @@ test_dict_ul_int_size(void)
     assert(((htable_t*)dict)->num_used == dict_ul_int_size(dict));
 
     unsigned long key = TEST_KEY;
-    int val = TEST_VAL;
+    int           val = TEST_VAL;
     htable_insert(((htable_t*)dict), (void*)&key, (void*)&val);
     assert(((htable_t*)dict)->num_used == dict_ul_int_size(dict));
 
@@ -245,8 +245,8 @@ test_dict_ul_int_insert(void)
     dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
     assert(((htable_t*)dict)->num_used == 1);
     unsigned long key = TEST_KEY;
-    assert(*((int*)htable_get_direct((htable_t*)dict, (void*)&key)) ==
-           TEST_VAL);
+    assert(*((int*)htable_get_direct((htable_t*)dict, (void*)&key))
+           == TEST_VAL);
 
     dict_ul_int_destroy(dict);
 }
@@ -269,7 +269,7 @@ test_dict_ul_int_get(void)
     dict_ul_int_t* dict = create_dict_ul_int();
     dict_ul_int_insert(dict, TEST_KEY, TEST_VAL);
 
-    int* val = NULL;
+    int*          val = NULL;
     unsigned long key = TEST_KEY;
     dict_ul_int_get(dict, key, &val);
     assert(*val == TEST_VAL);
@@ -302,11 +302,11 @@ void
 test_dict_ul_int_destroy(void)
 {
     dict_ul_int_t* dict = create_dict_ul_int();
-    const char* path = "/home/someusername/workspace_local/email_eu.txt";
-    unsigned long from;
-    int to;
-    int result;
-    size_t lines = 1;
+    const char*    path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long  from;
+    int            to;
+    int            result;
+    size_t         lines = 1;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -348,8 +348,8 @@ test_dict_ul_int_it(void)
 
     dict_ul_int_iterator_t* it = create_dict_ul_int_iterator(dict);
 
-    unsigned long* key = NULL;
-    int* value = NULL;
+    unsigned long* key   = NULL;
+    int*           value = NULL;
 
     while (dict_ul_int_iterator_next(it, &key, &value) > -1) {
         if (*key == TEST_KEY || *key == TEST_KEY_1) {
@@ -390,7 +390,7 @@ test_dict_ul_node_size(void)
     assert(((htable_t*)dict)->num_used == dict_ul_node_size(dict));
 
     unsigned long key = TEST_KEY;
-    node_t* val = new_node();
+    node_t*       val = new_node();
     htable_insert(((htable_t*)dict), (void*)&key, (void*)val);
     assert(((htable_t*)dict)->num_used == dict_ul_node_size(dict));
 
@@ -401,7 +401,7 @@ void
 test_dict_ul_node_insert(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* val = new_node();
+    node_t*         val  = new_node();
     dict_ul_node_insert(dict, TEST_KEY, val);
     assert(((htable_t*)dict)->num_used == 1);
     unsigned long key = TEST_KEY;
@@ -415,7 +415,7 @@ void
 test_dict_ul_node_remove(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* val = new_node();
+    node_t*         val  = new_node();
     dict_ul_node_insert(dict, TEST_KEY, val);
     assert(dict_ul_node_size(dict) == 1);
     dict_ul_node_remove(dict, TEST_KEY);
@@ -428,11 +428,11 @@ void
 test_dict_ul_node_get(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* val = new_node();
+    node_t*         val  = new_node();
     dict_ul_node_insert(dict, TEST_KEY, val);
 
-    node_t* value = NULL;
-    unsigned long key = TEST_KEY;
+    node_t*       value = NULL;
+    unsigned long key   = TEST_KEY;
     dict_ul_node_get(dict, key, &value);
     assert(node_equals(value, val));
 
@@ -443,7 +443,7 @@ void
 test_dict_ul_node_get_direct(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* val = new_node();
+    node_t*         val  = new_node();
     dict_ul_node_insert(dict, TEST_KEY, val);
 
     assert(node_equals(dict_ul_node_get_direct(dict, TEST_KEY), val));
@@ -455,7 +455,7 @@ void
 test_dict_ul_node_contains(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* val = new_node();
+    node_t*         val  = new_node();
     dict_ul_node_insert(dict, TEST_KEY, val);
 
     assert(dict_ul_node_contains(dict, TEST_KEY));
@@ -468,11 +468,11 @@ void
 test_dict_ul_node_destroy(void)
 {
     dict_ul_node_t* dict = create_dict_ul_node();
-    const char* path = "/home/someusername/workspace_local/email_eu.txt";
-    unsigned long fromTo[2];
-    int result;
-    size_t lines = 1;
-    node_t* node;
+    const char*     path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long   fromTo[2];
+    int             result;
+    size_t          lines = 1;
+    node_t*         node;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -506,9 +506,9 @@ test_dict_ul_node_destroy(void)
 void
 test_dict_ul_node_it(void)
 {
-    dict_ul_node_t* dict = create_dict_ul_node();
-    node_t* node = new_node();
-    node_t* node1 = new_node();
+    dict_ul_node_t* dict  = create_dict_ul_node();
+    node_t*         node  = new_node();
+    node_t*         node1 = new_node();
     dict_ul_node_insert(dict, TEST_KEY, node);
     dict_ul_node_insert(dict, TEST_KEY_1, node1);
 
@@ -517,8 +517,8 @@ test_dict_ul_node_it(void)
 
     dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(dict);
 
-    unsigned long* key = NULL;
-    node_t* value = NULL;
+    unsigned long* key   = NULL;
+    node_t*        value = NULL;
 
     while (dict_ul_node_iterator_next(it, &key, &value) > -1) {
         if (*key == TEST_KEY || *key == TEST_KEY_1) {
@@ -558,7 +558,7 @@ test_dict_ul_rel_size(void)
 
     assert(((htable_t*)dict)->num_used == dict_ul_rel_size(dict));
 
-    unsigned long key = TEST_KEY;
+    unsigned long   key = TEST_KEY;
     relationship_t* val = new_relationship();
     htable_insert(((htable_t*)dict), (void*)&key, (void*)val);
     assert(((htable_t*)dict)->num_used == dict_ul_rel_size(dict));
@@ -584,8 +584,8 @@ test_dict_ul_rel_insert(void)
 void
 test_dict_ul_rel_remove(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    relationship_t* val = new_relationship();
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    relationship_t* val  = new_relationship();
     dict_ul_rel_insert(dict, TEST_KEY, val);
     assert(dict_ul_rel_size(dict) == 1);
     dict_ul_rel_remove(dict, TEST_KEY);
@@ -597,12 +597,12 @@ test_dict_ul_rel_remove(void)
 void
 test_dict_ul_rel_get(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    relationship_t* val = new_relationship();
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    relationship_t* val  = new_relationship();
     dict_ul_rel_insert(dict, TEST_KEY, val);
 
     relationship_t* value = NULL;
-    unsigned long key = TEST_KEY;
+    unsigned long   key   = TEST_KEY;
     dict_ul_rel_get(dict, key, &value);
     assert(relationship_equals(value, val));
 
@@ -612,8 +612,8 @@ test_dict_ul_rel_get(void)
 void
 test_dict_ul_rel_get_direct(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    relationship_t* val = new_relationship();
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    relationship_t* val  = new_relationship();
     dict_ul_rel_insert(dict, TEST_KEY, val);
 
     assert(relationship_equals(dict_ul_rel_get_direct(dict, TEST_KEY), val));
@@ -623,8 +623,8 @@ test_dict_ul_rel_get_direct(void)
 void
 test_dict_ul_rel_contains(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    relationship_t* val = new_relationship();
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    relationship_t* val  = new_relationship();
     dict_ul_rel_insert(dict, TEST_KEY, val);
 
     assert(dict_ul_rel_contains(dict, TEST_KEY));
@@ -636,11 +636,11 @@ test_dict_ul_rel_contains(void)
 void
 test_dict_ul_rel_destroy(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    const char* path = "/home/someusername/workspace_local/email_eu.txt";
-    unsigned long fromTo[2];
-    int result;
-    size_t lines = 1;
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    const char*     path = "/home/someusername/workspace_local/email_eu.txt";
+    unsigned long   fromTo[2];
+    int             result;
+    size_t          lines = 1;
     relationship_t* val;
 
     FILE* in_file = fopen(path, "r");
@@ -675,8 +675,8 @@ test_dict_ul_rel_destroy(void)
 void
 test_dict_ul_rel_it(void)
 {
-    dict_ul_rel_t* dict = create_dict_ul_rel();
-    relationship_t* rel = new_relationship();
+    dict_ul_rel_t*  dict = create_dict_ul_rel();
+    relationship_t* rel  = new_relationship();
     relationship_t* rel1 = new_relationship();
     dict_ul_rel_insert(dict, TEST_KEY, rel);
     dict_ul_rel_insert(dict, TEST_KEY_1, rel1);
@@ -686,7 +686,7 @@ test_dict_ul_rel_it(void)
 
     dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(dict);
 
-    unsigned long* key = NULL;
+    unsigned long*  key   = NULL;
     relationship_t* value = NULL;
 
     while (dict_ul_rel_iterator_next(it, &key, &value) > -1) {

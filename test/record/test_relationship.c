@@ -7,9 +7,9 @@
 #include <stdlib.h>
 
 #define SUFFICENT_BUF_SIZE (512)
-#define SMALL_BUF_SIZE (32)
-#define NUM (123)
-#define OTHER_NUM (222)
+#define SMALL_BUF_SIZE     (32)
+#define NUM                (123)
+#define OTHER_NUM          (222)
 
 void
 test_new_rel(void)
@@ -22,8 +22,8 @@ test_new_rel(void)
 void
 test_relationship_read(void)
 {
-    relationship_t* relationship = new_relationship();
-    unsigned char a[SMALL_BUF_SIZE] = { 0 };
+    relationship_t* relationship      = new_relationship();
+    unsigned char   a[SMALL_BUF_SIZE] = { 0 };
     assert(!relationship_read(relationship, a));
     free(relationship);
     printf("Stub only, not yet implemented!\n");
@@ -42,17 +42,17 @@ test_relationship_write(void)
 void
 test_relationship_clear(void)
 {
-    relationship_t* relationship = new_relationship();
-    relationship->id = 1;
-    relationship->flags = 1;
-    relationship->source_node = 1;
-    relationship->target_node = 1;
+    relationship_t* relationship    = new_relationship();
+    relationship->id                = 1;
+    relationship->flags             = 1;
+    relationship->source_node       = 1;
+    relationship->target_node       = 1;
     relationship->relationship_type = 1;
-    relationship->prev_rel_source = 1;
-    relationship->prev_rel_target = 1;
-    relationship->next_rel_source = 1;
-    relationship->next_rel_target = 1;
-    relationship->weight = 1.0;
+    relationship->prev_rel_source   = 1;
+    relationship->prev_rel_target   = 1;
+    relationship->next_rel_source   = 1;
+    relationship->next_rel_target   = 1;
+    relationship->weight            = 1.0;
 
     relationship_clear(relationship);
 
@@ -73,17 +73,17 @@ test_relationship_clear(void)
 void
 test_relationship_copy(void)
 {
-    relationship_t* relationship = new_relationship();
-    relationship->id = 1;
-    relationship->flags = 1;
-    relationship->source_node = 1;
-    relationship->target_node = 1;
+    relationship_t* relationship    = new_relationship();
+    relationship->id                = 1;
+    relationship->flags             = 1;
+    relationship->source_node       = 1;
+    relationship->target_node       = 1;
     relationship->relationship_type = 1;
-    relationship->prev_rel_source = 1;
-    relationship->prev_rel_target = 1;
-    relationship->next_rel_source = 1;
-    relationship->next_rel_target = 1;
-    relationship->weight = 1.0;
+    relationship->prev_rel_source   = 1;
+    relationship->prev_rel_target   = 1;
+    relationship->next_rel_source   = 1;
+    relationship->next_rel_target   = 1;
+    relationship->weight            = 1.0;
 
     relationship_t* copy = relationship_copy(relationship);
     assert(relationship->id == copy->id);
@@ -107,9 +107,9 @@ test_relationship_copy(void)
 void
 test_relationship_equals(void)
 {
-    relationship_t* relationship = new_relationship();
-    relationship->id = NUM;
-    relationship->source_node = NUM;
+    relationship_t* relationship    = new_relationship();
+    relationship->id                = NUM;
+    relationship->source_node       = NUM;
     relationship_t* eq_relationship = relationship_copy(relationship);
 
     assert(relationship_equals(relationship, eq_relationship));
@@ -118,7 +118,7 @@ test_relationship_equals(void)
 
     assert(!relationship_equals(relationship, eq_relationship));
 
-    eq_relationship->id = relationship->id;
+    eq_relationship->id          = relationship->id;
     eq_relationship->source_node = OTHER_NUM;
 
     assert(!relationship_equals(relationship, eq_relationship));
@@ -131,8 +131,8 @@ void
 test_relationship_to_string(void)
 {
     relationship_t* relationship = new_relationship();
-    char too_small_buf[SMALL_BUF_SIZE];
-    char buf[SUFFICENT_BUF_SIZE];
+    char            too_small_buf[SMALL_BUF_SIZE];
+    char            buf[SUFFICENT_BUF_SIZE];
 
     printf("Result: %d\n buffer:\n %s\n",
            relationship_to_string(relationship, buf, SUFFICENT_BUF_SIZE),

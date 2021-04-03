@@ -28,11 +28,11 @@ create_list(list_cbs_t* cbs)
     }
 
     list->alloced = list_block_size;
-    list->len = 0;
+    list->len     = 0;
 
     memset(&(list->cbs), 0, sizeof(list->cbs));
     if (cbs != NULL) {
-        list->cbs.leq = cbs->leq;
+        list->cbs.leq   = cbs->leq;
         list->cbs.lcopy = cbs->lcopy;
         list->cbs.lfree = cbs->lfree;
     }

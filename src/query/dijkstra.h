@@ -6,8 +6,8 @@
 
 sssp_result*
 dijkstra(in_memory_file_t* db,
-        unsigned long source_node_id,
-        direction_t direction,
-        const char* log_path);
+         unsigned long     source_node_id,
+         direction_t       direction,
+         const char*       log_path);
 
 #endif

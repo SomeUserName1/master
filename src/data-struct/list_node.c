@@ -8,7 +8,7 @@ list_node_t*
 create_list_node()
 {
     list_cbs_t cbs = { node_eq, NULL, NULL };
-    list_t* lst = create_list(&cbs);
+    list_t*    lst = create_list(&cbs);
 
     return (list_node_t*)lst;
 }

@@ -9,7 +9,7 @@ list_relationship_t*
 create_list_relationship()
 {
     list_cbs_t cbs = { rel_eq, NULL, NULL };
-    list_t* lst = create_list(&cbs);
+    list_t*    lst = create_list(&cbs);
 
     return (list_relationship_t*)lst;
 }
@@ -52,8 +52,8 @@ list_relationship_remove_elem(list_relationship_t* l, relationship_t* elem)
 
 int
 list_relationship_index_of(list_relationship_t* l,
-                           relationship_t* v,
-                           size_t* idx)
+                           relationship_t*      v,
+                           size_t*              idx)
 {
     return list_index_of((list_t*)l, (void*)v, idx);
 }

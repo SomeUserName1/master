@@ -12,16 +12,16 @@ typedef void (*list_free_cb)(void*);
 
 typedef struct
 {
-    list_eq leq;
+    list_eq      leq;
     list_copy_cb lcopy;
     list_free_cb lfree;
 } list_cbs_t;
 
 typedef struct list
 {
-    void** elements;
-    size_t alloced;
-    size_t len;
+    void**     elements;
+    size_t     alloced;
+    size_t     len;
     list_cbs_t cbs;
 } list_t;
 

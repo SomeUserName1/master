@@ -5,19 +5,19 @@
 
 typedef struct fib_node
 {
-    double key;
-    unsigned long value;
+    double           key;
+    unsigned long    value;
     struct fib_node* parent;
     struct fib_node* child;
     struct fib_node* left;
     struct fib_node* right;
-    unsigned int degree;
-    bool mark;
+    unsigned int     degree;
+    bool             mark;
 } fib_node;
 
 typedef struct fib_heap
 {
-    fib_node* min;
+    fib_node*     min;
     unsigned long num_nodes;
 } fib_heap_t;
 

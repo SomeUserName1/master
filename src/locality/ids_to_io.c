@@ -17,11 +17,11 @@ id_to_page(unsigned long id, size_t page_size, record_id_t type)
 io_stats_t*
 ids_to_io(const char* in_path,
           const char* out_path,
-          size_t page_size,
-          size_t block_size,
+          size_t      page_size,
+          size_t      block_size,
           record_id_t type)
 {
-    if(!in_path || !out_path) {
+    if (!in_path || !out_path) {
         exit(-1);
     }
 
@@ -36,25 +36,25 @@ ids_to_io(const char* in_path,
         printf("ids_to_io: Can't open file with path %s", out_path);
         return NULL;
     }
-    char ignore[BUFFER_SIZE];
-    char read_type[BUFFER_SIZE];
+    char          ignore[BUFFER_SIZE];
+    char          read_type[BUFFER_SIZE];
     unsigned long id;
     memset(ignore, 0, BUFFER_SIZE);
     memset(read_type, 0, BUFFER_SIZE);
 
     unsigned long page_node;
     unsigned long page_rel;
-    unsigned long prev_page_node = UNINITIALIZED_LONG;
-    unsigned long prev_page_rel = UNINITIALIZED_LONG;
+    unsigned long prev_page_node   = UNINITIALIZED_LONG;
+    unsigned long prev_page_rel    = UNINITIALIZED_LONG;
     unsigned long num_pages_loaded = 0;
-    size_t pages_to_blocks =
+    size_t        pages_to_blocks =
           (page_size / block_size) > 0 ? page_size / block_size : 1;
 
     while (fscanf(log_file, "%s %s %lu", ignore, read_type, &id) == 3) {
-        if ((type == NODE || type == ALL) &&
-            strncmp(read_type, "Node", 4) == 0) {
-            if ((page_node = id_to_page(id, page_size, NODE)) !=
-                prev_page_node) {
+        if ((type == NODE || type == ALL)
+            && strncmp(read_type, "Node", 4) == 0) {
+            if ((page_node = id_to_page(id, page_size, NODE))
+                != prev_page_node) {
                 prev_page_rel = page_node;
                 num_pages_loaded++;
             }
@@ -71,8 +71,8 @@ ids_to_io(const char* in_path,
             }
             fprintf(page_accesses_file, "\n");
         }
-        if ((type == REL || type == ALL) &&
-            strncmp(read_type, "Relationship", NUM_CHARS_REL) == 0) {
+        if ((type == REL || type == ALL)
+            && strncmp(read_type, "Relationship", NUM_CHARS_REL) == 0) {
             if ((page_rel = id_to_page(id, page_size, REL)) != prev_page_rel) {
                 prev_page_rel = page_rel;
                 num_pages_loaded++;
@@ -97,9 +97,9 @@ ids_to_io(const char* in_path,
         exit(-1);
     }
 
-    result->read_pages = num_pages_loaded;
-    result->read_blocks = num_pages_loaded * page_size / block_size;
-    result->write_pages = 0;
+    result->read_pages   = num_pages_loaded;
+    result->read_blocks  = num_pages_loaded * page_size / block_size;
+    result->write_pages  = 0;
     result->write_blocks = 0;
 
     fflush(page_accesses_file);

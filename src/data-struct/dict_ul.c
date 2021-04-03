@@ -10,9 +10,9 @@
 dict_ul_ul_t*
 create_dict_ul_ul()
 {
-    htable_hash hash = fnv_hash_ul;
-    htable_keq keq = unsigned_long_eq;
-    htable_cbs_t cbs = { unsigned_long_copy,  free,
+    htable_hash  hash = fnv_hash_ul;
+    htable_keq   keq  = unsigned_long_eq;
+    htable_cbs_t cbs  = { unsigned_long_copy,  free,
                          unsigned_long_print, unsigned_long_eq,
                          unsigned_long_copy,  free,
                          unsigned_long_print };
@@ -70,8 +70,8 @@ create_dict_ul_ul_iterator(dict_ul_ul_t* ht)
 
 int
 dict_ul_ul_iterator_next(dict_ul_ul_iterator_t* hi,
-                         unsigned long** key,
-                         unsigned long** value)
+                         unsigned long**        key,
+                         unsigned long**        value)
 {
     return htable_iterator_next(
           (htable_iterator_t*)hi, (void**)key, (void**)value);
@@ -92,9 +92,9 @@ dict_ul_ul_print(dict_ul_ul_t* dict)
 dict_ul_int_t*
 create_dict_ul_int()
 {
-    htable_hash hash = fnv_hash_ul;
-    htable_keq keq = unsigned_long_eq;
-    htable_cbs_t cbs = {
+    htable_hash  hash = fnv_hash_ul;
+    htable_keq   keq  = unsigned_long_eq;
+    htable_cbs_t cbs  = {
         unsigned_long_copy, free, unsigned_long_print, int_eq, int_copy, free,
         int_print
     };
@@ -152,8 +152,8 @@ create_dict_ul_int_iterator(dict_ul_int_t* ht)
 
 int
 dict_ul_int_iterator_next(dict_ul_int_iterator_t* hi,
-                          unsigned long** key,
-                          int** value)
+                          unsigned long**         key,
+                          int**                   value)
 {
     return htable_iterator_next(
           (htable_iterator_t*)hi, (void**)key, (void**)value);
@@ -174,9 +174,9 @@ dict_ul_int_print(dict_ul_int_t* dict)
 dict_ul_node_t*
 create_dict_ul_node(void)
 {
-    htable_hash hash = fnv_hash_ul;
-    htable_keq keq = unsigned_long_eq;
-    htable_cbs_t cbs = {
+    htable_hash  hash = fnv_hash_ul;
+    htable_keq   keq  = unsigned_long_eq;
+    htable_cbs_t cbs  = {
         unsigned_long_copy, free, unsigned_long_print, node_eq, NULL, free,
         node_print
     };
@@ -234,8 +234,8 @@ create_dict_ul_node_iterator(dict_ul_node_t* ht)
 
 int
 dict_ul_node_iterator_next(dict_ul_node_iterator_t* hi,
-                           unsigned long** key,
-                           node_t** value)
+                           unsigned long**          key,
+                           node_t**                 value)
 {
     return htable_iterator_next(
           (htable_iterator_t*)hi, (void**)key, (void**)value);
@@ -256,9 +256,9 @@ dict_ul_node_print(dict_ul_node_t* dict)
 dict_ul_rel_t*
 create_dict_ul_rel(void)
 {
-    htable_hash hash = fnv_hash_ul;
-    htable_keq keq = unsigned_long_eq;
-    htable_cbs_t cbs = {
+    htable_hash  hash = fnv_hash_ul;
+    htable_keq   keq  = unsigned_long_eq;
+    htable_cbs_t cbs  = {
         unsigned_long_copy, free, unsigned_long_print, rel_eq, NULL, free,
         rel_print
     };
@@ -316,8 +316,8 @@ create_dict_ul_rel_iterator(dict_ul_rel_t* ht)
 
 int
 dict_ul_rel_iterator_next(dict_ul_rel_iterator_t* hi,
-                          unsigned long** key,
-                          relationship_t** value)
+                          unsigned long**         key,
+                          relationship_t**        value)
 {
     return htable_iterator_next(
           (htable_iterator_t*)hi, (void**)key, (void**)value);

@@ -8,8 +8,8 @@
 size_t
 get_degree(in_memory_file_t* db, unsigned long node_id, direction_t direction)
 {
-    list_relationship_t* rels = in_memory_expand(db, node_id, direction);
-    size_t degree = list_relationship_size(rels);
+    list_relationship_t* rels   = in_memory_expand(db, node_id, direction);
+    size_t               degree = list_relationship_size(rels);
     list_relationship_destroy(rels);
 
     return degree;
@@ -18,8 +18,8 @@ get_degree(in_memory_file_t* db, unsigned long node_id, direction_t direction)
 float
 get_avg_degree(in_memory_file_t* db, direction_t direction)
 {
-    size_t num_nodes = db->node_id_counter;
-    size_t total_degree = 0;
+    size_t               num_nodes    = db->node_id_counter;
+    size_t               total_degree = 0;
     list_relationship_t* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {
@@ -34,8 +34,8 @@ get_avg_degree(in_memory_file_t* db, direction_t direction)
 size_t
 get_min_degree(in_memory_file_t* db, direction_t direction)
 {
-    size_t num_nodes = db->node_id_counter;
-    size_t min_degree = SIZE_MAX;
+    size_t               num_nodes  = db->node_id_counter;
+    size_t               min_degree = SIZE_MAX;
     list_relationship_t* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {
@@ -52,8 +52,8 @@ get_min_degree(in_memory_file_t* db, direction_t direction)
 size_t
 get_max_degree(in_memory_file_t* db, direction_t direction)
 {
-    size_t num_nodes = db->node_id_counter;
-    size_t max_degree = 0;
+    size_t               num_nodes  = db->node_id_counter;
+    size_t               max_degree = 0;
     list_relationship_t* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {

@@ -14,12 +14,12 @@
 
 traversal_result*
 bfs(in_memory_file_t* db,
-    unsigned long source_node_id,
-    direction_t direction,
-    const char* log_path)
+    unsigned long     source_node_id,
+    direction_t       direction,
+    const char*       log_path)
 {
     unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    unsigned long* bfs = malloc(db->node_id_counter * sizeof(*bfs));
+    unsigned long* bfs     = malloc(db->node_id_counter * sizeof(*bfs));
 
     if (!parents || !bfs) {
         exit(-1);
@@ -27,11 +27,11 @@ bfs(in_memory_file_t* db,
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         parents[i] = UNINITIALIZED_LONG;
-        bfs[i] = ULONG_MAX;
+        bfs[i]     = ULONG_MAX;
     }
 
     queue_ul_t* nodes_queue = create_queue_ul();
-    FILE* log_file = fopen(log_path, "w");
+    FILE*       log_file    = fopen(log_path, "w");
 
     if (log_file == NULL) {
         free(parents);
@@ -42,14 +42,14 @@ bfs(in_memory_file_t* db,
     }
 
     list_relationship_t* current_rels = NULL;
-    relationship_t* current_rel = NULL;
-    unsigned long temp;
-    unsigned long* node_id;
+    relationship_t*      current_rel  = NULL;
+    unsigned long        temp;
+    unsigned long*       node_id;
     queue_ul_add(nodes_queue, source_node_id);
     bfs[source_node_id] = 0;
 
     while (queue_ul_size(nodes_queue) > 0) {
-        node_id = queue_ul_take(nodes_queue);
+        node_id      = queue_ul_take(nodes_queue);
         current_rels = in_memory_expand(db, *node_id, direction);
         fprintf(log_file, "%s %lu\n", "bfs: Node: ", *node_id);
 
@@ -62,7 +62,7 @@ bfs(in_memory_file_t* db,
                          : current_rel->source_node;
 
             if (bfs[temp] == ULONG_MAX) {
-                bfs[temp] = bfs[*node_id] + 1;
+                bfs[temp]     = bfs[*node_id] + 1;
                 parents[temp] = current_rel->id;
                 queue_ul_add(nodes_queue, temp);
             }

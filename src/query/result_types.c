@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 traversal_result*
-create_traversal_result(unsigned long source_node,
+create_traversal_result(unsigned long  source_node,
                         unsigned long* traversal_numbers,
                         unsigned long* parents)
 {
@@ -20,9 +20,9 @@ create_traversal_result(unsigned long source_node,
         exit(-1);
     }
 
-    result->source = source_node;
+    result->source            = source_node;
     result->traversal_numbers = traversal_numbers;
-    result->parents = parents;
+    result->parents           = parents;
 
     return result;
 }
@@ -40,8 +40,8 @@ traversal_result_destroy(traversal_result* result)
 }
 
 sssp_result*
-create_sssp_result(unsigned long source_node,
-                   double* distances,
+create_sssp_result(unsigned long  source_node,
+                   double*        distances,
                    unsigned long* parents)
 {
     if (!distances || !parents) {
@@ -54,8 +54,8 @@ create_sssp_result(unsigned long source_node,
         exit(-1);
     }
 
-    result->source = source_node;
-    result->distances = distances;
+    result->source     = source_node;
+    result->distances  = distances;
     result->pred_edges = parents;
 
     return result;
@@ -76,8 +76,8 @@ sssp_result_destroy(sssp_result* result)
 path*
 create_path(unsigned long source_node_id,
             unsigned long target_node_id,
-            double distance,
-            list_ul_t* edges)
+            double        distance,
+            list_ul_t*    edges)
 {
     if (!edges || source_node_id == UNINITIALIZED_LONG) {
         printf("Tried to create path with null pointer as argument\n");
@@ -90,10 +90,10 @@ create_path(unsigned long source_node_id,
         exit(-1);
     }
 
-    result->source = source_node_id;
-    result->target = target_node_id;
+    result->source   = source_node_id;
+    result->target   = target_node_id;
     result->distance = distance;
-    result->edges = edges;
+    result->edges    = edges;
 
     return result;
 }
@@ -115,11 +115,11 @@ path_extract_vertices(path* p, in_memory_file_t* db)
     list_ul_t* nodes = create_list_ul();
 
     list_ul_append(nodes, p->source);
-    unsigned long prev_node;
+    unsigned long   prev_node;
     relationship_t* rel;
 
     for (size_t i = 0; i < list_ul_size(p->edges); ++i) {
-        rel = in_memory_get_relationship(db, list_ul_get(p->edges, i));
+        rel       = in_memory_get_relationship(db, list_ul_get(p->edges, i));
         prev_node = list_ul_get(nodes, list_ul_size(nodes) - 1);
 
         if (rel->source_node == prev_node) {

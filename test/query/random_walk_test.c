@@ -14,9 +14,9 @@ main(void)
           db, "/home/someusername/workspace_local/celegans.txt"));
 
     const unsigned int max_walk_steps = 100;
-    path* rand_w;
-    relationship_t* r;
-    relationship_t* r_next;
+    path*              rand_w;
+    relationship_t*    r;
+    relationship_t*    r_next;
 
     for (size_t i = 1; i < max_walk_steps; ++i) {
         rand_w = random_walk(db, 0, i, BOTH);
@@ -30,10 +30,10 @@ main(void)
             r = in_memory_get_relationship(db, list_ul_get(rand_w->edges, j));
             r_next = in_memory_get_relationship(
                   db, list_ul_get(rand_w->edges, j + 1));
-            assert(r->target_node == r_next->target_node ||
-                   r->source_node == r_next->source_node ||
-                   r->source_node == r_next->target_node ||
-                   r->target_node == r_next->source_node);
+            assert(r->target_node == r_next->target_node
+                   || r->source_node == r_next->source_node
+                   || r->source_node == r_next->target_node
+                   || r->target_node == r_next->source_node);
         }
 
         path_destroy(rand_w);
