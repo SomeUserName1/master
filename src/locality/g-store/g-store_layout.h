@@ -20,7 +20,6 @@ typedef struct multi_level_graph
     unsigned int              c_level;
     in_memory_file_t*         records;
     unsigned long*            node_aggregation_weight;
-    unsigned long*            edge_aggregation_weight;
     unsigned long*            map_to_coarser;
     unsigned long*            partition;
     unsigned long*            partition_aggregation_weight;
@@ -30,18 +29,14 @@ typedef struct multi_level_graph
 } multi_level_graph_t;
 
 int
-coarsen(multi_level_graph_t* graph,
-        size_t               block_size,
-        size_t*              num_v_matches,
-        size_t*              max_partition_size,
-        float*               c_ratio_avg);
+coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg);
 
 void
 turn_around(multi_level_graph_t* graph, size_t block_size);
 
 void
 project(multi_level_graph_t* graph,
-        bool*                part_type,
+        bool**               part_type,
         size_t               block_size,
         float                c_ratio_avg,
         list_ul_t**          nodes_per_part);

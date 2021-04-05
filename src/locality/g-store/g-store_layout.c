@@ -9,35 +9,37 @@
 #include "../../data-struct/fibonacci_heap.h"
 #include "../../data-struct/list_ul.h"
 
-void
-insert_match(size_t*         matches,
-             size_t*         match_weights,
-             relationship_t* rel,
-             size_t          num_v_matches)
+static void
+insert_match(size_t*       matches,
+             size_t*       match_weights,
+             unsigned long node_id,
+             double        weight,
+             size_t        num_v_matches)
 {
-    if (!matches || !match_weights || !rel) {
+    if (!matches || !match_weights) {
+        printf("G-Store - insert_match: Invalid Arguments!\n");
         exit(-1);
     }
 
     bool          placed = false;
     double        temp_w;
     double        temp1_w;
-    unsigned long temp_rel_id;
-    unsigned long temp1_rel_id;
+    unsigned long temp_id;
+    unsigned long temp1_id;
 
     for (size_t i = 0; i < num_v_matches; i++) {
         if (placed) {
-            temp1_rel_id     = matches[i];
+            temp1_id         = matches[i];
             temp1_w          = match_weights[i];
-            matches[i]       = temp_rel_id;
+            matches[i]       = temp_id;
             match_weights[i] = temp_w;
-            temp_rel_id      = temp1_rel_id;
+            temp_id          = temp1_id;
             temp_w           = temp1_w;
-        } else if (rel->weight > match_weights[i]) {
-            temp_rel_id      = matches[i];
+        } else if (weight > match_weights[i]) {
+            temp_id          = matches[i];
             temp_w           = match_weights[i];
-            matches[i]       = rel->id;
-            match_weights[i] = rel->weight;
+            matches[i]       = node_id;
+            match_weights[i] = weight;
             placed           = true;
         }
     }
@@ -47,24 +49,23 @@ unsigned long
 compute_abs_tension(multi_level_graph_t* graph,
                     const unsigned long* partition_p_node)
 {
-    if (!graph || !partition_p_node || !graph->finer
-        || !graph->finer->edge_aggregation_weight) {
+    if (!graph || !partition_p_node) {
+        printf("G-Store - compute_abs_tension: Invalid Arguments!\n");
         exit(-1);
     }
 
     unsigned long        tension = 0UL;
     long                 diff;
-    multi_level_graph_t* finer = graph->finer;
-    list_relationship_t* rels  = in_memory_get_relationships(finer->records);
+    list_relationship_t* rels = in_memory_get_relationships(graph->records);
     relationship_t*      rel;
 
     for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
 
-        diff = (long)(partition_p_node[rel->target_node]
-                      - partition_p_node[rel->source_node]);
+        diff = ((long)partition_p_node[rel->target_node]
+                - (long)partition_p_node[rel->source_node]);
 
-        tension += finer->edge_aggregation_weight[rel->id] * labs(diff);
+        tension += (unsigned long)fabs(rel->weight * (double)diff);
     }
 
     list_relationship_destroy(rels);
@@ -76,6 +77,7 @@ unsigned long
 compute_conn_parts(multi_level_graph_t* graph, const unsigned long* partition)
 {
     if (!graph || !partition) {
+        printf("G-Store - compute_conn_parts: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -89,7 +91,7 @@ compute_conn_parts(multi_level_graph_t* graph, const unsigned long* partition)
                 continue;
             }
 
-            for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
+            for (size_t i = 0; i < list_relationship_size(rels); ++i) {
                 rel = list_relationship_get(rels, i);
                 if (partition[rel->source_node] != partition[rel->target_node]
                     && (partition[rel->source_node] == i
@@ -113,6 +115,7 @@ compute_num_e_btw_parts(multi_level_graph_t* graph,
                         const unsigned long* partition)
 {
     if (!graph || !partition) {
+        printf("G-Store - compute_num_e_btw_parts: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -120,7 +123,7 @@ compute_num_e_btw_parts(multi_level_graph_t* graph,
     relationship_t*      rel;
     long                 total_e = 0;
 
-    for (size_t i = 0; 0 < list_relationship_size(rels); ++i) {
+    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
         rel = list_relationship_get(rels, i);
         if (partition[rel->source_node] != partition[rel->target_node]) {
             total_e++;
@@ -138,6 +141,7 @@ compute_tension(multi_level_graph_t* graph,
                 bool                 modified_t)
 {
     if (!graph || !nodes_in_p || !graph->finer || !graph->partition) {
+        printf("G-Store - compute_tension: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -145,6 +149,7 @@ compute_tension(multi_level_graph_t* graph,
     long*  tensions    = calloc(num_nodes_p, sizeof(long));
 
     if (!tensions) {
+        printf("G-Store - compute_tension: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -156,8 +161,8 @@ compute_tension(multi_level_graph_t* graph,
     list_relationship_t* rels;
     relationship_t*      rel;
 
-    if (!finer->partition || !finer->map_to_coarser || !finer->records
-        || finer->edge_aggregation_weight) {
+    if (!finer->partition || !finer->map_to_coarser || !finer->records) {
+        printf("G-Store - compute_tension: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -179,8 +184,7 @@ compute_tension(multi_level_graph_t* graph,
                                ->partition[finer->map_to_coarser[other_node_id]]
                        : (long)finer->partition[other_node_id];
 
-            tensions[i] +=
-                  (long)(finer->edge_aggregation_weight[rel->id] * (p2 - p1));
+            tensions[i] += (long)(rel->weight * (double)(p2 - p1));
         }
         list_relationship_destroy(rels);
     }
@@ -191,6 +195,7 @@ int
 compare_by_tension(const void* a, const void* b, void* array2)
 {
     if (!a || !b | !array2) {
+        printf("G-Store - compare_by_tension: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -204,13 +209,15 @@ unsigned long*
 sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
 {
     if (!nodes || !tensions) {
+        printf("G-Store - sort_by_tension: Invalid Arguments!\n");
         exit(-1);
     }
 
     unsigned long  i;
-    unsigned long* s_nodes = malloc(size * sizeof(unsigned long));
+    unsigned long* s_nodes = calloc(size, sizeof(unsigned long));
 
-    if (s_nodes == NULL) {
+    if (!s_nodes) {
+        printf("G-Store - sort_by_tension: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -227,13 +234,15 @@ unsigned long*
 swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 {
     if (!graph) {
+        printf("G-Store - swap_partitions: Invalid Arguments!\n");
         exit(-1);
     }
 
     unsigned long* new_partition =
-          malloc(graph->records->node_id_counter * sizeof(unsigned long));
+          calloc(graph->records->node_id_counter, sizeof(unsigned long));
 
-    if (new_partition == NULL) {
+    if (!new_partition) {
+        printf("G-Store - swap_partitions: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -251,13 +260,10 @@ swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 }
 
 int
-coarsen(multi_level_graph_t* graph,
-        size_t               block_size,
-        size_t*              num_v_matches,
-        size_t*              max_partition_size,
-        float*               c_ratio_avg)
+coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg)
 {
-    if (!graph || !num_v_matches || !max_partition_size || !c_ratio_avg) {
+    if (!graph || !num_v_matches || !c_ratio_avg) {
+        printf("G-Store - coarsen: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -275,24 +281,24 @@ coarsen(multi_level_graph_t* graph,
     size_t* matches_weights = calloc(*num_v_matches - 1, sizeof(size_t));
     size_t  num_matched     = 0;
 
-    multi_level_graph_t* coarser = malloc(sizeof(*coarser));
+    multi_level_graph_t* coarser = calloc(1, sizeof(*coarser));
 
     if (!coarser || !node_matched || !matches || !matches_weights) {
+        printf("G-Store - coarsen: Memory Allocation failed!\n");
         exit(-1);
     }
+
+    coarser->records = create_in_memory_file();
 
     coarser->c_level = graph->c_level + 1;
 
     coarser->node_aggregation_weight =
           calloc(graph->records->node_id_counter, sizeof(unsigned long));
 
-    coarser->edge_aggregation_weight =
-          calloc(graph->records->rel_id_counter, sizeof(unsigned long));
-
     coarser->map_to_coarser = calloc(num_nodes, sizeof(unsigned long));
 
-    if (!coarser->node_aggregation_weight || !coarser->edge_aggregation_weight
-        || !coarser->map_to_coarser) {
+    if (!coarser->node_aggregation_weight || !coarser->map_to_coarser) {
+        printf("G-Store - coarsen: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -319,18 +325,22 @@ coarsen(multi_level_graph_t* graph,
                 continue;
             }
             // Smallest weight is stored at last position of the array
-            if (graph->edge_aggregation_weight[rel->id]
-                > matches_weights[*num_v_matches - 2]) {
+            if (rel->weight > matches_weights[*num_v_matches - 2]) {
 
-                insert_match(matches, matches_weights, rel, *num_v_matches - 1);
+                insert_match(matches,
+                             matches_weights,
+                             other_node_id,
+                             rel->weight,
+                             *num_v_matches - 1);
                 num_matched++;
             }
         }
 
         node_matched[i] = true;
         in_memory_create_node(coarser->records);
-        num_matched =
-              num_matched > *num_v_matches ? *num_v_matches : num_matched;
+        graph->map_to_coarser[i] = coarser->records->node_id_counter - 1;
+        num_matched = num_matched > *num_v_matches - 1 ? *num_v_matches - 1
+                                                       : num_matched;
 
         for (size_t j = 0; j < num_matched; ++j) {
             node_matched[matches[j]] = true;
@@ -338,7 +348,7 @@ coarsen(multi_level_graph_t* graph,
                   graph->node_aggregation_weight[matches[j]];
 
             graph->map_to_coarser[matches[j]] =
-                  coarser->records->node_id_counter;
+                  coarser->records->node_id_counter - 1;
         }
 
         num_matched = 0;
@@ -350,6 +360,7 @@ coarsen(multi_level_graph_t* graph,
         }
         list_relationship_destroy(rels);
     }
+
     // group edges
     rels     = in_memory_get_relationships(graph->records);
     num_rels = list_relationship_size(rels);
@@ -365,29 +376,27 @@ coarsen(multi_level_graph_t* graph,
                   graph->map_to_coarser[rel->target_node],
                   BOTH);
 
-            if (new_rel == NULL) {
+            if (!new_rel) {
                 new_rel_id = in_memory_create_relationship(
                       coarser->records,
-                      graph->map_to_coarser[i],
-                      graph->map_to_coarser[other_node_id]);
-
-            } else {
-                new_rel_id = new_rel->id;
+                      graph->map_to_coarser[rel->source_node],
+                      graph->map_to_coarser[rel->target_node]);
+                new_rel =
+                      in_memory_get_relationship(coarser->records, new_rel_id);
             }
-
-            coarser->edge_aggregation_weight[new_rel_id] +=
-                  graph->edge_aggregation_weight[rel->id];
+            new_rel->weight += rel->weight;
         }
     }
     list_relationship_destroy(rels);
 
     c_ratio = (1.0F
-               - (float)coarser->records->node_id_counter
-                       / (float)graph->records->node_id_counter);
+               - ((float)coarser->records->node_id_counter
+                  / (float)graph->records->node_id_counter));
 
     if (c_ratio == 0.0) {
         free(coarser->node_aggregation_weight);
-        free(coarser->edge_aggregation_weight);
+        free(coarser->map_to_coarser);
+        in_memory_file_destroy(coarser->records);
         free(coarser);
         free(node_matched);
         free(matches);
@@ -396,13 +405,7 @@ coarsen(multi_level_graph_t* graph,
         return -1;
     }
     if (c_ratio < C_RATIO_LIMIT) {
-        if (*num_v_matches == 2
-            && *max_partition_size <= MAX_PARTITION_SIZE_FACTOR * block_size) {
-
-            (*max_partition_size) *= 2;
-        } else {
-            (*num_v_matches)++;
-        }
+        (*num_v_matches)++;
     }
 
     *c_ratio_avg = (float)((*c_ratio_avg * (float)graph->c_level) + c_ratio)
@@ -412,14 +415,11 @@ coarsen(multi_level_graph_t* graph,
           realloc(coarser->node_aggregation_weight,
                   coarser->records->node_id_counter * sizeof(unsigned long));
 
-    coarser->edge_aggregation_weight =
-          realloc(coarser->edge_aggregation_weight,
-                  coarser->records->rel_id_counter * sizeof(unsigned long));
-
-    if (!coarser->node_aggregation_weight
-        || !coarser->edge_aggregation_weight) {
+    if (!coarser->node_aggregation_weight) {
+        printf("G-Store - coarsen: Memory Allocation failed!\n");
         exit(-1);
     }
+
     free(node_matched);
     free(matches);
     free(matches_weights);
@@ -431,6 +431,7 @@ void
 turn_around(multi_level_graph_t* graph, size_t block_size)
 {
     if (!graph || !graph->records) {
+        printf("G-Store - turn_around: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -440,6 +441,7 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
     graph->partition_aggregation_weight = calloc(num_nodes, sizeof(size_t));
 
     if (!graph->partition || !graph->partition_aggregation_weight) {
+        printf("G-Store - turn_around: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -466,18 +468,21 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
                   graph->num_partitions * sizeof(size_t));
 
     if (graph->partition_aggregation_weight == NULL) {
+        printf("G-Store - turn_around: Memory Allocation failed!\n");
         exit(-1);
     }
 }
 
 void
 project(multi_level_graph_t* graph,
-        bool*                part_type,
+        bool**               part_type,
         size_t               block_size,
         float                c_ratio_avg,
         list_ul_t**          nodes_per_part)
 {
-    if (!graph || !graph->finer || !part_type || !nodes_per_part) {
+    if (!graph || !graph->finer || !part_type || !*part_type
+        || !nodes_per_part) {
+        printf("G-Store - project: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -488,6 +493,7 @@ project(multi_level_graph_t* graph,
     finer->partition_aggregation_weight = calloc(num_nodes_f, sizeof(size_t));
 
     if (!finer->partition || !finer->partition_aggregation_weight) {
+        printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -496,7 +502,7 @@ project(multi_level_graph_t* graph,
     size_t        num_nodes_p;
     size_t        num_nodes_before;
     long*         tensions;
-    unsigned long ext_node_id;
+    unsigned long ext_node_id = 0;
     long          ext_tension;
     bool          min;
     float         weight_threshold =
@@ -521,7 +527,7 @@ project(multi_level_graph_t* graph,
                             nodes_coarser_p, j)];
             }
 
-            part_type[finer_partition] = true;
+            (*part_type)[finer_partition] = true;
             finer_partition++;
 
             continue;
@@ -547,7 +553,7 @@ project(multi_level_graph_t* graph,
                          + finer->node_aggregation_weight[ext_node_id])
                 > weight_threshold) {
 
-                part_type[finer_partition] =
+                (*part_type)[finer_partition] =
                       num_nodes_p < num_nodes_before / 2 + 1 ? false : true;
                 finer_partition++;
             }
@@ -567,12 +573,14 @@ project(multi_level_graph_t* graph,
                   finer->num_partitions * sizeof(size_t));
 
     if (!finer->partition_aggregation_weight) {
+        printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }
 
-    part_type = realloc(part_type, finer->num_partitions * sizeof(bool));
+    *part_type = realloc(*part_type, finer->num_partitions * sizeof(bool));
 
-    if (!part_type) {
+    if (!part_type || !*part_type) {
+        printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }
 }
@@ -581,6 +589,7 @@ void
 reorder(multi_level_graph_t* graph, const bool* part_type)
 {
     if (!graph || !part_type || !graph->finer) {
+        printf("G-Store - reorder: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -588,10 +597,11 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     list_ul_t** groups = calloc(finer->num_partitions, sizeof(list_ul_t*));
 
     if (!groups) {
+        printf("G-Store - reorder: Memory Allocation failed!\n");
         exit(-1);
     }
 
-    size_t num_groups = 0;
+    size_t num_groups = 1;
     size_t num_parts;
     bool   swapped = false;
     groups[0]      = create_list_ul();
@@ -599,7 +609,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     long*          gains;
     long           max_gain;
     unsigned long* swap_p;
-    unsigned long* max_gain_p;
+    unsigned long* max_gain_p = NULL;
     size_t         max_gain_idx1;
     size_t         max_gain_idx2;
     size_t         temp;
@@ -607,29 +617,37 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     // extract groups
     for (size_t i = 1; i < finer->num_partitions; ++i) {
         if (part_type[i - 1] == false && part_type[i] == true) {
-            num_groups++;
+            printf("num groups %lu\n", num_groups);
             groups[num_groups] = create_list_ul();
+            num_groups++;
         }
         list_ul_append(groups[num_groups], i);
     }
-    groups = realloc(groups, num_groups * sizeof(list_ul_t*));
+    groups = realloc(groups, (num_groups + 1) * sizeof(list_ul_t*));
 
     if (!groups) {
+        printf("G-Store - reorder: Memory Allocation failed!\n");
         exit(-1);
     }
 
     for (size_t i = 0; i < num_groups; ++i) {
         num_parts = list_ul_size(groups[i]);
+
         if (num_parts == 1) {
+            list_ul_destroy(groups[i]);
             continue;
         }
-        gains = malloc(num_parts * num_parts * sizeof(long));
+
+        gains = calloc(num_parts * num_parts, sizeof(long));
         if (!gains) {
+            printf("G-Store - reorder: Memory Allocation failed!\n");
             exit(-1);
         }
+
         do {
             swapped  = false;
             max_gain = LONG_MIN;
+
             for (size_t j = 0; j < num_parts * num_parts; ++j) {
                 gains[j] = LONG_MIN;
             }
@@ -655,6 +673,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
                     }
                 }
             }
+
             if (max_gain > 0) {
                 free(finer->partition);
                 finer->partition = max_gain_p;
@@ -664,6 +683,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
                 finer->partition_aggregation_weight[max_gain_idx2] = temp;
                 swapped                                            = true;
             }
+
         } while (swapped);
         free(gains);
         list_ul_destroy(groups[i]);
@@ -675,6 +695,7 @@ void
 refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 {
     if (!graph || !graph->finer || !graph->finer->records) {
+        printf("G-Store - refine: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -688,14 +709,16 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     unsigned long* temp_p = calloc(num_nodes, sizeof(unsigned long));
 
     if (!score || !temp_p) {
+        printf("G-Store - refine: Memory Allocation failed!\n");
         exit(-1);
     }
 
     float  occupancy_factor = 0;
     float  max_score;
-    size_t node_id;
-    size_t partition_id;
+    size_t node_id      = ULONG_MAX;
+    size_t partition_id = ULONG_MAX;
 
+    // FIXME This should actually be an adapted KL
     for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
         for (size_t i = 0; i < finer->records->node_id_counter; ++i) {
             for (size_t k = 0; k < finer->num_partitions; ++k) {
@@ -710,7 +733,9 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
                 temp_p[i] = k;
 
-                // FIXME
+                // FIXME this should be an additional term in the eq.
+                // however what's described in the report is rather clumsy
+                // http://g-store.sourceforge.net/th/6.htm#6ddre
                 occupancy_factor =
                       1
                       - (float)(finer->node_aggregation_weight[i]
@@ -718,23 +743,26 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
                               / weight_threshold;
 
                 score[i * finer->num_partitions + k] =
-                      -(ALPHA * (float)compute_abs_tension(finer, temp_p)
-                        + BETA * compute_conn_parts(graph, temp_p)
-                        + GAMMA * compute_num_e_btw_parts(graph, temp_p));
+                      occupancy_factor
+                      * (ALPHA * (float)compute_abs_tension(finer, temp_p)
+                         + BETA * compute_conn_parts(finer, temp_p)
+                         + GAMMA * compute_num_e_btw_parts(finer, temp_p));
             }
         }
-        max_score = 0.0F;
+        max_score = FLT_MIN;
         for (size_t i = 0; i < num_nodes * finer->num_partitions; ++i) {
             if (score[i] > max_score) {
+                score[i]     = max_score;
                 node_id      = i / finer->num_partitions;
                 partition_id = i % finer->num_partitions;
             }
         }
-        finer->partition[node_id] = partition_id;
+        if (max_score > 0.0F) {
+            finer->partition[node_id] = partition_id;
+        }
     }
     free(score);
     free(temp_p);
-    // FIXME implement what is actually desired
 }
 
 int
@@ -748,10 +776,13 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
           calloc(graph->finer->records->node_id_counter, sizeof(bool));
 
     if (!part_type) {
+        printf("G-Store - uncoarsen: Memory Allocation failed!\n");
         exit(-1);
     }
 
-    list_ul_t* nodes_per_part[graph->num_partitions];
+    list_ul_t** nodes_per_part =
+          calloc(graph->num_partitions, sizeof(list_ul_t*));
+
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         nodes_per_part[i] = create_list_ul();
     }
@@ -762,10 +793,11 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
               i);
     }
 
-    project(graph, part_type, block_size, c_ratio_avg, nodes_per_part);
+    project(graph, &part_type, block_size, c_ratio_avg, nodes_per_part);
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         list_ul_destroy(nodes_per_part[i]);
     }
+    free(nodes_per_part);
 
     reorder(graph, part_type);
     free(part_type);
@@ -778,37 +810,38 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 unsigned long*
 g_store_layout(in_memory_file_t* db, size_t block_size)
 {
-    multi_level_graph_t* graph = malloc(sizeof(*graph));
-    if (graph == NULL) {
+    if (!db) {
+        printf("G-Store - main: Invalid Arguments!\n");
+        exit(-1);
+    }
+    multi_level_graph_t* graph = calloc(1, sizeof(*graph));
+    if (!graph) {
+        printf("G-Store - main: Memory Allocation failed!\n");
         exit(-1);
     }
     graph->c_level = 0;
     graph->records = db;
+
     graph->node_aggregation_weight =
-          malloc(db->node_id_counter * sizeof(unsigned long));
-    graph->edge_aggregation_weight =
-          malloc(db->rel_id_counter * sizeof(unsigned long));
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
-        graph->node_aggregation_weight[i] = 1;
-    }
+          calloc(db->node_id_counter, sizeof(unsigned long));
+
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
 
-    graph->finer = NULL;
-
-    if (!graph->node_aggregation_weight || !graph->edge_aggregation_weight) {
+    if (!graph->node_aggregation_weight || !graph->map_to_coarser) {
+        printf("G-Store - main: Memory Allocation failed!\n");
         exit(-1);
     }
 
-    size_t num_v_matches      = 2;
-    size_t max_partition_size = block_size / sizeof(node_t);
-    float  c_ratio_avg        = 0.0F;
+    for (size_t i = 0; i < db->node_id_counter; ++i) {
+        graph->node_aggregation_weight[i] = 1;
+    }
 
-    while (coarsen(graph,
-                   block_size,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
-           == 0) {
+    graph->finer = NULL;
+
+    size_t num_v_matches = 2;
+    float  c_ratio_avg   = 0.0F;
+
+    while (coarsen(graph, &num_v_matches, &c_ratio_avg) == 0) {
         graph = graph->coarser;
     }
 
@@ -818,7 +851,6 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
         graph = graph->finer;
         free(graph->coarser->map_to_coarser);
         free(graph->coarser->node_aggregation_weight);
-        free(graph->coarser->edge_aggregation_weight);
         free(graph->coarser->partition_aggregation_weight);
         free(graph->coarser->partition);
         in_memory_file_destroy(graph->coarser->records);
@@ -827,7 +859,6 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
 
     free(graph->map_to_coarser);
     free(graph->node_aggregation_weight);
-    free(graph->edge_aggregation_weight);
     free(graph->partition_aggregation_weight);
     unsigned long* result = graph->partition;
     free(graph);

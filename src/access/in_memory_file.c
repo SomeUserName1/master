@@ -39,6 +39,11 @@ in_memory_file_destroy(in_memory_file_t* db)
 unsigned long
 in_memory_create_node(in_memory_file_t* db)
 {
+    if (!db) {
+        printf("in_memory - create node: Invalid arguments!\n");
+        exit(-1);
+    }
+
     node_t* node = new_node();
     node->id     = db->node_id_counter++;
     node->flags  = 1;
@@ -55,7 +60,8 @@ node_t*
 in_memory_get_node(in_memory_file_t* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
-        printf("in memory file is NULL or invalid node requested!\n");
+        printf("in_memory: get_node: in memory file is NULL or invalid node "
+               "requested!\n");
         return NULL;
     }
 
@@ -66,7 +72,7 @@ list_node_t*
 in_memory_get_nodes(in_memory_file_t* db)
 {
     if (!db) {
-        printf("in memory file is NULL!\n");
+        printf("in_memory - get_nodes: in memory file is NULL!\n");
         return NULL;
     }
 
@@ -86,7 +92,8 @@ relationship_t*
 in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
-        printf("in memory file is NULL or invalid relationship requested!\n");
+        printf("in_memory - get_relationship: in memory file is NULL or "
+               "invalid relationship requested!\n");
         return NULL;
     }
 
@@ -96,6 +103,11 @@ in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
 list_relationship_t*
 in_memory_get_relationships(in_memory_file_t* db)
 {
+    if (!db) {
+        printf("in_memory - get_relationships: Invalid arguments!\n");
+        exit(-1);
+    }
+
     list_relationship_t*    rels = create_list_relationship();
     unsigned long*          id   = NULL;
     relationship_t*         rel  = NULL;
@@ -256,7 +268,7 @@ in_memory_next_relationship(in_memory_file_t* db,
                             direction_t       direction)
 {
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
-        printf("Arguments must be not NULL!");
+        printf("in_memory - next_relationship: Arguments must be not NULL!\n");
         exit(-1);
     }
 
@@ -285,10 +297,15 @@ in_memory_expand(in_memory_file_t* db,
                  unsigned long     node_id,
                  direction_t       direction)
 {
+    if (!db) {
+        printf("in_memory - expand: Arguments must be not NULL!\n");
+        exit(-1);
+    }
+
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
 
-    if (node == NULL || db == NULL) {
-        printf("Arguments must be not NULL!");
+    if (!node || !db) {
+        printf("in_memory - expand: Arguments must be not NULL!\n");
         exit(-1);
     }
 
@@ -332,7 +349,7 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
                                         direction_t       direction)
 {
     if (!db) {
-        printf("in memory file is NULL! \n");
+        printf("in_memory - contains relationship: Invalid Arguments!\n");
         return NULL;
     }
 
@@ -343,6 +360,11 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
     relationship_t* rel;
     node_t* source_node = dict_ul_node_get_direct(db->cache_nodes, node_from);
     node_t* target_node = dict_ul_node_get_direct(db->cache_nodes, node_to);
+
+    if (!source_node || !target_node) {
+        printf("in_memory - contains relationship: No such nodes!\n");
+        exit(-1);
+    }
 
     if (source_node->first_relationship == UNINITIALIZED_LONG
         || target_node->first_relationship == UNINITIALIZED_LONG) {

@@ -1,5 +1,6 @@
 #include "list.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -90,6 +91,7 @@ list_insert(list_t* l, void* v, size_t idx)
         l->alloced += list_block_size;
         l->elements = realloc(l->elements, sizeof(*l->elements) * l->alloced);
         if (!l->elements) {
+            printf("list - insert: Memory Allocation Failed!\n");
             exit(-1);
         }
     }
