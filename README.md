@@ -3,7 +3,7 @@
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Static data locality optimizing storage scheme for graph databases.  
 
 ## Timetable 
-<p style="text-align: center;"><font size="20"><progress id="time" value="15" max="26"></progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="time" value="15" max="22"></progress></font></p>
 
 <font size="1">
 
