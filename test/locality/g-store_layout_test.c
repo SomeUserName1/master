@@ -30,8 +30,14 @@ test_uncoarsen(in_memory_file_t* db)
     relationship_t*      rel;
     relationship_t*      coarser_rel;
     unsigned long        other_id;
+    unsigned long        max_partition_size = BLOCK_SIZE / sizeof(node_t);
 
-    while (coarsen(graph, &num_v_matches, &c_ratio_avg) == 0) {
+    while (coarsen(graph,
+                   BLOCK_SIZE,
+                   &num_v_matches,
+                   &max_partition_size,
+                   &c_ratio_avg)
+           == 0) {
         prev  = graph;
         graph = graph->coarser;
 

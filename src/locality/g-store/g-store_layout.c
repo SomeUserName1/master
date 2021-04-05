@@ -260,9 +260,13 @@ swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 }
 
 int
-coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg)
+coarsen(multi_level_graph_t* graph,
+        size_t               block_size,
+        size_t*              num_v_matches,
+        size_t*              max_partition_size,
+        float*               c_ratio_avg)
 {
-    if (!graph || !num_v_matches || !c_ratio_avg) {
+    if (!graph || !num_v_matches || !max_partition_size || !c_ratio_avg) {
         printf("G-Store - coarsen: Invalid Arguments!\n");
         exit(-1);
     }
@@ -309,7 +313,8 @@ coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg)
     // group vertices
     for (size_t i = 0; i < num_nodes; ++i) {
 
-        if (node_matched[i]) {
+        if (node_matched[i]
+            || graph->node_aggregation_weight[i] >= *max_partition_size) {
             continue;
         }
         rels = in_memory_expand(graph->records, i, BOTH);
@@ -321,7 +326,10 @@ coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg)
             other_node_id =
                   i == rel->source_node ? rel->target_node : rel->source_node;
 
-            if (node_matched[other_node_id]) {
+            if (node_matched[other_node_id]
+                || graph->node_aggregation_weight[other_node_id]
+                               + graph->node_aggregation_weight[i]
+                         >= *max_partition_size) {
                 continue;
             }
             // Smallest weight is stored at last position of the array
@@ -405,7 +413,13 @@ coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg)
         return -1;
     }
     if (c_ratio < C_RATIO_LIMIT) {
-        (*num_v_matches)++;
+        if (*num_v_matches == 2
+            && *max_partition_size <= MAX_PARTITION_SIZE_FACTOR * block_size) {
+
+            (*max_partition_size) *= 2;
+        } else {
+            (*num_v_matches)++;
+        }
     }
 
     *c_ratio_avg = (float)((*c_ratio_avg * (float)graph->c_level) + c_ratio)
@@ -838,10 +852,16 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
 
     graph->finer = NULL;
 
-    size_t num_v_matches = 2;
-    float  c_ratio_avg   = 0.0F;
+    size_t num_v_matches      = 2;
+    size_t max_partition_size = block_size / sizeof(node_t);
+    float  c_ratio_avg        = 0.0F;
 
-    while (coarsen(graph, &num_v_matches, &c_ratio_avg) == 0) {
+    while (coarsen(graph,
+                   block_size,
+                   &num_v_matches,
+                   &max_partition_size,
+                   &c_ratio_avg)
+           == 0) {
         graph = graph->coarser;
     }
 

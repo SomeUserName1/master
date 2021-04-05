@@ -29,7 +29,11 @@ typedef struct multi_level_graph
 } multi_level_graph_t;
 
 int
-coarsen(multi_level_graph_t* graph, size_t* num_v_matches, float* c_ratio_avg);
+coarsen(multi_level_graph_t* graph,
+        size_t               block_size,
+        size_t*              num_v_matches,
+        size_t*              max_partition_size,
+        float*               c_ratio_avg);
 
 void
 turn_around(multi_level_graph_t* graph, size_t block_size);
