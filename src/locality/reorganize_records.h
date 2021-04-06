@@ -3,10 +3,10 @@
 
 #include "../access/in_memory_file.h"
 
-void
+unsigned long*
 remap_node_ids(in_memory_file_t* db, unsigned long* partition);
 
-void
+unsigned long*
 remap_rel_ids(in_memory_file_t* db);
 
 void

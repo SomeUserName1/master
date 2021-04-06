@@ -248,11 +248,11 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
 
     // Set the first relationship pointer, if the inserted rel is the first rel
     if (source_node->first_relationship == UNINITIALIZED_LONG) {
-        relationship_set_first_target(rel);
+        relationship_set_first_source(rel);
         source_node->first_relationship = rel->id;
     }
     if (target_node->first_relationship == UNINITIALIZED_LONG) {
-        relationship_set_first_source(rel);
+        relationship_set_first_target(rel);
         target_node->first_relationship = rel->id;
     }
 

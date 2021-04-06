@@ -14,6 +14,7 @@ list_t*
 create_list(list_cbs_t* cbs)
 {
     if (!cbs) {
+        printf("list - create: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -75,7 +76,8 @@ int
 list_append(list_t* l, void* v)
 {
     if (l == NULL || v == NULL) {
-        return -1;
+        printf("list - append: Invalid Arguments!\n");
+        exit(-1);
     }
     return list_insert(l, v, l->len);
 }
@@ -84,7 +86,8 @@ int
 list_insert(list_t* l, void* v, size_t idx)
 {
     if (l == NULL || v == NULL) {
-        return -1;
+        printf("list - insert: Invalid Arguments!\n");
+        exit(-1);
     }
 
     if (l->alloced == l->len) {
@@ -99,7 +102,8 @@ list_insert(list_t* l, void* v, size_t idx)
     if (l->cbs.lcopy != NULL) {
         v = l->cbs.lcopy(v);
         if (v == NULL) {
-            return -1;
+            printf("list - insert: Copying the value failed!\n");
+            exit(-1);
         }
     }
 
@@ -120,7 +124,8 @@ static int
 list_remove_int(list_t* l, size_t idx, bool free_flag)
 {
     if (l == NULL || idx >= l->len) {
-        return -1;
+        printf("list - remove or take: Invalid Arguments!\n");
+        exit(-1);
     }
 
     if (free_flag && l->cbs.lfree != NULL) {
@@ -147,7 +152,8 @@ int
 list_index_of(list_t* l, void* v, size_t* idx)
 {
     if (l == NULL || v == NULL || idx == NULL) {
-        return -1;
+        printf("list - index_of: Invalid Arguments!\n");
+        exit(-1);
     }
 
     for (size_t i = 0; i < l->len; ++i) {
@@ -179,8 +185,16 @@ list_contains(list_t* l, void* elem)
 void*
 list_get(list_t* l, size_t idx)
 {
-    if (l == NULL || idx >= l->len) {
-        return NULL;
+    if (!l) {
+        printf("list - index_of: Invalid Arguments: List must not be NULL!\n");
+        exit(-1);
+    }
+    if (idx >= l->len) {
+        printf("List - get: Buffer overflow! list length %lu, index accessed "
+               "%lu \n",
+               l->len,
+               idx);
+        exit(-1);
     }
     return l->elements[idx];
 }

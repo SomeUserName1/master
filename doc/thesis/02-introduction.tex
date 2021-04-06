@@ -35,14 +35,14 @@ The contributions of this theis are
  \item a concise description of the problem.
  \item a pragmatic comparative metric to measure the impact of data organization on the performance of queries.
  \item a survey of existing static rearrangement methods.
- \item the proposition of two extensions to the state of the art methods:
+ \item the proposition of two extensions to the state of the art methods with respect to a specific storage schema:
  \begin{itemize}
-  \item Use a recent community detection method to form blocks and a bandwidth reducing algorithm for ordering these blocks
+  \item Reorder the edge list of the graph such that outgoing edges are grouped as in an adjacency list.
   \item Reorder the incidence lists after reorganizing the data, to reestablish locality and sequential access after rearrangement.
  \end{itemize}
 
  \item the implementation of an in-memory graph database, traversal-based queries and the above rearrangement algorithms.
- \item an extensive evaluation of existing and the proposed method.
+ \item an extensive evaluation of the existing methods with and with the extensions mentioned above.
 \end{itemize}
 
 The rest of this thesis is organized as follows.
