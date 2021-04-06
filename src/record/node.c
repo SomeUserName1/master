@@ -51,8 +51,6 @@ node_clear(node_t* record)
     record->id                 = UNINITIALIZED_LONG;
     record->flags              = UNINITIALIZED_BYTE;
     record->first_relationship = UNINITIALIZED_LONG;
-    record->first_property     = UNINITIALIZED_LONG;
-    record->node_type          = UNINITIALIZED_LONG;
 }
 
 node_t*
@@ -71,8 +69,6 @@ node_copy(const node_t* original)
     copy->id                 = original->id;
     copy->flags              = original->flags;
     copy->first_relationship = original->first_relationship;
-    copy->first_property     = original->first_property;
-    copy->node_type          = original->node_type;
 
     return copy;
 }
@@ -85,9 +81,7 @@ node_equals(const node_t* first, const node_t* second)
     }
 
     return ((first->id == second->id) && (first->flags == second->flags)
-            && (first->first_relationship == second->first_relationship)
-            && (first->first_property == second->first_property)
-            && (first->node_type == second->node_type));
+            && (first->first_relationship == second->first_relationship));
 }
 
 int
@@ -97,14 +91,10 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           0,
                           "Node ID: %#lX\n"
                           "In-Use: %#hhX\n"
-                          "First Relationship: %#lX\n"
-                          "First Property: %#lX\n"
-                          "Node Type: %#lX\n",
+                          "First Relationship: %#lX\n",
                           record->id,
                           record->flags,
-                          record->first_relationship,
-                          record->first_property,
-                          record->node_type);
+                          record->first_relationship);
 
     if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote node string representation to a buffer that was too "
@@ -116,14 +106,10 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           length,
                           "Node ID: %#lX\n"
                           "In-Use: %#hhX\n"
-                          "First Relationship: %#lX\n"
-                          "First Property: %#lX\n"
-                          "Node Type: %#lX\n",
+                          "First Relationship: %#lX\n",
                           record->id,
                           record->flags,
-                          record->first_relationship,
-                          record->first_property,
-                          record->node_type);
+                          record->first_relationship);
 
     return result > 0 ? 0 : result;
 }
@@ -137,12 +123,8 @@ node_pretty_print(const node_t* record)
     }
     printf("Node ID: %#lX\n"
            "In-Use: %#hhX\n"
-           "First Relationship: %#lX\n"
-           "First Property: %#lX\n"
-           "Node Type: %#lX\n",
+           "First Relationship: %#lX\n",
            record->id,
            record->flags,
-           record->first_relationship,
-           record->first_property,
-           record->node_type);
+           record->first_relationship);
 }

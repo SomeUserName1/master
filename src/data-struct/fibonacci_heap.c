@@ -21,6 +21,7 @@ create_fib_node(double key, unsigned long value)
     fib_node* node = malloc(sizeof(*node));
 
     if (!node) {
+        printf("fibonacci heap - create_fib_node: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -100,6 +101,7 @@ void
 fib_heap_insert(fib_heap_t* fh, fib_node* node)
 {
     if (!fh || !node) {
+        printf("fibonacci heap - insert: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -125,10 +127,12 @@ fib_node*
 fib_heap_min(fib_heap_t* fh)
 {
     if (!fh) {
+        printf("fibonacci heap - min: Invalid Argumentd!\n");
         exit(-1);
     }
     if (!fh->min) {
         printf("fibonacci_heap: minimum is not set.");
+        exit(-1);
     }
     return fh->min;
 }
@@ -137,6 +141,7 @@ void
 fib_heap_make_child(fib_node* x, fib_node* y)
 {
     if (!x || !y) {
+        printf("fibonacci heap - make_child: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -164,6 +169,7 @@ void
 fib_heap_consolidate(fib_heap_t* fh)
 {
     if (!fh || !fh->min) {
+        printf("fibonacci heap - consolidate: Invalid Argumentd!\n");
         exit(-1);
     }
     unsigned int max_degree =
@@ -242,6 +248,7 @@ fib_node*
 fib_heap_extract_min(fib_heap_t* fh)
 {
     if (!fh) {
+        printf("fibonacci heap - consolidate: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -285,6 +292,7 @@ fib_heap_extract_min(fib_heap_t* fh)
         fh->num_nodes--;
     } else {
         printf("fibonacci_heap: minimum is not set.");
+        exit(-1);
     }
     return z;
 }
@@ -293,6 +301,7 @@ fib_heap_t*
 fib_heap_union(fib_heap_t* fh1, fib_heap_t* fh2)
 {
     if (!fh1 || !fh2) {
+        printf("fibonacci heap - union: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -333,6 +342,7 @@ void
 fib_heap_cut(fib_heap_t* fh, fib_node* node, fib_node* parent)
 {
     if (!fh || !node || !parent) {
+        printf("fibonacci heap - cut: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -360,6 +370,7 @@ void
 fib_heap_cascading_cut(fib_heap_t* fh, fib_node* node)
 {
     if (!fh || !node) {
+        printf("fibonacci heap - cascading_cut: Invalid Argumentd!\n");
         exit(-1);
     }
 
@@ -382,7 +393,7 @@ fib_heap_decrease_key_internal(fib_heap_t* fh,
                                bool delete)
 {
     if (!fh || !node || new_key > node->key) {
-        printf("fib heap: decrease key: Arguments null or previous key was "
+        printf("fib heap - decrease key: Arguments null or previous key was "
                "larger then new key!\n");
         exit(-1);
     }

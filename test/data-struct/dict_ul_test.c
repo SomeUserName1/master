@@ -7,11 +7,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../src/access/in_memory_file.h"
+#include "../../src/import/snap_importer.h"
+
 #define TEST_KEY       (42)
 #define TEST_VAL       (777)
 #define TEST_KEY_1     (11)
 #define TEST_VALUE_1   (666)
 #define PROGRESS_LINES (10000)
+#define DICT_ITER_REP  (1)
 
 void
 test_create_dict_ul_ul(void)
@@ -111,7 +115,7 @@ test_dict_ul_ul_destroy(void)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
-        perror("Failed to open file to read from");
+        perror("Failed to open file to read from\n");
         return;
     }
 
@@ -178,7 +182,7 @@ test_htable_iter(void)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
-        perror("Failed to open file to read from");
+        perror("Failed to open file to read from\n");
         return;
     }
 
@@ -206,6 +210,7 @@ test_htable_iter(void)
         size--;
         assert(size == dict_ul_ul_size(dict));
     }
+    assert(dict_ul_ul_size(dict) == 0);
 
     htable_iterator_destroy(it);
     dict_ul_ul_destroy(dict);
@@ -310,7 +315,7 @@ test_dict_ul_int_destroy(void)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
-        perror("Failed to open file to read from");
+        perror("Failed to open file to read from\n");
         return;
     }
 
@@ -351,20 +356,25 @@ test_dict_ul_int_it(void)
     unsigned long* key   = NULL;
     int*           value = NULL;
 
+    bool first  = false;
+    bool second = false;
     while (dict_ul_int_iterator_next(it, &key, &value) > -1) {
         if (*key == TEST_KEY || *key == TEST_KEY_1) {
             if (*key == TEST_KEY) {
                 assert(*key == TEST_KEY);
                 assert(*value == TEST_VAL);
+                first = true;
             } else if (*key == TEST_KEY_1) {
                 assert(*key == TEST_KEY_1);
                 assert(*value == TEST_VALUE_1);
+                second = true;
             } else {
                 printf("key: %lu\n", *key);
                 assert(false);
             }
         }
     }
+    assert(first && second);
 
     dict_ul_int_iterator_destroy(it);
     dict_ul_int_destroy(dict);
@@ -476,7 +486,7 @@ test_dict_ul_node_destroy(void)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
-        perror("Failed to open file to read from");
+        perror("Failed to open file to read from\n");
         return;
     }
 
@@ -645,7 +655,7 @@ test_dict_ul_rel_destroy(void)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
-        perror("Failed to open file to read from");
+        perror("Failed to open file to read from\n");
         return;
     }
 
@@ -708,6 +718,35 @@ test_dict_ul_rel_it(void)
     dict_ul_rel_destroy(dict);
 }
 
+void
+test_dict_ul_rel_iter_large(void)
+{
+    in_memory_file_t* db = create_in_memory_file();
+    dict_ul_ul_destroy(
+          import_from_txt(db, "/home/someusername/workspace_local/amazon.txt"));
+
+    assert(db->node_id_counter == AMAZON_NO_NODES);
+    assert(db->rel_id_counter == AMAZON_NO_RELS);
+
+    dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
+
+    unsigned long*  key   = NULL;
+    relationship_t* value = NULL;
+    unsigned long   counter;
+    for (size_t i = 0; i < DICT_ITER_REP; ++i) {
+        ((htable_iterator_t*)it)->idx = 0;
+        counter                       = 0;
+        while (dict_ul_rel_iterator_next(it, &key, &value) > -1) {
+            counter++;
+        }
+        printf("counter: %lu, amazon rel %d\n", counter, AMAZON_NO_RELS);
+        assert(counter == AMAZON_NO_RELS);
+    }
+
+    dict_ul_rel_iterator_destroy(it);
+    in_memory_file_destroy(db);
+}
+
 int
 main(void)
 {
@@ -750,6 +789,8 @@ main(void)
     test_dict_ul_rel_contains();
     test_dict_ul_rel_destroy();
     test_dict_ul_rel_it();
+
+    test_dict_ul_rel_iter_large();
 
     printf("%s", "All tests for dict_ul successfull\n");
 }

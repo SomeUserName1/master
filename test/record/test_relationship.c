@@ -42,17 +42,16 @@ test_relationship_write(void)
 void
 test_relationship_clear(void)
 {
-    relationship_t* relationship    = new_relationship();
-    relationship->id                = 1;
-    relationship->flags             = 1;
-    relationship->source_node       = 1;
-    relationship->target_node       = 1;
-    relationship->relationship_type = 1;
-    relationship->prev_rel_source   = 1;
-    relationship->prev_rel_target   = 1;
-    relationship->next_rel_source   = 1;
-    relationship->next_rel_target   = 1;
-    relationship->weight            = 1.0;
+    relationship_t* relationship  = new_relationship();
+    relationship->id              = 1;
+    relationship->flags           = 1;
+    relationship->source_node     = 1;
+    relationship->target_node     = 1;
+    relationship->prev_rel_source = 1;
+    relationship->prev_rel_target = 1;
+    relationship->next_rel_source = 1;
+    relationship->next_rel_target = 1;
+    relationship->weight          = 1.0;
 
     relationship_clear(relationship);
 
@@ -60,7 +59,6 @@ test_relationship_clear(void)
     assert(relationship->flags == UNINITIALIZED_BYTE);
     assert(relationship->source_node == UNINITIALIZED_LONG);
     assert(relationship->target_node == UNINITIALIZED_LONG);
-    assert(relationship->relationship_type == UNINITIALIZED_LONG);
     assert(relationship->prev_rel_source == UNINITIALIZED_LONG);
     assert(relationship->prev_rel_target == UNINITIALIZED_LONG);
     assert(relationship->next_rel_source == UNINITIALIZED_LONG);
@@ -73,24 +71,22 @@ test_relationship_clear(void)
 void
 test_relationship_copy(void)
 {
-    relationship_t* relationship    = new_relationship();
-    relationship->id                = 1;
-    relationship->flags             = 1;
-    relationship->source_node       = 1;
-    relationship->target_node       = 1;
-    relationship->relationship_type = 1;
-    relationship->prev_rel_source   = 1;
-    relationship->prev_rel_target   = 1;
-    relationship->next_rel_source   = 1;
-    relationship->next_rel_target   = 1;
-    relationship->weight            = 1.0;
+    relationship_t* relationship  = new_relationship();
+    relationship->id              = 1;
+    relationship->flags           = 1;
+    relationship->source_node     = 1;
+    relationship->target_node     = 1;
+    relationship->prev_rel_source = 1;
+    relationship->prev_rel_target = 1;
+    relationship->next_rel_source = 1;
+    relationship->next_rel_target = 1;
+    relationship->weight          = 1.0;
 
     relationship_t* copy = relationship_copy(relationship);
     assert(relationship->id == copy->id);
     assert(relationship->flags == copy->flags);
     assert(relationship->source_node == copy->source_node);
     assert(relationship->target_node == copy->target_node);
-    assert(relationship->relationship_type == copy->relationship_type);
     assert(relationship->prev_rel_source == copy->prev_rel_source);
     assert(relationship->prev_rel_target == copy->prev_rel_target);
     assert(relationship->next_rel_source == copy->next_rel_source);

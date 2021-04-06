@@ -16,7 +16,6 @@ typedef struct RelationshipRecord
     unsigned char flags;
     unsigned long source_node;
     unsigned long target_node;
-    unsigned long relationship_type;
     unsigned long prev_rel_source;
     unsigned long next_rel_source;
     unsigned long prev_rel_target;

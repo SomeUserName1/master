@@ -44,13 +44,11 @@ test_node_clear(void)
 {
     node_t* node             = new_node();
     node->id                 = 1;
-    node->node_type          = 1;
     node->first_relationship = 1;
 
     node_clear(node);
 
     assert(node->id == UNINITIALIZED_LONG);
-    assert(node->node_type == UNINITIALIZED_LONG);
     assert(node->first_relationship == UNINITIALIZED_LONG);
     assert(node->flags == UNINITIALIZED_BYTE);
 
@@ -62,13 +60,11 @@ test_node_copy(void)
 {
     node_t* node             = new_node();
     node->id                 = 1;
-    node->node_type          = 1;
     node->first_relationship = 1;
 
     node_t* copy = node_copy(node);
 
     assert(node->id == copy->id);
-    assert(node->node_type == copy->node_type);
     assert(node->first_relationship == copy->first_relationship);
 
     copy->flags = 2;

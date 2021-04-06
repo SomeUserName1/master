@@ -346,13 +346,20 @@ coarsen(multi_level_graph_t* graph,
 
         node_matched[i] = true;
         in_memory_create_node(coarser->records);
+
         graph->map_to_coarser[i] = coarser->records->node_id_counter - 1;
+
+        coarser->node_aggregation_weight[coarser->records->node_id_counter
+                                         - 1] +=
+              graph->node_aggregation_weight[i];
+
         num_matched = num_matched > *num_v_matches - 1 ? *num_v_matches - 1
                                                        : num_matched;
 
         for (size_t j = 0; j < num_matched; ++j) {
             node_matched[matches[j]] = true;
-            coarser->node_aggregation_weight[i] +=
+            coarser->node_aggregation_weight[coarser->records->node_id_counter
+                                             - 1] +=
                   graph->node_aggregation_weight[matches[j]];
 
             graph->map_to_coarser[matches[j]] =
@@ -414,7 +421,8 @@ coarsen(multi_level_graph_t* graph,
     }
     if (c_ratio < C_RATIO_LIMIT) {
         if (*num_v_matches == 2
-            && *max_partition_size <= MAX_PARTITION_SIZE_FACTOR * block_size) {
+            && *max_partition_size <= MAX_PARTITION_SIZE_FACTOR
+                                            * (block_size / sizeof(node_t))) {
 
             (*max_partition_size) *= 2;
         } else {
@@ -466,7 +474,7 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
         if (graph->partition_aggregation_weight[graph->num_partitions] > 0
             && graph->partition_aggregation_weight[graph->num_partitions]
                            + graph->node_aggregation_weight[i]
-                     > block_size) {
+                     > (block_size / sizeof(node_t))) {
 
             graph->num_partitions++;
         }
@@ -514,19 +522,27 @@ project(multi_level_graph_t* graph,
     size_t        finer_partition = 0;
     list_ul_t*    nodes_coarser_p;
     size_t        num_nodes_p;
-    size_t        num_nodes_before;
+    size_t        max_finer_p;
+    size_t        min_finer_p;
     long*         tensions;
     unsigned long ext_node_id = 0;
     long          ext_tension;
     bool          min;
-    float         weight_threshold =
-          block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
+    float         weight_threshold = ((float)block_size / (float)sizeof(node_t))
+                             / (float)pow(1 - c_ratio_avg, finer->c_level);
 
+    printf("num coarser parts: %lu\n", graph->num_partitions);
     for (size_t coarser_part = 0; coarser_part < graph->num_partitions;
          ++coarser_part) {
 
         nodes_coarser_p = nodes_per_part[coarser_part];
         num_nodes_p     = list_ul_size(nodes_coarser_p);
+
+        printf("pn %lu, pc coarser %lu, paw coarser %lu, wt %.3f\n",
+               finer_partition,
+               num_nodes_p,
+               graph->partition_aggregation_weight[coarser_part],
+               weight_threshold);
 
         if (list_ul_size(nodes_coarser_p) == 1
             || graph->partition_aggregation_weight[coarser_part]
@@ -547,8 +563,13 @@ project(multi_level_graph_t* graph,
             continue;
         }
 
-        min              = true;
-        num_nodes_before = num_nodes_p;
+        min = true;
+        max_finer_p =
+              finer_partition
+              + ceil((float)graph->partition_aggregation_weight[coarser_part]
+                     / weight_threshold)
+              - 1;
+        min_finer_p = finer_partition;
         do {
             ext_tension = min ? LONG_MAX : LONG_MIN;
             tensions    = compute_tension(graph, nodes_coarser_p, true);
@@ -560,27 +581,41 @@ project(multi_level_graph_t* graph,
                     ext_node_id = list_ul_get(nodes_coarser_p, i);
                 }
             }
-            min = !min;
             free(tensions);
+            if (min) {
+                if ((float)(finer->partition_aggregation_weight[min_finer_p]
+                            + finer->node_aggregation_weight[ext_node_id])
+                    > weight_threshold) {
 
-            if ((double)(finer->partition_aggregation_weight[finer_partition]
-                         + finer->node_aggregation_weight[ext_node_id])
-                > weight_threshold) {
+                    (*part_type)[min_finer_p] = false;
+                    min_finer_p++;
+                }
 
-                (*part_type)[finer_partition] =
-                      num_nodes_p < num_nodes_before / 2 + 1 ? false : true;
-                finer_partition++;
+                finer->partition[ext_node_id] = min_finer_p;
+                finer->partition_aggregation_weight[min_finer_p] +=
+                      finer->node_aggregation_weight[ext_node_id];
+            } else {
+                if ((float)(finer->partition_aggregation_weight[max_finer_p]
+                            + finer->node_aggregation_weight[ext_node_id])
+                    > weight_threshold) {
+
+                    (*part_type)[max_finer_p] = true;
+                    max_finer_p--;
+                }
+                finer->partition[ext_node_id] = max_finer_p;
+                finer->partition_aggregation_weight[max_finer_p] +=
+                      finer->node_aggregation_weight[ext_node_id];
             }
-
-            finer->partition[ext_node_id] = finer_partition;
-            finer->partition_aggregation_weight[finer_partition] +=
-                  finer->node_aggregation_weight[ext_node_id];
-
+            min = !min;
             list_ul_remove_elem(nodes_coarser_p, ext_node_id);
             num_nodes_p--;
         } while (num_nodes_p > 0);
+        finer_partition +=
+              ceil((float)graph->partition_aggregation_weight[coarser_part]
+                   / weight_threshold);
+        (*part_type)[finer_partition - 1] = true;
     }
-    finer_partition++;
+
     finer->num_partitions = finer_partition;
     finer->partition_aggregation_weight =
           realloc(finer->partition_aggregation_weight,
@@ -615,7 +650,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
         exit(-1);
     }
 
-    size_t num_groups = 1;
+    size_t num_groups = 0;
     size_t num_parts;
     bool   swapped = false;
     groups[0]      = create_list_ul();
@@ -631,13 +666,18 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     // extract groups
     for (size_t i = 1; i < finer->num_partitions; ++i) {
         if (part_type[i - 1] == false && part_type[i] == true) {
+            num_groups++;
             printf("num groups %lu\n", num_groups);
             groups[num_groups] = create_list_ul();
-            num_groups++;
         }
+        printf("Appending: %lu with part type %d to %lu\n",
+               i,
+               part_type[i],
+               num_groups);
         list_ul_append(groups[num_groups], i);
     }
-    groups = realloc(groups, (num_groups + 1) * sizeof(list_ul_t*));
+    num_groups++;
+    groups = realloc(groups, num_groups * sizeof(list_ul_t*));
 
     if (!groups) {
         printf("G-Store - reorder: Memory Allocation failed!\n");
@@ -717,8 +757,8 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     size_t               num_nodes = finer->records->node_id_counter;
     float* score = calloc(num_nodes * finer->num_partitions, sizeof(float));
 
-    float weight_threshold =
-          block_size / (float)pow(1 - c_ratio_avg, finer->c_level);
+    float weight_threshold = ((float)block_size / (float)sizeof(node_t))
+                             / (float)pow(1 - c_ratio_avg, finer->c_level);
 
     unsigned long* temp_p = calloc(num_nodes, sizeof(unsigned long));
 

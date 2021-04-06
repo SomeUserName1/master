@@ -7,30 +7,50 @@
 static void*
 htable_passthrough_copy(const void* elem)
 {
+    if (!elem) {
+        printf("htable - passthrough copy: Invalid Argument!\n");
+        exit(-1);
+    }
     return (void*)elem;
 }
 
 static void
 htable_passthrough_free(void* elem)
 {
+    if (!elem) {
+        printf("htable - passthrough free: Invalid Argument!\n");
+        exit(-1);
+    }
     elem = NULL;
 }
 
 static bool
 htable_passthrough_eq(const void* first, const void* second)
 {
+    if (!first || !second) {
+        printf("htable - passthrough eq: Invalid Argument!\n");
+        exit(-1);
+    }
     return first == second;
 }
 
 static void
 htable_pasthrough_print(const void* in)
 {
+    if (!in) {
+        printf("htable - passthrough print: Invalid Argument!\n");
+        exit(-1);
+    }
     printf("%p\n", in);
 }
 
 static size_t
 htable_bucket_idx(htable_t* ht, void* key)
 {
+    if (!key) {
+        printf("htable - bucket_idx: Invalid Argument!\n");
+        exit(-1);
+    }
     return ht->num_buckets > 0 ? (ht->hash_fn(key, ht->seed) % ht->num_buckets)
                                : ht->hash_fn(key, ht->seed);
 }
@@ -38,18 +58,24 @@ htable_bucket_idx(htable_t* ht, void* key)
 static int
 htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
 {
+    if (!ht || !key) {
+        printf("htable - add_to_bucket: Invalid Argument!\n");
+        exit(-1);
+    }
     size_t idx = htable_bucket_idx(ht, key);
 
-    if (ht->buckets[idx].key == NULL) {
+    if (!ht->buckets[idx].key) {
         if (!rehash) {
             key = ht->cbs.key_copy(key);
-            if (key == NULL) {
-                return -1;
+            if (!key) {
+                printf("htable - add_to_bucket: Key copy failed!\n");
+                exit(-1);
             }
-            if (value != NULL) {
+            if (value) {
                 value = ht->cbs.value_copy(value);
-                if (value == NULL) {
-                    return -1;
+                if (!value) {
+                    printf("htable - add_to_bucket: Value copy failed!\n");
+                    exit(-1);
                 }
             }
         }
@@ -63,13 +89,14 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
         htable_bucket_t* last = NULL;
         do {
             if (ht->keq(key, cur->key)) {
-                if (cur->value != NULL) {
+                if (cur->value) {
                     ht->cbs.value_free(cur->value);
                 }
-                if (!rehash && value != NULL) {
+                if (!rehash && value) {
                     value = ht->cbs.value_copy(value);
-                    if (value == NULL) {
-                        return -1;
+                    if (!value) {
+                        printf("htable - add_to_bucket: Value copy failed!\n");
+                        exit(-1);
                     }
                 }
                 cur->value = value;
@@ -78,27 +105,30 @@ htable_add_to_bucket(htable_t* ht, void* key, void* value, bool rehash)
             }
             last = cur;
             cur  = cur->next;
-        } while (cur != NULL);
+        } while (cur);
 
-        if (last != NULL) {
+        if (last) {
             cur = calloc(1, sizeof(*cur->next));
 
             if (!cur) {
-                return -1;
+                printf("htable - add_to_bucket: Memory Allocation failed!\n");
+                exit(-1);
             }
 
             if (!rehash) {
                 key = ht->cbs.key_copy(key);
                 if (key == NULL) {
                     free(cur);
-                    return -1;
+                    printf("htable - add_to_bucket: Key copy failed!\n");
+                    exit(-1);
                 }
-                if (value != NULL) {
+                if (value) {
                     value = ht->cbs.value_copy(value);
-                    if (value == NULL) {
+                    if (!value) {
                         free(cur);
                         free(key);
-                        return -1;
+                        printf("htable - add_to_bucket: Value copy failed!\n");
+                        exit(-1);
                     }
                 }
             }
@@ -128,25 +158,26 @@ htable_rehash(htable_t* ht)
     ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
 
     if (!ht->buckets) {
-        return -1;
+        printf("htable - rehash: Memory Allocation failed!\n");
+        exit(-1);
     }
 
     htable_bucket_t* cur  = NULL;
     htable_bucket_t* next = NULL;
     for (size_t i = 0; i < num_buckets; ++i) {
-        if (buckets[i].key == NULL) {
+        if (!buckets[i].key) {
             continue;
         }
 
         htable_add_to_bucket(ht, buckets[i].key, buckets[i].value, true);
-        if (buckets[i].next != NULL) {
+        if (buckets[i].next) {
             cur = buckets[i].next;
             do {
                 htable_add_to_bucket(ht, cur->key, cur->value, true);
                 next = cur->next;
                 free(cur);
                 cur = next;
-            } while (cur != NULL);
+            } while (cur);
         }
     }
     free(buckets);
@@ -156,7 +187,7 @@ htable_rehash(htable_t* ht)
 htable_t*
 create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs)
 {
-    if (fn == NULL || keq == NULL) {
+    if (!fn || !keq) {
         return NULL;
     }
 
@@ -210,19 +241,20 @@ int
 htable_destroy(htable_t* ht)
 {
     if (ht == NULL) {
-        return -1;
+        printf("htable - add_to_bucket: Invalid Argument!\n");
+        exit(-1);
     }
     htable_bucket_t* cur  = NULL;
     htable_bucket_t* next = NULL;
     for (size_t i = 0; i < ht->num_buckets; ++i) {
-        if (ht->buckets[i].key == NULL) {
+        if (!ht->buckets[i].key) {
             continue;
         }
         ht->cbs.key_free(ht->buckets[i].key);
         ht->cbs.value_free(ht->buckets[i].value);
 
         next = ht->buckets[i].next;
-        while (next != NULL) {
+        while (next) {
             cur = next;
             ht->cbs.key_free(cur->key);
             ht->cbs.value_free(cur->value);
@@ -245,8 +277,9 @@ htable_size(htable_t* ht)
 int
 htable_insert(htable_t* ht, void* key, void* value)
 {
-    if (key == NULL || ht == NULL) {
-        return -1;
+    if (!key || !ht) {
+        printf("htable - insert: Invalid Argument!\n");
+        exit(-1);
     }
     htable_rehash(ht);
     return htable_add_to_bucket(ht, key, value, false);
@@ -255,13 +288,15 @@ htable_insert(htable_t* ht, void* key, void* value)
 int
 htable_remove(htable_t* ht, void* key)
 {
-    if (ht == NULL || key == NULL) {
-        return -1;
+    if (!ht || !key) {
+        printf("htable - remove: Invalid Argument!\n");
+        exit(-1);
     }
 
     size_t idx = htable_bucket_idx(ht, key);
-    if (ht->buckets[idx].key == NULL) {
-        return -1;
+    if (!ht->buckets[idx].key) {
+        printf("htable - remove: No such key!\n");
+        exit(-1);
     }
 
     htable_bucket_t* cur = NULL;
@@ -271,7 +306,7 @@ htable_remove(htable_t* ht, void* key)
         ht->buckets[idx].key = NULL;
 
         cur = ht->buckets[idx].next;
-        if (cur != NULL) {
+        if (cur) {
             ht->buckets[idx].key   = cur->key;
             ht->buckets[idx].value = cur->value;
             ht->buckets[idx].next  = cur->next;
@@ -283,7 +318,7 @@ htable_remove(htable_t* ht, void* key)
 
     htable_bucket_t* last = ht->buckets + idx;
     cur                   = last->next;
-    while (cur != NULL) {
+    while (cur) {
         if (ht->keq(cur->key, key)) {
             last->next = cur->next;
             ht->cbs.key_free(cur->key);
@@ -294,23 +329,25 @@ htable_remove(htable_t* ht, void* key)
         last = cur;
         cur  = cur->next;
     }
-    return -1;
+    printf("htable - remove: No such key!\n");
+    exit(-1);
 }
 
 int
 htable_get(htable_t* ht, void* key, void** value)
 {
-    if (ht == NULL || key == NULL) {
-        return -1;
+    if (!ht || !key) {
+        printf("htable - get: Invalid Argument!\n");
+        exit(-1);
     }
 
     size_t idx = htable_bucket_idx(ht, key);
-    if (ht->buckets[idx].key == NULL) {
+    if (!ht->buckets[idx].key) {
         return -1;
     }
 
     htable_bucket_t* cur = ht->buckets + idx;
-    while (cur != NULL) {
+    while (cur) {
         if (ht->keq(cur->key, key)) {
             *value = cur->value;
 
@@ -324,6 +361,10 @@ htable_get(htable_t* ht, void* key, void** value)
 void*
 htable_get_direct(htable_t* ht, void* key)
 {
+    if (!ht || !key) {
+        printf("htable - get_direct: Invalid Argument!\n");
+        exit(-1);
+    }
     void* value = NULL;
     htable_get(ht, key, &value);
     return value;
@@ -332,6 +373,10 @@ htable_get_direct(htable_t* ht, void* key)
 bool
 htable_contains(htable_t* ht, void* key)
 {
+    if (!ht || !key) {
+        printf("htable - contains: Invalid Argument!\n");
+        exit(-1);
+    }
     void* val = NULL;
     return htable_get(ht, key, &val) > -1;
 }
@@ -340,12 +385,14 @@ htable_iterator_t*
 create_htable_iterator(htable_t* ht)
 {
     if (!ht) {
-        return NULL;
+        printf("htable - create_iterator: Invalid Argument!\n");
+        exit(-1);
     }
 
     htable_iterator_t* hi = calloc(1, sizeof(*hi));
 
     if (!hi) {
+        printf("htable - create iterator: Memory Allocation failed!\n");
         exit(-1);
     }
 
@@ -357,7 +404,11 @@ create_htable_iterator(htable_t* ht)
 int
 htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
 {
-    if (!hi || !key || !value || hi->idx >= hi->ht->num_buckets) {
+    if (!hi || !key || !value) {
+        printf("htable - create_iterator_next: Invalid Argument!\n");
+        exit(-1);
+    }
+    if (hi->idx >= hi->ht->num_buckets) {
         return -1;
     }
 
@@ -391,6 +442,10 @@ htable_iterator_destroy(htable_iterator_t* hi)
 void
 htable_print(htable_t* ht)
 {
+    if (!ht) {
+        printf("htable - print: Invalid Argument!\n");
+        exit(-1);
+    }
     htable_iterator_t* hi = create_htable_iterator(ht);
 
     void* key   = NULL;
@@ -399,7 +454,7 @@ htable_print(htable_t* ht)
         printf("%s", "\n_______Next Entry:________ \n");
         hi->ht->cbs.key_print(key);
         hi->ht->cbs.value_print(value);
-        printf("%s", "_______________________");
+        printf("%s", "_______________________\n");
     }
     htable_iterator_destroy(hi);
 }
