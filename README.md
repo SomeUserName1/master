@@ -3,7 +3,7 @@
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Static data locality optimizing storage scheme for graph databases.  
 
 ## Timetable 
-<p style="text-align: center;"><font size="20"><progress id="time" value="15" max="22"></progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="time" value="16" max="22"></progress></font></p>
 
 <font size="1">
 
@@ -11,7 +11,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 |---	|---	|---	|---	|---	|---	|---	|
 |22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3  :ballot_box_with_check:	|
 |  29.3 :ballot_box_with_check: | 30.3  :ballot_box_with_check: | 31.3 :ballot_box_with_check: 	| 01.4 :ballot_box_with_check: |  02.4 :ballot_box_with_check: | 03.4 :ballot_box_with_check: | 04.4 :ballot_box_with_check: | 
-| 05.4 :ballot_box_with_check: 	| 06.04  :computer: Debug Remapping nodes & rels and incidence list sorting 	|  07.4 :pencil: Edit thesis with Theodoros feedback 	| 08.4 :computer: evaluation code  	| 09.4 :computer: run experiments   | 10.4 :computer: visualize experiments 	|  11.4 :pencil: results 	|
+| 05.4 :ballot_box_with_check: 	| 06.04 :ballot_box_with_check:	|  07.4 :pencil: Edit thesis with Theodoros feedback 	| 08.4 :computer: evaluation code  	| 09.4 :computer: run experiments   | 10.4 :computer: visualize experiments 	|  11.4 :pencil: results 	|
 | 12.4 :pencil: Proof reading & layout  	|  13.4 :pencil: Proof reading, layout 	| 14.4 :printer: Submit thesis to online printing service before 9am   	| 13.04 :watch:   	|   16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
 | 26.4  :bar_chart: 	|   27.4 :speaking_head: |  28.4  :speaking_head:	|   29.4 :speaking_head:	|   30.4 :dart: Defense	:checkered_flag: |  01.5 :beers:	|   02.5 :beers:	|
@@ -29,7 +29,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 <p style="text-align: center;"><font size="20"><progress id="write" value="25" max="28">Thesis</progress></font></p>
 
 #### Results & Figures
-- [ ] Theodoros Feedback
+- [ ] Theodoros Feedback comes on friday... yay
 - [ ] Results & Visualize
 - [ ] Complete Conclusion
 
@@ -75,10 +75,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="23" max="26">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="24" max="26">Implementation</progress></font></p>  
 
-
-- [ ] Debug & Test ids_to_io, remap records, reorder incidence list
 - [ ] Evaluation code for ICBL, G-Store, Louvain, incidence list reordering
 - [ ] Plot results
 
@@ -108,6 +106,7 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 - [x] Debug & Test G-Store
 - [x] Record remapping vertices & relationships
 - [x] Incidence List Reordering
+- [x] Debug & Test ids_to_io, remap records, reorder incidence list
 
 
 ## Future Improvements
