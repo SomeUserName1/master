@@ -7,40 +7,24 @@
 static void*
 htable_passthrough_copy(const void* elem)
 {
-    if (!elem) {
-        printf("htable - passthrough copy: Invalid Argument!\n");
-        exit(-1);
-    }
     return (void*)elem;
 }
 
 static void
 htable_passthrough_free(void* elem)
 {
-    if (!elem) {
-        printf("htable - passthrough free: Invalid Argument!\n");
-        exit(-1);
-    }
     elem = NULL;
 }
 
 static bool
 htable_passthrough_eq(const void* first, const void* second)
 {
-    if (!first || !second) {
-        printf("htable - passthrough eq: Invalid Argument!\n");
-        exit(-1);
-    }
     return first == second;
 }
 
 static void
 htable_pasthrough_print(const void* in)
 {
-    if (!in) {
-        printf("htable - passthrough print: Invalid Argument!\n");
-        exit(-1);
-    }
     printf("%p\n", in);
 }
 
@@ -329,7 +313,7 @@ htable_remove(htable_t* ht, void* key)
         last = cur;
         cur  = cur->next;
     }
-    printf("htable - remove: No such key!\n");
+    printf("htable - remove: No such key!, %p\n", key);
     exit(-1);
 }
 

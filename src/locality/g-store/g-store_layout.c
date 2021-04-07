@@ -438,6 +438,7 @@ coarsen(multi_level_graph_t* graph,
                   coarser->records->node_id_counter * sizeof(unsigned long));
 
     if (!coarser->node_aggregation_weight) {
+        free(coarser->node_aggregation_weight);
         printf("G-Store - coarsen: Memory Allocation failed!\n");
         exit(-1);
     }
@@ -776,9 +777,6 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
         for (size_t i = 0; i < finer->records->node_id_counter; ++i) {
             for (size_t k = 0; k < finer->num_partitions; ++k) {
-                if (k == finer->partition[i]) {
-                    continue;
-                }
                 // copy temp partition from original
                 // & set current nodes partition according to k
                 for (size_t n = 0; n < num_nodes; ++n) {
@@ -811,7 +809,8 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
                 partition_id = i % finer->num_partitions;
             }
         }
-        if (max_score > 0.0F) {
+        if (max_score - score[node_id * finer->num_partitions + partition_id]
+            > 0.0F) {
             finer->partition[node_id] = partition_id;
         }
     }
@@ -856,7 +855,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    // refine(graph, block_size, c_ratio_avg);
+    refine(graph, block_size, c_ratio_avg);
 
     return 0;
 }

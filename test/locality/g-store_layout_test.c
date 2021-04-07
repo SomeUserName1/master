@@ -16,12 +16,23 @@ test_coarsen(in_memory_file_t* db)
     multi_level_graph_t* graph = malloc(sizeof(*graph));
     multi_level_graph_t* prev;
 
+    if (!graph) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->c_level        = 0;
     graph->finer          = NULL;
     graph->coarser        = NULL;
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
     graph->node_aggregation_weight =
           calloc(db->node_id_counter, sizeof(unsigned long));
+
+    if (!graph->map_to_coarser || !graph->node_aggregation_weight) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->records = db;
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -129,12 +140,22 @@ test_turn_arround(in_memory_file_t* db)
 {
     multi_level_graph_t* graph = malloc(sizeof(*graph));
 
+    if (!graph) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
     graph->c_level        = 0;
     graph->finer          = NULL;
     graph->coarser        = NULL;
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
     graph->node_aggregation_weight =
           calloc(db->node_id_counter, sizeof(unsigned long));
+
+    if (!graph->map_to_coarser || !graph->node_aggregation_weight) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->records = db;
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -197,6 +218,11 @@ test_project(in_memory_file_t* db)
 {
     multi_level_graph_t* graph = malloc(sizeof(*graph));
 
+    if (!graph) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     float weight_threshold;
 
     graph->c_level        = 0;
@@ -205,6 +231,12 @@ test_project(in_memory_file_t* db)
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
     graph->node_aggregation_weight =
           calloc(db->node_id_counter, sizeof(unsigned long));
+
+    if (!graph->map_to_coarser || !graph->node_aggregation_weight) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->records = db;
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -238,6 +270,11 @@ test_project(in_memory_file_t* db)
 
         nodes_per_part = calloc(graph->num_partitions, sizeof(list_ul_t*));
 
+        if (!part_type || !nodes_per_part) {
+            printf("Allocating memory failed!\n");
+            exit(-1);
+        }
+
         for (size_t i = 0; i < graph->num_partitions; ++i) {
             nodes_per_part[i] = create_list_ul();
         }
@@ -264,6 +301,11 @@ test_project(in_memory_file_t* db)
         printf("Num finer parts %lu\n", graph->finer->num_partitions);
         part_count =
               calloc(graph->finer->num_partitions, sizeof(unsigned long));
+
+        if (!part_count) {
+            printf("Allocating memory failed!\n");
+            exit(-1);
+        }
 
         weight_threshold = ((float)BLOCK_SIZE / (float)sizeof(node_t))
                            / (float)pow(1 - c_ratio_avg, graph->finer->c_level);
@@ -322,6 +364,12 @@ test_reorder(in_memory_file_t* db)
     graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
     graph->node_aggregation_weight =
           calloc(db->node_id_counter, sizeof(unsigned long));
+
+    if (!graph->map_to_coarser || !graph->node_aggregation_weight) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->records = db;
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -352,6 +400,11 @@ test_reorder(in_memory_file_t* db)
               calloc(graph->finer->records->node_id_counter, sizeof(bool));
 
         nodes_per_part = calloc(graph->num_partitions, sizeof(list_ul_t*));
+
+        if (!part_type || !nodes_per_part) {
+            printf("Allocating memory failed!\n");
+            exit(-1);
+        }
 
         for (size_t i = 0; i < graph->num_partitions; ++i) {
             nodes_per_part[i] = create_list_ul();
@@ -430,7 +483,7 @@ main(void)
 
     test_project(db);
 
-    test_reorder(db);
+    // test_reorder(db);
 
     // test_full_run(db);
 

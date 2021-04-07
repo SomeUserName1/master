@@ -366,6 +366,10 @@ compute_modularity(louvain_partition_t* p, louvain_graph_t* g)
         exit(-1);
     }
 
+    if (g->m2 == 0) {
+        return 0;
+    }
+
     double q = 0.0F;
 
     for (size_t i = 0; i < p->size; i++) {
@@ -380,7 +384,7 @@ compute_modularity(louvain_partition_t* p, louvain_graph_t* g)
 double
 louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
 {
-    if (!p || !g || p->size == 0) {
+    if (!p || !g || p->size == 0 || g->m2 == 0) {
         printf("louvain: louvain_one_level: Passed NULL ptr as argument or "
                "zero-sized partition!\n");
         exit(-1);

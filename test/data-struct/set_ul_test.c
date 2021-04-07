@@ -70,13 +70,13 @@ test_set_ul_remove(void)
     set_ul_insert(set, MAGIC_TEST_VALUE);
     set_ul_insert(set, 0);
     assert(2 == set_ul_size(set));
+    assert(set_ul_contains(set, MAGIC_TEST_VALUE));
+    assert(set_ul_contains(set, 0));
 
     set_ul_remove(set, 0);
     assert(1 == set_ul_size(set));
     set_ul_remove(set, MAGIC_TEST_VALUE);
     assert(0 == set_ul_size(set));
-
-    assert(set_ul_remove(set, 1) == -1);
 
     set_ul_destroy(set);
 }
