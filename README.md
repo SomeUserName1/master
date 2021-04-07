@@ -2,6 +2,7 @@
 
 Master Project at the Database and Information Sytems Group, supervised by Dr. Theodoros Chondrogiannis and Prof. Michael Grossniklaus. Static data locality optimizing storage scheme for graph databases.  
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ac5cdbdaa8db4c04ad8daaa0be986e32)](https://app.codacy.com/gh/SomeUserName1/master?utm_source=github.com&utm_medium=referral&utm_content=SomeUserName1/master&utm_campaign=Badge_Grade_Settings)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SomeUserName1/master.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SomeUserName1/master/context:cpp)  [![codecov](https://codecov.io/gh/SomeUserName1/master/branch/main/graph/badge.svg?token=EHBWYZ8HYP)](https://codecov.io/gh/SomeUserName1/master)  
 
 ## Timetable 
