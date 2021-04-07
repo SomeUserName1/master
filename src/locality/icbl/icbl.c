@@ -548,9 +548,6 @@ node_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
     // Compute pairwise distance matrix
     for (size_t i = 0; i < n_nodes_of_p; ++i) {
         for (size_t j = 0; j < i; ++j) {
-            if (i == j) {
-                continue;
-            }
             pairwise_dist[j * n_nodes_of_p + i] =
                   weighted_jaccard_dist(dif_sets[list_ul_get(nodes_of_p, i)],
                                         dif_sets[list_ul_get(nodes_of_p, j)]);
@@ -731,7 +728,7 @@ cluster_hierarchical(unsigned long   n_nodes,
 
         *blocks = realloc(*blocks, *block_count * sizeof(dendrogram_t*));
 
-        if (!blocks) {
+        if (!*blocks) {
             free(*blocks);
             printf("ICBL - cluster_hierarchical: Memory Allocation failed!\n");
             exit(-1);
