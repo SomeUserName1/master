@@ -187,45 +187,6 @@ compute_tension(multi_level_graph_t* graph,
     return tensions;
 }
 
-int
-compare_by_tension(const void* a, const void* b, void* array2)
-{
-    if (!a || !b || !array2) {
-        printf("G-Store - compare_by_tension: Invalid Arguments!\n");
-        exit(-1);
-    }
-
-    long diff =
-          ((long*)array2)[*(unsigned long*)a] > ((long*)array2)[*(unsigned*)b];
-
-    return (0 < diff) - (diff < 0);
-}
-
-unsigned long*
-sort_by_tension(list_ul_t* nodes, long* tensions, unsigned long size)
-{
-    if (!nodes || !tensions) {
-        printf("G-Store - sort_by_tension: Invalid Arguments!\n");
-        exit(-1);
-    }
-
-    unsigned long  i;
-    unsigned long* s_nodes = calloc(size, sizeof(unsigned long));
-
-    if (!s_nodes) {
-        printf("G-Store - sort_by_tension: Memory Allocation failed!\n");
-        exit(-1);
-    }
-
-    for (i = 0; i < size; i++) {
-        s_nodes[i] = list_ul_get(nodes, i);
-    }
-
-    qsort_r(nodes, size, sizeof(long), compare_by_tension, (void*)tensions);
-
-    return s_nodes;
-}
-
 unsigned long*
 swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 {
@@ -741,7 +702,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
 }
 
 void
-refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
+refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio)
 {
     if (!graph || !graph->finer || !graph->finer->records) {
         printf("G-Store - refine: Invalid Arguments!\n");
@@ -750,26 +711,30 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
     multi_level_graph_t* finer     = graph->finer;
     size_t               num_nodes = finer->records->node_id_counter;
-    float* score = calloc(num_nodes * finer->num_partitions, sizeof(float));
-
+    float                gain;
     float weight_threshold = ((float)block_size / (float)sizeof(node_t))
-                             / (float)pow(1 - c_ratio_avg, finer->c_level);
+                             / (float)pow(1 - avg_c_ratio, finer->c_level);
 
     unsigned long* temp_p = calloc(num_nodes, sizeof(unsigned long));
 
-    if (!score || !temp_p) {
+    if (!temp_p) {
         printf("G-Store - refine: Memory Allocation failed!\n");
         exit(-1);
     }
 
-    float  occupancy_factor;
-    float  max_score;
-    size_t node_id      = ULONG_MAX;
+    float  max_gain;
+    float  prev_score;
     size_t partition_id = ULONG_MAX;
 
     // TODO This should actually be an adapted KL
     for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
         for (size_t i = 0; i < num_nodes; ++i) {
+            prev_score =
+                  -(ALPHA * (float)compute_abs_tension(finer, finer->partition)
+                    + BETA * compute_conn_parts(finer, finer->partition)
+                    + GAMMA * compute_num_e_btw_parts(finer, finer->partition));
+            max_gain = 0.0F;
+
             for (size_t k = 0; k < finer->num_partitions; ++k) {
                 // copy temp partition from original
                 // & set current nodes partition according to k
@@ -779,47 +744,40 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
                 temp_p[i] = k;
 
-                // TODO this should be an additional term in the eq.
-                // however what's described in the report is rather clumsy
-                // http://g-store.sourceforge.net/th/6.htm#6ddre
-                occupancy_factor =
-                      1
-                      - (float)(finer->node_aggregation_weight[i]
-                                + finer->partition_aggregation_weight[k])
-                              / weight_threshold;
-                printf("occupancy factor %.3f\n", occupancy_factor);
-                // FIXME something is wrong with the measures below!
-                score[i * finer->num_partitions + k] =
-                      occupancy_factor
-                      * (ALPHA * (float)compute_abs_tension(finer, temp_p)
-                         + BETA * compute_conn_parts(finer, temp_p)
-                         + GAMMA * compute_num_e_btw_parts(finer, temp_p));
+                gain = (float)finer->partition_aggregation_weight[k]
+                                         + (float)finer
+                                                 ->node_aggregation_weight[i]
+                                   < weight_threshold
+                             ? -(ALPHA
+                                       * (float)compute_abs_tension(finer,
+                                                                    temp_p)
+                                 + BETA * compute_conn_parts(finer, temp_p)
+                                 + GAMMA
+                                         * compute_num_e_btw_parts(finer,
+                                                                   temp_p))
+                                     - prev_score
+                             : -FLT_MAX;
 
-                printf("score %lu: %.3f\n", i, score[i]);
+                if (gain > max_gain) {
+                    max_gain     = gain;
+                    partition_id = k;
+                }
             }
-        }
-        max_score = -FLT_MAX;
-        for (size_t i = 0; i < num_nodes * finer->num_partitions; ++i) {
-            if (score[i] > max_score) {
-                printf("max score: %.3f", max_score);
-                score[i]     = max_score;
-                node_id      = i / finer->num_partitions;
-                partition_id = i % finer->num_partitions;
+            if (max_gain > 1.0F) {
+                printf("node %lu from partition %lu to partition %lu with "
+                       "gain %.3f\n",
+                       i,
+                       finer->partition[i],
+                       partition_id,
+                       max_gain);
+                finer->partition_aggregation_weight[finer->partition[i]] -=
+                      finer->node_aggregation_weight[i];
+                finer->partition[i] = partition_id;
+                finer->partition_aggregation_weight[partition_id] +=
+                      finer->node_aggregation_weight[i];
             }
-        }
-        if (max_score > 0.1F
-            && max_score - score[node_id * finer->num_partitions + partition_id]
-                     > 0.0F) {
-            printf("moving node %lu to partition %lu with score gain %.3f",
-                   node_id,
-                   partition_id,
-                   max_score
-                         - score[node_id * finer->num_partitions
-                                 + partition_id]);
-            finer->partition[node_id] = partition_id;
         }
     }
-    free(score);
     free(temp_p);
 }
 
@@ -860,7 +818,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    refine(graph, block_size, c_ratio_avg);
+    // refine(graph, block_size, c_ratio_avg);
 
     return 0;
 }

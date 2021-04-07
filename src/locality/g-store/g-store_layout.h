@@ -49,7 +49,7 @@ void
 reorder(multi_level_graph_t* graph, const bool* part_type);
 
 void
-refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
+refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio);
 
 int
 uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);

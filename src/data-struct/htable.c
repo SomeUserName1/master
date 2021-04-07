@@ -31,7 +31,7 @@ htable_pasthrough_print(const void* in)
 static size_t
 htable_bucket_idx(htable_t* ht, void* key)
 {
-    if (!key) {
+    if (!ht || !key) {
         printf("htable - bucket_idx: Invalid Argument!\n");
         exit(-1);
     }
@@ -273,7 +273,7 @@ int
 htable_remove(htable_t* ht, void* key)
 {
     if (!ht || !key) {
-        printf("htable - remove: Invalid Argument!\n");
+        printf("htable - remove: Invalid Argument! \n");
         exit(-1);
     }
 
@@ -391,9 +391,6 @@ htable_iterator_next(htable_iterator_t* hi, void** key, void** value)
     if (!hi || !key || !value) {
         printf("htable - create_iterator_next: Invalid Argument!\n");
         exit(-1);
-    }
-    if (hi->idx >= hi->ht->num_buckets) {
-        return -1;
     }
 
     if (!hi->cur) {

@@ -15,6 +15,7 @@
 #include "../../data-struct/cbs.h"
 #include "../../data-struct/list.h"
 #include "../../data-struct/list_ul.h"
+#include "../../data-struct/set_ul.h"
 #include "../../query/degree.h"
 #include "../../query/random_walk.h"
 
@@ -67,7 +68,8 @@ get_num_coarse_clusters(in_memory_file_t* db)
           ceil(((double)((sizeof(node_t) + log((double)db->node_id_counter))
                          * (double)db->node_id_counter))
                / sqrt(SHARE_OF_MEMORY * MEMORY));
-    return result > 0 ? result : 1;
+    printf("%zu\n", result);
+    return 2;
 }
 
 inline size_t
@@ -135,7 +137,7 @@ dendrogram_print(dendrogram_t* root, bool subgraph)
     list_destroy(stack);
 }
 
-int
+void
 identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 {
     if (!db || !dif_sets) {
@@ -150,7 +152,7 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
     unsigned long node_id;
     list_ul_t*    visited_nodes;
 
-    // srand(time(NULL));
+    srand(time(NULL));
 
     for (size_t i = 0; i < num_nodes; ++i) {
         for (size_t j = 0; j < num_walks; ++j) {
@@ -159,7 +161,6 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 
             for (size_t k = 0; k < list_ul_size(visited_nodes); ++k) {
                 node_id = list_ul_get(visited_nodes, k);
-                printf("node %lu visited node %lu\n", i, node_id);
                 if (dict_ul_ul_contains(dif_sets[i], node_id)) {
                     dict_ul_ul_insert(
                           dif_sets[i],
@@ -173,8 +174,6 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
             list_ul_destroy(visited_nodes);
         }
     }
-
-    return 0;
 }
 
 float
@@ -185,8 +184,8 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
         exit(-1);
     }
 
-    dict_ul_ul_iterator_t* it = create_dict_ul_ul_iterator(dif_set_a);
-    list_ul_t*             visited_elems_b = create_list_ul();
+    dict_ul_ul_iterator_t* it          = create_dict_ul_ul_iterator(dif_set_a);
+    set_ul_t*              seen_keys_b = create_set_ul();
 
     unsigned long* key     = NULL;
     unsigned long* value_a = NULL;
@@ -198,7 +197,7 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
 
     while (dict_ul_ul_iterator_next(it, &key, &value_a) > -1) {
         if (dict_ul_ul_contains(dif_set_b, *key)) {
-            list_ul_append(visited_elems_b, *key);
+            set_ul_insert(seen_keys_b, *key);
             value_b = dict_ul_ul_get_direct(dif_set_b, *key);
 
             intersect_sum += *value_a > value_b ? value_b : *value_a;
@@ -211,18 +210,18 @@ weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b)
     it = create_dict_ul_ul_iterator(dif_set_b);
 
     while (dict_ul_ul_iterator_next(it, &key, &value_b_ptr) > -1) {
-        if (!list_ul_contains(visited_elems_b, *key)) {
+        if (!set_ul_contains(seen_keys_b, *key)) {
             union_sum += *value_b_ptr;
         }
     }
 
     dict_ul_ul_iterator_destroy(it);
-    list_ul_destroy(visited_elems_b);
+    set_ul_destroy(seen_keys_b);
 
     return 1 - ((float)intersect_sum / (float)union_sum);
 }
 
-static void
+void
 insert_match(size_t*       max_degree_nodes,
              size_t*       max_degrees,
              unsigned long node_id,
@@ -258,42 +257,70 @@ insert_match(size_t*       max_degree_nodes,
     }
 }
 
-int
+bool
+check_dist_bound(const size_t*  max_degree_nodes,
+                 size_t         candidate,
+                 unsigned long  num_found,
+                 dict_ul_ul_t** dif_sets)
+{
+    if (!max_degree_nodes || !dif_sets) {
+        printf("ICBL - check dist bound: Invalid Arguments!\n");
+        exit(-1);
+    }
+
+    for (size_t i = 0; i < num_found; ++i) {
+        if (weighted_jaccard_dist(dif_sets[max_degree_nodes[i]],
+                                  dif_sets[candidate])
+            < MIN_DIST_INIT_CENTERS) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void
 initialize_centers(in_memory_file_t* db,
                    unsigned long**   centers,
-                   size_t            num_clusters)
+                   size_t            num_clusters,
+                   dict_ul_ul_t**    dif_sets)
 {
     if (!db || !centers) {
         printf("ICBL - initialize_centers: Invalid Argument!\n");
         exit(-1);
     }
 
-    unsigned long  num_nodes = db->node_id_counter;
-    unsigned long* max_degree_nodes =
-          calloc(num_clusters, sizeof(unsigned long));
-
-    unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
+    unsigned long        num_nodes = db->node_id_counter;
     list_relationship_t* rels;
     unsigned long        degree;
+    unsigned long        num_found = 0;
+
+    unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
+    unsigned long* max_degree_nodes =
+          calloc(num_clusters, sizeof(unsigned long));
 
     if (!max_degrees || !max_degree_nodes) {
         printf("icbl.c: initialize_centers: Memory allocation failed!\n");
         exit(-1);
     }
-    // TODO check distance first
+
     for (size_t i = 0; i < num_nodes; ++i) {
         rels   = in_memory_expand(db, i, BOTH);
         degree = list_relationship_size(rels);
         if (degree > max_degrees[num_clusters - 1]) {
+            if (!check_dist_bound(max_degree_nodes, i, num_found, dif_sets)) {
+                continue;
+            }
             insert_match(
                   max_degree_nodes, max_degrees, i, degree, num_clusters);
+            if (num_found < num_clusters) {
+                num_found++;
+            }
         }
         list_relationship_destroy(rels);
     }
     free(max_degrees);
 
     *centers = max_degree_nodes;
-    return 0;
 }
 
 size_t
@@ -311,6 +338,7 @@ assign_to_cluster(size_t               num_nodes,
     float         min_dist = FLT_MAX;
     float         dist;
     unsigned long best_center_idx = ULONG_MAX;
+    unsigned long changes         = 0;
 
     if (num_clusters == 1) {
         for (size_t i = 0; i < num_nodes; ++i) {
@@ -322,11 +350,15 @@ assign_to_cluster(size_t               num_nodes,
         for (size_t j = 0; j < num_clusters; ++j) {
             dist = weighted_jaccard_dist(dif_sets[centers[j]], dif_sets[i]);
             if (dist < min_dist) {
+                min_dist        = dist;
                 best_center_idx = j;
             }
         }
         if (best_center_idx < ULONG_MAX) {
-            part[i] = best_center_idx;
+            if (part[i] != best_center_idx) {
+                changes++;
+                part[i] = best_center_idx;
+            }
         } else {
             printf("Couldn't find an appropriate center; sth is wrong!\n");
             exit(-1);
@@ -336,15 +368,15 @@ assign_to_cluster(size_t               num_nodes,
         best_center_idx = ULONG_MAX;
     }
 
-    return 0;
+    return changes;
 }
 
-int
-updated_centers(size_t               num_nodes,
-                dict_ul_ul_t**       dif_sets,
-                const unsigned long* part,
-                unsigned long*       centers,
-                size_t               num_clusters)
+void
+update_centers(size_t               num_nodes,
+               dict_ul_ul_t**       dif_sets,
+               const unsigned long* part,
+               unsigned long*       centers,
+               size_t               num_clusters)
 {
     if (!dif_sets || !part || !centers || num_clusters < 1) {
         printf("ICBL - update_centers: Invalid Argument!\n");
@@ -354,7 +386,8 @@ updated_centers(size_t               num_nodes,
     dict_ul_ul_t** cluster_counts = calloc(num_clusters, sizeof(dict_ul_ul_t*));
 
     if (!cluster_counts) {
-        return -1;
+        printf("ICBL - update centers: Memory Allocation failed!\n");
+        exit(-1);
     }
 
     for (size_t i = 0; i < num_clusters; ++i) {
@@ -394,18 +427,24 @@ updated_centers(size_t               num_nodes,
         while (dict_ul_ul_iterator_next(it, &node_id, &count) == 0) {
             if (*count > max_count) {
                 max_node_id = *node_id;
+                max_count   = *count;
             }
         }
+
+        if (max_node_id == UNINITIALIZED_LONG) {
+            printf("Found no new center! Sth is wrong.\n");
+            exit(-1);
+        }
+
         centers[i]  = max_node_id;
         max_count   = 0;
         max_node_id = UNINITIALIZED_LONG;
+
         dict_ul_ul_iterator_destroy(it);
         dict_ul_ul_destroy(cluster_counts[i]);
     }
 
     free(cluster_counts);
-
-    return 0;
 }
 
 int
@@ -423,15 +462,13 @@ cluster_coarse(in_memory_file_t* db,
 
     unsigned long* centers = NULL;
 
-    if (initialize_centers(db, &centers, num_clusters) < 0) {
-        return -1;
-    }
+    initialize_centers(db, &centers, num_clusters, dif_sets);
 
     assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
 
     do {
-        updated_centers(
+        update_centers(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
         changes = assign_to_cluster(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
