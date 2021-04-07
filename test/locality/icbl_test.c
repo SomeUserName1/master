@@ -243,10 +243,10 @@ test_check_dist_bound(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 }
 
 void
-test_initialize_clusters(in_memory_file_t* db,
-                         dict_ul_ul_t**    dif_sets,
-                         unsigned long*    centers,
-                         size_t            num_clusters)
+test_initialize_centers(in_memory_file_t* db,
+                        dict_ul_ul_t**    dif_sets,
+                        unsigned long*    centers,
+                        size_t            num_clusters)
 {
     if (!db || db->node_id_counter < 1 || !dif_sets || !centers) {
         printf("ICBL test: Invalid Arguments!\n");
@@ -267,7 +267,7 @@ test_initialize_clusters(in_memory_file_t* db,
         assert(centers[i] != UNINITIALIZED_LONG);
         rels = in_memory_expand(db, centers[i], BOTH);
         printf("center degree i: %lu\n", list_relationship_size(rels));
-
+        list_relationship_destroy(rels);
         for (size_t j = 0; j < i; ++j) {
             if (i == j) {
                 continue;
@@ -419,16 +419,7 @@ main(void)
     }
 
     const size_t   num_clusters = 7;
-    unsigned long* centers      = calloc(num_clusters, sizeof(unsigned long));
-
-    if (!centers) {
-        printf("icbl insert match test: malloc failed\n");
-        exit(-1);
-    }
-
-    for (size_t i = 0; i < num_clusters; ++i) {
-        centers[i] = UNINITIALIZED_LONG;
-    }
+    unsigned long* centers;
 
     unsigned long* part = calloc(db->node_id_counter, sizeof(unsigned long));
 
@@ -441,7 +432,7 @@ main(void)
 
     initialize_centers(db, &centers, num_clusters, dif_sets);
 
-    test_initialize_clusters(db, dif_sets, centers, num_clusters);
+    test_initialize_centers(db, dif_sets, centers, num_clusters);
 
     size_t changes = assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
@@ -464,7 +455,7 @@ main(void)
     printf("Done.\n");
 
     FILE* out_f =
-          fopen("/home/someusername/workspace_local/icbl_layout.txt", "w");
+          fopen("/home/someusername/workspace_local/icbl_layout_.txt", "w");
 
     if (!out_f) {
         printf("Couldn't open file");
@@ -472,7 +463,7 @@ main(void)
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
-        fprintf(out_f, "%lu %lu \n", i, partition[i]);
+        fprintf(out_f, "%lu %lu\n", i, partition[i]);
     }
 
     fclose(out_f);

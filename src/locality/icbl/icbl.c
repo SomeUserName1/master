@@ -64,12 +64,9 @@ get_num_coarse_clusters(in_memory_file_t* db)
         exit(-1);
     }
 
-    size_t result =
-          ceil(((double)((sizeof(node_t) + log((double)db->node_id_counter))
-                         * (double)db->node_id_counter))
-               / sqrt(SHARE_OF_MEMORY * MEMORY));
-    printf("%zu\n", result);
-    return 2;
+    size_t result = ceil(((sizeof(node_t) * (double)db->node_id_counter))
+                         / sqrt(SHARE_OF_MEMORY * MEMORY));
+    return result;
 }
 
 inline size_t
@@ -86,7 +83,7 @@ get_num_steps(in_memory_file_t* db)
 }
 
 void
-dendrogram_destroy(dendrogram_t* root, bool subgraph)
+dendrogram_destroy(dendrogram_t* root)
 {
     list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
     list_t*       stack = create_list(&cbs);
@@ -97,8 +94,7 @@ dendrogram_destroy(dendrogram_t* root, bool subgraph)
     while (list_size(stack) > 0) {
         current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
 
-        if ((!subgraph && current->size > sizeof(node_t))
-            || (subgraph && current->size > 1)) {
+        if (current->id == UNINITIALIZED_LONG) {
             list_append(stack, current->children.dendro[0]);
             list_append(stack, current->children.dendro[1]);
         }
@@ -109,7 +105,7 @@ dendrogram_destroy(dendrogram_t* root, bool subgraph)
 }
 
 void
-dendrogram_print(dendrogram_t* root, bool subgraph)
+dendrogram_print(dendrogram_t* root)
 {
     list_cbs_t    cbs   = { ptr_eq, NULL, NULL };
     list_t*       stack = create_list(&cbs);
@@ -120,17 +116,18 @@ dendrogram_print(dendrogram_t* root, bool subgraph)
     while (list_size(stack) > 0) {
         current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
 
-        printf("current: %p, \t size: %lu, \t block? %lu\n",
+        printf("current: %p, \t size: %lu, \t block? %lu",
                current,
                current->size,
                current->block_no == ULONG_MAX ? -1 : current->block_no);
-        if ((!subgraph && current->size > sizeof(node_t))
-            || (subgraph && current->size > 1)) {
+        if (current->id == UNINITIALIZED_LONG) {
             printf("\t child1: %p, \t child2: %p",
                    current->children.dendro[0],
                    current->children.dendro[1]);
             list_append(stack, current->children.dendro[0]);
             list_append(stack, current->children.dendro[1]);
+        } else {
+            printf("\t node %lu", current->children.node);
         }
         printf("\n");
     }
@@ -525,6 +522,7 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
     for (size_t i = 0; i < n_nodes_of_p; ++i) {
         n_id                      = list_ul_get(nodes_of_p, i);
         dendros[i]                = malloc(sizeof(dendrogram_t));
+        dendros[i]->id            = i;
         dendros[i]->children.node = n_id;
         length                    = snprintf(NULL, 0, "%lu", n_id) + 1;
         dendros[i]->label         = malloc(length);
@@ -550,7 +548,7 @@ node_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
 
     // Compute pairwise distance matrix
     for (size_t i = 0; i < n_nodes_of_p; ++i) {
-        for (size_t j = 0; j < n_nodes_of_p - i; ++j) {
+        for (size_t j = 0; j < i; ++j) {
             if (i == j) {
                 continue;
             }
@@ -651,8 +649,8 @@ mark_subtrees(dendrogram_t* new,
     while (list_size(stack) > 0) {
         current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
 
-        if (current->size == sizeof(node_t)) {
-            dendros[current->children.node] = new;
+        if (current->id != UNINITIALIZED_LONG) {
+            dendros[current->id] = new;
         } else {
             list_append(stack, current->children.dendro[0]);
             list_append(stack, current->children.dendro[1]);
@@ -695,7 +693,7 @@ cluster_hierarchical(unsigned long   n_nodes,
             printf("ICBL - cluster_hierarchical: Memory allocation failed!\n");
             exit(-1);
         }
-
+        dendro->id                 = UNINITIALIZED_LONG;
         dendro->children.dendro[0] = dendros[min_idx[0]];
         dendro->children.dendro[1] = dendros[min_idx[1]];
         dendro->size = dendros[min_idx[0]]->size + dendros[min_idx[1]]->size;
@@ -711,6 +709,7 @@ cluster_hierarchical(unsigned long   n_nodes,
                       dendro, dendros[min_idx[0]], dendros[min_idx[1]], true);
                 dendro->uncapt_s = 0;
             } else {
+                dendro->block_no = ULONG_MAX;
                 assign_dendro_label(
                       dendro, dendros[min_idx[0]], dendros[min_idx[1]], false);
             }
@@ -734,6 +733,8 @@ cluster_hierarchical(unsigned long   n_nodes,
         *blocks = realloc(*blocks, *block_count * sizeof(dendrogram_t*));
 
         if (!blocks) {
+            free(*blocks);
+            printf("ICBL - cluster_hierarchical: Memory Allocation failed!\n");
             exit(-1);
         }
     } else {
@@ -887,7 +888,7 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
                    "failed\n");
             exit(-1);
         }
-
+        dendros[i]->id            = i;
         dendros[i]->children.node = i;
         length                    = snprintf(NULL, 0, "%lu", i);
         dendros[i]->label         = malloc(length + 1);
@@ -971,21 +972,21 @@ map_to_partitions(unsigned long*       partition,
 
             while (list_size(stack) > 0) {
                 current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
-
                 // if one of the children of the current dendrogram node is a
                 // block on its own, dont assign a partition number and dont put
                 // its children on the stack; they will be handled in a later or
                 // have been handled in a previous iteration.
-                if (current->block_no != ULONG_MAX) {
-                    continue;
-                }
 
-                if (current->size == 1) {
+                if (current->id != UNINITIALIZED_LONG) {
                     partition[current->children.node] = partition_counter;
+                } else {
+                    if (current->children.dendro[0]->block_no == ULONG_MAX) {
+                        list_append(stack, current->children.dendro[0]);
+                    }
+                    if (current->children.dendro[1]->block_no == ULONG_MAX) {
+                        list_append(stack, current->children.dendro[1]);
+                    }
                 }
-
-                list_append(stack, current->children.dendro[0]);
-                list_append(stack, current->children.dendro[1]);
             }
             partition_counter++;
         }
@@ -1023,12 +1024,13 @@ layout_blocks(in_memory_file_t* db,
     map_to_partitions(partition, blocks, block_count, num_clusters);
 
     for (size_t i = 0; i < num_clusters; ++i) {
-        dendrogram_destroy(block_roots[i][0], false);
+        dendrogram_destroy(block_roots[i][0]);
         free(block_roots[i]);
+        free(blocks[i]);
     }
     free(block_roots);
 
-    dendrogram_destroy(dendros[0], true);
+    dendrogram_destroy(dendros[0]);
     free(dendros);
 
     return 0;
@@ -1070,7 +1072,6 @@ icbl(in_memory_file_t* db)
 
     layout_blocks(db, blocks, block_count, partition, block_roots);
 
-    free(*blocks);
     free(blocks);
     free(block_count);
 

@@ -9,6 +9,7 @@ static const float MIN_DIST_INIT_CENTERS = 0.1F;
 
 typedef struct dendrogram
 {
+    unsigned long id;
     char*         label;
     unsigned long block_no;
     size_t        size;
