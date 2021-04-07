@@ -529,18 +529,11 @@ project(multi_level_graph_t* graph,
     float         weight_threshold = ((float)block_size / (float)sizeof(node_t))
                              / (float)pow(1 - c_ratio_avg, finer->c_level);
 
-    printf("num coarser parts: %lu\n", graph->num_partitions);
     for (size_t coarser_part = 0; coarser_part < graph->num_partitions;
          ++coarser_part) {
 
         nodes_coarser_p = nodes_per_part[coarser_part];
         num_nodes_p     = list_ul_size(nodes_coarser_p);
-
-        printf("pn %lu, pc coarser %lu, paw coarser %lu, wt %.3f\n",
-               finer_partition,
-               num_nodes_p,
-               graph->partition_aggregation_weight[coarser_part],
-               weight_threshold);
 
         if (list_ul_size(nodes_coarser_p) == 1
             || graph->partition_aggregation_weight[coarser_part]
@@ -627,7 +620,7 @@ project(multi_level_graph_t* graph,
 
     *part_type = realloc(*part_type, finer->num_partitions * sizeof(bool));
 
-    if (!part_type || !*part_type) {
+    if (!*part_type) {
         free(*part_type);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
@@ -667,13 +660,8 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     for (size_t i = 1; i < finer->num_partitions; ++i) {
         if (part_type[i - 1] == false && part_type[i] == true) {
             num_groups++;
-            printf("num groups %lu\n", num_groups);
             groups[num_groups] = create_list_ul();
         }
-        printf("Appending: %lu with part type %d to %lu\n",
-               i,
-               part_type[i],
-               num_groups);
         list_ul_append(groups[num_groups], i);
     }
     num_groups++;
@@ -708,15 +696,18 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
             }
 
             for (size_t j = 0; j < num_parts; ++j) {
-                for (size_t k = 0; k < num_parts; ++k) {
-                    if (j == k || gains[j * num_parts + k] != LONG_MIN) {
+                for (size_t k = 0; k < j; ++k) {
+                    if (gains[j * num_parts + k] != LONG_MIN) {
                         continue;
                     }
+
                     swap_p = swap_partitions(finer, j, k);
+
                     gains[j * num_parts + k] =
                           (long)(compute_abs_tension(graph, finer->partition)
                                  - compute_abs_tension(graph, swap_p));
                     gains[k * num_parts + j] = gains[j * num_parts + k];
+
                     if (gains[j * num_parts + k] > max_gain) {
                         max_gain = gains[j * num_parts + k];
                         free(max_gain_p);
@@ -732,13 +723,16 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
             if (max_gain > 0) {
                 free(finer->partition);
                 finer->partition = max_gain_p;
+                max_gain_p       = NULL;
                 temp = finer->partition_aggregation_weight[max_gain_idx1];
                 finer->partition_aggregation_weight[max_gain_idx1] =
                       finer->partition_aggregation_weight[max_gain_idx2];
                 finer->partition_aggregation_weight[max_gain_idx2] = temp;
                 swapped                                            = true;
+            } else {
+                free(max_gain_p);
+                max_gain_p = NULL;
             }
-
         } while (swapped);
         free(gains);
         list_ul_destroy(groups[i]);
@@ -775,7 +769,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
     // TODO This should actually be an adapted KL
     for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
-        for (size_t i = 0; i < finer->records->node_id_counter; ++i) {
+        for (size_t i = 0; i < num_nodes; ++i) {
             for (size_t k = 0; k < finer->num_partitions; ++k) {
                 // copy temp partition from original
                 // & set current nodes partition according to k
@@ -793,24 +787,35 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
                       - (float)(finer->node_aggregation_weight[i]
                                 + finer->partition_aggregation_weight[k])
                               / weight_threshold;
-
+                printf("occupancy factor %.3f\n", occupancy_factor);
+                // FIXME something is wrong with the measures below!
                 score[i * finer->num_partitions + k] =
                       occupancy_factor
                       * (ALPHA * (float)compute_abs_tension(finer, temp_p)
                          + BETA * compute_conn_parts(finer, temp_p)
                          + GAMMA * compute_num_e_btw_parts(finer, temp_p));
+
+                printf("score %lu: %.3f\n", i, score[i]);
             }
         }
-        max_score = FLT_MIN;
+        max_score = -FLT_MAX;
         for (size_t i = 0; i < num_nodes * finer->num_partitions; ++i) {
             if (score[i] > max_score) {
+                printf("max score: %.3f", max_score);
                 score[i]     = max_score;
                 node_id      = i / finer->num_partitions;
                 partition_id = i % finer->num_partitions;
             }
         }
-        if (max_score - score[node_id * finer->num_partitions + partition_id]
-            > 0.0F) {
+        if (max_score > 0.1F
+            && max_score - score[node_id * finer->num_partitions + partition_id]
+                     > 0.0F) {
+            printf("moving node %lu to partition %lu with score gain %.3f",
+                   node_id,
+                   partition_id,
+                   max_score
+                         - score[node_id * finer->num_partitions
+                                 + partition_id]);
             finer->partition[node_id] = partition_id;
         }
     }

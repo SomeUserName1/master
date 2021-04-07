@@ -298,7 +298,6 @@ test_project(in_memory_file_t* db)
             assert(graph->finer->num_partitions >= graph->num_partitions);
         }
 
-        printf("Num finer parts %lu\n", graph->finer->num_partitions);
         part_count =
               calloc(graph->finer->num_partitions, sizeof(unsigned long));
 
@@ -321,12 +320,6 @@ test_project(in_memory_file_t* db)
             } else {
                 zero = false;
             }
-            printf("pn %lu, pc %lu, paw %lu, wt %.3f, part_type %d\n",
-                   i,
-                   part_count[i],
-                   graph->finer->partition_aggregation_weight[i],
-                   weight_threshold,
-                   part_type[i]);
             assert(part_count[i] > 0);
             assert(part_count[i] < 2
                    || graph->finer->partition_aggregation_weight[i]
@@ -430,7 +423,6 @@ test_reorder(in_memory_file_t* db)
         free(nodes_per_part);
 
         reorder(graph, part_type);
-        printf("C level %u\n", graph->c_level);
 
         graph = graph->finer;
         free(part_type);
@@ -488,9 +480,9 @@ main(void)
 
     test_project(db);
 
-    // test_reorder(db);
+    test_reorder(db);
 
-    // test_full_run(db);
+    test_full_run(db);
 
     in_memory_file_destroy(db);
     return 0;
