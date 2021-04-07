@@ -772,7 +772,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     size_t node_id      = ULONG_MAX;
     size_t partition_id = ULONG_MAX;
 
-    // FIXME This should actually be an adapted KL
+    // TODO This should actually be an adapted KL
     for (size_t m = 0; m < REFINEMENT_ITERS; ++m) {
         for (size_t i = 0; i < finer->records->node_id_counter; ++i) {
             for (size_t k = 0; k < finer->num_partitions; ++k) {
@@ -787,7 +787,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
 
                 temp_p[i] = k;
 
-                // FIXME this should be an additional term in the eq.
+                // TODO this should be an additional term in the eq.
                 // however what's described in the report is rather clumsy
                 // http://g-store.sourceforge.net/th/6.htm#6ddre
                 occupancy_factor =

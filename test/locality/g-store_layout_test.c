@@ -312,6 +312,87 @@ test_project(in_memory_file_t* db)
 }
 
 void
+test_reorder(in_memory_file_t* db)
+{
+    multi_level_graph_t* graph = malloc(sizeof(*graph));
+
+    graph->c_level        = 0;
+    graph->finer          = NULL;
+    graph->coarser        = NULL;
+    graph->map_to_coarser = calloc(db->node_id_counter, sizeof(unsigned long));
+    graph->node_aggregation_weight =
+          calloc(db->node_id_counter, sizeof(unsigned long));
+    graph->records = db;
+
+    for (size_t i = 0; i < db->node_id_counter; ++i) {
+        graph->node_aggregation_weight[i] = 1;
+    }
+
+    size_t        num_v_matches      = 2;
+    float         c_ratio_avg        = 0.0F;
+    unsigned long max_partition_size = BLOCK_SIZE / sizeof(node_t);
+    list_ul_t**   nodes_per_part;
+    bool*         part_type;
+
+    while (coarsen(graph,
+                   BLOCK_SIZE,
+                   &num_v_matches,
+                   &max_partition_size,
+                   &c_ratio_avg)
+           == 0) {
+        graph = graph->coarser;
+    }
+
+    turn_around(graph, BLOCK_SIZE);
+
+    assert(graph->coarser == NULL);
+
+    while (graph->finer) {
+        part_type =
+              calloc(graph->finer->records->node_id_counter, sizeof(bool));
+
+        nodes_per_part = calloc(graph->num_partitions, sizeof(list_ul_t*));
+
+        for (size_t i = 0; i < graph->num_partitions; ++i) {
+            nodes_per_part[i] = create_list_ul();
+        }
+
+        for (size_t i = 0; i < graph->finer->records->node_id_counter; ++i) {
+            list_ul_append(
+                  nodes_per_part
+                        [graph->partition[graph->finer->map_to_coarser[i]]],
+                  i);
+        }
+
+        project(graph, &part_type, BLOCK_SIZE, c_ratio_avg, nodes_per_part);
+
+        for (size_t i = 0; i < graph->num_partitions; ++i) {
+            list_ul_destroy(nodes_per_part[i]);
+        }
+        free(nodes_per_part);
+
+        reorder(graph, part_type);
+        printf("C level %u\n", graph->c_level);
+
+        graph = graph->finer;
+        free(part_type);
+        free(graph->coarser->partition);
+        free(graph->coarser->partition_aggregation_weight);
+        free(graph->coarser->map_to_coarser);
+        free(graph->coarser->node_aggregation_weight);
+        in_memory_file_destroy(graph->coarser->records);
+        free(graph->coarser);
+    }
+
+    assert(graph->finer == NULL);
+    free(graph->map_to_coarser);
+    free(graph->partition);
+    free(graph->partition_aggregation_weight);
+    free(graph->node_aggregation_weight);
+    free(graph);
+}
+
+void
 test_full_run(in_memory_file_t* db)
 {
     printf("Start applying the G-Store multilevel partitioning algorithm.\n");
@@ -349,7 +430,9 @@ main(void)
 
     test_project(db);
 
-    test_full_run(db);
+    test_reorder(db);
+
+    // test_full_run(db);
 
     in_memory_file_destroy(db);
     return 0;

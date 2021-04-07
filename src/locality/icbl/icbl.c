@@ -280,7 +280,7 @@ initialize_centers(in_memory_file_t* db,
         printf("icbl.c: initialize_centers: Memory allocation failed!\n");
         exit(-1);
     }
-    // FIXME check distance first
+    // TODO check distance first
     for (size_t i = 0; i < num_nodes; ++i) {
         rels   = in_memory_expand(db, i, BOTH);
         degree = list_relationship_size(rels);
