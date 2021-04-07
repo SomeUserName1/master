@@ -87,10 +87,6 @@ compute_conn_parts(multi_level_graph_t* graph, const unsigned long* partition)
 
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         for (size_t j = 0; j < i; ++j) {
-            if (i == j) {
-                continue;
-            }
-
             for (size_t i = 0; i < list_relationship_size(rels); ++i) {
                 rel = list_relationship_get(rels, i);
                 if (partition[rel->source_node] != partition[rel->target_node]
@@ -194,7 +190,7 @@ compute_tension(multi_level_graph_t* graph,
 int
 compare_by_tension(const void* a, const void* b, void* array2)
 {
-    if (!a || !b | !array2) {
+    if (!a || !b || !array2) {
         printf("G-Store - compare_by_tension: Invalid Arguments!\n");
         exit(-1);
     }
@@ -623,6 +619,7 @@ project(multi_level_graph_t* graph,
                   finer->num_partitions * sizeof(size_t));
 
     if (!finer->partition_aggregation_weight) {
+        free(finer->partition_aggregation_weight);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }

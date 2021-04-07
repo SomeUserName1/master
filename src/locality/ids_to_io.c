@@ -50,7 +50,7 @@ ids_to_io(const char* in_path,
     size_t        pages_to_blocks =
           (page_size / block_size) > 0 ? page_size / block_size : 1;
 
-    while (fscanf(log_file, "%s %s %lu", ignore, read_type, &id) == 3) {
+    while (fscanf(log_file, "%s %s %lu\n", ignore, read_type, &id) == 3) {
         if ((type == NODE || type == ALL)
             && strncmp(read_type, "Node", 4) == 0) {
             if ((page_node = id_to_page(id, page_size, NODE))

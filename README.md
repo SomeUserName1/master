@@ -30,50 +30,50 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 <p style="text-align: center;"><font size="20"><progress id="write" value="25" max="28">Thesis</progress></font></p>
 
-#### Results & Figures
-- [ ] Theodoros Feedback comes on friday... yay
-- [ ] Results & Visualize
-- [ ] Complete Conclusion
+### Results & Figures
+  - [ ] Theodoros Feedback comes on friday... yay
+  - [ ] Results & Visualize
+  - [ ] Complete Conclusion
 
-#### Done
+### Done
 **Abstract, Introduction, Conclusion, Achknowledgement ~ 3P**
-- [x] Acknowledgements
-- [x] Abstract
-- [x] Introduction
-- [x] Conclusions
+  - [x] Acknowledgements
+  - [x] Abstract
+  - [x] Introduction
+  - [x] Conclusions
 
 **Evaluation 1 P**
-- [x] Implementation 
-- [x] Queries & data sets
+  - [x] Implementation 
+  - [x] Queries & data sets
 
 **Method ~ 2 P.**
-- [x] Louvain Customizations: Formation & Ordering for nodes
-- [x] Formation & ordering for edges
-- [x] Incidence List rearrangement
+  - [x] Louvain Customizations: Formation & Ordering for nodes
+  - [x] Formation & ordering for edges
+  - [x] Incidence List rearrangement
 
 **Graphs ~ 22 P.**  
-- [x] Definitions ~ 2 P
-- [x] Data structures ~ 5.5 P.
-- [x] traversal algos 
-- [x] Shortest path algos
-- [x] KL 
-- [x] Multilevel 
-- [x] Louvain
+  - [x] Definitions ~ 2 P
+  - [x] Data structures ~ 5.5 P.
+  - [x] traversal algos 
+  - [x] Shortest path algos
+  - [x] KL 
+  - [x] Multilevel 
+  - [x] Louvain
 
 **Databases**
-- [x] Database Arch. ~ 3 P.
-- [x] Property Graph Model ~ 1.5 P.
-- [x] Neo4J & Index-free Incidence List ~ 5 P.
-
+  - [x] Database Arch. ~ 3 P.
+  - [x] Property Graph Model ~ 1.5 P.
+  - [x] Neo4J & Index-free Incidence List ~ 5 P.
+  
 **Problem Def. ~ 5 P.**  
-- [x] Locality ~ 2 P.
-- [x] Problem definition ~ 0.5 P.
-- [x] Example ~ 2 P.
+  - [x] Locality ~ 2 P.
+  - [x] Problem definition ~ 0.5 P.
+  - [x] Example ~ 2 P.
 
 **Related Work ~ 6 P.**  
-- [x] G-Store
-- [x] ICBL
-- [x] Bondhu
+  - [x] G-Store
+  - [x] ICBL
+  - [x] Bondhu
 
 
 ## Implementation
@@ -85,45 +85,45 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 ### Coverage
 <p style="text-align: center;"><font size="14"><progress id="file" value="3043" max="3778">Coverage</progress></font></p>  
 
-#### Done
-- [x] Record structures  
-- [x] Data Structures (hash table, array list, queue)
-- [x] SNAP importer
-- [x] In Memory Access Layer 
-- [x] BFS
-- [x] DFS
-- [x] IDs to Pages to IOs computation
-- [x] Lovaine Method
-- [x] Random Walk
-- [x] Dijkstra
-- [x] A\*
-- [x] ALT
-- [x] G-Store
-- [x] ICBL
-- [x] Debug & Test Data structures & Record structures
-- [x] Debug & Test Access & Importer
-- [x] Debug & Test Louvain
-- [x] Debug & Test Queries
-- [x] Debug & Test ICBL
-- [x] Debug & Test G-Store
-- [x] Record remapping vertices & relationships
-- [x] Incidence List Reordering
-- [x] Debug & Test ids_to_io, remap records, reorder incidence list
-
+### Done
+  - [x] Record structures  
+  - [x] Data Structures (hash table, array list, queue)
+  - [x] SNAP importer
+  - [x] In Memory Access Layer 
+  - [x] BFS
+  - [x] DFS
+  - [x] IDs to Pages to IOs computation
+  - [x] Lovaine Method
+  - [x] Random Walk
+  - [x] Dijkstra
+  - [x] A\*
+  - [x] ALT
+  - [x] G-Store
+  - [x] ICBL
+  - [x] Debug & Test Data structures & Record structures
+  - [x] Debug & Test Access & Importer
+  - [x] Debug & Test Louvain
+  - [x] Debug & Test Queries
+  - [x] Debug & Test ICBL
+  - [x] Debug & Test G-Store
+  - [x] Record remapping vertices & relationships
+  - [x] Incidence List Reordering
+  - [x] Debug & Test ids_to_io, remap records, reorder incidence list
+  
 
 ## Future Improvements
 ### Job 
-- [ ] thread-safe BSD-style data structures (to avoid wrapper code) or use C++ or Rust
-- [ ] IO
-- [ ] Cache
-- [ ] Non-consecutive IDs & support deletions
-- [ ] Documentation
-- [ ] Dynamic Reorganization Impl. & Paper
-- [ ] Adapt louvain w RCM
+  - [ ] thread-safe BSD-style data structures (to avoid wrapper code) or use C++ or Rust
+  - [ ] IO
+  - [ ] Cache
+  - [ ] Non-consecutive IDs & support deletions
+  - [ ] Documentation
+  - [ ] Dynamic Reorganization Impl. & Paper
+  - [ ] Adapt louvain w RCM
 
 ### Additional stuff
-- [ ] Alternative record layouts (nodes + adj list in same file)
-- [ ] Thread-safety
-- [ ] Transactions/MVCC using git-like transaction logs
-- [ ] Distributed
-- [ ] Multi-Model
+  - [ ] Alternative record layouts (nodes + adj list in same file)
+  - [ ] Thread-safety
+  - [ ] Transactions/MVCC using git-like transaction logs
+  - [ ] Distributed
+  - [ ] Multi-Model

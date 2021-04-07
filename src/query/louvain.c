@@ -189,9 +189,9 @@ louvain_partition_to_graph(louvain_partition_t* p, louvain_graph_t* g)
     // for each node (in community order), extract all edges to other
     // communities and build the graph
     init_neighbouring_communities(p);
-    unsigned long old_com          = p->node_to_com[order[0]];
-    unsigned long cur_com          = 0;
-    double        neigh_com_weight = 0;
+    unsigned long old_com = p->node_to_com[order[0]];
+    unsigned long cur_com = 0;
+    double        neigh_com_weight;
     unsigned long node;
     last = 0;
     for (size_t i = 0; i <= p->size; i++) {

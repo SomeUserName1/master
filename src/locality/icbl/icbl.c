@@ -118,7 +118,7 @@ dendrogram_print(dendrogram_t* root, bool subgraph)
     while (list_size(stack) > 0) {
         current = (dendrogram_t*)list_take(stack, list_size(stack) - 1);
 
-        printf("current: %p, \t size: %lu, \t block? %ld\n",
+        printf("current: %p, \t size: %lu, \t block? %lu\n",
                current,
                current->size,
                current->block_no == ULONG_MAX ? -1 : current->block_no);

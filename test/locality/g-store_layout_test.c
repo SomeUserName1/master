@@ -358,6 +358,11 @@ test_reorder(in_memory_file_t* db)
 {
     multi_level_graph_t* graph = malloc(sizeof(*graph));
 
+    if (!graph) {
+        printf("Allocating memory failed!\n");
+        exit(-1);
+    }
+
     graph->c_level        = 0;
     graph->finer          = NULL;
     graph->coarser        = NULL;
