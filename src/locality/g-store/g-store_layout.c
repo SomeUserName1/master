@@ -487,6 +487,7 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
                   graph->num_partitions * sizeof(size_t));
 
     if (graph->partition_aggregation_weight == NULL) {
+        free(graph->partition_aggregation_weight);
         printf("G-Store - turn_around: Memory Allocation failed!\n");
         exit(-1);
     }
@@ -627,6 +628,7 @@ project(multi_level_graph_t* graph,
     *part_type = realloc(*part_type, finer->num_partitions * sizeof(bool));
 
     if (!part_type || !*part_type) {
+        free(part_type);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }
@@ -678,6 +680,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
     groups = realloc(groups, num_groups * sizeof(list_ul_t*));
 
     if (!groups) {
+        free(groups);
         printf("G-Store - reorder: Memory Allocation failed!\n");
         exit(-1);
     }
