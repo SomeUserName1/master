@@ -19,8 +19,6 @@
 #include "../../query/degree.h"
 #include "../../query/random_walk.h"
 
-#define SHARE_OF_MEMORY (0.8)
-
 inline size_t
 get_num_walks(in_memory_file_t* db)
 {
@@ -64,9 +62,10 @@ get_num_coarse_clusters(in_memory_file_t* db)
         exit(-1);
     }
 
-    size_t result = ceil(((sizeof(node_t) * (double)db->node_id_counter))
+    size_t result = ceil(((sizeof(node_t) * (double)db->node_id_counter)
+                          + sizeof(relationship_t) * (double)db->rel_id_counter)
                          / sqrt(SHARE_OF_MEMORY * MEMORY));
-    return result;
+    return result + 1;
 }
 
 inline size_t

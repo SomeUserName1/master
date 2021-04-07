@@ -4,7 +4,8 @@
 #include "../../data-struct/dict_ul.h"
 #include "../../record/node.h"
 
-#define MEMORY (8589934592.0f)
+#define MEMORY          (2147483648.0f)
+#define SHARE_OF_MEMORY (0.25)
 static const float MIN_DIST_INIT_CENTERS = 0.1F;
 
 typedef struct dendrogram

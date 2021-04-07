@@ -818,7 +818,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    // refine(graph, block_size, c_ratio_avg);
+    refine(graph, block_size, c_ratio_avg);
 
     return 0;
 }
