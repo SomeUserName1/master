@@ -628,7 +628,7 @@ project(multi_level_graph_t* graph,
     *part_type = realloc(*part_type, finer->num_partitions * sizeof(bool));
 
     if (!part_type || !*part_type) {
-        free(part_type);
+        free(*part_type);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
     }
