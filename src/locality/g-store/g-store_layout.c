@@ -768,7 +768,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
         exit(-1);
     }
 
-    float  occupancy_factor = 0;
+    float  occupancy_factor;
     float  max_score;
     size_t node_id      = ULONG_MAX;
     size_t partition_id = ULONG_MAX;

@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#define BUFFER_SIZE   (128)
+#define BUFFER_SIZE   (512)
 #define NUM_CHARS_REL (12)
 
 typedef enum record_id_type
