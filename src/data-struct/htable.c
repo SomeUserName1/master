@@ -138,7 +138,7 @@ htable_rehash(htable_t* ht)
     size_t           num_buckets = ht->num_buckets;
     htable_bucket_t* buckets     = ht->buckets;
 
-    ht->num_buckets <<= 1UL;
+    ht->num_buckets *= 1UL;
     ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
 
     if (!ht->buckets) {

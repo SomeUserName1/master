@@ -33,7 +33,7 @@ dijkstra(in_memory_file_t* db,
     }
 
     fib_heap_t* prio_queue = create_fib_heap();
-    FILE*       log_file   = fopen(log_path, "w");
+    FILE*       log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
         free(parents);
@@ -56,13 +56,12 @@ dijkstra(in_memory_file_t* db,
         fh_node      = fib_heap_extract_min(prio_queue);
         current_rels = in_memory_expand(db, fh_node->value, direction);
 
-        fprintf(log_file, "%s %lu\n", "bfs: Node: ", fh_node->value);
+        fprintf(log_file, "%s %lu\n", "N", fh_node->value);
 
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
 
-            fprintf(
-                  log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
+            fprintf(log_file, "%s %lu\n", "R", current_rel->id);
 
             temp = fh_node->value == current_rel->source_node
                          ? current_rel->target_node

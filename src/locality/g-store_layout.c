@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../data-struct/fibonacci_heap.h"
-#include "../../data-struct/list_ul.h"
+#include "../data-struct/fibonacci_heap.h"
+#include "../data-struct/list_ul.h"
 
 static void
 insert_match(size_t*       matches,
@@ -218,7 +218,6 @@ swap_partitions(multi_level_graph_t* graph, size_t idx1, size_t idx2)
 
 int
 coarsen(multi_level_graph_t* graph,
-        size_t               block_size,
         size_t*              num_v_matches,
         size_t*              max_partition_size,
         float*               c_ratio_avg)
@@ -379,7 +378,7 @@ coarsen(multi_level_graph_t* graph,
     if (c_ratio < C_RATIO_LIMIT) {
         if (*num_v_matches == 2
             && *max_partition_size <= MAX_PARTITION_SIZE_FACTOR
-                                            * (block_size / sizeof(node_t))) {
+                                            * (BLOCK_SIZE / sizeof(node_t))) {
 
             (*max_partition_size) *= 2;
         } else {
@@ -408,7 +407,7 @@ coarsen(multi_level_graph_t* graph,
 }
 
 void
-turn_around(multi_level_graph_t* graph, size_t block_size)
+turn_around(multi_level_graph_t* graph)
 {
     if (!graph || !graph->records) {
         printf("G-Store - turn_around: Invalid Arguments!\n");
@@ -432,7 +431,7 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
         if (graph->partition_aggregation_weight[graph->num_partitions] > 0
             && graph->partition_aggregation_weight[graph->num_partitions]
                            + graph->node_aggregation_weight[i]
-                     > (block_size / sizeof(node_t))) {
+                     > (BLOCK_SIZE / sizeof(node_t))) {
 
             graph->num_partitions++;
         }
@@ -457,7 +456,6 @@ turn_around(multi_level_graph_t* graph, size_t block_size)
 void
 project(multi_level_graph_t* graph,
         bool**               part_type,
-        size_t               block_size,
         float                c_ratio_avg,
         list_ul_t**          nodes_per_part)
 {
@@ -487,7 +485,7 @@ project(multi_level_graph_t* graph,
     unsigned long ext_node_id = 0;
     long          ext_tension;
     bool          min;
-    float         weight_threshold = ((float)block_size / (float)sizeof(node_t))
+    float         weight_threshold = ((float)BLOCK_SIZE / (float)sizeof(node_t))
                              / (float)pow(1 - c_ratio_avg, finer->c_level);
 
     for (size_t coarser_part = 0; coarser_part < graph->num_partitions;
@@ -702,7 +700,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
 }
 
 void
-refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio)
+refine(multi_level_graph_t* graph, float avg_c_ratio)
 {
     if (!graph || !graph->finer || !graph->finer->records) {
         printf("G-Store - refine: Invalid Arguments!\n");
@@ -712,7 +710,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio)
     multi_level_graph_t* finer     = graph->finer;
     size_t               num_nodes = finer->records->node_id_counter;
     float                gain;
-    float weight_threshold = ((float)block_size / (float)sizeof(node_t))
+    float weight_threshold = ((float)BLOCK_SIZE / (float)sizeof(node_t))
                              / (float)pow(1 - avg_c_ratio, finer->c_level);
 
     unsigned long* temp_p = calloc(num_nodes, sizeof(unsigned long));
@@ -782,7 +780,7 @@ refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio)
 }
 
 int
-uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
+uncoarsen(multi_level_graph_t* graph, float c_ratio_avg)
 {
     if (graph->finer == NULL) {
         return -1;
@@ -809,7 +807,7 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
               i);
     }
 
-    project(graph, &part_type, block_size, c_ratio_avg, nodes_per_part);
+    project(graph, &part_type, c_ratio_avg, nodes_per_part);
     for (size_t i = 0; i < graph->num_partitions; ++i) {
         list_ul_destroy(nodes_per_part[i]);
     }
@@ -818,13 +816,13 @@ uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    refine(graph, block_size, c_ratio_avg);
+    refine(graph, c_ratio_avg);
 
     return 0;
 }
 
 unsigned long*
-g_store_layout(in_memory_file_t* db, size_t block_size)
+g_store_layout(in_memory_file_t* db)
 {
     if (!db) {
         printf("G-Store - main: Invalid Arguments!\n");
@@ -855,21 +853,17 @@ g_store_layout(in_memory_file_t* db, size_t block_size)
     graph->finer = NULL;
 
     size_t num_v_matches      = 2;
-    size_t max_partition_size = block_size / sizeof(node_t);
+    size_t max_partition_size = BLOCK_SIZE / sizeof(node_t);
     float  c_ratio_avg        = 0.0F;
 
-    while (coarsen(graph,
-                   block_size,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
+    while (coarsen(graph, &num_v_matches, &max_partition_size, &c_ratio_avg)
            == 0) {
         graph = graph->coarser;
     }
 
-    turn_around(graph, block_size);
+    turn_around(graph);
 
-    while (uncoarsen(graph, block_size, c_ratio_avg) == 0) {
+    while (uncoarsen(graph, c_ratio_avg) == 0) {
         graph = graph->finer;
         free(graph->coarser->map_to_coarser);
         free(graph->coarser->node_aggregation_weight);

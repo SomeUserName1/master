@@ -18,7 +18,8 @@ construct_path(in_memory_file_t* db,
                unsigned long     source_node_id,
                unsigned long     target_node_id,
                unsigned long*    parents,
-               double            distance)
+               double            distance,
+               FILE*             log_file)
 {
     unsigned long   node_id       = target_node_id;
     list_ul_t*      edges_reverse = create_list_ul();
@@ -26,6 +27,7 @@ construct_path(in_memory_file_t* db,
     do {
         list_ul_append(edges_reverse, parents[node_id]);
         rel = in_memory_get_relationship(db, parents[node_id]);
+        fprintf(log_file, "%s %lu\n", "R", rel->id);
 
         node_id =
               rel->target_node == node_id ? rel->source_node : rel->target_node;
@@ -40,6 +42,7 @@ construct_path(in_memory_file_t* db,
     }
     list_ul_destroy(edges_reverse);
     free(parents);
+    fclose(log_file);
 
     return create_path(source_node_id, target_node_id, distance, edges);
 }
@@ -65,7 +68,7 @@ a_star(in_memory_file_t* db,
     }
 
     fib_heap_t* prio_queue = create_fib_heap();
-    FILE*       log_file   = fopen(log_path, "w");
+    FILE*       log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
         free(parents);
@@ -92,19 +95,22 @@ a_star(in_memory_file_t* db,
             free(distance);
             free(fh_node);
             fib_heap_destroy(prio_queue);
-            return construct_path(
-                  db, source_node_id, target_node_id, parents, new_dist);
+            return construct_path(db,
+                                  source_node_id,
+                                  target_node_id,
+                                  parents,
+                                  new_dist,
+                                  log_file);
         }
 
         current_rels = in_memory_expand(db, fh_node->value, direction);
 
-        fprintf(log_file, "%s %lu\n", "bfs: Node: ", fh_node->value);
+        fprintf(log_file, "%s %lu\n", "N", fh_node->value);
 
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
 
-            fprintf(
-                  log_file, "%s %lu\n", "bfs: Relationship: ", current_rel->id);
+            fprintf(log_file, "%s %lu\n", "R", current_rel->id);
 
             temp = fh_node->value == current_rel->source_node
                          ? current_rel->target_node

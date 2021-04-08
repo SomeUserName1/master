@@ -6,20 +6,30 @@
 #include "dijkstra.h"
 #include "result_types.h"
 
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 unsigned long
-alt_chose_avg_deg_rand_landmark(in_memory_file_t* db, direction_t direction)
+alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,
+                                direction_t       direction,
+                                const char*       log_path)
 {
-    if (!db) {
+    if (!db || !log_path) {
         printf("ALT chose landmarks: Invalid Arguments!\n");
         exit(-1);
     }
 
-    double        avg_degree = get_avg_degree(db, direction);
+    FILE* log_file = fopen(log_path, "w+");
+
+    if (log_file == NULL) {
+        printf("bfs: Failed to open log file, %d\n", errno);
+        exit(-1);
+    }
+
+    double        avg_degree = get_avg_degree(db, direction, log_file);
     double        degree     = 0;
     unsigned long landmark_id;
 
@@ -27,7 +37,7 @@ alt_chose_avg_deg_rand_landmark(in_memory_file_t* db, direction_t direction)
 
     do {
         landmark_id = rand() % db->node_id_counter;
-        degree      = get_degree(db, landmark_id, direction);
+        degree      = get_degree(db, landmark_id, direction, log_file);
     } while (degree < avg_degree);
 
     return landmark_id;
@@ -49,7 +59,7 @@ alt_preprocess(in_memory_file_t* db,
     sssp_result*  result;
 
     for (size_t i = 0; i < num_landmarks; ++i) {
-        landmarks[i] = alt_chose_avg_deg_rand_landmark(db, d);
+        landmarks[i] = alt_chose_avg_deg_rand_landmark(db, d, log_path);
         result       = dijkstra(db, landmarks[i], d, log_path);
 
         // Assign the distances gathered by using dijkstras and discard the rest

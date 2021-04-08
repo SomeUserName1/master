@@ -12,8 +12,9 @@
 #define C_RATIO_LIMIT             (0.3F)
 #define MAX_PARTITION_SIZE_FACTOR (32)
 
-#include "../../access/in_memory_file.h"
-#include "../../data-struct/list_ul.h"
+#include "../access/in_memory_file.h"
+#include "../constants.h"
+#include "../data-struct/list_ul.h"
 
 typedef struct multi_level_graph
 {
@@ -30,18 +31,16 @@ typedef struct multi_level_graph
 
 int
 coarsen(multi_level_graph_t* graph,
-        size_t               block_size,
         size_t*              num_v_matches,
         size_t*              max_partition_size,
         float*               c_ratio_avg);
 
 void
-turn_around(multi_level_graph_t* graph, size_t block_size);
+turn_around(multi_level_graph_t* graph);
 
 void
 project(multi_level_graph_t* graph,
         bool**               part_type,
-        size_t               block_size,
         float                c_ratio_avg,
         list_ul_t**          nodes_per_part);
 
@@ -49,15 +48,12 @@ void
 reorder(multi_level_graph_t* graph, const bool* part_type);
 
 void
-refine(multi_level_graph_t* graph, size_t block_size, float avg_c_ratio);
+refine(multi_level_graph_t* graph, float avg_c_ratio);
 
 int
-uncoarsen(multi_level_graph_t* graph, size_t block_size, float c_ratio_avg);
-
-void
-finalize(multi_level_graph_t* db);
+uncoarsen(multi_level_graph_t* graph, float c_ratio_avg);
 
 unsigned long*
-g_store_layout(in_memory_file_t* db, size_t block_size);
+g_store_layout(in_memory_file_t* db);
 
 #endif

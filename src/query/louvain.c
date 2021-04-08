@@ -416,7 +416,7 @@ louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
         rand_ord[i] = i;
     }
 
-    for (size_t i = 0; i < p->size - 1; i++) {
+    for (size_t i = 0; i < p->size; i++) {
         rand_pos           = rand() % (p->size);
         tmp                = rand_ord[i];
         rand_ord[i]        = rand_ord[rand_pos];

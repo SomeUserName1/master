@@ -1,22 +1,38 @@
 #include "degree.h"
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../data-struct/list_node.h"
 #include "../data-struct/list_rel.h"
 
 size_t
-get_degree(in_memory_file_t* db, unsigned long node_id, direction_t direction)
+get_degree(in_memory_file_t* db,
+           unsigned long     node_id,
+           direction_t       direction,
+           FILE*             log_file)
 {
     list_relationship_t* rels   = in_memory_expand(db, node_id, direction);
     size_t               degree = list_relationship_size(rels);
+
+    if (log_file) {
+        fprintf(log_file, "%s %lu\n", "N ", node_id);
+
+        for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+            fprintf(log_file,
+                    "%s %lu\n",
+                    "R ",
+                    list_relationship_get(rels, i)->id);
+        }
+    }
+
     list_relationship_destroy(rels);
 
     return degree;
 }
 
 float
-get_avg_degree(in_memory_file_t* db, direction_t direction)
+get_avg_degree(in_memory_file_t* db, direction_t direction, FILE* log_file)
 {
     size_t               num_nodes    = db->node_id_counter;
     size_t               total_degree = 0;
@@ -25,6 +41,17 @@ get_avg_degree(in_memory_file_t* db, direction_t direction)
     for (size_t i = 0; i < num_nodes; ++i) {
         rels = in_memory_expand(db, i, direction);
         total_degree += list_relationship_size(rels);
+
+        if (log_file) {
+            fprintf(log_file, "%s %lu\n", "N ", i);
+
+            for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+                fprintf(log_file,
+                        "%s %lu\n",
+                        "R ",
+                        list_relationship_get(rels, i)->id);
+            }
+        }
         list_relationship_destroy(rels);
     }
 

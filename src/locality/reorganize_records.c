@@ -241,7 +241,4 @@ reorganize_records(in_memory_file_t* db, unsigned long* graph_partition)
     // for each node find the set of outgoing edges and assign the
     // relationship id accordingly
     free(remap_rel_ids(db));
-
-    // Sort the incidence list pointers by the id of the rels.
-    sort_incidence_list(db);
 }

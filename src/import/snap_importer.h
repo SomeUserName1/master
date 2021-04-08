@@ -57,7 +57,7 @@ typedef enum dataset
     YOUTUBE,       /* 10 MB */
     WIKIPEDIA,     /* 95 MB */
     LIVE_JOURNAL,  /* 119 MB */
-    ORKUT,         /* 427 MB */
+    ORKUT,         /* 1.6 MB */
     FRIENDSTER     /* 8.7 GB */
 } dataset_t;
 

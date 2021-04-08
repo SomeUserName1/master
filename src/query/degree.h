@@ -1,12 +1,16 @@
 #ifndef DEGREE
 #define DEGREE
 #include "../access/in_memory_file.h"
+#include <stdio.h>
 
 size_t
-get_degree(in_memory_file_t* db, unsigned long node_id, direction_t direction);
+get_degree(in_memory_file_t* db,
+           unsigned long     node_id,
+           direction_t       direction,
+           FILE*             log_file);
 
 float
-get_avg_degree(in_memory_file_t* db, direction_t direction);
+get_avg_degree(in_memory_file_t* db, direction_t direction, FILE* log_file);
 
 size_t
 get_min_degree(in_memory_file_t* db, direction_t direction);

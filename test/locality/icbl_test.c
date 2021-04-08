@@ -1,4 +1,4 @@
-#include "../../src/locality/icbl/icbl.h"
+#include "../../src/locality/icbl.h"
 
 #include <assert.h>
 #include <stddef.h>

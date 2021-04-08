@@ -1,8 +1,8 @@
 #ifndef ICBL
 #define ICBL
-#include "../../access/in_memory_file.h"
-#include "../../data-struct/dict_ul.h"
-#include "../../record/node.h"
+#include "../access/in_memory_file.h"
+#include "../data-struct/dict_ul.h"
+#include "../record/node.h"
 
 #define MEMORY          (2147483648.0f)
 #define SHARE_OF_MEMORY (0.25)

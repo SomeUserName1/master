@@ -28,7 +28,7 @@ dfs(in_memory_file_t* db,
     }
 
     list_ul_t* node_stack = create_list_ul();
-    FILE*      log_file   = fopen(log_path, "w");
+    FILE*      log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
         free(parents);
@@ -53,12 +53,11 @@ dfs(in_memory_file_t* db,
 
         node_id      = list_ul_take(node_stack, stack_size - 1);
         current_rels = in_memory_expand(db, *node_id, direction);
-        fprintf(log_file, "%s %lu\n", "dfs: Node: ", *node_id);
+        fprintf(log_file, "%s %lu\n", "N", *node_id);
 
         for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
             current_rel = list_relationship_get(current_rels, i);
-            fprintf(
-                  log_file, "%s %lu\n", "dfs: Relationship: ", current_rel->id);
+            fprintf(log_file, "%s %lu\n", "R", current_rel->id);
             temp = *node_id == current_rel->source_node
                          ? current_rel->target_node
                          : current_rel->source_node;

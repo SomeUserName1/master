@@ -11,13 +11,13 @@
 #include <string.h>
 #include <time.h>
 
-#include "../../constants.h"
-#include "../../data-struct/cbs.h"
-#include "../../data-struct/list.h"
-#include "../../data-struct/list_ul.h"
-#include "../../data-struct/set_ul.h"
-#include "../../query/degree.h"
-#include "../../query/random_walk.h"
+#include "../constants.h"
+#include "../data-struct/cbs.h"
+#include "../data-struct/list.h"
+#include "../data-struct/list_ul.h"
+#include "../data-struct/set_ul.h"
+#include "../query/degree.h"
+#include "../query/random_walk.h"
 
 inline size_t
 get_num_walks(in_memory_file_t* db)
