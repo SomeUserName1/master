@@ -1,4 +1,4 @@
-add_library(analyze  ids_to_io.c reorganize_records.c)
+add_library(analyze  ids_to_io.c reorganize_records.c trivial.c)
 target_link_libraries(analyze  PRIVATE record)
 list(APPEND LIBS analyze)
 

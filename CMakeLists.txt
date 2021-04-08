@@ -43,7 +43,7 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
         set(CMAKE_C_CLANG_TIDY
              clang-tidy;
                 -header-filter=.*;
-                -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling                )
+                -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-macro-parentheses,-bugprone-reserved-identifier)
      message("-- Using Clang-Tidy")
 
     set(CMAKE_C_INCLUDE_WHAT_YOU_USE include-what-you-use)

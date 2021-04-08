@@ -13,4 +13,4 @@ add_subdirectory(locality/)
 add_executable(gndb main.c)
 
 # Link executable
-target_link_libraries(gndb -lcurl -lz analyze import query access data-struct)
+target_link_libraries(gndb -lcurl -lz analyze g-store-layout icbl import query access data-struct)

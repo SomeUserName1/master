@@ -64,16 +64,18 @@ typedef enum dataset
 /* Downloading and uncompressing */
 const char*
 get_url(dataset_t data);
+
 unsigned long int
 get_no_nodes(dataset_t data);
+
 unsigned long int
 get_no_rels(dataset_t data);
+
 int
 download_dataset(dataset_t data, const char* gz_path);
+
 int
 uncompress_dataset(const char* gz_path, const char* out_path);
-void
-zlib_error(int return_value);
 
 /* Parsing and importing */
 dict_ul_ul_t*

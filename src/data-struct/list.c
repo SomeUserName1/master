@@ -92,10 +92,15 @@ list_insert(list_t* l, void* v, size_t idx)
 
     if (l->alloced == l->len) {
         l->alloced += list_block_size;
-        l->elements = realloc(l->elements, sizeof(*l->elements) * l->alloced);
+
+        void** realloc_h =
+              realloc(l->elements, sizeof(*l->elements) * l->alloced);
         if (!l->elements) {
+            free(l->elements);
             printf("list - insert: Memory Allocation Failed!\n");
             exit(-1);
+        } else {
+            l->elements = realloc_h;
         }
     }
 

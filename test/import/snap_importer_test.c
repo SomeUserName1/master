@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../src/access/in_memory_file.h"
 #include "../../src/data-struct/dict_ul.h"
@@ -172,6 +173,48 @@ test_friendster(void)
     in_memory_file_destroy(db);
 }
 
+void
+test_get_url(void)
+{
+    assert(strcmp(get_url(C_ELEGANS), C_ELEGANS_URL) == 0);
+    assert(strcmp(get_url(EMAIL_EU_CORE), EMAIL_EU_CORE_URL) == 0);
+    assert(strcmp(get_url(DBLP), DBLP_URL) == 0);
+    assert(strcmp(get_url(AMAZON), AMAZON_URL) == 0);
+    assert(strcmp(get_url(YOUTUBE), YOUTUBE_URL) == 0);
+    assert(strcmp(get_url(WIKIPEDIA), WIKIPEDIA_URL) == 0);
+    assert(strcmp(get_url(LIVE_JOURNAL), LIVE_JOURNAL_URL) == 0);
+    assert(strcmp(get_url(ORKUT), ORKUT_URL) == 0);
+    assert(strcmp(get_url(FRIENDSTER), FRIENDSTER_URL) == 0);
+}
+
+void
+test_get_no_nodes(void)
+{
+    assert(get_no_nodes(C_ELEGANS) == C_ELEGANS_NO_NODES);
+    assert(get_no_nodes(EMAIL_EU_CORE) == EMAIL_EU_CORE_NO_NODES);
+    assert(get_no_nodes(DBLP) == DBLP_NO_NODES);
+    assert(get_no_nodes(AMAZON) == AMAZON_NO_NODES);
+    assert(get_no_nodes(YOUTUBE) == YOUTUBE_NO_NODES);
+    assert(get_no_nodes(WIKIPEDIA) == WIKIPEDIA_NO_NODES);
+    assert(get_no_nodes(LIVE_JOURNAL) == LIVE_JOURNAL_NO_NODES);
+    assert(get_no_nodes(ORKUT) == ORKUT_NO_NODES);
+    assert(get_no_nodes(FRIENDSTER) == FRIENDSTER_NO_NODES);
+}
+
+void
+test_get_no_rels(void)
+{
+    assert(get_no_rels(C_ELEGANS) == C_ELEGANS_NO_RELS);
+    assert(get_no_rels(EMAIL_EU_CORE) == EMAIL_EU_CORE_NO_RELS);
+    assert(get_no_rels(DBLP) == DBLP_NO_RELS);
+    assert(get_no_rels(AMAZON) == AMAZON_NO_RELS);
+    assert(get_no_rels(YOUTUBE) == YOUTUBE_NO_RELS);
+    assert(get_no_rels(WIKIPEDIA) == WIKIPEDIA_NO_RELS);
+    assert(get_no_rels(LIVE_JOURNAL) == LIVE_JOURNAL_NO_RELS);
+    assert(get_no_rels(ORKUT) == ORKUT_NO_RELS);
+    assert(get_no_rels(FRIENDSTER) == FRIENDSTER_NO_RELS);
+}
+
 int
 main(void)
 {
@@ -184,4 +227,7 @@ main(void)
     // test_live_journal();
     // test_orkut();
     // test_friendster();
+    test_get_url();
+    test_get_no_nodes();
+    test_get_no_rels();
 }

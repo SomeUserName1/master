@@ -389,14 +389,16 @@ coarsen(multi_level_graph_t* graph,
     *c_ratio_avg = (float)((*c_ratio_avg * (float)graph->c_level) + c_ratio)
                    / (float)coarser->c_level;
 
-    coarser->node_aggregation_weight =
+    unsigned long* realloc_h =
           realloc(coarser->node_aggregation_weight,
                   coarser->records->node_id_counter * sizeof(unsigned long));
 
-    if (!coarser->node_aggregation_weight) {
+    if (!realloc_h) {
         free(coarser->node_aggregation_weight);
         printf("G-Store - coarsen: Memory Allocation failed!\n");
         exit(-1);
+    } else {
+        coarser->node_aggregation_weight = realloc_h;
     }
 
     free(node_matched);
@@ -442,14 +444,16 @@ turn_around(multi_level_graph_t* graph)
     // Partition enumeration starts at 0,
     // i.e. the number of partition needs to be incremented
     graph->num_partitions++;
-    graph->partition_aggregation_weight =
-          realloc(graph->partition_aggregation_weight,
-                  graph->num_partitions * sizeof(size_t));
 
-    if (graph->partition_aggregation_weight == NULL) {
+    unsigned long* realloc_h = realloc(graph->partition_aggregation_weight,
+                                       graph->num_partitions * sizeof(size_t));
+
+    if (!realloc_h) {
         free(graph->partition_aggregation_weight);
         printf("G-Store - turn_around: Memory Allocation failed!\n");
         exit(-1);
+    } else {
+        graph->partition_aggregation_weight = realloc_h;
     }
 }
 
@@ -567,22 +571,27 @@ project(multi_level_graph_t* graph,
     }
 
     finer->num_partitions = finer_partition;
-    finer->partition_aggregation_weight =
-          realloc(finer->partition_aggregation_weight,
-                  finer->num_partitions * sizeof(size_t));
 
-    if (!finer->partition_aggregation_weight) {
+    unsigned long* realloc_h = realloc(finer->partition_aggregation_weight,
+                                       finer->num_partitions * sizeof(size_t));
+
+    if (!realloc_h) {
         free(finer->partition_aggregation_weight);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
+    } else {
+        finer->partition_aggregation_weight = realloc_h;
     }
 
-    *part_type = realloc(*part_type, finer->num_partitions * sizeof(bool));
+    bool* realloc_h_p =
+          realloc(*part_type, finer->num_partitions * sizeof(bool));
 
-    if (!*part_type) {
+    if (!realloc_h) {
         free(*part_type);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
+    } else {
+        *part_type = realloc_h_p;
     }
 }
 
@@ -624,12 +633,15 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
         list_ul_append(groups[num_groups], i);
     }
     num_groups++;
-    groups = realloc(groups, num_groups * sizeof(list_ul_t*));
 
-    if (!groups) {
+    list_ul_t** realloc_h = realloc(groups, num_groups * sizeof(list_ul_t*));
+
+    if (!realloc_h) {
         free(groups);
         printf("G-Store - reorder: Memory Allocation failed!\n");
         exit(-1);
+    } else {
+        groups = realloc_h;
     }
 
     for (size_t i = 0; i < num_groups; ++i) {
@@ -816,7 +828,7 @@ uncoarsen(multi_level_graph_t* graph, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    refine(graph, c_ratio_avg);
+    // refine(graph, c_ratio_avg);
 
     return 0;
 }

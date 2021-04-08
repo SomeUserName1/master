@@ -27,6 +27,7 @@ main(void)
 {
     // Path schema for results: base_path / dataset / layout_str / (sorted_il)?
     // query_str _ (records|blocks)
+    const char* trash_file    = "/home/someusername/Downloads/ignore.txt";
     const char* base_path     = "/home/someusername/workspace_local/";
     const char* download_temp = "download.txt.gz";
     const char* layout_str[]  = {
@@ -55,11 +56,11 @@ main(void)
     char* dataset_path[YOUTUBE + 1];
 
     for (size_t i = 0; i <= YOUTUBE; ++i) {
-        dataset_path[i] = calloc(strlen(base_path) + strlen(dataset_str[i]) + 1,
-                                 sizeof(char));
+        dataset_path[i] = calloc(
+              strlen(base_path) + strlen(dataset_str[i]) + 4 + 1, sizeof(char));
         strncat(dataset_path[i], base_path, strlen(base_path));
         strncat(dataset_path[i], dataset_str[i], strlen(dataset_str[i]));
-        strncat(dataset_path[i], "txt", strlen("txt"));
+        strncat(dataset_path[i], ".txt", strlen(".txt"));
     }
 
     for (dataset_t dataset = 0; dataset <= YOUTUBE; dataset++) {
@@ -80,19 +81,22 @@ main(void)
     unsigned long*    partition;
     char*             result_base_path;
     char*             result_specific_path;
+    char*             mem_alloc_h;
     double*           heuristic;
     double**          landmark_dists = malloc(3 * sizeof(double*));
 
     srand(time(NULL));
 
     for (dataset_t dataset = 0; dataset <= YOUTUBE; ++dataset) {
-        printf("Using dataset %s ==========\n", dataset_str[dataset]);
+        printf("Using dataset %s =========================\n",
+               dataset_str[dataset]);
         source_node = rand() % get_no_nodes(dataset);
         target_node = rand() % get_no_nodes(dataset);
 
+        heuristic = calloc(get_no_nodes(dataset), sizeof(double));
+
         for (size_t i = 0; i < NUM_LAYOUT_METHOS; ++i) {
-            printf("Using layout method %s ======================\n",
-                   layout_str[i]);
+            printf("Using layout method %s ===============\n", layout_str[i]);
 
             db = create_in_memory_file();
 
@@ -119,14 +123,31 @@ main(void)
             strncat(result_base_path, layout_str[i], strlen(layout_str[i]));
             strncat(result_base_path, "/", 1);
 
+            // Preprocess the landmarks for alt to avoid doing it twice.
+            alt_preprocess(db, BOTH, 3, landmark_dists, trash_file);
+
             for (size_t k = 0; k < 2; ++k) {
                 if (k) {
                     printf("Reordering incidence list pointers ===== \n");
                     sort_incidence_list(db);
-                    strncat(result_base_path, "sil_", 4);
+
+                    mem_alloc_h = realloc(
+                          result_base_path,
+                          strlen(base_path) + strlen(dataset_str[dataset]) + 1
+                                + strlen(layout_str[i]) + 1 + 4 + 1);
+
+                    if (!mem_alloc_h) {
+                        free(result_base_path);
+                        printf("main: Failed to allocate memory!\n");
+                        exit(-1);
+                    } else {
+                        result_base_path = mem_alloc_h;
+                    }
+
+                    strncat(result_base_path, "sil_", strlen("sil_"));
                     printf("Rerun queries\n");
                 } else {
-                    printf("Run queries =====\n");
+                    printf("Run queries ===========\n");
                 }
 
                 // Construct ouput path & run BFS
@@ -152,9 +173,17 @@ main(void)
                        query_str[1],
                        source_node);
 
-                result_specific_path =
+                mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[1]));
+
+                if (!mem_alloc_h) {
+                    free(result_specific_path);
+                    printf("main: Failed to allocate memory!\n");
+                    exit(-1);
+                } else {
+                    result_specific_path = mem_alloc_h;
+                }
 
                 result_specific_path[strlen(result_base_path) + 1] = '\0';
 
@@ -172,9 +201,17 @@ main(void)
                        query_str[2],
                        source_node);
 
-                result_specific_path =
+                mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[2]));
+
+                if (!mem_alloc_h) {
+                    free(result_specific_path);
+                    printf("main: Failed to allocate memory!\n");
+                    exit(-1);
+                } else {
+                    result_specific_path = mem_alloc_h;
+                }
 
                 result_specific_path[strlen(result_base_path) + 1] = '\0';
 
@@ -193,9 +230,17 @@ main(void)
                        source_node,
                        target_node);
 
-                result_specific_path =
+                mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[3]));
+
+                if (!mem_alloc_h) {
+                    free(result_specific_path);
+                    printf("main: Failed to allocate memory!\n");
+                    exit(-1);
+                } else {
+                    result_specific_path = mem_alloc_h;
+                }
 
                 result_specific_path[strlen(result_base_path) + 1] = '\0';
 
@@ -203,7 +248,7 @@ main(void)
                       result_specific_path, query_str[3], strlen(query_str[3]));
 
                 strncat(result_specific_path, ".txt", 4);
-                // FIXME heuristic
+
                 path_destroy(a_star(db,
                                     heuristic,
                                     source_node,
@@ -218,9 +263,17 @@ main(void)
                        source_node,
                        target_node);
 
-                result_specific_path =
+                mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[4]));
+
+                if (!mem_alloc_h) {
+                    free(result_specific_path);
+                    printf("main: Failed to allocate memory!\n");
+                    exit(-1);
+                } else {
+                    result_specific_path = mem_alloc_h;
+                }
 
                 result_specific_path[strlen(result_base_path) + 1] = '\0';
 
@@ -228,9 +281,6 @@ main(void)
                       result_specific_path, query_str[4], strlen(query_str[4]));
 
                 strncat(result_specific_path, ".txt", 4);
-
-                alt_preprocess(
-                      db, BOTH, 3, landmark_dists, result_specific_path);
 
                 path_destroy(alt(db,
                                  landmark_dists,
@@ -240,8 +290,25 @@ main(void)
                                  BOTH,
                                  result_specific_path));
                 printf("Done\n");
+
+                free(result_specific_path);
             }
+
+            for (size_t l = 0; l < 3; ++l) {
+                printf("free %lu\n", l);
+                free(landmark_dists[i]);
+            }
+            in_memory_file_destroy(db);
+            free(result_base_path);
         }
+        free(heuristic);
     }
+
+    free(landmark_dists);
+
+    for (size_t i = 0; i <= YOUTUBE; ++i) {
+        free(dataset_path[i]);
+    }
+
     return 0;
 }

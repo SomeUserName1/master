@@ -260,7 +260,7 @@ test_initialize_centers(in_memory_file_t* db,
         exit(-1);
     }
 
-    printf("avg degree: %.3f\n", get_avg_degree(db, BOTH));
+    printf("avg degree: %.3f\n", get_avg_degree(db, BOTH, NULL));
 
     list_relationship_t* rels;
     for (size_t i = 0; i < num_clusters; ++i) {

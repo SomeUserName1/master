@@ -726,12 +726,15 @@ cluster_hierarchical(unsigned long   n_nodes,
             *block_count = 1;
         }
 
-        *blocks = realloc(*blocks, *block_count * sizeof(dendrogram_t*));
+        dendrogram_t** realloc_h =
+              realloc(*blocks, *block_count * sizeof(dendrogram_t*));
 
         if (!*blocks) {
             free(*blocks);
             printf("ICBL - cluster_hierarchical: Memory Allocation failed!\n");
             exit(-1);
+        } else {
+            *blocks = realloc_h;
         }
     } else {
         free(*blocks);

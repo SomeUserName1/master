@@ -29,9 +29,9 @@ test_get_degree(void)
     in_memory_create_relationship(db, 0, 3);
     in_memory_create_relationship(db, 1, 0);
 
-    assert(get_degree(db, 0, BOTH) == 4);
-    assert(get_degree(db, 0, OUTGOING) == 3);
-    assert(get_degree(db, 0, INCOMING) == 1);
+    assert(get_degree(db, 0, BOTH, NULL) == 4);
+    assert(get_degree(db, 0, OUTGOING, NULL) == 3);
+    assert(get_degree(db, 0, INCOMING, NULL) == 1);
 
     in_memory_file_destroy(db);
 }
@@ -52,16 +52,17 @@ test_get_avg_degree(void)
     in_memory_create_relationship(db, 1, 0);
     in_memory_create_relationship(db, 2, 3);
 
-    float avg_deg = get_avg_degree(db, BOTH);
+    float avg_deg = get_avg_degree(db, BOTH, NULL);
     assert(avg_deg > TRUE_AVG_DEG_BOTH_LOW && avg_deg < TRUE_AVG_DEG_BOTH_HIGH);
 
-    avg_deg = get_avg_degree(db, OUTGOING);
+    avg_deg = get_avg_degree(db, OUTGOING, NULL);
     assert(avg_deg > TRUE_AVG_DEG_OUT_LOW && avg_deg < TRUE_AVG_DEG_OUT_HIGH);
 
-    avg_deg = get_avg_degree(db, INCOMING);
+    avg_deg = get_avg_degree(db, INCOMING, NULL);
     assert(avg_deg > TRUE_AVG_DEG_INC_LOW && avg_deg < TRUE_AVG_DEG_INC_HIGH);
 
-    assert(get_avg_degree(db, OUTGOING) == get_avg_degree(db, INCOMING));
+    assert(get_avg_degree(db, OUTGOING, NULL)
+           == get_avg_degree(db, INCOMING, NULL));
 
     in_memory_file_destroy(db);
 }

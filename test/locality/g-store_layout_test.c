@@ -50,11 +50,7 @@ test_coarsen(in_memory_file_t* db)
     unsigned long        node_aggregation_weight_sum;
     unsigned long*       finer_to_coarser_agg_sum;
 
-    while (coarsen(graph,
-                   BLOCK_SIZE,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
+    while (coarsen(graph, &num_v_matches, &max_partition_size, &c_ratio_avg)
            == 0) {
         prev  = graph;
         graph = graph->coarser;
@@ -166,16 +162,12 @@ test_turn_arround(in_memory_file_t* db)
     float         c_ratio_avg        = 0.0F;
     unsigned long max_partition_size = BLOCK_SIZE / sizeof(node_t);
 
-    while (coarsen(graph,
-                   BLOCK_SIZE,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
+    while (coarsen(graph, &num_v_matches, &max_partition_size, &c_ratio_avg)
            == 0) {
         graph = graph->coarser;
     }
 
-    turn_around(graph, BLOCK_SIZE);
+    turn_around(graph);
 
     unsigned long part_count[graph->num_partitions];
 
@@ -251,16 +243,12 @@ test_project(in_memory_file_t* db)
     bool           zero;
     unsigned long* part_count;
 
-    while (coarsen(graph,
-                   BLOCK_SIZE,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
+    while (coarsen(graph, &num_v_matches, &max_partition_size, &c_ratio_avg)
            == 0) {
         graph = graph->coarser;
     }
 
-    turn_around(graph, BLOCK_SIZE);
+    turn_around(graph);
 
     assert(graph->coarser == NULL);
 
@@ -286,7 +274,7 @@ test_project(in_memory_file_t* db)
                   i);
         }
 
-        project(graph, &part_type, BLOCK_SIZE, c_ratio_avg, nodes_per_part);
+        project(graph, &part_type, c_ratio_avg, nodes_per_part);
 
         for (size_t i = 0; i < graph->num_partitions; ++i) {
             list_ul_destroy(nodes_per_part[i]);
@@ -380,16 +368,12 @@ test_reorder(in_memory_file_t* db)
     list_ul_t**   nodes_per_part;
     bool*         part_type;
 
-    while (coarsen(graph,
-                   BLOCK_SIZE,
-                   &num_v_matches,
-                   &max_partition_size,
-                   &c_ratio_avg)
+    while (coarsen(graph, &num_v_matches, &max_partition_size, &c_ratio_avg)
            == 0) {
         graph = graph->coarser;
     }
 
-    turn_around(graph, BLOCK_SIZE);
+    turn_around(graph);
 
     assert(graph->coarser == NULL);
 
@@ -415,7 +399,7 @@ test_reorder(in_memory_file_t* db)
                   i);
         }
 
-        project(graph, &part_type, BLOCK_SIZE, c_ratio_avg, nodes_per_part);
+        project(graph, &part_type, c_ratio_avg, nodes_per_part);
 
         for (size_t i = 0; i < graph->num_partitions; ++i) {
             list_ul_destroy(nodes_per_part[i]);
@@ -446,7 +430,7 @@ void
 test_full_run(in_memory_file_t* db)
 {
     printf("Start applying the G-Store multilevel partitioning algorithm.\n");
-    unsigned long* partition = g_store_layout(db, BLOCK_SIZE);
+    unsigned long* partition = g_store_layout(db);
     printf("Done.\n");
 
     FILE* out_f =

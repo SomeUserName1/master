@@ -138,8 +138,8 @@ htable_rehash(htable_t* ht)
     size_t           num_buckets = ht->num_buckets;
     htable_bucket_t* buckets     = ht->buckets;
 
-    ht->num_buckets *= 1UL;
-    ht->buckets = calloc(ht->num_buckets, sizeof(*buckets));
+    ht->num_buckets = 2 * ht->num_buckets;
+    ht->buckets     = calloc(ht->num_buckets, sizeof(*buckets));
 
     if (!ht->buckets) {
         printf("htable - rehash: Memory Allocation failed!\n");
