@@ -14,9 +14,9 @@ build:
   artifacts:
     paths:
       - build/src/gndb
-    cache:
-        paths:
-           - find . -name '*.o'
+  cache:
+    paths:
+      - find . -name '*.o'
 
 # run tests using the binary built before
 test:
