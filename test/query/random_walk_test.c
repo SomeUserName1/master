@@ -1,10 +1,13 @@
 #include "../../src/query/random_walk.h"
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/import/snap_importer.h"
-
 #include <assert.h>
-#include <stdio.h>
+
+#include "../../src/access/in_memory_file.h"
+#include "../../src/data-struct/dict_ul.h"
+#include "../../src/data-struct/list_ul.h"
+#include "../../src/import/snap_importer.h"
+#include "../../src/query/result_types.h"
+#include "../../src/record/relationship.h"
 
 int
 main(void)

@@ -1,6 +1,5 @@
 #include "../../src/query/louvain.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 

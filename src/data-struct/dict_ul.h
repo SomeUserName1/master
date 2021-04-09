@@ -1,12 +1,11 @@
 #ifndef DICT_UL_H
 #define DICT_UL_H
 
-#include "../record/node.h"
-#include "../record/relationship.h"
-#include "htable.h"
-
 #include <stdbool.h>
 #include <stddef.h>
+
+#include "../record/node.h"
+#include "../record/relationship.h"
 
 typedef struct dict_ul_ul            dict_ul_ul_t;
 typedef struct dict_ul_int           dict_ul_int_t;

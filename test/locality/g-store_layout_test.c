@@ -8,7 +8,11 @@
 #include "../../src/access/in_memory_file.h"
 #include "../../src/constants.h"
 #include "../../src/data-struct/dict_ul.h"
+#include "../../src/data-struct/list_rel.h"
+#include "../../src/data-struct/list_ul.h"
 #include "../../src/import/snap_importer.h"
+#include "../../src/record/node.h"
+#include "../../src/record/relationship.h"
 
 void
 test_coarsen(in_memory_file_t* db)

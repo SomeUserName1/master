@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "list.h"
-
 typedef struct list_l list_l_t;
 
 list_l_t*

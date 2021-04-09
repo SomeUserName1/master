@@ -6,8 +6,10 @@
 
 #include <assert.h>
 #include <limits.h>
-#include <stdio.h>
 #include <stdlib.h>
+
+#include "../../src/record/node.h"
+#include "../../src/record/relationship.h"
 
 #define MAGIC_TEST_VALUE (42777)
 #define NON_EX_VAL       (666)

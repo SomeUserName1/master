@@ -1,14 +1,13 @@
 #include "../../src/data-struct/dict_ul.h"
 #include "../../src/data-struct/htable.h"
-#include "../../src/record/node.h"
-#include "../../src/record/relationship.h"
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "../../src/access/in_memory_file.h"
 #include "../../src/import/snap_importer.h"
+#include "../../src/record/node.h"
+#include "../../src/record/relationship.h"
 
 #define TEST_KEY       (42)
 #define TEST_VAL       (777)

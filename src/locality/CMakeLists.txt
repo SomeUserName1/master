@@ -3,7 +3,7 @@ target_link_libraries(analyze  PRIVATE record)
 list(APPEND LIBS analyze)
 
 add_library(icbl icbl.c)
-target_link_libraries(icbl PRIVATE query access)
+target_link_libraries(icbl PRIVATE m query access)
 list(APPEND LIBS icbl)
 
 add_library(g-store-layout g-store_layout.c)

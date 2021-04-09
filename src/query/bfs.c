@@ -1,16 +1,16 @@
 #include "bfs.h"
 
-#include "../access/in_memory_file.h"
-#include "../constants.h"
-#include "../data-struct/dict_ul.h"
-#include "../data-struct/queue_ul.h"
-#include "../record/node.h"
-#include "../record/relationship.h"
-#include "result_types.h"
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "../access/in_memory_file.h"
+#include "../constants.h"
+#include "../data-struct/list_rel.h"
+#include "../data-struct/queue_ul.h"
+#include "../record/relationship.h"
+#include "result_types.h"
 
 traversal_result*
 bfs(in_memory_file_t* db,

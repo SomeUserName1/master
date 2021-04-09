@@ -1,7 +1,11 @@
 #ifndef PARTITION_H
 #define PARTITION_H
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
+#include <stdbool.h>
 
 #include "../access/in_memory_file.h"
 

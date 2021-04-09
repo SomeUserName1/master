@@ -3,6 +3,7 @@
 #include "htable.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct set set_t;
 

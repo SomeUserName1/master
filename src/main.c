@@ -1,6 +1,8 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 
 #include "access/in_memory_file.h"
@@ -21,12 +23,28 @@
 #include "query/result_types.h"
 
 #define NUM_LAYOUT_METHOS (5)
+#define NUM_LANDMARKS     (5)
+#define PERMISSION_NUM    (0777)
+
+void
+rek_mkdir(char* path)
+{
+    char* sep = strrchr(path, '/');
+    if (sep != NULL) {
+        *sep = 0;
+        rek_mkdir(path);
+        *sep = '/';
+        if (mkdir(path, PERMISSION_NUM) && errno != EEXIST) {
+            printf("error while trying to create '%s'\n%m\n", path);
+        }
+    }
+}
 
 int
 main(void)
 {
-    // Path schema for results: base_path / dataset / layout_str / (sorted_il)?
-    // query_str _ (records|blocks)
+    // Path schema for results: base_path / dataset / layout_str /
+    // (sorted_il)? query_str _ (records|blocks)
     const char* trash_file    = "/home/someusername/Downloads/ignore.txt";
     const char* base_path     = "/home/someusername/workspace_local/";
     const char* download_temp = "download.txt.gz";
@@ -63,27 +81,30 @@ main(void)
         strncat(dataset_path[i], ".txt", strlen(".txt"));
     }
 
-    for (dataset_t dataset = 0; dataset <= YOUTUBE; dataset++) {
-        printf("Downloading & uncompressing dataset %s ...\n",
-               dataset_str[dataset]);
-        download_dataset(dataset, temp_path);
-        uncompress_dataset(temp_path, dataset_path[dataset]);
-        printf("Done!\n");
-    }
+    //    for (dataset_t dataset = 0; dataset <= YOUTUBE; dataset++) {
+    //        printf("Downloading & uncompressing dataset %s ...\n",
+    //               dataset_str[dataset]);
+    //        download_dataset(dataset, temp_path);
+    //        uncompress_dataset(temp_path, dataset_path[dataset]);
+    //        printf("Done!\n");
+    //    }
     free(temp_path);
 
     // In order to avoid effects from different initializations, we reimport
-    // every dataset for all layouts. That is, all layout algorithm start with
-    // the "natural" order imposed by the dataset.
+    // every dataset for all layouts. That is, all layout algorithm start
+    // with the "natural" order imposed by the dataset.
     in_memory_file_t* db;
     unsigned long     source_node;
     unsigned long     target_node;
     unsigned long*    partition;
     char*             result_base_path;
     char*             result_specific_path;
+    char*             result_specific_block_path;
+    char*             result_specific_page_path;
     char*             mem_alloc_h;
     double*           heuristic;
-    double**          landmark_dists = malloc(3 * sizeof(double*));
+    double**          landmark_dists = malloc(NUM_LANDMARKS * sizeof(double*));
+    sssp_result*      dijk_result;
 
     srand(time(NULL));
 
@@ -92,8 +113,6 @@ main(void)
                dataset_str[dataset]);
         source_node = rand() % get_no_nodes(dataset);
         target_node = rand() % get_no_nodes(dataset);
-
-        heuristic = calloc(get_no_nodes(dataset), sizeof(double));
 
         for (size_t i = 0; i < NUM_LAYOUT_METHOS; ++i) {
             printf("Using layout method %s ===============\n", layout_str[i]);
@@ -122,9 +141,15 @@ main(void)
             strncat(result_base_path, "/", 1);
             strncat(result_base_path, layout_str[i], strlen(layout_str[i]));
             strncat(result_base_path, "/", 1);
+            rek_mkdir(result_base_path);
+            printf("Base path: %s\n", result_base_path);
 
             // Preprocess the landmarks for alt to avoid doing it twice.
-            alt_preprocess(db, BOTH, 3, landmark_dists, trash_file);
+            alt_preprocess(db, BOTH, NUM_LANDMARKS, landmark_dists, trash_file);
+            dijk_result = dijkstra(db, target_node, BOTH, trash_file);
+            heuristic   = dijk_result->distances;
+            free(dijk_result->pred_edges);
+            free(dijk_result);
 
             for (size_t k = 0; k < 2; ++k) {
                 if (k) {
@@ -145,6 +170,8 @@ main(void)
                     }
 
                     strncat(result_base_path, "sil_", strlen("sil_"));
+
+                    printf("Base path: %s\n", result_base_path);
                     printf("Rerun queries\n");
                 } else {
                     printf("Run queries ===========\n");
@@ -156,20 +183,53 @@ main(void)
                        source_node);
 
                 result_specific_path =
-                      calloc(strlen(result_base_path) + strlen(query_str[0]),
+                      calloc(strlen(result_base_path) + strlen(query_str[0])
+                                   + strlen("_ids.txt") + 1,
                              sizeof(char));
+                result_specific_block_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[0])
+                                   + strlen("_blocks.txt") + 1,
+                             sizeof(char));
+                result_specific_page_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[0])
+                                   + strlen("_pages.txt") + 1,
+                             sizeof(char));
+
                 if (!result_specific_path) {
                     printf("main - memory allocation failed\n");
                     exit(-1);
                 }
 
+                strncat(result_specific_path,
+                        result_base_path,
+                        strlen(result_base_path));
                 strncat(
                       result_specific_path, query_str[0], strlen(query_str[0]));
 
-                strncat(result_specific_path, ".txt", 4);
+                strncat(result_specific_block_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+                strncat(result_specific_page_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+
+                strncat(result_specific_path, "_ids.txt", strlen("_ids.txt"));
+                strncat(result_specific_block_path,
+                        "_blocks.txt",
+                        strlen("_blocks.txt"));
+                strncat(result_specific_page_path,
+                        "_pages.txt",
+                        strlen("_pages.txt"));
+
+                fclose(fopen(result_specific_path, "w"));
 
                 traversal_result_destroy(
                       bfs(db, source_node, BOTH, result_specific_path));
+                ids_to_blocks(
+                      result_specific_path, result_specific_block_path, ALL);
+                blocks_to_pages(result_specific_block_path,
+                                result_specific_page_path,
+                                ALL);
                 printf("Done\n");
 
                 // Construct ouput path & run DFS
@@ -179,7 +239,8 @@ main(void)
 
                 mem_alloc_h =
                       realloc(result_specific_path,
-                              strlen(result_base_path) + strlen(query_str[1]));
+                              strlen(result_base_path) + strlen(query_str[1])
+                                    + strlen("_ids.txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -189,15 +250,50 @@ main(void)
                     result_specific_path = mem_alloc_h;
                 }
 
-                result_specific_path[strlen(result_base_path) + 1] = '\0';
+                free(result_specific_block_path);
+                free(result_specific_page_path);
+                result_specific_block_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[1])
+                                   + strlen("_blocks.txt") + 1,
+                             sizeof(char));
+
+                result_specific_page_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[1])
+                                   + strlen("_pages.txt") + 1,
+                             sizeof(char));
+
+                result_specific_path[strlen(result_base_path)] = '\0';
 
                 strncat(
                       result_specific_path, query_str[1], strlen(query_str[1]));
 
-                strncat(result_specific_path, ".txt", 4);
+                strncat(result_specific_block_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+                strncat(result_specific_page_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+
+                strncat(result_specific_path, "_ids.txt", strlen("_ids.txt"));
+                strncat(result_specific_block_path,
+                        "_blocks.txt",
+                        strlen("_blocks.txt"));
+                strncat(result_specific_page_path,
+                        "_pages.txt",
+                        strlen("_pages.txt"));
+
+                fclose(fopen(result_specific_path, "w"));
+                fclose(fopen(result_specific_block_path, "w"));
+                fclose(fopen(result_specific_page_path, "w"));
 
                 traversal_result_destroy(
                       dfs(db, source_node, BOTH, result_specific_path));
+                ids_to_blocks(
+                      result_specific_path, result_specific_block_path, ALL);
+                blocks_to_pages(result_specific_block_path,
+                                result_specific_page_path,
+                                ALL);
+
                 printf("Done\n");
 
                 // Construct ouput path & run dijkstra
@@ -207,7 +303,8 @@ main(void)
 
                 mem_alloc_h =
                       realloc(result_specific_path,
-                              strlen(result_base_path) + strlen(query_str[2]));
+                              strlen(result_base_path) + strlen(query_str[2])
+                                    + strlen(".txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -217,26 +314,62 @@ main(void)
                     result_specific_path = mem_alloc_h;
                 }
 
-                result_specific_path[strlen(result_base_path) + 1] = '\0';
+                free(result_specific_block_path);
+                free(result_specific_page_path);
+                result_specific_block_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[2])
+                                   + strlen("_blocks.txt") + 1,
+                             sizeof(char));
+
+                result_specific_page_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[2])
+                                   + strlen("_pages.txt") + 1,
+                             sizeof(char));
+
+                result_specific_path[strlen(result_base_path)] = '\0';
 
                 strncat(
                       result_specific_path, query_str[2], strlen(query_str[2]));
 
-                strncat(result_specific_path, ".txt", 4);
+                strncat(result_specific_block_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+                strncat(result_specific_page_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+
+                strncat(result_specific_path, "_ids.txt", strlen("_ids.txt"));
+                strncat(result_specific_block_path,
+                        "_blocks.txt",
+                        strlen("_blocks.txt"));
+                strncat(result_specific_page_path,
+                        "_pages.txt",
+                        strlen("_pages.txt"));
+
+                fclose(fopen(result_specific_path, "w"));
+                fclose(fopen(result_specific_block_path, "w"));
+                fclose(fopen(result_specific_page_path, "w"));
 
                 sssp_result_destroy(
                       dijkstra(db, source_node, BOTH, result_specific_path));
+                ids_to_blocks(
+                      result_specific_path, result_specific_block_path, ALL);
+                blocks_to_pages(result_specific_block_path,
+                                result_specific_page_path,
+                                ALL);
                 printf("Done\n");
 
                 // Construct ouput path & run A*
-                printf("Running %s with source node %lu, and target node %lu\n",
+                printf("Running %s with source node %lu, and target node "
+                       "%lu\n",
                        query_str[3],
                        source_node,
                        target_node);
 
                 mem_alloc_h =
                       realloc(result_specific_path,
-                              strlen(result_base_path) + strlen(query_str[3]));
+                              strlen(result_base_path) + strlen(query_str[3])
+                                    + strlen(".txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -246,12 +379,41 @@ main(void)
                     result_specific_path = mem_alloc_h;
                 }
 
-                result_specific_path[strlen(result_base_path) + 1] = '\0';
+                free(result_specific_block_path);
+                free(result_specific_page_path);
+                result_specific_block_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[3])
+                                   + strlen("_blocks.txt") + 1,
+                             sizeof(char));
+
+                result_specific_page_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[3])
+                                   + strlen("_pages.txt") + 1,
+                             sizeof(char));
+
+                result_specific_path[strlen(result_base_path)] = '\0';
 
                 strncat(
                       result_specific_path, query_str[3], strlen(query_str[3]));
 
-                strncat(result_specific_path, ".txt", 4);
+                strncat(result_specific_block_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+                strncat(result_specific_page_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+
+                strncat(result_specific_path, "_ids.txt", strlen("_ids.txt"));
+                strncat(result_specific_block_path,
+                        "_blocks.txt",
+                        strlen("_blocks.txt"));
+                strncat(result_specific_page_path,
+                        "_pages.txt",
+                        strlen("_pages.txt"));
+
+                fclose(fopen(result_specific_path, "w"));
+                fclose(fopen(result_specific_block_path, "w"));
+                fclose(fopen(result_specific_page_path, "w"));
 
                 path_destroy(a_star(db,
                                     heuristic,
@@ -259,17 +421,25 @@ main(void)
                                     target_node,
                                     BOTH,
                                     result_specific_path));
+                ids_to_blocks(
+                      result_specific_path, result_specific_block_path, ALL);
+                blocks_to_pages(result_specific_block_path,
+                                result_specific_page_path,
+                                ALL);
                 printf("Done\n");
 
-                // Construct ouput path & run dijkstra
-                printf("Running %s with source node %lu and target node %lu\n",
+                // Construct ouput path & run alt
+                printf("Running %s with source node %lu and target node "
+                       "%lu\n",
                        query_str[4],
                        source_node,
                        target_node);
 
                 mem_alloc_h =
+
                       realloc(result_specific_path,
-                              strlen(result_base_path) + strlen(query_str[4]));
+                              strlen(result_base_path) + strlen(query_str[4])
+                                    + strlen(".txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -279,12 +449,41 @@ main(void)
                     result_specific_path = mem_alloc_h;
                 }
 
-                result_specific_path[strlen(result_base_path) + 1] = '\0';
+                free(result_specific_block_path);
+                free(result_specific_page_path);
+                result_specific_block_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[4])
+                                   + strlen("_blocks.txt") + 1,
+                             sizeof(char));
+
+                result_specific_page_path =
+                      calloc(strlen(result_base_path) + strlen(query_str[4])
+                                   + strlen("_pages.txt") + 1,
+                             sizeof(char));
+
+                result_specific_path[strlen(result_base_path)] = '\0';
 
                 strncat(
                       result_specific_path, query_str[4], strlen(query_str[4]));
 
-                strncat(result_specific_path, ".txt", 4);
+                strncat(result_specific_block_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+                strncat(result_specific_page_path,
+                        result_specific_path,
+                        strlen(result_specific_path));
+
+                strncat(result_specific_path, "_ids.txt", strlen("_ids.txt"));
+                strncat(result_specific_block_path,
+                        "_blocks.txt",
+                        strlen("_blocks.txt"));
+                strncat(result_specific_page_path,
+                        "_pages.txt",
+                        strlen("_pages.txt"));
+
+                fclose(fopen(result_specific_path, "w"));
+                fclose(fopen(result_specific_block_path, "w"));
+                fclose(fopen(result_specific_page_path, "w"));
 
                 path_destroy(alt(db,
                                  landmark_dists,
@@ -293,15 +492,24 @@ main(void)
                                  target_node,
                                  BOTH,
                                  result_specific_path));
+                ids_to_blocks(
+                      result_specific_path, result_specific_block_path, ALL);
+                blocks_to_pages(result_specific_block_path,
+                                result_specific_page_path,
+                                ALL);
                 printf("Done\n");
 
                 free(result_specific_path);
             }
 
-            for (size_t l = 0; l < 3; ++l) {
-                printf("free %lu\n", l);
-                free(landmark_dists[i]);
+            for (size_t i = 0; i < 3; ++i) {
+                printf("landmark %lu %.3f\n", i, landmark_dists[i][0]);
             }
+
+            //  for (size_t l = 0; l < NUM_LANDMARKS; ++l) {
+            //      printf("free %lu\n", l);
+            //      free(landmark_dists[i]);
+            //  }
             in_memory_file_destroy(db);
             free(result_base_path);
         }

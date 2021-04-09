@@ -1,7 +1,9 @@
 #ifndef RANDOM_WALK
 #define RANDOM_WALK
+
+#include <stddef.h>
+
 #include "../access/in_memory_file.h"
-#include "../data-struct/list_ul.h"
 #include "result_types.h"
 
 path*

@@ -1,11 +1,13 @@
 #include "../../src/query/a-star.h"
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/import/snap_importer.h"
-
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
+
+#include "../../src/access/in_memory_file.h"
+#include "../../src/data-struct/dict_ul.h"
+#include "../../src/data-struct/list_ul.h"
+#include "../../src/import/snap_importer.h"
+#include "../../src/query/result_types.h"
 
 #define n(x) dict_ul_ul_get_direct(map, x)
 

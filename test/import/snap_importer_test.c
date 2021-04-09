@@ -1,8 +1,6 @@
 #include "../../src/import/snap_importer.h"
 
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "../../src/access/in_memory_file.h"

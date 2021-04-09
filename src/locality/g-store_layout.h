@@ -11,9 +11,12 @@
 #define REFINEMENT_ITERS          (1)
 #define C_RATIO_LIMIT             (0.3F)
 #define MAX_PARTITION_SIZE_FACTOR (32)
+#define SWAP_FRAC                 (10)
+
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "../access/in_memory_file.h"
-#include "../constants.h"
 #include "../data-struct/list_ul.h"
 
 typedef struct multi_level_graph

@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 static void*
 htable_passthrough_copy(const void* elem)
@@ -215,7 +214,6 @@ create_htable(htable_hash fn, htable_keq keq, htable_cbs_t* cbs)
 
     ht->num_used = 0;
 
-    srand(time(NULL));
     ht->seed = rand();
 
     return ht;

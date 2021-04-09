@@ -2,7 +2,6 @@
 #define CBS_H
 
 #include <stdbool.h>
-#include <stddef.h>
 
 bool
 ptr_eq(const void* a, const void* b);

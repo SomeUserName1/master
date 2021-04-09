@@ -1,12 +1,15 @@
 #ifndef ICBL
 #define ICBL
+
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "../access/in_memory_file.h"
 #include "../data-struct/dict_ul.h"
-#include "../record/node.h"
 
-#define MEMORY          (2147483648.0f)
-#define SHARE_OF_MEMORY (0.25)
-static const float MIN_DIST_INIT_CENTERS = 0.1F;
+#define MEMORY          (4294967296.0f)
+#define SHARE_OF_MEMORY (0.8)
+static const float MIN_DIST_INIT_CENTERS = 0.5F;
 
 typedef struct dendrogram
 {

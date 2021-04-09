@@ -1,6 +1,8 @@
 #include "icbl.h"
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include <float.h>
 #include <limits.h>
@@ -9,15 +11,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
+#include "../access/in_memory_file.h"
 #include "../constants.h"
 #include "../data-struct/cbs.h"
+#include "../data-struct/dict_ul.h"
 #include "../data-struct/list.h"
+#include "../data-struct/list_rel.h"
 #include "../data-struct/list_ul.h"
 #include "../data-struct/set_ul.h"
 #include "../query/degree.h"
 #include "../query/random_walk.h"
+#include "../query/result_types.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
 
 inline size_t
 get_num_walks(in_memory_file_t* db)
@@ -148,8 +155,6 @@ identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
     unsigned long node_id;
     list_ul_t*    visited_nodes;
 
-    srand(time(NULL));
-
     for (size_t i = 0; i < num_nodes; ++i) {
         for (size_t j = 0; j < num_walks; ++j) {
             result        = random_walk(db, i, num_steps, BOTH);
@@ -253,7 +258,7 @@ insert_match(size_t*       max_degree_nodes,
     }
 }
 
-bool
+inline bool
 check_dist_bound(const size_t*  max_degree_nodes,
                  size_t         candidate,
                  unsigned long  num_found,
@@ -319,6 +324,17 @@ initialize_centers(in_memory_file_t* db,
     *centers = max_degree_nodes;
 }
 
+bool
+is_center(size_t idx, unsigned long num_centers, const unsigned long* center)
+{
+    for (size_t i = 0; i < num_centers; ++i) {
+        if (center[i] == idx) {
+            return true;
+        }
+    }
+    return false;
+}
+
 size_t
 assign_to_cluster(size_t               num_nodes,
                   dict_ul_ul_t**       dif_sets,
@@ -335,6 +351,7 @@ assign_to_cluster(size_t               num_nodes,
     float         dist;
     unsigned long best_center_idx = ULONG_MAX;
     unsigned long changes         = 0;
+    bool          center          = false;
 
     if (num_clusters == 1) {
         for (size_t i = 0; i < num_nodes; ++i) {
@@ -343,6 +360,18 @@ assign_to_cluster(size_t               num_nodes,
     }
 
     for (size_t i = 0; i < num_nodes; ++i) {
+        for (size_t j = 0; j < num_clusters; ++j) {
+            if (centers[j] == i) {
+                part[i] = j;
+                center  = true;
+                break;
+            }
+        }
+        if (center) {
+            center = false;
+            continue;
+        }
+
         for (size_t j = 0; j < num_clusters; ++j) {
             dist = weighted_jaccard_dist(dif_sets[centers[j]], dif_sets[i]);
             if (dist < min_dist) {
@@ -356,7 +385,7 @@ assign_to_cluster(size_t               num_nodes,
                 part[i] = best_center_idx;
             }
         } else {
-            printf("Couldn't find an appropriate center; sth is wrong!\n");
+            printf("Couldn't assign node %lu to a cluster; sth is wrong!\n", i);
             exit(-1);
         }
 
@@ -418,17 +447,23 @@ update_centers(size_t               num_nodes,
     }
 
     for (size_t i = 0; i < num_clusters; ++i) {
+        centers[i] = UNINITIALIZED_LONG;
+    }
+
+    for (size_t i = 0; i < num_clusters; ++i) {
         it = create_dict_ul_ul_iterator(cluster_counts[i]);
 
         while (dict_ul_ul_iterator_next(it, &node_id, &count) == 0) {
-            if (*count > max_count) {
+            if (*count > max_count
+                && !is_center(*node_id, num_clusters, centers)) {
                 max_node_id = *node_id;
                 max_count   = *count;
             }
         }
 
         if (max_node_id == UNINITIALIZED_LONG) {
-            printf("Found no new center! Sth is wrong.\n");
+            printf("Couldn't find a new center! This should be "
+                   "unreachable!\n");
             exit(-1);
         }
 
@@ -438,6 +473,7 @@ update_centers(size_t               num_nodes,
 
         dict_ul_ul_iterator_destroy(it);
         dict_ul_ul_destroy(cluster_counts[i]);
+        cluster_counts[i] = NULL;
     }
 
     free(cluster_counts);
@@ -520,11 +556,11 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
 
     for (size_t i = 0; i < n_nodes_of_p; ++i) {
         n_id                      = list_ul_get(nodes_of_p, i);
-        dendros[i]                = malloc(sizeof(dendrogram_t));
+        dendros[i]                = calloc(1, sizeof(dendrogram_t));
         dendros[i]->id            = i;
         dendros[i]->children.node = n_id;
         length                    = snprintf(NULL, 0, "%lu", n_id) + 1;
-        dendros[i]->label         = malloc(length);
+        dendros[i]->label         = calloc(length, sizeof(char));
         snprintf(dendros[i]->label, length, "%lu", n_id);
         dendros[i]->size     = sizeof(node_t);
         dendros[i]->uncapt_s = dendros[i]->size;
@@ -575,7 +611,7 @@ assign_dendro_label(dendrogram_t* dendro,
         // block label of first + : + block label of snd + \0
         size_t length =
               strlen(fst_child->label) + 1 + strlen(snd_child->label) + 1;
-        dendro->label = malloc(length * sizeof(char));
+        dendro->label = calloc(length, sizeof(char));
 
         if (dendro->label == NULL) {
             exit(-1);
@@ -601,8 +637,8 @@ assign_dendro_label(dendrogram_t* dendro,
                   snprintf(NULL, 0, "%lu", dendro->block_no);
 
             // node_id + . + block num + \0
-            dendro->label = malloc((strlen(label) + 1 + block_num_length + 1)
-                                   * sizeof(char));
+            dendro->label = calloc((strlen(label) + 1 + block_num_length + 1),
+                                   sizeof(char));
 
             if (dendro->label == NULL) {
                 return -1;
@@ -617,7 +653,7 @@ assign_dendro_label(dendrogram_t* dendro,
                      "%lu",
                      dendro->block_no);
         } else {
-            dendro->label = malloc((strlen(label) + 1) * sizeof(char));
+            dendro->label = calloc((strlen(label) + 1), sizeof(char));
 
             if (dendro->label == NULL) {
                 return -1;
@@ -729,7 +765,7 @@ cluster_hierarchical(unsigned long   n_nodes,
         dendrogram_t** realloc_h =
               realloc(*blocks, *block_count * sizeof(dendrogram_t*));
 
-        if (!*blocks) {
+        if (!realloc_h) {
             free(*blocks);
             printf("ICBL - cluster_hierarchical: Memory Allocation failed!\n");
             exit(-1);
@@ -809,7 +845,7 @@ sort_by_label(dendrogram_t** blocks, unsigned long size)
         exit(-1);
     }
 
-    unsigned long* order = malloc(size * sizeof(unsigned long));
+    unsigned long* order = calloc(size, sizeof(unsigned long));
     if (order == NULL) {
         exit(-1);
     }
@@ -870,7 +906,7 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
         ;
     }
 
-    dendrogram_t** dendros = malloc(n_subgraphs * sizeof(dendrogram_t*));
+    dendrogram_t** dendros = calloc(n_subgraphs, sizeof(dendrogram_t*));
     size_t         length;
 
     if (!dendros) {
@@ -880,7 +916,7 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
     }
 
     for (size_t i = 0; i < n_subgraphs; ++i) {
-        dendros[i] = malloc(sizeof(dendrogram_t));
+        dendros[i] = calloc(1, sizeof(dendrogram_t));
 
         if (!dendros[i]) {
             printf("ICBL - initialize_subgraph_dendrograms: Allocating memory "
@@ -890,7 +926,7 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
         dendros[i]->id            = i;
         dendros[i]->children.node = i;
         length                    = snprintf(NULL, 0, "%lu", i);
-        dendros[i]->label         = malloc(length + 1);
+        dendros[i]->label         = calloc(length + 1, sizeof(char));
 
         if (!dendros[i]->label) {
             printf("ICBL - initialize_subgraph_dendrograms: Allocating memory "

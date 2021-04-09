@@ -1,16 +1,15 @@
 #include "alt.h"
 
-#include "../record/node.h"
-#include "a-star.h"
-#include "degree.h"
-#include "dijkstra.h"
-#include "result_types.h"
-
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+
+#include "../access/in_memory_file.h"
+#include "a-star.h"
+#include "degree.h"
+#include "dijkstra.h"
+#include "result_types.h"
 
 unsigned long
 alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,
@@ -32,8 +31,6 @@ alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,
     double        avg_degree = get_avg_degree(db, direction, log_file);
     double        degree     = 0;
     unsigned long landmark_id;
-
-    srand(time(NULL));
 
     do {
         landmark_id = rand() % db->node_id_counter;

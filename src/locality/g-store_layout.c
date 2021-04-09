@@ -1,13 +1,16 @@
 #include "g-store_layout.h"
 
-#include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../data-struct/fibonacci_heap.h"
+#include "../access/in_memory_file.h"
+#include "../constants.h"
+#include "../data-struct/list_rel.h"
 #include "../data-struct/list_ul.h"
+#include "../record/node.h"
+#include "../record/relationship.h"
 
 static void
 insert_match(size_t*       matches,
@@ -586,7 +589,7 @@ project(multi_level_graph_t* graph,
     bool* realloc_h_p =
           realloc(*part_type, finer->num_partitions * sizeof(bool));
 
-    if (!realloc_h) {
+    if (!realloc_h_p) {
         free(*part_type);
         printf("G-Store - project: Memory Allocation failed!\n");
         exit(-1);
@@ -613,8 +616,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
 
     size_t num_groups = 0;
     size_t num_parts;
-    bool   swapped = false;
-    groups[0]      = create_list_ul();
+    groups[0] = create_list_ul();
     list_ul_append(groups[0], 0);
     long*          gains;
     long           max_gain;
@@ -646,7 +648,7 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
 
     for (size_t i = 0; i < num_groups; ++i) {
         num_parts = list_ul_size(groups[i]);
-
+        printf("Group no %lu\n", i);
         if (num_parts == 1) {
             list_ul_destroy(groups[i]);
             continue;
@@ -658,9 +660,10 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
             exit(-1);
         }
 
-        do {
-            swapped  = false;
-            max_gain = LONG_MIN;
+        for (size_t n_swaps = 0; n_swaps < num_parts / SWAP_FRAC + 1;
+             ++n_swaps) {
+            printf("Swap No %lu\n", n_swaps);
+            max_gain = 0;
 
             for (size_t j = 0; j < num_parts * num_parts; ++j) {
                 gains[j] = LONG_MIN;
@@ -699,12 +702,11 @@ reorder(multi_level_graph_t* graph, const bool* part_type)
                 finer->partition_aggregation_weight[max_gain_idx1] =
                       finer->partition_aggregation_weight[max_gain_idx2];
                 finer->partition_aggregation_weight[max_gain_idx2] = temp;
-                swapped                                            = true;
             } else {
                 free(max_gain_p);
                 max_gain_p = NULL;
             }
-        } while (swapped);
+        }
         free(gains);
         list_ul_destroy(groups[i]);
     }
@@ -828,7 +830,7 @@ uncoarsen(multi_level_graph_t* graph, float c_ratio_avg)
     reorder(graph, part_type);
     free(part_type);
 
-    // refine(graph, c_ratio_avg);
+    refine(graph, c_ratio_avg);
 
     return 0;
 }

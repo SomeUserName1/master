@@ -1,6 +1,7 @@
 #include "../../src/locality/icbl.h"
 
 #include <assert.h>
+#include <float.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,8 @@
 #include "../../src/access/in_memory_file.h"
 #include "../../src/constants.h"
 #include "../../src/data-struct/dict_ul.h"
+#include "../../src/data-struct/htable.h"
+#include "../../src/data-struct/list_rel.h"
 #include "../../src/data-struct/set_ul.h"
 #include "../../src/import/snap_importer.h"
 #include "../../src/query/degree.h"
@@ -379,16 +382,15 @@ test_update_centers(in_memory_file_t* db,
             }
         }
         centers_copy[i] = max_idx;
-        max_count       = 0;
-        max_idx         = UNINITIALIZED_LONG;
+        assert(dict_ul_ul_get_direct(cluster_counts[i], centers[i])
+               == dict_ul_ul_get_direct(cluster_counts[i], centers_copy[i]));
+        max_count = 0;
+        max_idx   = UNINITIALIZED_LONG;
 
         dict_ul_ul_iterator_destroy(it);
         dict_ul_ul_destroy(cluster_counts[i]);
     }
 
-    for (size_t i = 0; i < num_clusters; ++i) {
-        assert(centers[i] == centers_copy[i]);
-    }
     free(centers_copy);
 }
 

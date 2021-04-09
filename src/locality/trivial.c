@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+
+#include "../access/in_memory_file.h"
 
 unsigned long*
 identity_partition(in_memory_file_t* db)
@@ -42,8 +43,6 @@ random_partition(in_memory_file_t* db)
         printf("trivial partitions - identity: Memory Allocation failed!\n");
         exit(-1);
     }
-
-    srand(time(NULL));
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         partition[i] = i;

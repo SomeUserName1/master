@@ -3,8 +3,7 @@
 
 #include <stddef.h>
 
-#define BUFFER_SIZE   (512)
-#define NUM_CHARS_REL (12)
+#define BUFFER_SIZE (512)
 
 typedef enum record_id_type
 {
@@ -13,22 +12,10 @@ typedef enum record_id_type
     ALL  = 2
 } record_id_t;
 
-typedef struct io_stats
-{
-    size_t read_pages;
-    size_t read_blocks;
-    size_t write_pages;
-    size_t write_blocks;
-} io_stats_t;
+void
+ids_to_blocks(const char* in_path, const char* out_path, record_id_t type);
 
-unsigned long
-id_to_page(unsigned long id, size_t page_size, record_id_t type);
-
-io_stats_t*
-ids_to_io(const char* in_path,
-          const char* out_path,
-          size_t      page_size,
-          size_t      block_size,
-          record_id_t type);
+void
+blocks_to_pages(const char* in_path, const char* out_path, record_id_t type);
 
 #endif

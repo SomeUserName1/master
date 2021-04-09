@@ -3,8 +3,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "../data-struct/list_node.h"
+#include "../access/in_memory_file.h"
 #include "../data-struct/list_rel.h"
+#include "../record/relationship.h"
 
 size_t
 get_degree(in_memory_file_t* db,

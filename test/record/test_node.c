@@ -1,10 +1,10 @@
-#include "../../src/constants.h"
 #include "../../src/record/node.h"
 
 #include <assert.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "../../src/constants.h"
 
 #define SUFFICENT_BUF_SIZE (512)
 #define SMALL_BUF_SIZE     (32)
