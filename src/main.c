@@ -158,6 +158,10 @@ main(void)
                 result_specific_path =
                       calloc(strlen(result_base_path) + strlen(query_str[0]),
                              sizeof(char));
+                if (!result_specific_path) {
+                    printf("main - memory allocation failed\n");
+                    exit(-1);
+                }
 
                 strncat(
                       result_specific_path, query_str[0], strlen(query_str[0]));
