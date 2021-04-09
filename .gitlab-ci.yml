@@ -5,9 +5,9 @@ build:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   before_script:
-     - apt update && apt -y install make cmake curl zlib1g zlib1g-dev libcurl4-openssl-dev libcurl4 iwyu cppcheck
+     - apt update && apt -y install make cmake curl zlib1g zlib1g-dev libcurl4-openssl-dev libcurl4 iwyu cppcheck silversearcher-ag
   script:
-    - mkdir build
+    - mkdir -p build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=DEBUG
     - make
@@ -16,12 +16,15 @@ build:
       - build/src/gndb
   cache:
     paths:
-      - find . -name '*.o'
+      - ag -g "\.o"
 
 # run tests using the binary built before
 test:
   stage: test
   script:
+    - mkdir -p build
     - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=DEBUG
+    - make
     - make test
-    - llvm-cov gcov -l -p find ../src -name '*.gcno'
+    - llvm-cov gcov -l -p $(ag -g "\.gcno")
