@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-static const size_t list_block_size = 4;
+static const size_t initial_alloc = 128;
 
 typedef bool (*list_eq)(const void* a, const void* b);
 typedef void* (*list_copy_cb)(const void*);

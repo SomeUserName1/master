@@ -304,7 +304,7 @@ main(void)
                 mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[2])
-                                    + strlen(".txt") + 1);
+                                    + strlen("_ids.txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -369,7 +369,7 @@ main(void)
                 mem_alloc_h =
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[3])
-                                    + strlen(".txt") + 1);
+                                    + strlen("_ids.txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);
@@ -439,7 +439,7 @@ main(void)
 
                       realloc(result_specific_path,
                               strlen(result_base_path) + strlen(query_str[4])
-                                    + strlen(".txt") + 1);
+                                    + strlen("_ids.txt") + 1);
 
                 if (!mem_alloc_h) {
                     free(result_specific_path);

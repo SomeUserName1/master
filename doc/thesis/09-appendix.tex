@@ -1,0 +1,225 @@
+ \chapter{Appendix}
+    \section{Additional Graph Partitoning Algorithms}
+        \subsection*{Kernighan-Lin Algorithm}\label{kla}
+            The Kernighan-Lin (KL) algorithm~\autocite{kl} was invented by by Brain Kernighan --- one of the creators of Unix and co-author of the de facto standard book ''The C Programming Language`` and  Shen Lin.
+            It was developed and is used for laying out digital circuits on a chips. 
+            It is also used by many other more complex graph partitioning algorithms as the multilevel partitioning algorithm implementation of Karypis and Kumar~\autocite{karypis} described in the next part.
+            
+            \begin{figure}[htp]
+                \begin{center}
+                    \includegraphics[keepaspectratio,width=0.55\textwidth]{img/03-graphs/kl.png}
+                \end{center}
+                \caption{A flow diagram of the KL algorithm~\autocite{kl}.} 
+                \label{kl-fig}
+            \end{figure}
+                
+            The KL algorithm in its most basic form finds a minimal cut of the graph into two disjoint partitions of the same size. 
+            It assumes an undirected graph and is extended to unequally sized partitions and $k$-way partitioning. 
+            To decide which node has to be in which partition a cost function $D(v)$ is used. 
+            Let $v  \in V_i$ and $i \neq j$. $I(v)$ is called the internal cost of $v$, $E(v)$ is called the external cost of $v$ with
+            \[ I(v) = \sum_{u \in V_i} w_{(u, v)} \]
+            \[ E(v) = \sum_{s \in V_i} w_{(s, v)} \]
+            \[   D(v) = E(v) - I(V)   \]
+            The internal cost is thus the sum of all edge weights within a partition incident to a specific vertex, while the external cost is the sum of all edge weights to vertices in the other partition for a specific vertex. 
+            The overall cost function is just the difference between external and internal cost.
+            The gain of exchanging two vertices between partitions is proven~\autocite{kl} to be --- with $v \in V_i, s \in V_j, i \neq j$
+            \[ g = D_v + D_s - 2 w_{(v,s)} \]
+            
+            The most basic form works as follows.
+            \begin{enumerate}
+                \item Split the set of vertices into two partitions arbitrarily.
+                \item $\forall v \in V$ compute $D(v)$.
+                \item Select $v \in V_i, s \in V_j, i \neq j$ such that $g$ is maximal. Exclude them from their partitions.
+                \item Update the $D$ values for all remaining nodes in both partitions using 
+                \[ u \in V_i \setminus {v}: D'(u) = D(u) + 2 w_{(u, v)} - 2 w_{(u, s)} \]
+                \[ x \in V_j \setminus {s}: D'(x) = D(x) + 2 w_{(x, s)} - 2 w_{(s, v)} \]
+                \item Go to 3 until the partitions are empty.
+                \item choose $k$ to maximize 
+                \[ G = \sum^k_{i = 0} g_i \]
+                \item If $G > 0$ apply the swaps and go to 2. Else terminate
+            \end{enumerate}
+            The steps are summarized in the flow diagram in Figure~\ref{kl-fig}.
+            Regarding the extensions, an improvement schema is provided to avoid local optima.
+            Apply the algorithm to the so created partitions and union the partitions alternatingly (i.e. $A_1 \cup B_2, A_2 \cup B_1$) and use these partitions as initialization of the algorithm.
+            In order to create partitions of unequal size with $n_1$ being the minimal desired partition size and $n_2$ the maximal desired partition size, add dummy vertices, such that we have $2n_2$ vertices in total and restrict the number of changes that are allowed to $n_1$.
+            For partitioning the graph into $k$-partitions, one needs to split the initial set of vertices into $k$ partitions. 
+            Then apply the 2-way partitioning algorithm pairwise to all partitions until convergence.
+            
+            One pass of the basic form of the algorithm is in $\mathcal{O}(|V|^2 \cdot \log(|V|))$. The $k$-way partitioning algorithm requires per iteration $\binom{k}{2} = \frac{k (k - 1)}{2}$ executions of the algorithm, thus $\mathcal{O}(k^2 \cdot |V|^2 \cdot \log(|V|)$ in total, assuming that the number of iterations is small as shown empirically by the authors~\autocite{kl}. Further improvements were developed in the years after publication, for example a linear time implementation applicable to hypergraphs by Fiduccia and Mattheyses~\autocite{fm}.
+
+        \subsubsection*{Leiden Method}
+            The Leiden method~\autocite{traag2019louvain} is an extension of the louvain method.
+            It changes and extends the louvain method in three aspects.
+            \begin{enumerate}
+                \item It changes the quality function introducing an additional resolution parameter.
+                \item It incorporates improvements by other authors on how nodes are moved between partitions~\autocite{movd,movc,movb,mova}.
+                \item It adds a refinement stage after the contraction of the graph has converged.
+            \end{enumerate}
+            The quality function that is used by the Leiden method overcomes the problem of the resolution limit~\autocite{traag2011narrow, fortunato2007resolution}.
+            It is called the Constant Potts Model~\autocite{potts1952some, traag2011narrow} and defined by 
+            \[ CPM = \sum_{u,v \in V}(w_{(u,v)} + \gamma) \delta(u, v) \]
+            where $G$ is a graph, $P$ is a partitioning of $G$, $w_{(u,v)}$ is the edge weight between $u$ and $v$, and $\gamma$ is the resolution parameter. 
+            Intuitively it controls the coarseness of the partition and replaces the term $\frac{w_u w_v}{2m}$.
+            A partition is formed, if its density is at least $\gamma$ and the density between partitions should be less than $\gamma$~\autocite{traag2019louvain}.
+            
+            \begin{figure}[htp]
+                \begin{center}
+                    \includegraphics[keepaspectratio,width=0.6\textwidth]{img/03-graphs/leiden.png}
+                \end{center}
+                \caption{The steps that the leiden algorithm executes~\autocite{traag2019louvain}.} 
+                \label{leiden-fig}
+            \end{figure}
+            
+            The node movement is changed in a couple of ways.
+            The Leiden algorithm keeps track of which neighbourhoods changed and only visits these nodes again, in contrast to louvain which keeps iterating all nodes\autocite{movb, movc}.
+            Initially it adds all nodes to a queue, removes the first on and adds the nodes neighbourhood to the queue only if it was moved.
+            
+            The refinement stage is added after moving nodes between communities and before aggregating the communities into a new graph.
+            Starting with the partitioning $P$, the algorithm derives a refined partitioning $P_{\text{ref}}$.
+            First all nodes are again initialized as an own singleton community. 
+            Now nodes which are in their own community $C^i_{\text{ref}}$ can again be merged with into another community $C^j_{\text{ref}}$, but this time only with those from the same community in the previous partitioning $C \in P$. 
+            In essence it forms from a given partitioning a finer grained partitioning within the communities.
+            Additionally not the merge with the highest increase in the quality function is chosen but the choice is made randomly with higher probability for better quality values, in order to avoid getting stuck in local optima~\autocite{mova}.
+            
+            Empirically, the Leiden algorithm converges faster with a higher modularity score, whith appropriate values for $\gamma$. A good value to start is $\gamma = \frac{1}{2}$, which results in an approximation of the louvain algorithm's quality function --- the modularity of Newman and Girvan~\autocite{girvan2002community}.
+                
+\section{Database Architecture}\label{db-arch}
+    The reason why we use databases is twofold:
+    First, every computer is equipped with different kinds of memory, which differ in size, capacity, speed and price per byte. 
+    This induces the so called memory hierarchy, the principle, that few fast, expensive, low capacity memory is used close to the central processing unit, that gets layerwise augmented with inccreasingly slower, less expensive, higher capacity memory. 
+    The last layer, which has the highest capacity, defines the overall capacity, while the smallest one is a crucial factor for performance.
+    Thus what is shown as secondary storage in Figure~\ref{mem-hier} is orders of magnitude slower in terms of both latency and throughput.
+    But it is also able to store orders of magnitude more data. 
+    \begin{figure}[htp]
+        \begin{center}
+        \includegraphics[keepaspectratio,width=0.8\textwidth]{img/04-databases/mem-hierarch.png}
+        \end{center}
+        \caption{The memory hierarchy used in today's computing systems.} 
+        \label{mem-hier}
+    \end{figure}
+    In order to mitigate the effects of this, the accesses between primary and secondary memory need to be handled very carefully for data intensive --- also called IO bound --- applications.
+    Second, the operating system (OS) actually handles the first reason. 
+    However application specific payloads enable further optimizations when it comes to how data is stored and accessed.
+    Put differently, the operating system is not able to infer certain information, as it does not constrain how data is stored, and as it does not profile in what patterns data is referenced or queried.
+    Databases take care of these issues by different mechanisms, which will be lined out from a high level perspective, in order to understand how a database works on its architectural lower levels.
+    Put differently, we are not going to discuss query processing, transactions, concurrency related components and recovery facilities.
+    Most of the information below is outlined comprehensively in~\autocite{ramakrishnan2000database, silberschatz1997database}
+    
+    Let us consider the high level architecture of a general database management systems as shown in Figure~\ref{dbms_arch} --- with a focus on the storage and access elements.
+
+    \begin{figure}[htp]
+    \begin{center}
+    \includegraphics[keepaspectratio,width=.5\textwidth]{img/04-databases/RDBMS.png}
+    \end{center}
+    \caption{The typical structure of a relational database management system~\autocite{ramakrishnan2000database}.}
+    \label{dbms_arch}
+    \end{figure}
+
+    The disk space manager, sometimes also called storage manager, handles de-/allocations, reads \& writes and provides the concept of a block: One or many physical disk blocks are grouped to a logical disk block.
+    These logical disk blocks are again grouped and brought into main memory (RAM) --- these groups are called a page.
+    Optimally both a disk block and a page are of the same size or at least a multiple of each other. 
+    Further the database needs to keep track of free blocks in the file: 
+    A linked list or a directory must record free blocks and some structure needs to keep track of the free slots either globally or per block. 
+    Data locality is a concept that we examine closely in an extra chapter later on.
+    To summarize the two most important objectives of a storage manager are to
+    \begin{enumerate} 
+     \item take care of (de-)allocations of disk space,
+     \item abstract storing data on a physical device using the operating system: Files, split into logical disk blocks, accessed using OS facilities, and
+     \item provide data structures in order to maintain records within a file, blocks.
+    \end{enumerate}
+    
+    A buffer manager is used to mediate between external storage and main memory. 
+    It provides the concept of a page and maintains a designated pre-allocated area of main memory --- called the buffer pool --- to load, cache and evict pages into or from main memory~\autocite{ramakrishnan2000database}.
+    A conceptual illustration of this is shown in \ref{buf-man}.
+    It's objective is to minimize the number of disk reads to be executed by caching, pre-fetching and the usage of suitable replacement policies. 
+    It also needs to take care of allocating a certain fraction of pages to each transaction.
+
+    \begin{figure}[htp]\label{dbms_memory}
+        \begin{center}
+        \includegraphics[keepaspectratio,height=0.4\textheight,width=0.5\textwidth]{img/04-databases/RDBMS_memory_view.png}
+        \end{center}
+        \caption{A visualization of the interaction of a database with memory~\autocite{ramakrishnan2000database}.}
+        \label{buf-man}
+    \end{figure}
+
+    The final component that is crucial to the storage of data the  of a database management system is the file and record layout, along with possible index structures --- also called the access layer. 
+    In order to store data a DBMS may either use one single or multiple files to maintain records. 
+
+    A file consists of a set of blocks split into slots.
+    A slot stores one record with each record containing a set of fields.
+    Records can be layout in row or column major order.
+    That is one can store sequences of tuples or sequences of fields.
+    The former is beneficial if a lot of update, insert or delete operations are committed to the database, while the latter optimizes the performance when scans and aggregations are the most typical queries to the system.
+    Records may be of fixed or of variable size, depending on the types of their fields. 
+    Another option is to store the structure of the records along with pointers to the values of their fields in one files and the actual values in one or multiple separate files. 
+    Also distinct types of tables can be stored in different files. 
+    For example entities and relations can be stored in different files with references to each other, thus enabling the layout of these two to be specialized to their structure and usage in queries.
+
+    Files may either organize their records in random order (heap file), sorted or using a hash function on one or more fields. 
+    All of these approaches have upsides and downsides when it comes to scans, searches, insertions, deletions and updates. 
+
+    To mitigate the effect that result from selecting one file organization or another, one record organization or another, the concept of an index has been introduced. 
+    Indexes are auxiliary structures to speed up certain operations or queries that depend on one field. 
+    Indexes may be clustered or unclustered. 
+    An index over field $F$ is called clustered if the underlying data file is sorted according to the values of $F$. 
+    Otherwise the index is called unclustered
+    In a similar way indexes can be sparse or dense. 
+    A sparse index has less index entries than records, mostly one index entry per block. 
+    This can of course only be done for clustered indexes as the sorting of the data file keeps the elements between index keys in order. 
+    An index is dense if there is a one to one correspondence between records and index entries. 
+    All unclustered indexes are dense indexes.
+    There are different variants of storing index entries which have again certain implications on the compactness of the index and the underlying design decisions.
+    Finally, there are operators that act upon and use the above structures and mechanisms. 
+    Logical operators define an algebraic operation used to process a query.
+    Physical operators implement the operation described by logical operators. For each logical operator there may exist multiple different physical implementations using different access methods.
+
+    All these considerations make choosing different file splits, layouts, orderings, addressing schemes, management structures, de-/allocation schemes and indexes a complex set of dependent choices. 
+    These depend mainly on the structure of the data to be stored and the queries to be run.
+
+    \section{Additional Static Layout Methods}
+    \subsection{Bondhu: An alternating Ordering Scheme}
+    Bondhu~\autocite{hoque2012disk} is a data layout technique for online social network data. 
+    The authors define the cost of a placement similar to the ranking locality above, with $r$ defined as before: \[ \text{cost} = \sum_{(u, v) \in E} |r(v) - r(u)| \]   
+    Without citing G-Store, Hoque and Gupta propose to use the multilevel partitioning algorithm implemented in METIS~\autocite{karypis} to partition the graph. Additionally the authors propose to use the Louvain method~\autocite{blondel2008fast} to find communities, but they don't provide results on this method. The louvain method is described in more detail in the next section. \\
+    
+    \begin{figure}[htp]
+        \begin{center}
+            \includegraphics[keepaspectratio,width=0.8\textwidth]{img/06-rel_w/bondhu.png}
+        \end{center}
+        \caption{Broad steps performed by the bondhu algorithm~\autocite{hoque2012disk}.} 
+        \label{bondhu-fig}
+    \end{figure}
+
+    The authors propose an incremental placement schema within a block:
+    Place the node with the highest degree in the middle of the block, then select the node with the heaviest edge connected to the first node and place it next to the first node. 
+    After these two placements, a new graph is created, where the two already placed nodes are merged and their relationships are aggregated. 
+    The node with the next heaviest edge is selected and placed alternatingly. The previous two steps are repeated until all nodes are placed within blocks.
+    This is done for every community.
+    In the final part of the method, the intercommunity layout is derived. 
+    Here each community is a vertex and the edges between those are just the accumulated edges of the underlying graph. 
+    After creating the graph the previous alternating placement schema is applied.
+    
+    \subsection{Louvain-like Formation and RCM-based Ordering}
+        As a first step, contration algorithm that optimizes the modularity or the CPM~\autocite{traag2011narrow, potts1952some} function is executed.
+        During the contraction step of the louvain or the leiden algorithm~\autocite{traag2019louvain}, it is easy to stop merging when communities reach a certain number if nodes.
+        That is as soon as a community has $\frac{\text{Block Size}}{\text{node size}}$ nodes, then don't consider merging nodes into it anymore.
+        This results in block sized partitions.
+        The aggregation step of these algorithms can then be performed as is. 
+        Afterwards executing the algorithm in its standard form yields a hierarchy of graphs, similar to the method employed in G-Store.
+    
+        This can then be used to achieve an ordering of the blocks:
+        Uncoarsen the graph by applying the Dewey numbering scheme~\autocite{dewey1894decimal}, employed by ICBL and G-Store.
+        Additionally, an heuristic for improving the vertex ordering can be applied layerwise. 
+        A recent comprehensive survey of minimum linear arrangement approximation algorithms can be found in~\autocite{barik2020vertex}.
+        An appealing option would be to apply the reverse Cuthill-McKee (RCM) algorithm~\autocite{Cuthill1969ReducingTB}, that approximates the solution in $\mathcal{O}(|V| \cdot \text{deg}{V}) = \mathcal{O}(|E|)$. 
+        It first finds a peripheral vertex.
+        Then it starts a modified version of the breadth first search, that sorts the nodes by traversal order and degree.
+        The quality of the algorithm is highly dependent on the input graph.
+        As the input graph is the already approximately ordered graph from the last level, the effects of input ordering should be mitigated.
+        Results for the algorithm compared to other state of the art methods are described by Barik et al.~\autocite{barik2020vertex}.
+        
+        After the algorithms above are finished, the vertices are layed out in this order to file. 
+        The relationships are written to file in the very same order by grouping and storing the outgoing edges of a vertex together and following the vertex order.
+        That is, the outgoing edges of the vertex stored at the first slot in the vertex file are stored beginning at the first slot of the edge file. 
+        The outgoing edges of the second node start right after the edge group of the first node and so on.
+        This scheme is motivated by the asusmption that traversals in directed graphs follow the edge direction.

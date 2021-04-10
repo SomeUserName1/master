@@ -21,7 +21,7 @@ test_create_list_ul(void)
 
     assert(list);
     assert(((list_t*)list)->len == 0);
-    assert(((list_t*)list)->alloced == list_block_size);
+    assert(((list_t*)list)->alloced == 128);
 
     list_ul_destroy(list);
 }
@@ -197,7 +197,7 @@ test_create_list_l(void)
 
     assert(list);
     assert(((list_t*)list)->len == 0);
-    assert(((list_t*)list)->alloced == list_block_size);
+    assert(((list_t*)list)->alloced == 128);
 
     list_l_destroy(list);
 }
@@ -373,7 +373,7 @@ test_create_list_node(void)
 
     assert(list);
     assert(((list_t*)list)->len == 0);
-    assert(((list_t*)list)->alloced == list_block_size);
+    assert(((list_t*)list)->alloced == 128);
 
     list_node_destroy(list);
 }
@@ -607,7 +607,7 @@ test_create_list_relationship(void)
 
     assert(list);
     assert(((list_t*)list)->len == 0);
-    assert(((list_t*)list)->alloced == list_block_size);
+    assert(((list_t*)list)->alloced == 128);
 
     list_relationship_destroy(list);
 }

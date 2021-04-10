@@ -1,53 +1,52 @@
 \chapter{Problem Definition}\label{\positionnumber}
 \section{Locality}\label{\positionnumber}
-    The memory hierarchy was introduced in \ref{db-arch} and \ref{mem-hier}. 
-    In summary it tries to unify the strengths of fast, low capacity memory --- caches (SRAM) ---, with slower but larger memory --- main memory (DRAM), with orders of magnitude slower but orders of magnitude larger memory --- disks (HDD) and more recently flash memory (SSD, SD-Cards).
-    But how can this actually work? 
-    Given that only a tiny fraction of fast memory is available to hold the necessarry parts, while additional loads of data are transfered in time --- ``desirably fast enough''.
+    The memory hierarchy tries to unify the strengths of fast, low capacity memory --- caches (SRAM) ---, with slower but larger memory --- main memory (DRAM), with orders of magnitude slower but orders of magnitude larger memory --- disks (HDD) and more recently flash memory (SSD, SD-Cards).
+    But how can this work? 
+    Given that only a tiny fraction of fast memory is available to hold the necessary parts, while additional loads of data are transferred in time --- ``desirably fast enough''.
     
     The key principle for the memory hierarchy to work is what is called \textit{locality of reference} in the literature~\autocite{jacob2010memory, tanenbaum2015modern}. 
     This principle expresses, that most programs do not access their address space uniformly or randomly, but rather tend to access small subsets of all addresses in certain time intervals, depending on the program state.
-    Locality comes in two flavors~\autocite{denning2006locality}: 
+    Locality can be approached in two ways~\autocite{denning2006locality}: 
     
     \begin{itemize}
      \item \textit{Temporal locality} refers to the number of other references between two accesses of the same memory location. 
-     \item \textit{Spatial locality} refers to the number of accesses and the radius of the neighbourhood that is accessed in a number of steps.
+     \item \textit{Spatial locality} refers to the number of accesses and the radius of the neighborhood that is accessed in several steps.
     \end{itemize}
     
     If the same location is accessed multiple times in a short amount of time, the temporal locality is high.
     Thus temporal locality can be measured using reference frequencies.
-    From a bayesian point of view, one can say that temporal locality is the probability of an object being rereferenced after the first usage~\autocite{gupta2013locality}. 
+    From a Bayesian point of view, one can say that temporal locality is the probability of an object being re-referenced after the first usage~\autocite{gupta2013locality}. 
     \[ P (X_{t + \Delta} = A | X_t = A) \]
-    $X_t$ is the reference at time step $t$, $A$ is an address and $\Delta$ is a parameter, which depends not only on the system specifications (like the CPU and memory clock), but also on the program and the scale of interest.
+    $X_t$ is the reference at time step $t$, $A$ is an address and $\Delta$ is a parameter, which depends not only on the system specifications (like the CPU and memory clock) but also on the program and the scale of interest.
     
     If a small range of addresses is accessed very often then spatial locality is high.
     If the range is limited to one address, then spatial locality is equivalent to temporal locality. Thus temporal locality is a special case of temporal locality~\autocite{gupta2013locality}.
     With $\varepsilon$ a radius we can characterize spatial locality by:
     \[ P(X_{t + \Delta} = A \pm \varepsilon | X_t = A) \]
-    Spatial locality is thus a function of time $\Delta$ and neighbourhood range $\varepsilon$. 
+    Spatial locality is thus a function of time $\Delta$ and neighborhood range $\varepsilon$. 
     
-    In order to leverage these concepts, several components profile the memory usage.
-    In the memory hierarchy, all on and off chip caches (i.e. SRAM) are handled by hardware~\autocite{jacob2010memory}.
+    To leverage these concepts, several components profile the memory usage.
+    In the memory hierarchy, all on and off-chip caches (i.e. SRAM) are handled by hardware~\autocite{jacob2010memory}.
     
-    At the level of main memory (DRAM), the operating system manages what is fetched, buffered and evicted from disk to main memory. 
-    The optimal buffering strategy is to load what is needed before its usage and evict the objects whos usage is furthest in the future~\autocite{tanenbaum2015modern}. 
+    At the level of main memory (DRAM), the operating system manages what is fetched, buffered, and evicted from disk to main memory. 
+    The optimal buffering strategy is to load what is needed before its usage and evict the objects whose usage is furthest in the future~\autocite{tanenbaum2015modern}. 
     
     When it comes to eviction the best approximation to the optimal strategy is the least recently used algorithm. 
     It aims to keep things in memory, that have the highest chance to exhibit temporal locality.
     That is, the things in memory, that have not been referenced for the longest time, have a lower chance to be temporally local in the future~\autocite{silberschatz2006operating}.
     Put differently \textit{caches and buffers exploit temporal locality}.
     
-    As this information is not available in general, objects are loaded when they are referenced, often with additional addresses which are hoped to be needed, too --- this is called prefetch or predicitve fetching~\autocite{stallings2012operating, jacob2010memory}. 
-    Prefetch tries to exploit spatial locality. There are several components that try to exploit this:
+    As this information is not available in general, objects are loaded when they are referenced, often with additional addresses which are hoped to be needed, too --- this is called prefetch or predictive fetching~\autocite{stallings2012operating, jacob2010memory}. 
+    Prefetch tries to exploit spatial locality. Several components try to exploit this:
     \begin{itemize}
-     \item Compiler generated prefetches: 
+     \item Compiler-generated prefetches: 
      The compiler knows what addresses the program accesses in which sequence and tries to minimize the time that is spent waiting for IO. 
      This is called instruction scheduling~\autocite{aho1986compilers}. 
-     Other compiler generated heuristics are applied e.g. in domain specific compilers, like in the TVM compiler for neural networks~\autocite{chen2018tvm}.
+     Other compiler-generated heuristics are applied e.g. in domain-specific compilers, like in the TVM compiler for neural networks~\autocite{chen2018tvm}.
      
      \item The operating system may use specialized data structures and algorithms to estimate, if prefetching should be done, based on the previous accesses. 
      An example is the ``spatial look-ahead'' algorithm by Baier and Sager~\autocite{jacob2010memory, baier1976dynamic}, but there exist many more e.g. \autocite{joseph1999prefetching, griffioen1994reducing, kroeger1997exploring, cooksey2002stateless}. 
-     Most of these methods are capable to find correlations between addresses and their neighbourhood, file accesses and pointed-to objects.
+     Most of these methods are capable to find correlations between addresses and their neighborhood, file accesses, and pointed-to objects.
      
      \item A special role in the context of prefetches and spatial locality take databases. 
      As these are not only able to predict content-based correlations, e.g. by knowing what table is queried in the case of relational databases, but also can augment data by using auxiliary data structures like indices. 
@@ -57,21 +56,20 @@
     \end{itemize}
     
     Spatial locality depends on how data is ordered:
-    If semantically closely coupled data is spread out as wide as possible, the program or file of interest will harldy exhibit locality. 
+    If semantically closely coupled data is spread out as wide as possible, the program or file of interest will hardly exhibit locality. 
     As an example consider a program with $n$ instructions, with logical addresses from $0, \dots, n-1$. 
     An inversion is a change of position of two lines $l_1, l_2$, such that the line that gets executed earlier $l_1$ has a higher address than one that gets executed later $l_2$.
     Such a program can maximally have $\frac{n (n-1)}{2}$ inversions. 
-    If it has that many inversion, the program is layed out in the opposite direction and the spatial locality would be similar to the original program.
-    Thus lets assume only every second instruction is misplaced. 
-    In effect, to execute the program two pages must always remain in memory instead of one and the radius of the neighbourhood doubles.
+    If it has that many inversions, the program is laid out in the opposite direction and the spatial locality would be similar to the original program.
+    Thus let us assume only every second instruction is misplaced. 
+    In effect, to execute the program two pages must always remain in memory instead of one, and the radius of the neighborhood doubles.
     
-    In short: 
-    The layout of the data or records in the address space --- on file or in memory --- is crucial to the concept of spatial locality. 
-    Achieving optimal temporal locality is a matter of grouping and ordering data such that what is referenced together is in a neighbourhood in terms of addressing.
+    In short, the layout of the data or records in the address space --- on file or in memory --- is crucial to the concept of spatial locality. 
+    Achieving optimal temporal locality is a matter of grouping and ordering data such that what is referenced together is in a neighborhood in terms of addressing.
     
           
 \section{Problem Definition}\label{prob-def}
-    In order to optimize spatial locality for traversal-based queries, the graph needs to be grouped and ordered.
+    To optimize spatial locality for traversal-based queries, the graph needs to be grouped and ordered.
     Ultimately disk storage and IO is block-based and disk access is page-based. 
     That is the vertices and edges must be grouped into blocks.
     This can happen statically or dynamically. 
@@ -79,10 +77,10 @@
     That is the underlying data is stored only on request.
     
     \paragraph{Assumptions:}
-    In the remainder of this thesis we are assuming that the graph is represented in the property graph model~\ref{prop-graph-model} and uses incidence lists~\ref{inci} as the storage schema. 
-    We are not taking properties, labels and relationship types into account.
+    In the remainder of this thesis, we are assuming that the graph is represented in the property graph model Section~\ref{prop-graph-model} and uses incidence lists (see Section~\ref{inci}) as the storage schema. 
+    We are not taking properties, labels, and relationship types into account.
     We are focusing on spatial locality here, that is the page replacement algorithm is fixed but arbitrary.
-    Finally in the remainder of the thesis when talking about traversal-based queries, we mean all queries described in \ref{queries}, but the random walk.
+    Finally in the remainder of the thesis when talking about traversal-based queries, we mean all queries described in Section~\ref{queries}, but the random walk.
     
     \paragraph{Problem Definition:} Given a graph $G$, logical block size $b$, page size $p$. \\
     Desired is 
@@ -95,7 +93,7 @@
     
     As partitioning a graph optimally~\autocite{andreev2006balanced}, as well as finding an optimal linear arrangement~\autocite{garey1974some} are both NP-complete problems~\autocite{lewis1983computers}, we use the formulation ``as high as possible'' instead of optimal or maximal.
     
-    In order to measure the spatial locality we introduce two measures that are used in the evaluation chapter:
+    To measure the spatial locality we introduce two measures that are used in the evaluation chapter:
     \begin{enumerate}
      \item Number of block accesses.
      \item Number of non-consecutive block accesses.
@@ -104,24 +102,24 @@
     If those vertices and edges that are accessed together are stored in the same block, this measure should be as small as possible.
     The second measure takes the order of the blocks into account: 
     If vertices and edges that are connected or ``close'' to each other are stored in adjacent blocks, they can be loaded with one sequential read.
-    But the second measure also takes into account how the traversal is executed in terms of pointer chasing with respect to the incidence list.
+    But the second measure also takes into account how the traversal is executed in terms of pointer chasing concerning the incidence list.
     
     As we change the unit of access from addresses of records to blocks on a disk, the definition of locality needs to be adapted.
     Temporal locality is now based on blocks instead of addresses.
      \[ P (X_{t + \Delta} = B | X_t = B) \]
      Here we have a block $B$ instead of an address $A$. 
-     If blocks are well formed, the number of blocks that are accessed should decrease overall.
-     This is due to the fact that multiple elements that are accessed in a short amount of time are stored in the same block instead of several. \\
+     If blocks are well-formed, the number of blocks that are accessed should decrease overall.
+     This is because those multiple elements that are accessed in a short amount of time are stored in the same block instead of several. \\
      Spatial locality can be reformulated in the same sense:
       \[ P(X_{t + \Delta} = B \pm \varepsilon | X_t = B) \]
-      With a well-suited ordering of the blocks, the probablity that neighbouring blocks are accessed should be increased.
-      Finally when the incidence list is ordered, the access to blocks should be in a monotonely increasing sequence of block addresses. 
-      Thus the access should be sequential and thus the probability to access adjacent blocks inceases as oposed with unordered access that jumps back and forth.
+      With a well-suited ordering of the blocks, the probability that neighboring blocks are accessed should be increased.
+      Finally, when the incidence list is ordered, the access to blocks should be in a monotone increasing sequence of block addresses. 
+      Thus the access should be sequential and thus the probability to access adjacent blocks increases as opposed to unordered access that jumps back and forth.
     
 \section{Example: Vertex, Edge and Incidence List Order}
-  Why are these three criteria neccessary? Why are there only two measurements for three criteria? \\
+  Why are these three criteria necessary? Why are there only two measurements for three criteria? \\
   This is what shall be explained in an example.
-  Something that is of importance for the traversal --- but not as straight forward to see as node and edge grouping and order --- is the order of the pointers in the incidence list, as we are going to see.
+  Something that is of importance for the traversal --- but not as straightforward to see as anode and edge grouping and order --- is the order of the pointers in the incidence list, as we are going to see.
   
   \begin{figure}[htp]
     \begin{center}
@@ -131,12 +129,14 @@
     \label{ex-gr}
   \end{figure}
   
-  The graph used in the below example looks as shown in \ref{ex-gr}.
-  We use a storage schema that is motivated by the one of Neo4J, that is nodes and relationships are stored in separated files, the incidence list is stored in the records of the edges and the nodes conatain a pointer to the head relationship of their incidence list each. Further we assume that we can only read sequentially, if the blocks are directly adjacent.
-  As this is a rather small example for the sake of succintness, things are just shown on a conceptual level. 
-  We make the assumption that 3 nodes or 2 relationships fit onto a disk block. 
-  Realistically 8 to 16 nodes and 5 to 8 relationships fit on a 512 byte disk block. 
-  An average graph in the stanford network analysis platform graph dataset collection has thousands of nodes and edges. 
+  The graph used in the below example looks as shown in Figure~\ref{ex-gr}.
+  We use a storage schema that is motivated by the one of Neo4J.
+  Nodes and relationships are stored in separated files, the incidence list is stored in the records of the edges and the nodes contain a pointer to the head relationship of their incidence list each. 
+  Moreover, we assume that we can only read sequentially if the blocks are adjacent.
+  As this is a rather small example for the sake of succinctness, things are just shown on a conceptual level. 
+  We assume that 3 nodes or 2 relationships fit onto a disk block. 
+  Realistically 8 to 16 nodes and 5 to 8 relationships fit on a 512-byte disk block. 
+  An average graph in the Stanford network analysis platform graph dataset collection has thousands of nodes and edges. 
   Taking the californian road network graph as an example, the whole graph would take 
   \[ 1 965 206 \text{ nodes} \cdot 35 \text{ bytes per node} \cdot 512^{-1} \text{ bytes per block} = 134 341\text{ blocks}\] 
   to store all nodes and 
@@ -144,15 +144,15 @@
   blocks to store the relationships in Neo4J.
   To summarize, the principles shown below scale with the graph size and for realistic assumptions, these conditions emerge.
 
-  First consider the split of vertices and edges into blocks in the upper table in \ref{blocks}. 
-  None of the vertices in the blocks are neighbouring to each other.
+  First, consider the split of vertices and edges into blocks in the upper half of Table~\ref{blocks}. 
+  None of the vertices in the blocks are neighboring each other.
   Thus when traversing the graph, each step requires to load a block.
   The same is true for the edges: 
   None of the edges in the same block are connected to the same vertex. 
   Each edge causes a page fault and a load of another block(s).
-  This may happen in current state of the art graph databases like Neo4J. 
-  The placment into blocks is currently by insertion order, thus depends on the ordering of the input dataset. 
-  On the other handside in the lower table in \ref{blocks}, the vertices are grouped into blocks according to their neighbourhood and the edges are grouped by the vertices they are connected to.
+  This may happen in current state-of-the-art graph databases like Neo4J. 
+  The placement into blocks is currently by insertion order, thus depends on the ordering of the input dataset. 
+  On the other hand side in the lower half of Table~\ref{blocks}, the vertices are grouped into blocks according to their neighborhood and the edges are grouped by the vertices they are connected to.
 
   
      \begin{table}[htp]
@@ -177,10 +177,10 @@
    \label{blocks}
    \end{table}
     
-  Next \ref{order} shows two different orderings of the blocks, this time with a focus on the edges only. 
-  In the upper table, an edge is stored in the neighbourhood of its source node, but appart from its target node.
-  Thus two single reads are required to go from one vertex over an edge to another vertex and retreive it's incident edges. 
-  In the lower table, the blocks are adjacent and one sequential read  is enough to go from source to target and fetch the target't incidence list.
+  Next, Table~\ref{order} shows two different orderings of the blocks, this time with a focus on the edges only. 
+  In the upper table, an edge is stored in the neighborhood of its source node but far apart from its target node.
+  Thus two single reads are required to go from one vertex over an edge to another vertex and retrieve its incident edges. 
+  In the lower table, the blocks are adjacent and one sequential read is enough to go from source to target and fetch the target's incidence list.
   
      \begin{table}[htp]
           \centering
@@ -198,13 +198,13 @@
     \label{order}
        \end{table}
   
-  Finally: Consider the visualization of the incidence list of the node 3, given the page placement in the upper part of \ref{blocks} in \ref{inc-ord}. 
-  Theoretically the only difference is the order in which the list points to the relationships. 
+  Finally, consider the visualization of the incidence list of node 3, given the page placement in the upper part of Table~\ref{blocks} and in Table~\ref{inc-ord}. 
+  Theoretically, the only difference is the order in which the list points to the relationships. 
   In terms of traversed blocks, we need to do four single reads when using the order given in the upper table. 
   If we rearrange the pointers according to the lower table, the list may be loaded sequentially with one read operation instead of four single reads. 
-  This phenomenon may also appear when the blocks are formed and ordered in an improved way, but only when scaling up to a graph with larger neighbourhoods.
+  This phenomenon may also appear when the blocks are formed and ordered in an improved way, but only when scaling up to a graph with larger neighborhoods.
   Given that an edge can be placed either near the other edges of the source or the target node, the impact when jumping back and forth will grow along with the gaps between blocks in which the edges are stored.
-  Finally if the blocks are cached, this induces a higher load on the buffer manager, as more pages need to reside in memory at the same time and as they are frequently rereferenced instead of being read once and evicted then.
+  Finally, if the blocks are cached, this induces a higher load on the buffer manager, as more pages need to reside in memory at the same time and as they are frequently re-referenced instead of being read once and evicted then.
   The higher the degree --- i.e. the length of the incidence list --- of the node, the more severe the effect.
   % TODO validate!
 

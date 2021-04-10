@@ -20,7 +20,7 @@ ids_to_blocks(const char* in_path, const char* out_path, record_id_t type)
         printf("ids_to_blocks: Can't open file with path %s", in_path);
     }
     FILE* block_file = fopen(out_path, "w");
-    if (page_accesses_file == NULL) {
+    if (block_file == NULL) {
         fclose(log_file);
         printf("ids_to_blocks: Can't open file with path %s", out_path);
     }
@@ -87,7 +87,7 @@ blocks_to_pages(const char* in_path, const char* out_path, record_id_t type)
         }
     }
 
-    fflush(block_file);
-    fclose(block_file);
+    fflush(page_file);
+    fclose(page_file);
     fclose(block_file);
 }

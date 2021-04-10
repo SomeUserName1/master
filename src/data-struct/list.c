@@ -24,12 +24,12 @@ create_list(list_cbs_t* cbs)
         exit(-1);
     }
 
-    list->elements = malloc(sizeof(*list->elements) * list_block_size);
+    list->elements = malloc(sizeof(*list->elements) * initial_alloc);
     if (!list->elements) {
         exit(-1);
     }
 
-    list->alloced = list_block_size;
+    list->alloced = initial_alloc;
     list->len     = 0;
 
     memset(&(list->cbs), 0, sizeof(list->cbs));
@@ -91,7 +91,7 @@ list_insert(list_t* l, void* v, size_t idx)
     }
 
     if (l->alloced == l->len) {
-        l->alloced += list_block_size;
+        l->alloced <<= 2;
 
         void** realloc_h =
               realloc(l->elements, sizeof(*l->elements) * l->alloced);

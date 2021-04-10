@@ -51,9 +51,6 @@ dfs(in_memory_file_t* db,
     size_t stack_size = list_ul_size(node_stack);
 
     while (stack_size > 0) {
-        for (size_t j = 0; j < list_ul_size(node_stack); ++j) {
-        }
-
         node_id      = list_ul_take(node_stack, stack_size - 1);
         current_rels = in_memory_expand(db, *node_id, direction);
         fprintf(log_file, "%s %lu\n", "N", *node_id);
