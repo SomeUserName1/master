@@ -14,6 +14,8 @@
 #include "../../src/record/node.h"
 #include "../../src/record/relationship.h"
 
+#define RUNS (3)
+
 void
 test_coarsen(in_memory_file_t* db)
 {
@@ -101,6 +103,8 @@ test_coarsen(in_memory_file_t* db)
 
         finer_to_coarser_agg_sum =
               calloc(graph->records->node_id_counter, sizeof(unsigned long));
+
+        unsigned long f2cas_sum = 0;
         for (size_t i = 0; i < prev->records->node_id_counter; ++i) {
             finer_to_coarser_agg_sum[prev->map_to_coarser[i]] +=
                   prev->node_aggregation_weight[i];
@@ -112,6 +116,7 @@ test_coarsen(in_memory_file_t* db)
                    == graph->node_aggregation_weight[i]);
             assert(graph->node_aggregation_weight[i] > 0);
             node_aggregation_weight_sum += graph->node_aggregation_weight[i];
+            f2cas_sum += finer_to_coarser_agg_sum[i];
         }
         assert(node_aggregation_weight_sum == db->node_id_counter);
 
@@ -184,9 +189,10 @@ test_turn_arround(in_memory_file_t* db)
     }
 
     for (size_t i = 0; i < graph->num_partitions; ++i) {
+        assert(part_count[i] > 0);
         assert(part_count[graph->partition[i]] < 2
                || graph->partition_aggregation_weight[graph->partition[i]]
-                        < BLOCK_SIZE / sizeof(node_t));
+                        <= (BLOCK_SIZE / sizeof(node_t)));
     }
 
     free(graph->partition);
@@ -312,10 +318,14 @@ test_project(in_memory_file_t* db)
             } else {
                 zero = false;
             }
+            printf("part %lu, pc %lu, paw %lu\n",
+                   i,
+                   part_count[i],
+                   graph->finer->partition_aggregation_weight[i]);
             assert(part_count[i] > 0);
             assert(part_count[i] < 2
                    || graph->finer->partition_aggregation_weight[i]
-                            < weight_threshold);
+                            <= weight_threshold);
         }
         assert(!zero);
 
@@ -459,7 +469,7 @@ main(void)
     printf("Start importing\n");
     in_memory_file_t* db  = create_in_memory_file();
     dict_ul_ul_t*     map = import_from_txt(
-          db, "/home/someusername/workspace_local/celegans.txt");
+          db, "/home/someusername/workspace_local/email_research_eu.txt");
     dict_ul_ul_destroy(map);
 
     test_coarsen(db);
@@ -468,9 +478,12 @@ main(void)
 
     test_project(db);
 
-    test_reorder(db);
+    // test_reorder(db);
 
-    test_full_run(db);
+    for (size_t i = 0; i < RUNS; ++i) {
+        test_full_run(db);
+        printf("Finished run %lu\n", i);
+    }
 
     in_memory_file_destroy(db);
     return 0;

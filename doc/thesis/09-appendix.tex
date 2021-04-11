@@ -1,6 +1,104 @@
  \chapter{Appendix}
-    \section{Additional Graph Partitoning Algorithms}
-        \subsection*{Kernighan-Lin Algorithm}\label{kla}
+    \section{Graphs}
+     \subsection{Matrix-based Graph Representations}\label{mbr}
+        \subsubsection*{Adjacency Matrix}
+            An adjacency matrix of a graph $G$ is a $|V|\times|V|$ matrix where a non-zero entry corresponds to an edge with the weight being the value of that entry. 
+            Let $A \in |V|\times|V|, \ u, v \in \{0, \dots, |V| - 1\}$ and $w_{u,v}$ the weight of the edge $e = (u,v) \in E$ then
+            \[ a_{uv} = \begin{cases}
+                        w_{u,v} & \text{if } (u,v) \in E \\
+                        0 & \text{otherwise}
+                        \end{cases}
+            \]
+            Additionally, to model non-consecutive indices, one needs to store a mapping from the actual vertex index to the one used in the matrix --- usually represented by a 2D array. 
+            It is also important to note, that adjacency matrix representations are not able to represent multi-graphs without further modification.
+            The space complexity of an adjacency matrix is thus $\mathcal{O}(|V|^2 + |V|)$.
+                    
+            The number of nodes can be retrieved in $\mathcal{O}(1)$, as it's simply the size of the mapping that is stored.
+            For the number of edges, one needs to iterate over all elements of the matrix and count the non-zero entries, which requires one to touch $\mathcal{O}(|V|^2)$ elements.
+            Finding a vertex is just an array lookup, thus $\mathcal{O}(1)$.
+            Insertion requires adding one row and one column to the matrix, as well as one entry to the mapping. 
+            This includes reallocating the matrix which is non-deterministic and independent of the matrix size. But it also requires copying all elements to the new matrix, such that we can estimate the overall asymptotic runtime of $\mathcal{O}(|V|^2)$.
+            Deleting a vertex is similar. Either one leaves a gap that may be used on subsequent insertions and simply marks the true id in the mapping as deleted, which would be an $\mathcal{O}(1)$ operation. 
+            Alternatively one could immediately reallocate the matrix to free the extra row and column as well as the extra field in the mapping. 
+            This would again be non-deterministic, but can again be estimated by copying the elements from the former matrix $\mathcal{O}(|V-1|^2) = \mathcal{O}(|V|^2)$.
+            For edges, the basic operations find, insert and remove can be executed in constant runtime, i.e. $\mathcal{O}(1)$, as simple array access.
+            Deciding whether two vertices are adjacent requires just reading what is in the particular array at the index of the two nodes, that is $\mathcal{O}(1)$ runtime.
+            Finally, finding the neighborhood $N_v$ of a vertex requires again a scan of a row and a column i.e. an asymptotic runtime of $\mathcal{O}(2|V|)$. For the incoming and outgoing sets of a vertex, one needs to access only either a row or a column resulting in $\mathcal{O}(|V|)$ steps per operation.
+            An example of this data structure is shown in Listing~\ref{adm}.
+            
+            \begin{figure}[htp]
+            \begin{center}
+            \begin{minted}[fontsize=\footnotesize]{bash}
+                0 1 2 3 4 5 6 7
+                0 1 2 3 4 7 9 10
+            \end{minted}
+            \begin{minted}{bash}
+                0 1 0  0 0 0 0 0
+                2 0 1  1 0 0 0 0
+                0 0 0 -1 0 0 0 0
+                0 0 0  0 1 0 0 0
+                0 5 0  0 0 0 0 0
+                0 0 0  0 0 0 3 0
+                0 0 0  0 0 0 0 0
+                0 0 0  0 0 0 0 0
+            \end{minted}
+            \end{center}
+            \caption{An example of the adjacency matrix representation of a graph.}
+            \label{adm}
+            \end{figure}
+        
+        \subsubsection*{Incidence Matrix}
+            An incidence matrix of a graph $G$ is an $|V| \times |E|$ matrix, where each column corresponds to an edge. 
+            Each entry in a column is either the positive weight, if the node is the target of the edge, or the negative weight if the node is the source of the edge. Self-loops require a slight extension of this syntax because here one node would be both source and target such that the entry is zero. One option is to just put the weight as an entry of the node.  Another problem is that incidence matrices can not represent negative weights without further extensions.        
+            Let $u,v \in \{0, |V|-1\}, j \in \{0, |E|-1\}, A \in |V| \times |E|$ and $a_{v,j}$ the entry at row $v$ and column $j$ of $A$. Let further $w_j$ be the weight of the edge $e_j = (u,v) \in E$. Then 
+            \[         a_{vj} = \begin{cases}
+                        -w_{v,u} & \text{if } e_j = (v,u) \in E \\
+                        w_{u,v} & \text{if } e_j = (u,v) \in E \\
+                        0 & \text{otherwise}
+                        \end{cases}
+            \]
+            
+            As with adjacency matrices, to be able to represent non-consecutive indices, we need to store a mapping from the true node indices to the ones used in the matrix.
+            The space requirements are thus $\mathcal{O}(|V| \cdot |E| + |V|) = \mathcal{O}(|V| \cdot |E|)$.
+            
+            The number of nodes can be retrieved in $\mathcal{O}(1)$, as it's simply the size of the mapping that is stored.
+            The number of edges can also be retrieved in $\mathcal{O}(1)$ as it's the second dimension of the matrix.
+            Finding a vertex is just an array lookup, thus $\mathcal{O}(1)$.
+            Insertion requires adding one row and one column to the matrix, as well as one entry to the mapping, as with adjacency lists. 
+            Thus the complexity is again the cost of copying the whole matrix $\mathcal{O}(|V| \cdot |E|)$. 
+            The same is true for deleting a vertex.         
+            To find an edge, one needs to scan one row of either the source or the target node of the edge, which requires $\mathcal{O}(|E|)$ steps.
+            Insertion and removal of edges correspond to the case of vertices.
+            One would need to reallocate the matrix and copy all elements resulting in an asymptotic runtime complexity of $\mathcal{O}(|V| \cdot |E|)$. 
+            Deciding whether two vertices are adjacent requires reading one row and checking for each non-zero element, if the entry in the other nodes row is also non-zero, which has $\mathcal{O}(|E|)$ runtime.        
+            Finally, finding the neighborhood $N_v$ of a vertex requires again a scan of a row and checking all non-zero entry columns for the neighbor i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
+            For the incoming and outgoing sets, the procedure is almost the same. 
+            The difference is, that only positive or negative non-zero columns --- depending on whether the incoming or outgoing neighbors shall be returned -- have to be checked.
+            An example of this data structure is shown in Listing~\ref{incm}.
+        
+        \begin{figure}[htp]
+         \begin{center}
+         \begin{minted}[fontsize=\footnotesize]{bash}
+            0 1 2 3 4 5 6 7
+            0 1 2 3 4 7 9 10
+          \end{minted}
+          \begin{minted}{bash}
+            -1  2  0  0    0   0  0
+            1  -2 -1 -(-1) 0   5  0
+            0   0  1  0    0   0  0
+            0   0  0  (-1) 1   0  0
+            0   0  0  0    1  -5  0
+            0   0  0  0    0   0  0
+            0   0  0  0    0   0 -3
+            0   0  0  0    0   0  3
+          \end{minted}
+         \end{center}
+         \caption{An example of the incidence matrix representation of a graph.}
+         \label{incm}
+        \end{figure}
+        
+    \subsection{Additional Graph Partitoning Algorithms}
+        \subsubsection*{Kernighan-Lin Algorithm}\label{kla}
             The Kernighan-Lin (KL) algorithm~\autocite{kl} was invented by by Brain Kernighan --- one of the creators of Unix and co-author of the de facto standard book ''The C Programming Language`` and  Shen Lin.
             It was developed and is used for laying out digital circuits on a chips. 
             It is also used by many other more complex graph partitioning algorithms as the multilevel partitioning algorithm implementation of Karypis and Kumar~\autocite{karypis} described in the next part.
@@ -176,8 +274,8 @@
     All these considerations make choosing different file splits, layouts, orderings, addressing schemes, management structures, de-/allocation schemes and indexes a complex set of dependent choices. 
     These depend mainly on the structure of the data to be stored and the queries to be run.
 
-    \section{Additional Static Layout Methods}
-    \subsection{Bondhu: An alternating Ordering Scheme}
+\section{Static Locality-optimizing Layout Methods}
+    \subsection*{Bondhu: An alternating Ordering Scheme}
     Bondhu~\autocite{hoque2012disk} is a data layout technique for online social network data. 
     The authors define the cost of a placement similar to the ranking locality above, with $r$ defined as before: \[ \text{cost} = \sum_{(u, v) \in E} |r(v) - r(u)| \]   
     Without citing G-Store, Hoque and Gupta propose to use the multilevel partitioning algorithm implemented in METIS~\autocite{karypis} to partition the graph. Additionally the authors propose to use the Louvain method~\autocite{blondel2008fast} to find communities, but they don't provide results on this method. The louvain method is described in more detail in the next section. \\
@@ -199,7 +297,7 @@
     Here each community is a vertex and the edges between those are just the accumulated edges of the underlying graph. 
     After creating the graph the previous alternating placement schema is applied.
     
-    \subsection{Louvain-like Formation and RCM-based Ordering}
+    \subsection*{Louvain-like Formation and RCM-based Ordering}
         As a first step, contration algorithm that optimizes the modularity or the CPM~\autocite{traag2011narrow, potts1952some} function is executed.
         During the contraction step of the louvain or the leiden algorithm~\autocite{traag2019louvain}, it is easy to stop merging when communities reach a certain number if nodes.
         That is as soon as a community has $\frac{\text{Block Size}}{\text{node size}}$ nodes, then don't consider merging nodes into it anymore.

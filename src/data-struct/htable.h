@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define REHASH_FILLING_RATIO  (0.8F)
+#define REHASH_FILLING_RATIO  (0.6F)
 #define BUCKET_START          (8)
 #define TOO_MANY_BUCKETS_BITS (31U)
 

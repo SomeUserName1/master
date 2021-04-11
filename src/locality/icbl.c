@@ -40,14 +40,10 @@ get_num_walks(in_memory_file_t* db)
     size_t nodes_per_step = db->node_id_counter / range;
     size_t num_walks      = 1;
 
-    list_relationship_t* rels;
-
     size_t* degree_hist = calloc(range, sizeof(size_t));
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
-        rels = in_memory_expand(db, i, BOTH);
-        degree_hist[list_relationship_size(rels) - min_deg]++;
-        list_relationship_destroy(rels);
+        degree_hist[in_memory_get_node(db, i)->degree - min_deg]++;
     }
 
     for (size_t i = 0; i < range; ++i) {
@@ -69,10 +65,10 @@ get_num_coarse_clusters(in_memory_file_t* db)
         exit(-1);
     }
 
-    size_t result = ceil(((sizeof(node_t) * (double)db->node_id_counter)
-                          + sizeof(relationship_t) * (double)db->rel_id_counter)
-                         / sqrt(SHARE_OF_MEMORY * MEMORY));
-    return result + 1;
+    size_t result =
+          ceil((float)db->node_id_counter
+               + (double)db->rel_id_counter / sqrt(SHARE_OF_MEMORY * MEMORY));
+    return result;
 }
 
 inline size_t
@@ -290,11 +286,10 @@ initialize_centers(in_memory_file_t* db,
         exit(-1);
     }
 
-    unsigned long        num_nodes = db->node_id_counter;
-    list_relationship_t* rels;
-    unsigned long        degree;
-    unsigned long        num_found = 0;
+    unsigned long degree;
+    unsigned long num_found = 0;
 
+    unsigned long  avg_deg     = (unsigned long)get_avg_degree(db, BOTH, NULL);
     unsigned long* max_degrees = calloc(num_clusters, sizeof(unsigned long));
     unsigned long* max_degree_nodes =
           calloc(num_clusters, sizeof(unsigned long));
@@ -303,22 +298,22 @@ initialize_centers(in_memory_file_t* db,
         printf("icbl.c: initialize_centers: Memory allocation failed!\n");
         exit(-1);
     }
+    unsigned long nid;
 
-    for (size_t i = 0; i < num_nodes; ++i) {
-        rels   = in_memory_expand(db, i, BOTH);
-        degree = list_relationship_size(rels);
-        if (degree > max_degrees[num_clusters - 1]) {
-            if (!check_dist_bound(max_degree_nodes, i, num_found, dif_sets)) {
+    do {
+        nid    = rand() % db->node_id_counter;
+        degree = in_memory_get_node(db, nid)->degree;
+        if (degree > avg_deg && degree > max_degrees[num_clusters - 1]) {
+            if (!check_dist_bound(max_degree_nodes, nid, num_found, dif_sets)) {
                 continue;
             }
             insert_match(
-                  max_degree_nodes, max_degrees, i, degree, num_clusters);
+                  max_degree_nodes, max_degrees, nid, degree, num_clusters);
             if (num_found < num_clusters) {
                 num_found++;
             }
         }
-        list_relationship_destroy(rels);
-    }
+    } while (num_found < num_clusters);
     free(max_degrees);
 
     *centers = max_degree_nodes;
@@ -403,7 +398,7 @@ update_centers(size_t               num_nodes,
                unsigned long*       centers,
                size_t               num_clusters)
 {
-    if (!dif_sets || !part || !centers || num_clusters < 1) {
+    if (!dif_sets || !part || !centers || num_clusters < 1 || num_nodes < 1) {
         printf("ICBL - update_centers: Invalid Argument!\n");
         exit(-1);
     }
@@ -462,9 +457,13 @@ update_centers(size_t               num_nodes,
         }
 
         if (max_node_id == UNINITIALIZED_LONG) {
-            printf("Couldn't find a new center! This should be "
-                   "unreachable!\n");
-            exit(-1);
+            // All nodes in the aggregated diffusion set of the cluster are
+            // already centers. use a random other node, that is not a center
+            // already.
+            do {
+                max_node_id = rand() % num_nodes;
+            } while (is_center(max_node_id, num_clusters, centers)
+                     && check_dist_bound(centers, max_node_id, i, dif_sets));
         }
 
         centers[i]  = max_node_id;
@@ -473,7 +472,6 @@ update_centers(size_t               num_nodes,
 
         dict_ul_ul_iterator_destroy(it);
         dict_ul_ul_destroy(cluster_counts[i]);
-        cluster_counts[i] = NULL;
     }
 
     free(cluster_counts);
@@ -494,17 +492,21 @@ cluster_coarse(in_memory_file_t* db,
 
     unsigned long* centers = NULL;
 
+    printf("Initialize Centers\n");
     initialize_centers(db, &centers, num_clusters, dif_sets);
 
+    printf("Assign to Cluster\n");
     assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
 
     do {
+        printf("Update Centers\n");
         update_centers(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
+        printf("Assign to Cluster\n");
         changes = assign_to_cluster(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
-    } while (changes > 0);
+    } while (changes > db->node_id_counter / CHANGE_RATIO);
 
     free(centers);
 
@@ -758,8 +760,14 @@ cluster_hierarchical(unsigned long   n_nodes,
 
     if (block_formation) {
         if (*block_count == 0) {
-            (*blocks)[0] = dendros[0];
-            *block_count = 1;
+            if (n_nodes > 1) {
+                dendro->block_no        = *block_count;
+                (*blocks)[*block_count] = dendro;
+            } else {
+                dendros[0]->block_no    = *block_count;
+                (*blocks)[*block_count] = dendros[0];
+            }
+            (*block_count)++;
         }
 
         dendrogram_t** realloc_h =
@@ -808,7 +816,6 @@ block_formation(in_memory_file_t*    db,
 
     for (size_t i = 0; i < num_clusters; ++i) {
         (*block_roots)[i] = initialize_node_dendrograms(nodes_per_part[i]);
-
         cluster_hierarchical(list_ul_size(nodes_per_part[i]),
                              node_distance_matrix(dif_sets, nodes_per_part[i]),
                              (*block_roots)[i],
@@ -945,6 +952,7 @@ initialize_subgraph_dendrograms(unsigned long n_subgraphs)
 void
 order_subgraphs(dendrogram_t**  hierarchy,
                 dendrogram_t*** blocks,
+                unsigned long*  block_count,
                 unsigned long   n_subgraphs)
 {
     unsigned long* subgraph_order =
@@ -978,10 +986,14 @@ order_subgraphs(dendrogram_t**  hierarchy,
     list_destroy(stack);
 
     dendrogram_t** temp_dendro;
+    unsigned long  temp_bc;
     for (size_t i = 0; i < n_subgraphs; ++i) {
-        temp_dendro               = blocks[i];
-        blocks[i]                 = blocks[subgraph_order[i]];
-        blocks[subgraph_order[i]] = temp_dendro;
+        temp_dendro                    = blocks[i];
+        temp_bc                        = block_count[i];
+        blocks[i]                      = blocks[subgraph_order[i]];
+        block_count[i]                 = block_count[subgraph_order[i]];
+        blocks[subgraph_order[i]]      = temp_dendro;
+        block_count[subgraph_order[i]] = temp_bc;
     }
     free(subgraph_order);
 }
@@ -1054,7 +1066,7 @@ layout_blocks(in_memory_file_t* db,
                          false,
                          &hierarchy,
                          NULL);
-    order_subgraphs(hierarchy, blocks, num_clusters);
+    order_subgraphs(hierarchy, blocks, block_count, num_clusters);
 
     map_to_partitions(partition, blocks, block_count, num_clusters);
 

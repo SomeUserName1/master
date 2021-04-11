@@ -11,7 +11,6 @@
 #include "../record/node.h"
 #include "../record/relationship.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -57,6 +56,7 @@ remap_node_ids(in_memory_file_t* db, unsigned long* partition)
         partition_nums[i] = *(unsigned long*)key;
         ++i;
     }
+    htable_iterator_destroy(it);
 
     qsort(partition_nums,
           set_ul_size(part_numbers),
@@ -88,6 +88,7 @@ remap_node_ids(in_memory_file_t* db, unsigned long* partition)
         idx = dict_ul_ul_get_direct(part_to_idx, partition[i]);
         list_ul_append(nodes_per_partition[idx], i);
     }
+    dict_ul_ul_destroy(part_to_idx);
     printf("Created nodes per partition lists.\n");
 
     // assign id as position in the list + length of all lists up to now
@@ -252,11 +253,19 @@ sort_incidence_list(in_memory_file_t* db)
 
         for (size_t j = 0; j < rels_size; ++j) {
             rel = list_relationship_get(rels, j);
-
             set_ul_insert(rel_ids, rel->id);
         }
 
         sorted_rel_ids = calloc(set_ul_size(rel_ids), sizeof(unsigned long));
+        htable_iterator_t* it    = create_htable_iterator((htable_t*)rel_ids);
+        size_t             i     = 0;
+        void*              key   = NULL;
+        void*              value = NULL;
+        while (htable_iterator_next(it, &key, &value) == 0) {
+            sorted_rel_ids[i] = *(unsigned long*)key;
+            ++i;
+        }
+        htable_iterator_destroy(it);
 
         qsort(sorted_rel_ids,
               set_ul_size(rel_ids),

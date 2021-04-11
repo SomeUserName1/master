@@ -6,7 +6,6 @@
 #include <time.h>
 
 #include "access/in_memory_file.h"
-#include "constants.h"
 #include "data-struct/dict_ul.h"
 #include "import/snap_importer.h"
 #include "locality/g-store_layout.h"
@@ -22,7 +21,7 @@
 #include "query/louvain.h"
 #include "query/result_types.h"
 
-#define NUM_LAYOUT_METHOS (5)
+#define NUM_LAYOUT_METHOS (1)
 #define NUM_LANDMARKS     (5)
 #define PERMISSION_NUM    (0777)
 
@@ -48,9 +47,10 @@ main(void)
     const char* trash_file    = "/home/someusername/Downloads/ignore.txt";
     const char* base_path     = "/home/someusername/workspace_local/";
     const char* download_temp = "download.txt.gz";
-    const char* layout_str[]  = {
-        "natural", "random", "louvain", "g-store", "icbl"
-    };
+    const char* layout_str[]  = { "icbl" };
+
+    //"natural", "random", "louvain", "g-store"
+
     const char* dataset_str[] = {
         "c_elegans", "email_research_eu", "dblp", "amazon", "youtube"
     };
@@ -58,9 +58,8 @@ main(void)
 
     typedef unsigned long* (*layout)(in_memory_file_t * db);
 
-    layout layout_method[] = {
-        identity_partition, random_partition, louvain, g_store_layout, icbl
-    };
+    layout layout_method[] = { icbl };
+    //        identity_partition, random_partition, louvain, g_store_layout };
 
     // Build download temp string.
     char* temp_path =
@@ -108,7 +107,7 @@ main(void)
 
     srand(time(NULL));
 
-    for (dataset_t dataset = 0; dataset <= YOUTUBE; ++dataset) {
+    for (dataset_t dataset = 2; dataset <= YOUTUBE; ++dataset) {
         printf("Using dataset %s =========================\n",
                dataset_str[dataset]);
         source_node = rand() % get_no_nodes(dataset);
@@ -145,6 +144,7 @@ main(void)
             printf("Base path: %s\n", result_base_path);
 
             // Preprocess the landmarks for alt to avoid doing it twice.
+            printf("Preprocessing heuristic and landmarks for A* and ALT\n");
             alt_preprocess(db, BOTH, NUM_LANDMARKS, landmark_dists, trash_file);
             dijk_result = dijkstra(db, target_node, BOTH, trash_file);
             heuristic   = dijk_result->distances;
@@ -500,16 +500,9 @@ main(void)
                 printf("Done\n");
 
                 free(result_specific_path);
+                free(result_specific_block_path);
+                free(result_specific_page_path);
             }
-
-            for (size_t i = 0; i < 3; ++i) {
-                printf("landmark %lu %.3f\n", i, landmark_dists[i][0]);
-            }
-
-            //  for (size_t l = 0; l < NUM_LANDMARKS; ++l) {
-            //      printf("free %lu\n", l);
-            //      free(landmark_dists[i]);
-            //  }
             in_memory_file_destroy(db);
             free(result_base_path);
         }

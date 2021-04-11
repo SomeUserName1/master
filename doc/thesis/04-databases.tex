@@ -1,22 +1,26 @@
-\chapter{Databases}
+\chapter{Graph Databases}
     First, we introduce a popular data model that is employed by many current graph databases~\autocite{GitHubneo4j, ArangoDB, AmazonNeptune, RedisGraph}.
     Then we look at an implementation of this model in a native graph database called Neo4J is described. 
     The latter also serves as a role model for the implementation of the in-memory database that is used in the evaluation part.
                 
-\section{Graph Databases}
-    Relational databases store data in tables.
-    The links considered in this category of DBMS are mostly used to stitch together the fields of a record stored in different tables into one row again after it has been split to satisfy a certain normal form.
-    Of course one may also store tables where one table stores nodes and the other table's fields are node IDs to represent relationships.
+    \section{Architecture}
+        Graph databases, do not differ in many architectural aspects from relational and other databases. A borad sketch of the software architecture of database management systems is laid out in Section~\ref{db-arch}. 
+        The most significant difference is how data is stored on the one hand side, and how the queries are evaluated on the other hand side.
+        As mentioned we focus on the former issue.
+        
+        Relational databases store data in tables.
+        The links considered in this category of DBMS are mostly used to stitch together the fields of a record stored in different tables into one row again after it has been split to satisfy a certain normal form.
+        Of course one may also store tables where one table stores nodes and the other table's fields are node IDs to represent relationships.
 
-    However, to traverse the graph, one has either to do a lot of rather expensive lookups or store auxiliary structures to speed up the lookup process.
-    In particular, when using B-trees as index structure, each lookup takes $\mathcal{O}(\log(n))$ steps to locate a specific edge.
-    Alternatively one could store an additional table that holds incidence lists such that the lookup of outgoing or incoming edges is only $\mathcal{O}(\log(n))$ which would speed up breadth-first traversals, thus duplicate data.
-    But still one has to compute joins to continue the traversal in terms of depth.
-    Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins.
-    
-    In contrast to relational databases, native graph databases use structures specialized for these kinds of queries.
+        However, to traverse the graph, one has either to do a lot of rather expensive lookups or store auxiliary structures to speed up the lookup process.
+        In particular, when using B-trees as index structure, each lookup takes $\mathcal{O}(\log(n))$ steps for clustered indices to locate a specific edge. However, as all edges are attached to two nodes, it is only possible to build a clustered index over edges either grouped by incoming or outgoing neighborhood. The undirected neighborhood permits no such sorting and retrieval as it is unclear to which node an edge is to be sorted to.
+        Alternatively one could store an additional table that holds incidence lists such that the lookup of outgoing or incoming edges is only $\mathcal{O}(\log(n))$ which would speed up breadth-first traversals, but duplicate data.
+        Still one has to compute joins to continue the traversal in the scope of depth first searches.
+        Another way to speed things up is to use a hash-based index, but this also has a certain overhead aside from the joins and the question which hash function and which attributes to use arises.
+        
+        In contrast to relational databases, native graph databases use structures specialized for these kinds of queries.
             
-    \subsection*{The Property Graph Model}\label{prop-graph-model}
+    \section{The Property Graph Model}\label{prop-graph-model}
         The property graph model is a widely adopted data model to represent graphs in databases.
         It is not only able to represent the structure of directed or undirected, weighted or unweighted, but also of typed graphs having additional properties.
 
@@ -56,13 +60,13 @@
         
         In the next Section~\ref{n4j} we are going to discuss how Neo4J implements the property graph model, with our focus on the structure of the graph and the low-level storage scheme.
 
-    \subsection*{Example --- Neo4J}\label{n4j}
-        Neo4J is a native graph database using the property graph model.
-        The source code of the community edition is available at GitHub~\autocite{GitHubneo4j}.
-        We look at some implementation details of the storage and buffer manager, as well as the record structure.
-        We are not going to take properties, relationship types, labels, and concepts related to those into account.
-        
-        \subsubsection*{High-level Architecture}
+\section{Example --- Neo4J}\label{n4j}
+    Neo4J is a native graph database using the property graph model.
+    The source code of the community edition is available at GitHub~\autocite{GitHubneo4j}.
+    We look at some implementation details of the storage and buffer manager, as well as the record structure.
+    We are not going to take properties, relationship types, labels, and concepts related to those into account.
+    
+    \subsection{High-level Architecture}
         \begin{figure}[htp]
             \begin{center}
                 \includegraphics[keepaspectratio,width=0.25\textwidth]{img/04-databases/N4J_HLA_Emil.png}
@@ -94,15 +98,15 @@
         It also handles the management of free slots something is usually done by the disk space manager.
         To summarize: the buffer manager and the access layer correspond closely to these two packages, while the disk space manager is distributed mainly over these two packages.        
 
-        \subsubsection*{Record and File Structures}\label{n4j-struct}
+    \subsection{Record and File Structures}\label{n4j-struct}
         Neo4J uses several different record types. They can be split broadly in the following categories:
         \begin{itemize}
-         \item Variable size records: Strings, Arrays
-         \item Fixed size records:
-         \begin{itemize}
-          \item Graph structure related records: Nodes, relationships, relationship groups
-          \item Properties, labels, relationship types
-         \end{itemize}
+            \item Variable size records: Strings, Arrays
+            \item Fixed size records:
+            \begin{itemize}
+            \item Graph structure related records: Nodes, relationships, relationship groups
+            \item Properties, labels, relationship types
+            \end{itemize}
         \end{itemize}
         
         Each record type is stored in an own file per database in the database management system.
@@ -124,101 +128,101 @@
         Only one thing is to be mentioned.
         Properties are stored as a linked lists for each node and relationship.
         
-        \subsubsection*{Nodes}
-            \begin{figure}[htp]
-                \begin{center}
-                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/04-databases/node_record.png}
-                \end{center}
-                \caption{A visualization of the record structure of a node record~\autocite{neo4jNodeRecordFormat}.}
-                \label{node-record-format}
-            \end{figure}
-            The record format of nodes consists of a 15-byte structure.
-            The IDs of nodes are stored implicitly as their address.
-            If a node has ID 100 we know that its record starts at offset $15 \text{ Bytes} \cdot 100 = 1500$ from the beginning of the file.
-            The struct of a record is outlined below.
-            \begin{enumerate}
-                \item Byte 1: One bit for the in-use flag. 
-                The additional bits are used to compress the node struct by using the other 7 bits to store the most significant bits of the first relationship ID and the first property ID 
-                \item Bytes 2 --- 5: The next 4 Bytes represent the relationship ID of the head in the linked list of relationships of the considered node.
-                \item Bytes 6 --- 9: Again 4 bytes encode the property ID of the head in the linked list of properties of the node.
-                \item Bytes 10 --- 14: This 5-byte section points to the labels of this node.
-                \item Byte 15: The last byte stores if the node is dense, i.e.\ has an awful lot of relationships, such that it needs special treatment to remain efficient to traverse over.
-                That is, relationships are grouped by type, and direction for this node.
-            \end{enumerate}
-            
-            To summarize: the records on disk are stored as in the enumeration above, and as shown in Figure~\ref{node-record-format}. 
-            In the database all IDs get mapped to longs, and their respective space is larger than the space representable by 35 bits --- which is perfectly fine.
-            
-            On-disk 4-byte integers are used to store the 32 lowest bits of the respective addresses and the higher bits are stored in the first byte that also carries the in-use bit.
+    \subsubsection*{Node Records}
+        \begin{figure}[htp]
+            \begin{center}
+                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.7\textwidth]{img/04-databases/node_record.png}
+            \end{center}
+            \caption{A visualization of the record structure of a node record~\autocite{neo4jNodeRecordFormat}.}
+            \label{node-record-format}
+        \end{figure}
+        The record format of nodes consists of a 15-byte structure.
+        The IDs of nodes are stored implicitly as their address.
+        If a node has ID 100 we know that its record starts at offset $15 \text{ Bytes} \cdot 100 = 1500$ from the beginning of the file.
+        The struct of a record is outlined below.
+        \begin{enumerate}
+            \item Byte 1: One bit for the in-use flag. 
+            The additional bits are used to compress the node struct by using the other 7 bits to store the most significant bits of the first relationship ID and the first property ID 
+            \item Bytes 2 --- 5: The next 4 Bytes represent the relationship ID of the head in the linked list of relationships of the considered node.
+            \item Bytes 6 --- 9: Again 4 bytes encode the property ID of the head in the linked list of properties of the node.
+            \item Bytes 10 --- 14: This 5-byte section points to the labels of this node.
+            \item Byte 15: The last byte stores if the node is dense, i.e.\ has an awful lot of relationships, such that it needs special treatment to remain efficient to traverse over.
+            That is, relationships are grouped by type, and direction for this node.
+        \end{enumerate}
         
-        \subsubsection*{Relationships}\label{n4j-rel}
-            \begin{figure}[htp]
-                \begin{center}
-                    \includegraphics[keepaspectratio,height=0.9\textheight,width=0.9\textwidth]{img/04-databases/relationship_record.png}
-                \end{center}
-                \caption{A visualization of the record structure of a relationship in Neo4J.}
-                \label{rel_record}
-            \end{figure}
-                
-            Relationship records are stored with implicit IDs too. 
-            Their fixed-size records contain 34 bytes.
-            Besides an in-use flag, the source and target node IDs, and the relationship type, the record also contains two doubly linked list.
-            One for the incident edges of the source node and one for the incident edges of the target node.
-            Next, a link to the head of the linked list of properties for this relationship is stored.
-            Finally, the last byte contains a marker if this relationship is the first element in the incidence list of one of the nodes.
+        To summarize: the records on disk are stored as in the enumeration above, and as shown in Figure~\ref{node-record-format}. 
+        In the database all IDs get mapped to longs, and their respective space is larger than the space representable by 35 bits --- which is perfectly fine.
+        
+        On-disk 4-byte integers are used to store the 32 lowest bits of the respective addresses and the higher bits are stored in the first byte that also carries the in-use bit.
+    
+    \subsubsection*{Relationship Records}\label{n4j-rel}
+        \begin{figure}[htp]
+            \begin{center}
+                \includegraphics[keepaspectratio,height=0.9\textheight,width=0.9\textwidth]{img/04-databases/relationship_record.png}
+            \end{center}
+            \caption{A visualization of the record structure of a relationship in Neo4J.}
+            \label{rel_record}
+        \end{figure}
             
-            \begin{enumerate}
-                \item Byte 1: In-use bit, source node high order bits (3 bits), first property high order bits (4 bits)
-                \item Bytes 2 --- 5: source node ID 
-                \item Bytes 6 --- 9: target node ID 
-                \item Bytes 10 --- 13: relationship type (16 bit), target node high order bits (3 bits), relationship previous and next ID higher bits for source and target node ($4 \cdot 3 = 12$ bits), one unused bit.
-                \item Bytes 14 --- 17: previous relationship ID the for source node
-                \item Bytes 18 --- 21: next relationship ID for the source node
-                \item Bytes 22 --- 25: previous relationship ID for the target node
-                \item Bytes 26 --- 29: next relationship ID for the target node
-                \item Bytes 30 --- 33: link to the first property of the relationship
-                \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes stored in the lowest two bits of the byte. 
-                The other 6 bits are unused.
-            \end{enumerate}
-            
-            \begin{figure}[htp]
-                \begin{center}
-                    \includegraphics[keepaspectratio,height=0.4\textheight,width=0.3\textwidth]{img/04-databases/graph.png}
-                \end{center}
-                \caption{An example graph.}
-                \label{n4j-ex-gr}
-            \end{figure}
-            
-            The relationship structure is a key element of the layout and reveals the actual data type that the database is using.
-            Nodes and relationships are both stored once only (i.e. nothing is duplicated).
-            Without taking the fields into account, this is an unordered edge list.
-            When taking the linked lists of relationships into account, it turns out that the underlying data structure is that of an incidence list, with a couple of additional properties.
-            
-            First, as already mentioned, the edges are not physically duplicated but only referenced. 
-            The records are fixed-sized, so addressing them is done by multiplying the index by the size of an entry, meaning one does not need to store primary keys explicitly, and address translation can be done using simple multiplication. 
-            Theoretically one could align the record size to a power of two to turn the multiplication into a bit shift.
-            Next, as doubly linked lists are used, the deletion of an edge is in $\mathcal{O}(1)$ if the ID is known.
-            If this was not the case, the incidence list would need to be traversed to find the previous element.
-            Also, the incidence list is stored in the relationships.
-            Thus to traverse from one node's incidence list to another, there is no need to load the node record itself.
-            It suffices to just dereference the next element in the incidence list stored by the relationships, along with storing the ID of the edge that started the traversal.
-            This makes the assumption, that the doubly linked incidence lists are circular, i.e. the head's pervious element is the tail and reciprocally.
+        Relationship records are stored with implicit IDs too. 
+        Their fixed-size records contain 34 bytes.
+        Besides an in-use flag, the source and target node IDs, and the relationship type, the record also contains two doubly linked list.
+        One for the incident edges of the source node and one for the incident edges of the target node.
+        Next, a link to the head of the linked list of properties for this relationship is stored.
+        Finally, the last byte contains a marker if this relationship is the first element in the incidence list of one of the nodes.
+        
+        \begin{enumerate}
+            \item Byte 1: In-use bit, source node high order bits (3 bits), first property high order bits (4 bits)
+            \item Bytes 2 --- 5: source node ID 
+            \item Bytes 6 --- 9: target node ID 
+            \item Bytes 10 --- 13: relationship type (16 bit), target node high order bits (3 bits), relationship previous and next ID higher bits for source and target node ($4 \cdot 3 = 12$ bits), one unused bit.
+            \item Bytes 14 --- 17: previous relationship ID the for source node
+            \item Bytes 18 --- 21: next relationship ID for the source node
+            \item Bytes 22 --- 25: previous relationship ID for the target node
+            \item Bytes 26 --- 29: next relationship ID for the target node
+            \item Bytes 30 --- 33: link to the first property of the relationship
+            \item Bytes 34: A marker if this relation is the first element in the relationship linked list of one of the nodes stored in the lowest two bits of the byte. 
+            The other 6 bits are unused.
+        \end{enumerate}
+        
+        \begin{figure}[htp]
+            \begin{center}
+                \includegraphics[keepaspectratio,height=0.4\textheight,width=0.3\textwidth]{img/04-databases/graph.png}
+            \end{center}
+            \caption{An example graph.}
+            \label{n4j-ex-gr}
+        \end{figure}
+        
+        The relationship structure is a key element of the layout and reveals the actual data type that the database is using.
+        Nodes and relationships are both stored once only (i.e. nothing is duplicated).
+        Without taking the fields into account, this is an unordered edge list.
+        When taking the linked lists of relationships into account, it turns out that the underlying data structure is that of an incidence list, with a couple of additional properties.
+        
+        First, as already mentioned, the edges are not physically duplicated but only referenced. 
+        The records are fixed-sized, so addressing them is done by multiplying the index by the size of an entry, meaning one does not need to store primary keys explicitly, and address translation can be done using simple multiplication. 
+        Theoretically one could align the record size to a power of two to turn the multiplication into a bit shift.
+        Next, as doubly linked lists are used, the deletion of an edge is in $\mathcal{O}(1)$ if the ID is known.
+        If this was not the case, the incidence list would need to be traversed to find the previous element.
+        Also, the incidence list is stored in the relationships.
+        Thus to traverse from one node's incidence list to another, there is no need to load the node record itself.
+        It suffices to just dereference the next element in the incidence list stored by the relationships, along with storing the ID of the edge that started the traversal.
+        This makes the assumption, that the doubly linked incidence lists are circular, i.e. the head's pervious element is the tail and reciprocally.
 
-            To conclude this example, we briefly visualize the just described storage schema. 
-            The high-level graph is shown in Figure~\ref{n4j-ex-gr}.
-            It contains four nodes and five edges.
-            The underlying instantiated data structures are shown in Figure~\ref{n4j-ex}.
-            The light red arcs represent edges, the light green circles represent nodes.
-            The colored boxes on the edges and nodes represent the data structures.
-            The brighter red edges represent the doubly linked incidence lists.
-            Notice, that the heads and tails of the doubly linked incidence lists are marked by ''X`` to avoid drawing additional edges.
-            The brighter green arrows represent the source and target nodes, as stored by the edges.
-            \vfill
-            \begin{figure}[htp]
-                \begin{center}
-                    \includegraphics[keepaspectratio,height=\textheight,width=\textwidth]{img/04-databases/example_structs.png}
-                \end{center}
-                \caption{Visualization of the data structures, as initialized by the example graph shown in Figure~\ref{n4j-ex-gr}.}
-                \label{n4j-ex}
-            \end{figure}
-            \vfill
+        To conclude this example, we briefly visualize the just described storage schema. 
+        The high-level graph is shown in Figure~\ref{n4j-ex-gr}.
+        It contains four nodes and five edges.
+        The underlying instantiated data structures are shown in Figure~\ref{n4j-ex}.
+        The light red arcs represent edges, the light green circles represent nodes.
+        The colored boxes on the edges and nodes represent the data structures.
+        The brighter red edges represent the doubly linked incidence lists.
+        Notice, that the heads and tails of the doubly linked incidence lists are marked by ''X`` to avoid drawing additional edges.
+        The brighter green arrows represent the source and target nodes, as stored by the edges.
+        \vfill
+        \begin{figure}[htp]
+            \begin{center}
+                \includegraphics[keepaspectratio,height=\textheight,width=\textwidth]{img/04-databases/example_structs.png}
+            \end{center}
+            \caption{Visualization of the data structures, as initialized by the example graph shown in Figure~\ref{n4j-ex-gr}.}
+            \label{n4j-ex}
+        \end{figure}
+        \vfill

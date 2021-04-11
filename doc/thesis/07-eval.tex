@@ -35,7 +35,7 @@
     
     \subsection*{Data Sets and Queries}
         We use datasets from the Stanford Network Analysis Project~\autocite{snap}.
-        More specifically we use datasets starting from $131$ nodes and $764$ edges, ranging to $65,608,366$ nodes and $1,806,067,135$ edges.
+        More specifically we use datasets starting from $131$ nodes and $764$ edges, ranging to $1,134,890$ nodes and $2,987,624$ edges.
         All datasets that are used so far are unweighted, i.e. all edges have a weight of $1$.
         A summary of the considered networks is shown in table~\ref{datasets}.
         \begin{table}
@@ -46,11 +46,7 @@
                  Email & Directed & $1,005$ & $25,571$ & E-Mail traffic between european research institutions~\autocite{email} \\ [0.8cm]
                  DBLP & Undirected & $317,080$ & $1,049,866$ & Computer science citation network~\autocite{lj}. \\ [0.8cm]
                  Amazon & Undirected & $334,863$ & $925,872$ & Co-purchased items network crawled from Amazon~\autocite{lj}. \\ [0.8cm]
-                 YouTube & Undirected & $1,134,890$ & $2,987,624$ & YouTube social network~\autocite{mislove}. \\ [0.5cm]
-                 Wikipedia & Directed & $1,791,489$ & $28,511,807$ & Hyperlink network of the top categories on Wikipedia~\autocite{wiki} \\ [0.8cm]
-                LiveJournal & Undirected & $3,997,962$ & $34,681,189$ & Live Journal social network~\autocite{lj}. \\ [0.8cm]
-                Orkut & Undirected & $3,072,441$ & $117,185,083$ & Orkut social network~\autocite{mislove}. \\ [0.8cm]
-                Friendster & Undirected & $65,608,366$ & $1,806,067,135$ & Friendster social network~\autocite{friendster}. \\ \bottomrule
+                 YouTube & Undirected & $1,134,890$ & $2,987,624$ & YouTube social network~\autocite{mislove}. \\ \bottomrule
             \end{tabular}
             \end{center}
             \caption{Details on the datasets that are used during evaluation.}
@@ -64,6 +60,6 @@
         It was manufactured using a 22nm process, has 2 cores with 2 threads each, has $128$ KiB L1 with $64$ KiB for instructions and data each, $512$KiB L2 and 3MiB L3 Cache.
         The main memory consist of $2 \cdot 4$GiB SODIMM DDR3 RAM clocked at 1600 MHz by Micron Technology.
         We are not using the disk directly, but it may be indirectly used by the operating system when paging or swapping is exchanging pages or process images.
-        The disk is a $256$GB SSD produced by Samsung and uses the SATA protocol over the PCIe 3.0 x4 interface.
+        The disk is a $256$GB SSD produced by Samsung and uses the SATA protocol over the PCIe 3.0 x4 interface. A combination of 8 GiB RAM and a 10 GiB swap file was not sufficient to support larger datasets for G-Store's and the ICBL record layout algorithms.
     
 \section{Results}\label{\positionnumber}

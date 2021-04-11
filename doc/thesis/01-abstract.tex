@@ -3,20 +3,26 @@
     \textbf{Abstract:}
 \end{center}{}
 Graphs are omnipresent in our world. 
-Not only geographic maps and social networks, but also biological systems, like brains and the spreading of diseases are modeled using graphs.
-Graph traversals are often used to examine such graphs, e.g. to find shortest paths between two places or to compute differential equation-based spreading processes.
+Biological systems, like brains and the spreading of diseases, are modeled using graphs.
+Graph-based representations of social networks among individuals are popular in data science and analysis.
+Many navigation systems visualize the geographic position, maps, and routes using graphs.
+One tool to examine the structure of graphs is traversal-based algorithms.
+An example is to find the shortest paths between two places or to compute differential equation-based spreading processes.
 Databases provide means to store large amounts of data reliable and scalable. 
-As the bottleneck to data-intensive information processing in current computing systems is the amount of time spent to read and write data to secondary storage, this is commonly one of the most crucial aspects of scalability.
-While relational databases have been optimized for decades, graph databases are a relatively new branch of research in this respect.
-The former need to be optimized for selecting and joining tabular data, as the queries consist mostly of filtering data from different tables.
-In graph databases, the most common query types are pattern-based and traversal-based queries. 
-While the optimization of pattern-based queries has been explored to a certain degree, traversal-based queries recieved only little attention.
-When travering a graph, disk accesses are governed by the structure of the graph.
-To optimize the performance of traversal-based queries, the number of disk accesses needs to be minimized. 
-This is achieved by leveraging what is called locality of reference.
-One way to achieve this is to rearrange records such that, when these are accessed together, they are also stored together.
-A survey of state-of-the-art graph record rearrangement strategies is presented, along with the proposition of an improvement to such methods on a particular record structure.
-Finally, the methods are implemented and evaluated to measure the scalability of traversal-based algorithms in terms of block IOs.
+The bottleneck to data-intensive information processing in current computing systems is the amount of time spent loading and storing data to secondary storage.
+Commonly, one of the most crucial aspects of scalability in databases is the careful design of data access.
+While relational databases have been optimized for decades, graph databases are relatively new research in this respect.
+Former systems optimize selecting and joining tabular data, as the queries consist mainly of filtering data from different tables.
+The most common query types used in graph databases are pattern-based and traversal-based queries. 
+While the optimization of pattern-based queries has been explored to a certain degree, traversal-based ones received only a little attention.
+The structure of a graph governs the sequence in which traversal algorithms inspect records.
+Minimizing disk accesses is crucial for the performance of traversal-based queries. 
+The principle of leveraging patterns where records accesses are close in space or time is called locality.
+Rearranging the records is one way to achieve this.
+When these records are accessed together, they also need to be stored together.
+We present survey of state-of-the-art graph record rearrangement strategies, along with the proposition of an improvement to such methods on a particular record structure.
+Finally,  an evaluation of these rearrangement strategies provides insights into their quality.
+Quantitatively we measure the amount of block IOs necessary for executing a traversal-based algorithm.
 \end{abstract}
 
 \newpage
@@ -28,13 +34,13 @@ As a mentor, he always provided me with his guidance and support.  \\
 
 I cannot overexpress my gratitude towards my parents.
 They raised me to the person that I am.
-Only their support made it possible to study my passion. \\
+Only their support made it possible to study what is my passion. \\
 
 Further, I want to thank my siblings Leo Klopfer, Jasmin Wetzel, her husband Marius, and my girlfriend Natascha Reddemann for always being there for me and having an ear open when the times were stormy. \\
 
-Working with colleagues and spending time with friends greatly augmented my time here in Konstanz. Thanks to Stephan Perren, Dario Graf, Jannik Bamberger, Leo Wörteler, Manuel Hotz and many others. \\
+Working with colleagues and spending time with friends augmented my time here in Konstanz. Thanks to Stephan Perren, Dario Graf, Jannik Bamberger, Leo Wörteler, Manuel Hotz and many others. \\
 
 
-Finally, I'd like to thank Theodoros Chondrogiannis for the innumerable discussions, his clearness, and the ability to keep me focused. 
+Finally, I'd like to thank Theodoros Chondrogiannis for the discussions, his clearness, and the ability to keep me focused. 
 \vfill\hspace{0pt}
 \newpage

@@ -218,11 +218,11 @@ test_sort_incidence_list(void)
         }
         list_relationship_destroy(rels);
     }
+
     sort_incidence_list(db);
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         rels = in_memory_expand(db, i, BOTH);
-        assert(degrees[i] == list_relationship_size(rels));
 
         for (size_t j = 0; j < degrees[i]; ++j) {
             assert(list_ul_contains(incidence_lists[i],

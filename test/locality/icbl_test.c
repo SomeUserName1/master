@@ -15,6 +15,8 @@
 #include "../../src/import/snap_importer.h"
 #include "../../src/query/degree.h"
 
+#define RUNS (1)
+
 void
 test_id_diff_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 {
@@ -398,9 +400,9 @@ int
 main(void)
 {
     printf("Start importing\n");
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(
-          db, "/home/someusername/workspace_local/celegans.txt");
+    in_memory_file_t* db = create_in_memory_file();
+    dict_ul_ul_t*     map =
+          import_from_txt(db, "/home/someusername/workspace_local/dblp.txt");
     dict_ul_ul_destroy(map);
 
     if (!db || db->node_id_counter < 1) {
@@ -452,24 +454,14 @@ main(void)
     free(centers);
     free(part);
 
-    printf("Start applying the ICBL layout algorithm.\n");
-    unsigned long* partition = icbl(db);
-    printf("Done.\n");
-
-    FILE* out_f =
-          fopen("/home/someusername/workspace_local/icbl_layout_.txt", "w");
-
-    if (!out_f) {
-        printf("Couldn't open file");
-        exit(-1);
+    printf("Start %d runs of the ICBL layout algorithm.\n", RUNS);
+    printf("Nodes %lu, Rels %lu.\n", db->node_id_counter, db->rel_id_counter);
+    unsigned long* partition;
+    for (size_t i = 0; i < RUNS; ++i) {
+        partition = icbl(db);
+        free(partition);
+        printf("Done with run %lu.\n", i + 1);
     }
-
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
-        fprintf(out_f, "%lu %lu\n", i, partition[i]);
-    }
-
-    fclose(out_f);
-    free(partition);
 
     in_memory_file_destroy(db);
     return 0;

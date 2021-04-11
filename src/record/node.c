@@ -51,6 +51,7 @@ node_clear(node_t* record)
     record->id                 = UNINITIALIZED_LONG;
     record->flags              = UNINITIALIZED_BYTE;
     record->first_relationship = UNINITIALIZED_LONG;
+    record->degree             = 0;
 }
 
 node_t*
@@ -69,6 +70,7 @@ node_copy(const node_t* original)
     copy->id                 = original->id;
     copy->flags              = original->flags;
     copy->first_relationship = original->first_relationship;
+    copy->degree             = original->degree;
 
     return copy;
 }
@@ -81,7 +83,8 @@ node_equals(const node_t* first, const node_t* second)
     }
 
     return ((first->id == second->id) && (first->flags == second->flags)
-            && (first->first_relationship == second->first_relationship));
+            && (first->first_relationship == second->first_relationship)
+            && first->degree == second->degree);
 }
 
 int
@@ -91,10 +94,12 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           0,
                           "Node ID: %#lX\n"
                           "In-Use: %#hhX\n"
-                          "First Relationship: %#lX\n",
+                          "First Relationship: %#lX\n"
+                          "Degree: %lu\n",
                           record->id,
                           record->flags,
-                          record->first_relationship);
+                          record->first_relationship,
+                          record->degree);
 
     if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote node string representation to a buffer that was too "
@@ -106,10 +111,12 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           length,
                           "Node ID: %#lX\n"
                           "In-Use: %#hhX\n"
-                          "First Relationship: %#lX\n",
+                          "First Relationship: %#lX\n"
+                          "Degree: %lu\n",
                           record->id,
                           record->flags,
-                          record->first_relationship);
+                          record->first_relationship,
+                          record->degree);
 
     return result > 0 ? 0 : result;
 }
@@ -123,8 +130,10 @@ node_pretty_print(const node_t* record)
     }
     printf("Node ID: %#lX\n"
            "In-Use: %#hhX\n"
-           "First Relationship: %#lX\n",
+           "First Relationship: %#lX\n"
+           "Degree: %lu\n",
            record->id,
            record->flags,
-           record->first_relationship);
+           record->first_relationship,
+           record->degree);
 }

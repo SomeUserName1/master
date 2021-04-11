@@ -7,9 +7,10 @@
 #include "../access/in_memory_file.h"
 #include "../data-struct/dict_ul.h"
 
-#define MEMORY          (4294967296.0f)
+#define MEMORY          (8589934592.0f)
 #define SHARE_OF_MEMORY (0.8)
-static const float MIN_DIST_INIT_CENTERS = 0.5F;
+#define CHANGE_RATIO    (3)
+static const float MIN_DIST_INIT_CENTERS = 0.95F;
 
 typedef struct dendrogram
 {

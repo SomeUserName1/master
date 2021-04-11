@@ -255,6 +255,9 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
         target_node->first_relationship = rel->id;
     }
 
+    source_node->degree++;
+    target_node->degree++;
+
     dict_ul_rel_insert(db->cache_rels, rel->id, rel);
 
     return rel->id;
@@ -370,7 +373,14 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
         return NULL;
     }
 
-    unsigned long next_id  = source_node->first_relationship;
+    node_t* traversed_node =
+          source_node->degree < target_node->degree ? source_node : target_node;
+
+    direction_t trav_dir = traversed_node->id == node_to && direction != BOTH
+                                 ? direction == OUTGOING ? INCOMING : OUTGOING
+                                 : direction;
+
+    unsigned long next_id  = traversed_node->first_relationship;
     unsigned long start_id = next_id;
 
     do {
@@ -381,7 +391,8 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
                 && rel->target_node == node_from)) {
             return rel;
         }
-        next_id = in_memory_next_relationship(db, node_from, rel, direction);
+        next_id = in_memory_next_relationship(
+              db, traversed_node->id, rel, trav_dir);
     } while (next_id != start_id && next_id != UNINITIALIZED_LONG);
 
     return NULL;

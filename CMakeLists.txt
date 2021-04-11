@@ -18,7 +18,7 @@ set(__STDC_LIB_EXT1__)
 set(__STDC_WANT_LIB_EXT1__ 1)
 # -fsanitize=address,undefined
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector -Wformat -Wformat-security -Werror=format-security -ferror-limit=0 -ftest-coverage -fprofile-arcs")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -ffast-math -fPIC -march=native -mtune=native -m64 -Ofast")
+set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -ffast-math -fPIC -march=native -mtune=native -m64 -Ofast")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 include(ProcessorCount)
