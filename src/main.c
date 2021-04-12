@@ -21,9 +21,8 @@
 #include "query/louvain.h"
 #include "query/result_types.h"
 
-#define NUM_LAYOUT_METHOS (1)
-#define NUM_LANDMARKS     (5)
-#define PERMISSION_NUM    (0777)
+#define NUM_LANDMARKS  (3)
+#define PERMISSION_NUM (0777)
 
 void
 rek_mkdir(char* path)
@@ -47,10 +46,9 @@ main(void)
     const char* trash_file    = "/home/someusername/Downloads/ignore.txt";
     const char* base_path     = "/home/someusername/workspace_local/";
     const char* download_temp = "download.txt.gz";
-    const char* layout_str[]  = { "icbl" };
-
-    //"natural", "random", "louvain", "g-store"
-
+    const char* layout_str[]  = {
+        "natural", "random", "louvain", "g-store", "icbl"
+    };
     const char* dataset_str[] = {
         "c_elegans", "email_research_eu", "dblp", "amazon", "youtube"
     };
@@ -58,8 +56,9 @@ main(void)
 
     typedef unsigned long* (*layout)(in_memory_file_t * db);
 
-    layout layout_method[] = { icbl };
-    //        identity_partition, random_partition, louvain, g_store_layout };
+    layout layout_method[] = {
+        identity_partition, random_partition, louvain, g_store_layout, icbl
+    };
 
     // Build download temp string.
     char* temp_path =
@@ -104,16 +103,21 @@ main(void)
     double*           heuristic;
     double**          landmark_dists = malloc(NUM_LANDMARKS * sizeof(double*));
     sssp_result*      dijk_result;
+    unsigned long     n_layout_methods = 5;
 
     srand(time(NULL));
 
-    for (dataset_t dataset = 2; dataset <= YOUTUBE; ++dataset) {
+    for (dataset_t dataset = 3; dataset <= YOUTUBE; ++dataset) {
         printf("Using dataset %s =========================\n",
                dataset_str[dataset]);
         source_node = rand() % get_no_nodes(dataset);
         target_node = rand() % get_no_nodes(dataset);
 
-        for (size_t i = 0; i < NUM_LAYOUT_METHOS; ++i) {
+        if (dataset >= DBLP) {
+            n_layout_methods = 4;
+        }
+
+        for (size_t i = 0; i < n_layout_methods; ++i) {
             printf("Using layout method %s ===============\n", layout_str[i]);
 
             db = create_in_memory_file();

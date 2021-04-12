@@ -13,18 +13,16 @@ An important aspect of this was to reorder the incidence list when reordering da
 Using the implementation of an in-memory database, whichs record structures are motivated by the ones of Neo4J, we evaluated the methods on a broad range of different datasets with different size.
 The total number of block accesses and non-sequential accesses were used as a metric, that measures closely how much disk accesses are actually needed and if these acceses can be mitigated using prefetching techniques.  \\
 
-THE RESULTS NEED TO BE SUMMARIZED HERE!
-
-
-
-
+In the evaluation section we saw that static partition-based reordering of the records leads to less disk accesses.
+The sorting of the incidence list leads aswell to less disk accesses when looking at the relationship records.
 
 \section{Future Work}\label{\positionnumber}
 To the current point we restricted ourselves to static rearrangements.
 But as the queries change, the access patterns do too.
 From that the need to rearrange the data dynamically based on the queries emerges.
+Additionally, the results have also shown that a static layout can be beneficial for one query while it performs badly for another query.
 Static relocation as proposed by this method are restricted to a specific kind of data, while dynamic reordering may be applied independent of the data model, purely driven by the queries and their access patterns. \\
-Further it is to be examined, in how far the Leiden algorithm produces superior results in contrast with the louvain method. 
+Furthermore, it is to be examined, in how far the Leiden algorithm produces superior results in contrast with the louvain method. 
 A runtime comparison between all described methods may not only shed light on the difference between these two algorithms but about the scalability and feasibility of all methods in general. \\
 Further it would be interesting to determine the degradation in locality, when removing or adding nodes and edges for all algorithms as it was done in by Hoque and Gupta~\autocite{hoque2012disk}. \\
 Finally, after the implementation of a disk-based storage mechanism and buffering, an interesting fact to determine would be the total runtime of the traversal-based queries, as well as the impact of the reorganization on the number and rate of page faults.

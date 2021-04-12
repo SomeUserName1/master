@@ -1,0 +1,21 @@
+\begin{table}
+	\begin{center}
+		 \begin{tabular}[c]{c c c c c c} \toprule
+			  & BFS & DFS & Dijkstra & $A^*$  & ALT \\ \midrule 
+ 			\multirow{2}{*}{Natural}  & 317072 & 317064 & 317076 & 15934 & 242959 \\ 
+ 				 & 1335990 & 1322882 & 1341846 & 145842 & 1141861 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Random}  & 317058 & 317065 & 317062 & 2725 & 88404 \\ 
+ 				 & 1335872 & 1322426 & 1341851 & 23601 & 487566 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Louvain}  & 190245 & 218779 & 206096 & 32042 & 174006 \\ 
+ 				 & 495939 & 300461 & 179801 & 65190 & 426641 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{G-Store}  & 187067 & 221947 & 231457 & 19841 & 127806 \\ 
+ 				 & 486164 & 285141 & 287917 & 87398 & 168100 \\ 
+ 				&&&&& \\[-0.5em]
+ 					\end{tabular}  
+  	 \end{center}
+	 \caption{Comparison of IOs per method, query and record type on the DBLP dataset with sorted incidence lists.}
+	 \label{dblp-s}
+\end{table}

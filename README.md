@@ -13,8 +13,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 |---	|---	|---	|---	|---	|---	|---	|
 |22.3  :ballot_box_with_check: | 23.3 :ballot_box_with_check:   |  24.3 :ballot_box_with_check:	|   25.3 :ballot_box_with_check: |   26.3 :ballot_box_with_check:	|  27.3 :ballot_box_with_check: 	| 28.3  :ballot_box_with_check:	|
 |  29.3 :ballot_box_with_check: | 30.3  :ballot_box_with_check: | 31.3 :ballot_box_with_check: 	| 01.4 :ballot_box_with_check: |  02.4 :ballot_box_with_check: | 03.4 :ballot_box_with_check: | 04.4 :ballot_box_with_check: | 
-| 05.4 :ballot_box_with_check: 	| 06.04 :ballot_box_with_check:	|  07.4 :ballot_box_with_check: | 08.4 :computer: evaluation code  	| 09.4 :pencil: Edit with Theodoros & Stephans feedback 	  | 10.4 :computer: run & visualize experiments 	|  11.4 :pencil: Results & Conclusion 	|
-| 12.4 :pencil: Proof reading & layout  	|  13.4 :pencil: Proof reading, layout 	| 14.4 :printer: to online printing service before 9am   	| 13.04 :watch:   	|   16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
+| 05.4 :ballot_box_with_check: 	| 06.04 :ballot_box_with_check:	|  07.4 :ballot_box_with_check: | 08.4 :ballot_box_with_check:  	| 09.4 :ballot_box_with_check: 	  | 10.4 :ballot_box_with_check: 	|  11.4 :ballot_box_with_check:	|
+| 12.4 :ballot_box_with_check: 	|  13.4 :pencil: Proof reading, layout 	| 14.4 :printer: to online printing service before 9am   	| 13.04 :watch:   	|   16.4 :dart: Thesis submission 	| 17.4 :beers:  	|   18.4 :beers:	|
 | 19.4  :bar_chart: 	|   20.4 :bar_chart:	|   21.4 :speaking_head:	|   22.4 :bar_chart:	|   23.4 :speaking_head:	|  24.4 :sleeping:	|   25.4 :sleeping:	|
 | 26.4  :bar_chart: 	|   27.4 :speaking_head: |  28.4  :speaking_head:	|   29.4 :speaking_head:	|   30.4 :dart: Defense	:checkered_flag: |  01.5 :beers:	|   02.5 :beers:	|
 
@@ -28,12 +28,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
 
 ## Thesis 
 
-<p style="text-align: center;"><font size="20"><progress id="write" value="25" max="28">Thesis</progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="write" value="28" max="28">Thesis</progress></font></p>
 
-### Results & Figures
-  - [ ] Theodoros & Stephans Feedback
-  - [ ] Results
-  - [ ] Conclusion
 
 ### Done
 **Abstract, Introduction, Conclusion, Achknowledgement ~ 3P**
@@ -74,13 +70,16 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
   - [x] G-Store
   - [x] ICBL
   - [x] Bondhu
+  
+**Results & Figures**
+  - [x] Results
+  - [x] Conclusion
+  - [x] Theodoros & Stephans Feedback
 
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="24" max="26">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="26" max="26">Implementation</progress></font></p>  
 
-- [ ] Evaluation code for ICBL, G-Store, Louvain, incidence list reordering
-- [ ] Plot results
 
 ### Coverage
 <p style="text-align: center;"><font size="14"><progress id="file" value="3376" max="4092">Coverage</progress></font></p>  
@@ -109,6 +108,8 @@ Master Project at the Database and Information Sytems Group, supervised by Dr. T
   - [x] Record remapping vertices & relationships
   - [x] Incidence List Reordering
   - [x] Debug & Test ids_to_io, remap records, reorder incidence list
+  - [x] Evaluation code for ICBL, G-Store, Louvain, incidence list reordering
+  - [x] Plot results
   
 
 ## Future Improvements

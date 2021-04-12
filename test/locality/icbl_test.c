@@ -205,49 +205,6 @@ test_insert_match(void)
 }
 
 void
-test_check_dist_bound(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
-{
-    if (!db || db->node_id_counter < 1 || !dif_sets) {
-        printf("ICBL test: Invalid Arguments!\n");
-        exit(-1);
-    }
-
-    const size_t   num_found        = 7;
-    unsigned long* max_degree_nodes = calloc(num_found, sizeof(unsigned long));
-    float*         dists            = calloc(num_found, sizeof(float));
-    const unsigned long candidate   = 99;
-
-    if (!max_degree_nodes || !dists) {
-        printf("icbl insert match test: malloc failed\n");
-        exit(-1);
-    }
-
-    size_t index = num_found;
-    for (size_t i = 0; i < num_found; ++i) {
-        max_degree_nodes[i] = i;
-        dists[i] = weighted_jaccard_dist(dif_sets[i], dif_sets[candidate]);
-        if (dists[i] < MIN_DIST_INIT_CENTERS) {
-            index = i;
-            break;
-        }
-    }
-
-    bool ret_val;
-    for (size_t i = 0; i < num_found; ++i) {
-        ret_val = check_dist_bound(max_degree_nodes, candidate, i, dif_sets);
-
-        if (i < index) {
-            assert(ret_val == true);
-        } else {
-            assert(ret_val == false);
-        }
-    }
-
-    free(max_degree_nodes);
-    free(dists);
-}
-
-void
 test_initialize_centers(in_memory_file_t* db,
                         dict_ul_ul_t**    dif_sets,
                         unsigned long*    centers,
@@ -384,10 +341,8 @@ test_update_centers(in_memory_file_t* db,
             }
         }
         centers_copy[i] = max_idx;
-        assert(dict_ul_ul_get_direct(cluster_counts[i], centers[i])
-               == dict_ul_ul_get_direct(cluster_counts[i], centers_copy[i]));
-        max_count = 0;
-        max_idx   = UNINITIALIZED_LONG;
+        max_count       = 0;
+        max_idx         = UNINITIALIZED_LONG;
 
         dict_ul_ul_iterator_destroy(it);
         dict_ul_ul_destroy(cluster_counts[i]);
@@ -427,14 +382,13 @@ main(void)
 
     unsigned long* part = calloc(db->node_id_counter, sizeof(unsigned long));
 
-    identify_diffustion_sets(db, dif_sets);
+    identify_diffusion_sets(db, dif_sets);
 
     test_id_diff_sets(db, dif_sets);
     test_weighted_jaccard_distance(db, dif_sets);
     test_insert_match();
-    test_check_dist_bound(db, dif_sets);
 
-    initialize_centers(db, &centers, num_clusters, dif_sets);
+    initialize_centers(db, &centers, num_clusters);
 
     test_initialize_centers(db, dif_sets, centers, num_clusters);
 

@@ -10,7 +10,7 @@
 #define MEMORY          (8589934592.0f)
 #define SHARE_OF_MEMORY (0.8)
 #define CHANGE_RATIO    (3)
-static const float MIN_DIST_INIT_CENTERS = 0.95F;
+static const float MIN_DIST_INIT_CENTERS = 0.6F;
 
 typedef struct dendrogram
 {
@@ -44,19 +44,12 @@ float
 weighted_jaccard_dist(dict_ul_ul_t* dif_set_a, dict_ul_ul_t* dif_set_b);
 
 void
-identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
-
-bool
-check_dist_bound(const size_t*  max_degree_nodes,
-                 size_t         candidate,
-                 unsigned long  num_found,
-                 dict_ul_ul_t** dif_sets);
+identify_diffusion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets);
 
 void
 initialize_centers(in_memory_file_t* db,
                    unsigned long**   centers,
-                   size_t            num_clusters,
-                   dict_ul_ul_t**    dif_sets);
+                   size_t            num_clusters);
 
 size_t
 assign_to_cluster(size_t               num_nodes,

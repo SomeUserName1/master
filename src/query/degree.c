@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "../access/in_memory_file.h"
 #include "../data-struct/list_rel.h"
@@ -15,6 +16,7 @@ get_degree(in_memory_file_t* db,
 {
     if (!db) {
         printf("get_degree: Invaliud Arguments!\n");
+        exit(-1);
     }
     if (log_file) {
         fprintf(log_file, "%s %lu\n", "N ", node_id);

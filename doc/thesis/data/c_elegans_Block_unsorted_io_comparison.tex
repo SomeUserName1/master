@@ -1,0 +1,24 @@
+\begin{table}
+	\begin{center}
+		 \begin{tabular}[c]{c c c c c c} \toprule
+			  & BFS & DFS & Dijkstra & $A^*$  & ALT \\ \midrule 
+ 			\multirow{2}{*}{Natural}  & 118 & 112 & 113 & 16 & 8 \\ 
+ 				 & 1025 & 1026 & 1026 & 158 & 67 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Random}  & 120 & 121 & 118 & 81 & 102 \\ 
+ 				 & 1036 & 1028 & 1035 & 772 & 940 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Louvain}  & 74 & 66 & 79 & 10 & 15 \\ 
+ 				 & 749 & 714 & 647 & 101 & 196 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{G-Store}  & 75 & 89 & 75 & 13 & 24 \\ 
+ 				 & 581 & 652 & 570 & 149 & 366 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{ICBL}  & 96 & 86 & 66 & 12 & 40 \\ 
+ 				 & 695 & 734 & 819 & 107 & 349 \\ 
+ 				&&&&& \\[-0.5em]
+ 					\end{tabular}  
+  	 \end{center}
+	 \caption{Comparison of IOs per method, query and record type on the C. elegans dataset with unsorted incidence lists.}
+	 \label{ce-uns}
+\end{table}
