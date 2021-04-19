@@ -1,0 +1,24 @@
+\begin{table}
+	\begin{center}
+		 \begin{tabular}[c]{c c c c c c} \toprule
+			  & BFS & DFS & Dijkstra & $A^*$  & ALT \\ \midrule 
+ 			\multirow{2}{*}{Natural}  & 952 & 947 & 966 & 316 & 762 \\ 
+ 				 & 29223 & 29221 & 29225 & 16340 & 25755 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Random}  & 908 & 949 & 932 & 43 & 72 \\ 
+ 				 & 29236 & 29231 & 29237 & 4127 & 5432 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{Louvain}  & 629 & 592 & 539 & 407 & 399 \\ 
+ 				 & 5169 & 8945 & 8247 & 8042 & 4978 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{G-Store}  & 748 & 650 & 549 & 204 & 111 \\ 
+ 				 & 8024 & 6454 & 6490 & 4488 & 1010 \\ 
+ 				&&&&& \\[-0.5em]
+ 			\multirow{2}{*}{ICBL}  & 558 & 733 & 664 & 164 & 268 \\ 
+ 				 & 4504 & 9007 & 4849 & 6316 & 5776 \\ 
+ 				&&&&& \\[-0.5em]
+ 					\end{tabular}  
+  	 \end{center}
+	 \caption{Comparison of block IOs per method, query and record type on the email dataset with sorted incidence lists.}
+	 \label{email-s}
+\end{table}

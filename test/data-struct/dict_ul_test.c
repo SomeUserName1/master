@@ -722,10 +722,10 @@ test_dict_ul_rel_iter_large(void)
 {
     in_memory_file_t* db = create_in_memory_file();
     dict_ul_ul_destroy(
-          import_from_txt(db, "/home/someusername/workspace_local/amazon.txt"));
+          import_from_txt(db, "/home/someusername/workspace_local/dblp.txt"));
 
-    assert(db->node_id_counter == AMAZON_NO_NODES);
-    assert(db->rel_id_counter == AMAZON_NO_RELS);
+    assert(db->node_id_counter == DBLP_NO_NODES);
+    assert(db->rel_id_counter == DBLP_NO_RELS);
 
     dict_ul_rel_iterator_t* it = create_dict_ul_rel_iterator(db->cache_rels);
 
@@ -738,8 +738,8 @@ test_dict_ul_rel_iter_large(void)
         while (dict_ul_rel_iterator_next(it, &key, &value) > -1) {
             counter++;
         }
-        printf("counter: %lu, amazon rel %d\n", counter, AMAZON_NO_RELS);
-        assert(counter == AMAZON_NO_RELS);
+        printf("counter: %lu, dblp rel %d\n", counter, DBLP_NO_RELS);
+        assert(counter == DBLP_NO_RELS);
     }
 
     dict_ul_rel_iterator_destroy(it);

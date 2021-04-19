@@ -1,11 +1,11 @@
 \chapter{Graphs}\label{\positionnumber}
-    In the following sections, we discuss what data structures and algorithms are employed when computing with graph-based data.
+    We discuss what data structures and algorithms are employed when computing with graph-based data in the following sections.
     First, we give a definition of graphs as discrete structures and concepts based upon that. 
     Next, we introduce and analyze possible data structures to represent graphs. 
     Finally, algorithms for traversals, pathfinding, and partitioning, or community detection are considered.
     
     \section{Definitions}\label{\positionnumber}
-        We follow the notation, that is used by most authors in the field~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}.
+        We follow the notation, most authors use in the field~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}.
     
         A \textbf{graph} $G$ is a tuple $(V, E)$ where $V$ is a non-empty set of vertices (also called nodes). 
         $E$ is a subset of the cartesian product of the set vertices $E \subseteq V \times V$, called edges.
@@ -23,12 +23,12 @@
         \[ \text{deg}(V) = \frac{1}{|V|} \sum_{v \in V}\text{deg}(v)\]
         The set of neighbors connected to a node by incoming edges is called $N_v |_\text{in}$. Analogously we define $N_v |_\text{out}$.             
         One can model villages and roads using a graph. 
-        Given two villages, that are connected by a road, are adjacent. 
-        The road and one of the two cities are incident and all villages connected to one specific village by roads are the neighborhood of this specific village. 
+        Two villages connected by a road are adjacent. 
+        The road and one of the two cities are incident, and all villages connected to one specific village by roads are the neighborhood of this specific village. 
         
-        A graph is \textbf{undirected}, if $E$ is a symmetric relation, that is $(u, v) \in E \Rightarrow (v, u) \in E$. 
-        Otherwise, the graph is called \textbf{directed}, that is the order within the tuple matters and $E$ is not symmetric.             
-        Similar to the edges incident to a vertex we can define the incoming and outgoing edges by restricting which of the positions the vertex takes. 
+        A graph is \textbf{undirected}, if $E$ is a symmetric relation, $(u, v) \in E \Rightarrow (v, u) \in E$. 
+        Otherwise, the graph is called \textbf{directed}, the order within the tuple matters, and $E$ is not symmetric.             
+        The incoming and outgoing edges are defined by restricting the vertex's position on the edge. 
         The set of incoming edges is defined as
         \[v \in V: \text{In}_v = \{e \in E |u \in V: (u, v) \}.\]
         Similarly the outgoing edges are defined as 
@@ -38,19 +38,19 @@
         This behavior can be modeled using a directed graph.
         
         Weights can be assigned to both edges and vertices. The graph is called \textbf{weighted} if either edges or nodes are assigned weights.
-        Otherwise, it's called unweighted.
+        Otherwise, it is called unweighted.
         Similarly, labels can be assigned to both nodes and edges. 
         In some cases, these labels may encode the type of entity.
         Other arbitrary key-value pairs may be assigned to either the nodes or the edges, the so-called properties.           
         An example of a weighted graph is a road network.
-        The vertices are crossings between roads, the roads are the edges and the edge weights represent the distances between the crossings that are connected by the road.
-        To include labels, one could distinguish between highways and minor roads or simply assign the name of the road. 
-        The former would model the type of the road, while the latter would be a (potentially non-unique) identifier.
+        The vertices are crossings between roads, the roads are the edges, and the edge weights represent the distances between the crossings connected by the road.
+        To include labels, one could distinguish between highways and minor roads or assign the road's name. 
+        The former would model the road type, while the latter would be a (potentially non-unique) identifier.
         
         In case there may exist multiple edges between the same pair of nodes in the same direction, then the graph is called \textbf{multigraph}. 
         That is, $E_M = (E, M)$ is a multiset, with $M: E \rightarrow \mathbb{N}$. 
         Imagine one tries to model the transportation links between major cities. 
-        There are many possible means. Highways, railways, flights, and some sea routes. 
+        There are many possible means: highways, railways, flights, and some sea routes. 
         In particular, two cities may be connected by more than one means of transportation.
         
         A \textbf{walk} of length $n$ is a sequence of edges, where the target and the source of consecutive edges are equal. Let $u,v,w \in V$. Then a trail is a sequence $(e_i)_{i \in \{0, \dots, n-1\}}$ where $e_i \in E$ and
@@ -60,7 +60,7 @@
         When planning a route from one point to another, one is interested in finding a path between these points.
         More explicitly, one wants to find the shortest possible path. 
         Algorithms to solve this problem set are given later in this chapter. A \textbf{cycle} is a trail, where the first visited vertex is also the last visited vertex. 
-        If you start your route from home, go to work and return home after closing time, your route is a cycle.
+        If one starts a route from home, goes to work, and returns home after closing time, the route is a cycle.
         
         A graph is called \textbf{connected}, if for each pair of vertices there exists a path between those
         \[G \text{ connected } \Leftrightarrow \forall v_i, v_j \in V: \exists \text{ Path}(u, v).\]
@@ -75,11 +75,11 @@
         \end{enumerate}
             
     \section{Representations}\label{\positionnumber}
-        When implementing graphs for computing machinery, there are some possibilities on how to represent the graph in memory.
-        We only consider the costs of storing the structure of the graph, for the sake of succinctness. 
-        Most of the following data structures can be extended to include labels and properties either by using additional fields or pointers. 
+        When implementing graphs for computing machinery, there are some possibilities for representing the graph in memory.
+        We only consider the costs of storing the structure of the graph for the sake of succinctness. 
+        Most of the following data structures can be extended to include labels and properties, either using additional fields or pointers. 
         The definitions of the data types and parts of the complexity analysis are based upon~\autocite{Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA, steinhaus2010g}. 
-        Besides the ones elaborated on below, there are the compressed sparse column and row (CSC/CSR) representations, which are used for sparse matrices in arithmetics-heavy applications, like in the library Eigen or Matlab~\autocite{steinhaus2010g, Eisenstat1982YaleSM}. In Figure~\ref{data_struct-ex} you can see a visualization of the graph that is used as an example throughout this section. The representations that are decribed in the main text are list-based. Matrix-based representations can be found in the appendix in Section~\ref{mbr}.
+        Besides the ones elaborated on below, there are the compressed sparse column and row (CSC/CSR) representations used for sparse matrices in arithmetics-heavy applications, like in the library Eigen or Matlab~\autocite{steinhaus2010g, Eisenstat1982YaleSM}. In Figure~\ref{data_struct-ex} you can see a visualization of the graph that is used as an example throughout this section. The representations that are described in the main text are list-based. Matrix-based representations can be found in the appendix in Section~\ref{mbr}.
         
         \begin{figure}[htp]
             \begin{center}
@@ -92,21 +92,21 @@
 
          \subsection{Unordered Edge List}
             The simplest representation uses an unordered list of edges. 
-            That is each element of the data structure carries the information of exactly one edge. 
-            For example in a directed, weighted graph, the indices of the source and target node and the weight of the edge are one entry. 
-            Additionally, an edge list needs to store a list of vertex indices, to represent nodes with no edges.
+            Each element of the data structure carries the information of exactly one edge. 
+            For example, in a directed, weighted graph, the source and target node's indices and the edge weight are one entry. 
+            Additionally, an edge list needs to store a list of vertex indices to represent nodes with no edges.
             Overall this results in $\mathcal{O}|E| + |V|$ space complexity.
             
             The number of nodes can be retrieved in $\mathcal{O}(1)$ assuming that the list data structure stores its size as a field. 
             The same is true for edges.
             Finding a vertex requires inspecting the list of vertices, thus $\mathcal{O}(|V|)$. 
-            Assuming the list stores a pointer to its tail, vertex insertion's asymptotic runtime is $\mathcal{O}(1)$. 
+            Vertex insertion's asymptotic runtime is $\mathcal{O}(1)$, assuming the list stores a pointer to its tail. 
             Deleting a vertex requires a pass over all edges to remove the ones including the particular vertex, in total $\mathcal{O}(|E|)$.
-            For edges, the basic operations find, and remove can be executed in linear runtime, i.e. $\mathcal{O}(|E|)$.
+            For edges, the basic operations \mintinline{c}{find} and \mintinline{c}{remove} can be executed in linear runtime, i.e. $\mathcal{O}(|E|)$ for edges.
             Edge insertion's asymptotic runtime is $\mathcal{O}(1)$, again assuming the list stores a reference to its tail. 
             Deciding whether two vertices are adjacent requires iterating over the list of edges, that is 
             $\mathcal{O}(|E|)$ runtime.
-            Finally, finding the neighborhood $N_v$ of a vertex requires again a scan of all edges, i.e. an asymptotic runtime of $\mathcal{O}(|E|)$. 
+            Finally, finding the neighborhood $N_v$ of a vertex requires a scan of all edges again, i.e., an asymptotic runtime of $\mathcal{O}(|E|)$. 
             The same is true for the incoming and outgoing sets of a vertex.
             An example of this data structure is shown in Listing~\ref{edgelist}.
             
@@ -150,27 +150,10 @@
         
         \subsection{Adjacency List}
         In an adjacency list, there is an entry for each vertex in the graph. 
-        Each such entry stores the nodes that are adjacent to the vertex, i.e. its neighborhood $N_v$. 
-        It is important to note, that in most implementations only $N_v |_\text{out}$ is the content of the adjacency list.
-        When we sum $|N_v |_\text{out}|$ over all vertices of the graph, we count each edge once.
+        Each such entry stores the nodes adjacent to the vertex, i.e., its neighborhood $N_v$. 
+        It is important to note, that only $N_v |_\text{out}$ is the adjacency list's content in most implementations.
         The space complexity here is $\mathcal{O}(|V| + |V| \cdot \text{deg}(V)) = \mathcal{O}(|V| + |E|)$, as we store each node once and then for each relationship one more node in the corresponding adjacency list containing $N_v |_\text{out}$.
 
-        The number of nodes can be retrieved in $\mathcal{O}(1)$, as it's the size of the list.
-        For retrieving the number of edges, one needs to iterate over all elements of the node list and sum over their respective adjacency list. 
-        This requires $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
-        Finding a vertex is just a lookup, thus in $\mathcal{O}(1)$.
-        Inserting a vertex means simply appending an element to a list which is in $\mathcal{O}(1)$.
-        Deleting a vertex requires iterating over all nodes and their adjacency list in order to remove the occurrences as adjacent node and is in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$.
-        Finding an edge can be done by checking the adjacency list of the source node, and requires looking at $\mathcal{O}(\text{deg}(V))$ elements.
-        For the insertion of an edge, one needs to append one element to the end of the adjacency list of the source node, which can be done in $\mathcal{O}(1)$.
-        Removing an edge again requires iterating over the adjacency list of the source node and remove the corresponding entry which is again in $\mathcal{O}(\text{deg}(V))$.        
-        Deciding whether two vertices are adjacent can be checked by looking at the adjacency lists of two nodes, that is $\mathcal{O}(2 \cdot \text{deg}(V)) = \mathcal{O}(\text{deg}(V))$ runtime.        
-        Finally, the outgoing neighborhood of a vertex is already stored and can be returned in $\mathcal{O}(1)$.
-        In contrast for the incoming neighborhood one needs to access all vertices' adjacency list and see if the particular vertex is contained in it, resulting in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
-        Finding the neighborhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
-        Note that in undirected graphs, both directions of all edges exist, i.e. $N_v = N_v |_\text{out} = N_v |_\text{in}$. This means for undirected graphs all neighborhood queries are in $\mathcal{O}(1)$.      
-        An example of this data structure is shown in Listing~\ref{adjl}.
-        
         \begin{figure}[htp]
          \begin{center}
           \begin{minted}[fontsize=\footnotesize]{bash}
@@ -188,22 +171,32 @@
          \label{adjl}
         \end{figure}
         
+        The number of nodes can be retrieved in $\mathcal{O}(1)$, as it is the size of the list.
+        For retrieving the number of edges, one needs to iterate over all elements of the node list and sum over their respective adjacency list. 
+        This requires $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
+        Finding a vertex is just a lookup, thus in $\mathcal{O}(1)$.
+        Inserting a vertex means simply appending an element to a list which is in $\mathcal{O}(1)$.
+        Deleting a vertex requires iterating over all nodes and their adjacency list in order to remove the occurrences as adjacent node and is in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$.
+        Finding an edge can be done by checking the adjacency list of the source node and requires looking at $\mathcal{O}(\text{deg}(V))$ elements.
+        For the insertion of an edge, one needs to append one element to the end of the source node's adjacency list, which can be done in $\mathcal{O}(1)$.
+        Removing an edge again requires iterating over the adjacency list of the source node and remove the corresponding entry, which is again in $\mathcal{O}(\text{deg}(V))$.        
+        Deciding whether two vertices are adjacent can be checked by looking at the adjacency lists of two nodes, that is $\mathcal{O}(2 \cdot \text{deg}(V)) = \mathcal{O}(\text{deg}(V))$ runtime.        
+        Finally, the outgoing neighborhood of a vertex is already stored and can be returned in $\mathcal{O}(1)$.
+        In contrast for the incoming neighborhood one needs to access all vertices' adjacency list and see if the particular vertex is contained in it, resulting in $\mathcal{O}(|V| \cdot \text{deg}(V)) = \mathcal{O}(|E|)$ operations.
+        Finding the neighborhood $N_v$ of a vertex requires to do both of the above queries, that is $\mathcal{O}(|V| \cdot \text{deg}(V) + 1) = \mathcal{O}(|V| \cdot \text{deg}(V))  = \mathcal{O}(|E|)$ operations.  
+        Note that in undirected graphs, both directions of all edges exist, i.e. $N_v = N_v |_\text{out} = N_v |_\text{in}$. This means for undirected graphs all neighborhood queries are in $\mathcal{O}(1)$.      
+        An example of this data structure is shown in Listing~\ref{adjl}.
+        
+ 
+        
         \subsection{Incidence List}\label{inci}
             This representation is also called incidence table in \autocite{Gross1998GraphTA}.
             The incidence list of a graph $G$ stores for each vertex $v \in V$ the list of edges it is connected to. 
             The space requirements are thus $\mathcal{O}(|V| + |V| \cdot \text{deg}(V) + |E|) = \mathcal{O}(|V| + |E|)$. 
             In contrast to adjacency lists, incidence lists do not only store the connected vertices but the edges. 
-            This comes with an additional cost of $|E|$ memory but is beneficial when it comes to accessing information. 
+            This duplicate storage of every edge comes with an additional cost of $|E|$ memory but is beneficial when accessing information. 
             Another benefit is that the additional costs can be mitigated by using references.
             
-            Most of the operations have the same complexity class as when using adjacency lists and the same operations are needed. 
-            Differences occur first when removing a vertex
-            Instead of having to iterate over all lists and check if the vertex is contained, it is sufficient to look the relevant lists up in the vertexes' list and delete them resulting in $\mathcal{O}(\text{deg}(V))$ operations.        
-            Differences also occur, when accessing the neighborhood. 
-            As all edges that are incident to a node are stored, finding all neighbors is an $\mathcal{O}(1)$ operation. 
-            Considering the incoming and outgoing neighborhoods, one only needs to filter the list of incident edges accordingly, which has length $\mathcal{O}(\text{deg}(V))$.
-            An example of this data structure is shown in Listing~\ref{incidencel}.
-        
             \begin{figure}[htp]
             \begin{center}
             \begin{minted}[fontsize=\footnotesize]{bash}
@@ -221,36 +214,32 @@
             \label{incidencel}
             \end{figure}
             
-        
+            Most operations have the same complexity class as when using adjacency lists, and the same operations are needed. 
+            Differences occur first when removing a vertex
+            Instead of having to iterate over all lists and check if the vertex is contained, it is sufficient to look the relevant lists up in the vertexes' list and delete them, resulting in $\mathcal{O}(\text{deg}(V))$ operations.        
+            Differences also occur when accessing the neighborhood. 
+            As all edges that are incident to a node are stored, finding all neighbors is an $\mathcal{O}(1)$ operation. 
+            Considering the incoming and outgoing neighborhoods, one only needs to filter the list of incident edges accordingly, which has length $\mathcal{O}(\text{deg}(V))$.
+            An example of this data structure is shown in Listing~\ref{incidencel}.
         
         \subsection{Summary}
-            While edge lists can represent all variations of graphs, the asymptotic runtime for many operations is linear in the number of edges. 
+            While edge lists can represent all graph variations, the asymptotic runtime for many operations is linear in the number of edges. 
             These are unacceptable costs in many cases.
             
             An adjacency matrix improves the performance for lookups and updates and is thus the standard data structure for many computation-heavy tasks and widely used by libraries as Eigen, openBLAS, and the Intel math kernel library (MKL)~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. 
-            When dealing with multi-graphs, the adjacency matrix representation requires additional arrays (one per edge ``type``) or is not able to canonically represent them.       
-            The incidence matrix is not able to represent self-loops and negative weights without modification but has some interesting relationships with other matrices. 
-            For example, if one multiplies the incidence matrix with its transpose, one gets the sum of the adjacency matrix and the gradient matrix, i.e. the laplacian matrix~\autocite{brouwer2011spectra}. 
-            Furthermore, it's useful in physical flow problems and simulations, e.g. when computing the current and resistances in a graph or when simulating micro-circuits~\autocite{weinberg1958kirchhoff}.
-            Even though the incidence matrix requires less space, both options are rather unfeasible when storing large graphs and the incidence matrix provides even worse access times than edge lists.        
-            As a side note, The compressed sparse row and compressed sparse column storage formats are very similar to adjacency lists. 
+            When dealing with multi-graphs, the adjacency matrix representation requires additional arrays (one per edge ``type``) or cannot canonically represent them.       
+            The incidence matrix cannot to represent self-loops and negative weights without modification but has some interesting relationships with other matrices. 
+            For example, if one multiplies the incidence matrix with its transpose, one gets the sum of the adjacency matrix and the gradient matrix, i.e., the laplacian matrix~\autocite{brouwer2011spectra}. 
+            Furthermore, it helps in physical flow problems and simulations, e.g., when computing the current and resistances in a graph or simulating micro-circuits~\autocite{weinberg1958kirchhoff}.
+            Even though the incidence matrix typically requires less space than the adjacency matrix, both options are rather unfeasible when storing large graphs, and the incidence matrix provides even worse access times than edge lists.        
+            The compressed sparse row and compressed sparse column storage formats are very similar to adjacency lists as a side note. 
             Instead of using lists, three arrays are used. 
             The first one maps the node to the start index of its relationship in the other two arrays. 
-            The other two arrays store the adjacent nodes and the weight of the relationship respectively. 
-            CSR/CSC and adjacency lists share most of the algorithmic traits while requiring the least storage. 
+            The other two arrays store the adjacent nodes and the weight of the relationship, respectively. 
+            CSR/CSC and adjacency lists share most of the algorithmic traits while requiring the most negligible storage. 
             These formats are used for sparse matrix arithmetics in some of the most popular matrix arithmetics libraries, like~\autocite{MatrixStorageSchemes-2021-03-05, EigenTheMatrixclass-2020-12-05, MatrixStorageSchemes-1999-10-01}. 
             
-            Finally, the adjacency and incidence lists are quite similar in many aspects. Both require linear storage space --- which is optimal without further compression. 
-            Even though not optimal for the operations \mintinline{c}{get}, \mintinline{c}{insert} and \mintinline{c}{remove}, both data structures provide access times that are asymptotically better than linear in most cases.
-            If the edges are distributed uniformly, we have an upper bound for the average degree of $\text{deg}(V) = \frac{2|E|}{|V|} \leq \frac{2 |V|^2}{|V|} = 2 |V|$.
-            In real networks, the distribution is often non-uniform but can be modeled using e.g. binomial, Poisson, or power-law type~\autocite{holme2019rare}. 
-            A power law distribution would mean that there exist few nodes with a high degree and a lot of nodes with a rather low degree. 
-            What is also very appealing is the fact that the adjacency list and especially the incidence list enables one to return the neighborhood of a vertex in a constant or degree-based amount of time. 
-            When it comes to traversals of a graph, these are crucial operations as we will see in the next subsection. 
-            
-            In Table \ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations that act upon them. 
-            
-            \begin{table}
+             \begin{table}[htp]
             \begin{center}
                 \begin{tabular}[c]{l l l l l l} \toprule
                 \multirow{2}{*}{} & Edge List & Adjacency & Incidence & Adjacency  & Incidence \\ 
@@ -272,32 +261,41 @@
             \caption{Space and runtime complexity comparison of the different data types.}
             \label{sumtabds}
             \end{table}
+            
+            
+            Finally, the adjacency and incidence lists are similar in many aspects. Both require linear storage space --- which is optimal without further compression. 
+            Even though not optimal for the operations \mintinline{c}{get}, \mintinline{c}{insert} and \mintinline{c}{remove}, both data structures provide access times that are asymptotically better than linear in most cases.
+            If the edges are distributed uniformly, we have an upper bound for the average degree of $\text{deg}(V) = \frac{2|E|}{|V|} \leq \frac{2 |V|^2}{|V|} = 2 |V|$.
+            In real networks, the distribution is often non-uniform but can be modeled using e.g., binomial, Poisson, or power-law type~\autocite{holme2019rare}. 
+            A power law distribution would mean that few nodes with a high degree and many nodes with a relatively low degree. 
+            What is also very appealing is that the adjacency list, and especially the incidence list enables one to return the neighborhood of a vertex in a constant or degree-based amount of time. 
+            When it comes to traversals of a graph, these are crucial operations, as we will see in the following subsection. 
+            
+            In Table~\ref{sumtabds} we summarize the space and runtime complexities of the described data structures and the operations that act upon them. 
+            
+
 
     \newpage
     \section{Algorithms}\label{queries}
-        There are many kinds of graph problems and algorithms tackling them. As we are interested in the access patterns of traversal-based queries we are going to focus on traversal and shortest path algorithms. We also look at some partitioning methods as these are used quite frequently when addressing the issues in the next chapter.
-        Nevertheless, other classes of algorithms are of equal importance and have many use cases, like flow problems, finding graph isomorphisms, identifying minimal spanning trees, determining the centrality of a node, and others.
+        There are many kinds of graph problems and algorithms tackling them. 
+        As we are interested in the access patterns of traversal-based queries, we will focus on traversal and shortest path algorithms. 
+        We also look at some partitioning methods, which are frequently used when addressing the issues in the next chapter.
+        Nevertheless, other types of algorithms are of equal importance and have many use cases, like flow problems, finding graph isomorphisms, identifying minimal spanning trees, determining a node's centrality, and others.
         Comprehensive resources for these problems can be found in~\autocite{steger2007diskrete, Gross1998GraphTA, aho1974design, cormen2009introduction, Goodrich2014AlgorithmDA}.
         
         \subsection{Traversal}
             Visiting the nodes in a graph is known as graph traversal. 
-            The order in which the nodes are visited is given by the respective algorithm. 
-            The two most important graph traversal schemas are the breadth-first search and the depth-first search. 
-            Another such schema is the random walk, which is not quite a traversal but rather generates an arbitrary walk. 
-            However, it defines, in which order nodes are visited even if it does not guarantee that all nodes are visited and that all nodes are visited exactly once.
+            The respective algorithm gives the order in which the nodes are visited. 
+            The two most crucial graph traversal schemas are the breadth-first search and the depth-first search. 
+            Another such schema is the random walk, which is not quite a traversal but instead generates an arbitrary walk. 
+            However, it specifies how nodes are visited, but it does not guarantee anything but well-connectedness.
+            
             \subsubsection*{Depth-First Search}
-                One description of the depth-first search (DFS) was authored by Charles-Pierre Trémaux in 1818.
+                Charles-Pierre Trémaux authored one description of the depth-first search (DFS) in 1818.
                 Even though the work was published a lot later, this is the first appearance in modern citation history~\autocite{lucas1891recreations}. 
-                He used so-called Trémaux trees to solve arbitrary mazes. 
+                He used so-called Trémaux trees to solve any mazes. 
                 Each result of a depth-first search is such a Trémaux tree.
-                These have the property that every two adjacent vertexes are in an ancestor-descendant relationship.
-                Even though Trémaux trees themselves are interesting --- for example, all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth-first search.        
-                Depth-first search is very similar to backtracking. Chase one path until it proves to be a dead end. 
-                Go back to the point where you can take a different path, chose that path to chase and repeat. 
-                In fact, Donald Knuth considers depth-first search and backtracking to be the same algorithm, as both are acting upon a graph. 
-                However, when backtracking is used, the graph is often implicit~\autocite{Knuth2000DancingL}.        
-                Even though DFS is a general traversal schema -- go deep first -- it can also be used for other purposes like finding shortest paths, connected components, testing planarity, and many more. 
-                        
+                
                 \begin{algorithm}[htp]
                     \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
                     \KwOut{Search numbers DFS, predecessor edges parent}
@@ -325,37 +323,35 @@
                     }
                 \caption{Pseudo-code for a depth-first search on a graph $G$.}\label{dfs}
                 \end{algorithm}
+                
+                These have the property that every two adjacent vertexes are in an ancestor-descendant relationship.
+                Even though Trémaux trees themselves are attractive --- for example, all Hamiltonian paths are Trémaux trees --- we focus on the description of the depth-first search.        
+                Depth-first search is very similar to backtracking. Chase one path until it proves to be a dead end. 
+                Go back to the point where one can take a different path, choose that path to chase, and repeat. 
+                Donald Knuth considers depth-first search and backtracking to be the same algorithm, as both are acting upon a graph. 
+                However, when backtracking is used, the graph is often implicit~\autocite{Knuth2000DancingL}.        
+                Even though DFS is a general traversal schema -- go deep first -- it can also be used for other purposes like finding shortest paths, connected components, testing planarity, and many more. 
+                        
+
                 A pseudo-code description of it is given in Algorithm~\ref{dfs}. 
                 This version continues its search at the last found edge instead of the last visited edge. 
-                This is to enable the usage of the implementation for other problems like finding spanning trees, cycles, or paths.
-                The runtime is again dependent on the data structure, that is used and again the runtime for querying the neighborhood of a node is the varying term. 
-                Each node is visited exactly once and by the handshaking lemma~\autocite{Gross1998GraphTA} it should be clear that we visit each edge twice resulting in an overall worst-case runtime of $\mathcal{O}(|V|+|E|)$. 
-                Regarding space complexity, the worst-case is that the node stack contains all nodes, i.e. that it is traversed without repetitions or --- put differently --- backtracking. 
+                The modification is to enable the usage of implementation for other problems like finding spanning trees, cycles, or paths.
+                The runtime is again dependent on the used data structure, that is used and again the runtime for querying the neighborhood of a node is the varying term. 
+                Each node is visited exactly once, and by the handshaking lemma~\autocite{Gross1998GraphTA} it should be clear that we visit each edge twice, resulting in an overall worst-case runtime of $\mathcal{O}(|V|+|E|)$. 
+                Regarding space complexity, the worst-case is that the node stack contains all nodes, i.e., that it is traversed without repetitions or --- put differently --- backtracking. 
                 The result is a worst-case space complexity of $\mathcal{O}(|V|)$.
             
             \subsubsection*{Breadth-First Search} 
-                The first description of breadth-first search (BFS) in modern science was given by Konrad Zuse in the course of his Ph.D. thesis on the ''Plankalkühl``. 
+                Konrad Zuse gave the first description of breadth-first search (BFS) in modern science in his Ph.D. thesis on the ''Plankalkühl``. 
                 He used it to find connected components~\autocite{zuse1948allgemeinen}. 
-                The schema of the breadth-first search was also used to find shortest path solutions for mazes and to wire up placed electrical components on a printed circuit board (PCB).
+                The breadth-first search schema was also used to find shortest path solutions for mazes and wire up placed electrical components on a printed circuit board (PCB).
                 The general traversal scheme in breadth-first search is to explore all next neighbors before continuing with those who are more steps away. 
-                Thus it first explores one ''level`` exhaustively, before continuing to the next one. 
-                In other words, the only difference between DFS and DFS is the data structure that is used. While DFS uses a stack and thus always inspects the element that was inserted last, BFS uses a queue.
+                Thus it first explores one ''level`` exhaustively before continuing to the next one. 
+                In other words, the only difference between DFS and DFS is the data structure that is used. 
+                While DFS uses a stack and thus always inspects the last inserted element, BFS uses a queue.
                 That means it inspects the element that was inserted first.
                 Illustrative comparison of DFS and BFS is shown in Figure~\ref{dfs-bfs}. 
                 
-                \begin{figure}[htp]
-                \begin{center}
-                \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/03-graphs/bfs-dfs.png}
-                \end{center}
-                \caption{Comparison between a DFS and a BFS traversal.}\label{dfs-bfs}
-                \end{figure}
-                
-                Like the DFS, the BFS traversal schema can be used to find shortest paths, maximum flows and to test if a graph is bipartite. 
-                Space and runtime complexity of the BFS is similar to the complexities of DFS. $\mathcal{O}(|V|)$ space, when all nodes are stored in the queue at the same time. 
-                $\mathcal{O}(|V| + |E|)$ since all vertices are visited and each edge is visited twice by the handshake lemma. 
-                Pseudo-code for the BFS traversal-scheme is shown in Algorithm~\ref{bfs}. 
-                We again make the assumption, that we are using an incidence list as s data structure and that the expand operator is implemented accordingly.
-
                 \begin{algorithm}[htp]
                     \KwIn{Graph $G = (V,E)$, start vertex id v\_id, direction $d$}
                     \KwOut{Search numbers bfs, predecessor edges parent}
@@ -384,18 +380,31 @@
                 \caption{Pseudo-code for a breadth-first search on a graph $G$.}\label{bfs}
                 \end{algorithm}
                 
+                Like the DFS, the BFS traversal schema can find the shortest paths, maximum flows and test if a graph is bipartite with some modifications. 
+                Space and runtime complexity of the BFS is similar to the complexities of DFS. $\mathcal{O}(|V|)$ space, when all nodes are stored in the queue at the same time. 
+                $\mathcal{O}(|V| + |E|)$ since all vertices are visited, and each edge is visited twice by the handshake lemma. 
+                Pseudo-code for the BFS traversal-scheme is shown in Algorithm~\ref{bfs}. 
+                We again aussume that we are using an incidence list as s data structure and that the expand operator is implemented accordingly.
+
+                \begin{figure}[htp]
+                \begin{center}
+                \includegraphics[keepaspectratio,width=0.7\textwidth, height=0.3\textheight]{img/03-graphs/bfs-dfs.png}
+                \end{center}
+                \caption{Comparison between a DFS and a BFS traversal.}\label{dfs-bfs}
+                \end{figure}
+                
             \subsubsection*{Random Walk}\label{rand-w}
                 A random walk is a stochastic process, originally defined by Karl Pearson posing the following problem to the readers or the journal nature in 1905~\autocite{pearson1905problem}: 
                 \begin{quote}
                     A man starts from a point $O$ and walks $I$ yards in a straight line; he then turns through any angle whatever and walks another $I$ yards in a second straight line. 
                     He repeats this process n times. 
-                    I require the probability that after these $n$ stretches he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
+                    I require the probability that after these $n$ stretches, he is at a distance between $r$ and $r + \delta r$ from his starting point, $O$.
                 \end{quote}
-                The problem has gathered wide interests and has many connections ranging from financial mathematics~\autocite{bachelier1900theorie}, over physics and biology (Brownian motion\autocite{brown1828xxvii}) to pure mathematics~\autocite{wiener1976collected}. 
+                The problem has gathered broad interests and has many connections ranging from financial mathematics~\autocite{bachelier1900theorie}, over physics and biology (Brownian motion\autocite{brown1828xxvii}) to pure mathematics~\autocite{wiener1976collected}. 
                 Random walks are modeled mathematically using Markov chains.            
                 The purely mathematical theory is outlined in a comprehensive survey~\autocite{lovasz1993random}. 
-                Our focus will remain database-oriented, and traversal-based.
-                In~\autocite{fouss2007random} the authors show, that the generated random walks can be used to compute the similarities of nodes in a graph. 
+                Our focus will remain database-oriented and traversal-based.
+                In~\autocite{fouss2007random} the authors show that the generated random walks can be used to compute the similarities of nodes in a graph. 
                 This insight is used by a method described in the next chapter.
                 
                 \begin{algorithm}[htp]
@@ -418,13 +427,13 @@
                 
                 Pseudo-code describing the algorithm can be found in Algorithm~\ref{random_walk}. 
                 The code makes two assumptions. The function \mintinline{c}{random()} returns an unsigned integer by drawing from a uniform distribution. 
-                The function \mintinline{c}{expand} returns the edges with a certain direction of a vertex, given a graph, a vertex (id), and the respective direction.
+                The function \mintinline{c}{expand} returns the edges with a specific direction of a vertex, given a graph, a vertex (id), and the respective direction.
                 
-                The runtime complexity of a random walk can be estimated using the number of steps and the average degree of each node in the graph. 
+                A random walk's runtime complexity can be estimated using the number of steps and the average degree of each node in the graph. 
                 In each of the $n$ steps, we have to construct the list of edges of the currently considered vertex, which has a length of $\mathcal{O}(\text{deg}(V))$. 
                 How fast this construction depends on the data structure that is used. 
                 The overall average runtime complexity is $\mathcal{O}(n \cdot \text{deg}(V))$ for incidence lists. 
-                For the other data structures, one has to replace the $\text{deg}(V)$ term with the respective runtime of retrieving the neighborhood of vertex. 
+                For the other data structures, one has to replace the $\text{deg}(V)$ term with the respective runtime of retrieving the vertex neighborhood. 
                 The average space complexity of a random walk is $\mathcal{O}(\text{deg}(V))$.
         
     \subsection{Shortest Path}
@@ -435,40 +444,17 @@
          \item the A$^*$ algorithm finds the shortest path between a single source and a single target node.
         \end{enumerate}
         The difference in the problem setting allows for certain heuristic optimizations. 
-        While Dijkstra's algorithm is slower, it returns more information.
+        While Dijkstra's algorithm is slower than A$^*$, it returns more information.
         The A$^*$ algorithm's narrower focus allows it to inspect fewer elements based on a heuristic and is bound by Dijkstra's algorithm in the worst-case.
 
         \subsubsection*{Dijkstra} 
             In the original formulation, Edsger Dijkstra formulated the algorithm as a solution to the problem of finding the shortest paths between two nodes~\autocite{dijkstra1959note}. 
-            Many variants and extensions exist of which we are going to discuss two --- A$^*$ and ALT~\autocite{hart1968formal, goldberg2005computing}. 
+            Many variants and extensions exist, of which we are going to discuss two --- A$^*$ and ALT~\autocite{hart1968formal, goldberg2005computing}. 
             One slight variation makes it possible to find all the shortest paths from a given source node.
-            The algorithm however restricts on the graph.
-            Only positive weights are allowed as otherwise, a negative cycle results in an infinite loop~\autocite{cormen2009introduction}. 
+            The algorithm, however, restricts the graph.
+            Only positive weights are allowed; otherwise, a negative cycle results in an infinite loop~\autocite{cormen2009introduction}. 
             
-            Conceptually Dijkstra's algorithm assigns each node in the graph a distance. 
-            The source vertex has the distance 0, while all other vertices have a distance of infinity at the beginning.
-            Then it gradually considers the next ''shortest`` edge to take.
-            That is the distance of the already taken path to a certain node (at the beginning it's zero) is added to an edge weight such that the sum of both is minimal. 
-            To efficiently compute the minimum a binary heap-based priority queue or a Fibonacci heap is used to define the traversal order. 
-            An array stores the distances from the source to the already visited nodes, while the queue is filled with their neighbors along with the distance to them (i.e. the path to the predecessor plus the weight of the edge to be taken). 
-            The vertex with the shortest total distance is visited until all vertices are visited or the target vertex is reached.
-            
-            Pseudo-code for the variant that computes all shortest paths can be found in Algorithm~\ref{dijkstra}. 
-            The runtime complexity of Dijkstra's algorithm is $\mathcal{O}(|E| \cdot T_d + |V| \cdot T_m)$ where $T_d, T_m$ stand for the complexities to update the distance of a path and to extract the minimum.
-            Besides the new necessity to select the element to inspect based on priorities and to maintain those, the runtime complexity is equivalent to what we had with BFS.        
-            Using a binary heap-based priority queue yields sub-optimal runtime:
-            $T_d, T_m \in \mathcal{\log(|V|)}$. 
-            Overall the asymptotic runtime complexity using a min-priority queue is $\mathcal{O}((|V| + |E|)\log(|V|))$~\autocite{Goodrich2014AlgorithmDA}.        
-            One can also use plain arrays, which requires a minimum search and no update of the priority. 
-            The minimum search is linear, i.e. $\mathcal{O}(|V|)$ and priorities can be updated in $\mathcal{O}(1)$. 
-            Overall we have $\mathcal{O}(|E| + |V|^2)$~\autocite{Goodrich2014AlgorithmDA}.        
-            Finally, more advanced data structures can be used, like a Fibonacci-Heap~\autocite{cormen2009introduction}. 
-            These make it possible to update the priority in $\mathcal{O}(1)$ and still find the minimum in $\mathcal{\log(|V|)}$. 
-            This yields the optimal asymptotical runtime of $\mathcal{O}(|E| + |V|\log(|V|))$. 
-            The worst-case space complexity is again $\mathcal{O}(|V|)$, that is when all nodes are stored in the queue at the same time. 
-            As there is only one shortest path (paths of equal size are discarded) to each node, the queue contains each node only once.
-            
-            \begin{algorithm}[htp]
+             \begin{algorithm}[htp]
                 \KwIn{Graph $G = (V,E)$, source vertex id v\_id, direction $d$}
                 \KwOut{Path distance distances, predecessor edges parent}
                 \hrulealg
@@ -493,26 +479,33 @@
                     }
                     \Return distances, parents\;
                 }
-            \caption{Pseudo-code of the Dijkstra's algorithm for finding shortest paths from a node $v$ to all other nodes in a graph $G$.}\label{dijkstra}
+            \caption{Pseudo-code of the Dijkstra's algorithm for finding the shortest paths from a node $v$ to all other nodes in a graph $G$.}\label{dijkstra}
             \end{algorithm}
-        
+            
+            Conceptually Dijkstra's algorithm assigns each node in the graph a distance. 
+            The source vertex has the distance 0, while all other vertices have a distance of infinity at the beginning.
+            The current node's path distance is added to the edge weight for all edges and inserted into the priority queue. 
+            The algorithm always extracts the vertex with the so-created minimal path until all vertices are visited.
+            A binary heap-based priority queue or a Fibonacci heap is used to define the traversal order to compute the minimum efficiently. 
+            
+            Pseudo-code for the variant that computes all shortest paths can be found in Algorithm~\ref{dijkstra}. 
+            Dijkstra's algorithm's runtime complexity is $\mathcal{O}(|E| \cdot T_d + |V| \cdot T_m)$ where $T_d, T_m$ stand for the complexities to update the distance of a path and to extract the minimum.
+            Besides the new necessity to select the element to inspect based on priorities and maintain those, the runtime complexity is equivalent to what we had with BFS.        
+            Using a binary heap-based priority queue yields sub-optimal runtime:
+            $T_d, T_m \in \mathcal{\log(|V|)}$. 
+            Overall the asymptotic runtime complexity using a min-priority queue is $\mathcal{O}((|V| + |E|)\log(|V|))$~\autocite{Goodrich2014AlgorithmDA}.        
+            One can also use plain arrays, which requires a minimum search and no update of the priority. 
+            The minimum search is linear, i.e., $\mathcal{O}(|V|)$ and priorities can be updated in $\mathcal{O}(1)$. 
+            Overall we have $\mathcal{O}(|E| + |V|^2)$~\autocite{Goodrich2014AlgorithmDA}.        
+            Finally, more advanced data structures can be used, like a Fibonacci-Heap~\autocite{cormen2009introduction}. 
+            These make it possible to update the priority in $\mathcal{O}(1)$ and still find the minimum in $\mathcal{\log(|V|)}$. 
+            This yields the optimal asymptotical runtime of $\mathcal{O}(|E| + |V|\log(|V|))$. 
+           The worst-case space complexity is again $\mathcal{O}(|V|)$, which is when all nodes are stored in the queue simultaneously. 
+            As there is only one shortest path (paths of equal size are discarded) to each node, the queue contains each node only once.
         
         \subsubsection*{A*}
-            The A$^*$ was originally invented in the late 60's to be used for path planning of a robot. 
-            It's an extension of Dijkstra's algorithm, that does not just use the distance as metric of priority, but adds a heuristic $h: V \rightarrow \mathbb{R}$ to the distance.
-            $v \in V: f(v) = \text{distance}(v) + h(v)$, that has to fulfill certain conditions.
-            With $u,v \in V$ and $\min\text{ distance}(u)$ the minimal distance from the  vertex $u$ to the goal vertex
-            \[ \forall u,v: h(u) \leq d(u, v) + h(v) \wedge h(u) \leq \min\text{ distance}(u).
-            \]
-            The former condition is called consistency, the latter admissibility. 
-            As all consistent heuristics are admissible the first condition is sufficient.
-            An example for graphs using the Euclidean coordinate system is the Euclidean distance~\autocite{hart1968formal}.
-            
-            Algorithm~\ref{a-star} shows pseudo-code for the algorithm. The runtime is of course dependent on the complexity of the heuristics.
-            Overall we have the same worst-case complexity as with Dijkstra's algorithm for the constant heuristic
-            $\forall v \in V: h(v) = 0$. 
-            The best-case of the A$^*$ algorithm is when the heuristic is equal to the distance from the current vertex to the goal vertex. 
-            Then exactly $\min \text{distance}$ nodes are visited and the algorithm is in $\mathcal{O})\min \text{distance})$, which is the global optimum for a single source shortest path problem.
+            The A$^*$ was initially invented in the late '60s to be used for a robot's path planning. 
+            It is an extension of Dijkstra's algorithm that does not just use the distance as a metric of priority but adds a heuristic $h: V \rightarrow \mathbb{R}$ to the distance.
             
             \begin{algorithm}[htp]
                 \KwIn{Graph $G = (V,E)$, heuristic $h$, source vertex id v\_source, target node v\_target, direction $d$}
@@ -543,30 +536,29 @@
                     }
                     \Return empty\_path()\;
                 }
-            \caption{Pseudo-code of the A$^*$ algorithm for finding shortest paths from a node $v$ to a node $u$ in a graph $G$.}\label{a-star}
+            \caption{Pseudo-code of the A$^*$ algorithm for finding the shortest paths from a node $v$ to a node $u$ in a graph $G$.}\label{a-star}
             \end{algorithm}
+                        
+            $v \in V: f(v) = \text{distance}(v) + h(v)$, that has to fulfill certain conditions.
+            With $u,v \in V$ and $\min\text{ distance}(u)$ the minimal distance from the  vertex $u$ to the goal vertex
+            \[ \forall u,v: h(u) \leq d(u, v) + h(v) \wedge h(u) \leq \min\text{ distance}(u).
+            \]
+            The former condition is called consistency, the latter admissibility. 
+            As all consistent heuristics are admissible, the first condition is sufficient.
+            An example for graphs using the Euclidean coordinate system is the Euclidean distance~\autocite{hart1968formal}.
             
+            Algorithm~\ref{a-star} shows pseudo-code for the algorithm. The runtime is dependent on the complexity of the heuristics.
+            Overall we have the same worst-case complexity as with Dijkstra's algorithm for the constant heuristic
+            $\forall v \in V: h(v) = 0$. 
+            The best-case of the A$^*$ algorithm is when the heuristic is equal to the current vertex distance to the goal vertex.  
+            Then exactly $\min \text{distance}$ nodes are visited, and the algorithm is in $\mathcal{O})\min \text{distance})$, which is the global optimum for a single source shortest path problem.
+
         \subsubsection*{ALT}
             ALT stands for A$^*$, landmarks, triangular inequality. 
-            It is an extension of A$^*$ which uses landmarks and the triangular inequality as a heuristic. 
+            It is an extension of A$^*$, which uses landmarks and the triangular inequality as a heuristic. 
             A landmark is a vertex $v \in V$, which is used for orientation. 
-            With ALT we select a set of landmarks $L$ and execute Dijkstra's algorithm on each of those, such that we have a set of distances per node and landmark.
+            With ALT, we select a set of landmarks $L$ and execute Dijkstra's algorithm on each of those, such that we have a set of distances per node and landmark.
             More explicitly we use that $d(L_i, v) - d(L_i, w) \leq d(v,w)$ is a lower bound to the actual distance.
-            
-            In the first step --- the preprocessing step --- of ALT we compute and store these values, giving a space overhead of $\mathcal{O}(|L| \cdot |V|)$. 
-            This is shown as pseudo-code in Algorithm~\ref{alt-pre}.
-            In the second step --- the actual query --- for every node we check which landmark gives the best lower bound of the actual distance.
-            This is done by maximizing the following term per node and using it as heuristic $h$.
-            With $v_t$ being the target node
-            \[ h(v) = \max_i d(L_i, v) - d(L_i, v_t). \]
-            After that A$^*$ is executed as described in Algorithm~\ref{alt-query}.
-            
-            Besides the additional space that is used we also execute Dijkstra's algorithm $|L|$ times and have an asymptotic complexity of $\mathcal{O}(|L| \cdot (|E| + |V| \log |V|))$ using an incidence list to store the graph and a Fibonacci heap as the data structure for the priority queue. 
-            Regarding space we need $\mathcal{O}(|V| \cdot (1 + |L|))$. 
-            For small values of $|L|$ we preserve the worst-case complexity as the average-case complexity of ALT.
-            What we gain by that is that the precomputations take the main runtime penalty while providing a reasonably good heuristic depending on the selection of the landmarks~\autocite{goldberg2005computing}. 
-            How to select the landmarks is discussed in~\autocite{Goldberg2005ComputingPS}.
-            
             
             \begin{algorithm}[htp]
                 \KwIn{Graph $G = (V,E)$, direction $d$, number of landmarks $nl$}
@@ -585,6 +577,15 @@
                 }
             \caption{Pseudo-code of the preprocessing stage of ALT.}\label{alt-pre}
             \end{algorithm}
+            
+            In the first step --- the preprocessing step --- of ALT, we compute and store these values, giving a space overhead of $\mathcal{O}(|L| \cdot |V|)$. 
+            This procedure is shown as pseudo-code in Algorithm~\ref{alt-pre}.
+            In the second step --- the actual query --- for every node, we check which landmark gives the best lower bound of the actual distance.
+            This is done by maximizing the following term per node and using it as heuristic $h$.
+            With $v_t$ being the target node
+            \[ h(v) = \max_i d(L_i, v) - d(L_i, v_t). \]
+            After that A$^*$ is executed as described in Algorithm~\ref{alt-query}.
+            
             \begin{algorithm}[htp]
                 \KwIn{Graph $G = (V,E)$, source vertex id v\_source, target node v\_target, direction $d$, $\text{landmarks}[|L|][|V|]$}
                 \KwOut{Path p}
@@ -597,21 +598,27 @@
                     }
                     \Return a-star($G, h$ v\_source, v\_target, $d$)\;
                 }
-            \caption{Pseudo-code of the query stage of the ALT algorithm for finding shortest paths from a node $v$ to a node $u$ in a graph $G$.}\label{alt-query}
+            \caption{Pseudo-code of the query stage of the ALT algorithm for finding the shortest paths from a node $v$ to a node $u$ in a graph $G$.}\label{alt-query}
             \end{algorithm}
+            
+            Besides the additional space that is used, we also execute Dijkstra's algorithm $|L|$ times and have an asymptotic complexity of $\mathcal{O}(|L| \cdot (|E| + |V| \log |V|))$ using an incidence list to store the graph and a Fibonacci heap as the data structure for the priority queue. 
+            Regarding space we need $\mathcal{O}(|V| \cdot (1 + |L|))$. 
+            For small values of $|L|$, we preserve the worst-case complexity as the average-case complexity of ALT.
+            We gain by that that the precomputations take the main runtime penalty while providing a reasonably good heuristic depending on the selection of the landmarks~\autocite{goldberg2005computing}. 
+            How to select the landmarks is discussed in~\autocite{Goldberg2005ComputingPS}.
             
         \subsection{Partitioning} 
             Graph partitioning is the problem of separating the graph into disjoint subsets. 
             The problem is NP-complete~\autocite{andreev2006balanced} and the algorithms below are thus heuristics.
             They do not provide the globally optimal partition concerning some metrics but approximate an optimal solution as close as possible.
-            Besides the methods presented below, there are of course a lot of other methods.
+            Besides the methods presented below, there are a lot of other methods.
             One method that is of considerable importance is spectral clustering, which we will not elaborate on here in-depth.
             Briefly, the algorithm computes the Laplacian matrix, extracts $k$ eigenvectors, changes the basis of the matrix according to the $k$ eigenvectors, and clusters the nodes then using a simpler algorithm, like agglomerative clustering~\autocite{hac} or k-means~\autocite{lloyd1982least}
             The interested reader is referred to~\autocite{spectral, uvl, ng}.
-            Apart from methods considering the graph structure as part of the algorithm itself, all other clustering algorithms can be applied, if suitable features are extracted based upon the graph structure.
-            As we will see later, one of the methods that are related work extracts graph features by executing multiple random walks per node and aggregates them into a multi-set to characterize the neighborhood of a node.
-            A comprehensive survey of non-graph-based algorithms can be found for example in~\autocite{overview_clust, berkhin2006survey, xu2005survey, han2011data}.
-            Other graph feature extraction methods are for example described in~\autocite{neumann2011characteristic, henderson2011s, henderson2012rolx}.
+            Apart from methods considering the graph structure as part of the algorithm itself, all other clustering algorithms can be applied if suitable features are extracted based upon the graph structure.
+            As we will see later, one of the related work methods extracts graph features by executing multiple random walks per node and aggregates them into a multi-set to characterize the neighborhood of a node.
+            A comprehensive survey of non-graph-based algorithms can be found in~\autocite{overview_clust, berkhin2006survey, xu2005survey, han2011data}.
+            Other graph feature extraction methods are, for example, described in~\autocite{neumann2011characteristic, henderson2011s, henderson2012rolx}.
             
             
             
@@ -620,7 +627,7 @@
                 Its steps are visualized schematically in Figure~\ref{mlp-fig} and given below.
                 \begin{enumerate}
                     \item Coarsen the graph by contracting edges between neighboring vertices
-                    \item Partition the graph using e.g. spectral clustering or the KL algorithm
+                    \item Partition the graph using e.g., spectral clustering or the KL algorithm
                     \item Uncoarsen the graph, projecting the above-derived partitioning downwards and refining it by applying the KL algorithm.
                 \end{enumerate}
                 
@@ -634,19 +641,19 @@
                     
                 A particular implementation of Karypis and Kumar~\autocite{karypis} introduces a couple of improvements.
                 A matching scheme for the coarsening stage is called heavy edge matching.
-                It works by iterating over all vertices and matching each one with the vertex that is attached to the edge carrying the heaviest weight.
-                This is done until all edges are matched.
-                Afterward, all pairs of vertices contribute to a new vertex in a new graph, the edges of each vertex pair are aggregated and their weight is summed eventually if both nodes had an edge to the same vertex. 
-                Moreover, the nodes are assigned a weight that corresponds to the number of vertices that are matched in one meta-vertex.
+                It works by iterating over all vertices and matching each one with the vertex attached to the edge carrying the heaviest weight.
+                This routine is applied until all edges are matched.
+                Afterward, all pairs of vertices contribute to a new vertex in a new graph, the edges of each vertex pair are aggregated, and their weight is summed eventually if both nodes had an edge to the same vertex. 
+                Moreover, the nodes are assigned a weight that corresponds to the number of vertices matched in one meta-vertex.
                 The partitioning stage experiments with three different methods. The KL-algorithm~\autocite{kl}, spectral clustering~\autocite{spectral}, the graph growing partitioning algorithm --- which uses BFS with a limited number of steps from a set of arbitrarily chosen vertices.
                 Finally, it proposes an improved version of the refinement procedure, where only boundary vertices are considered for interchanges between partitions.
                 
-                The runtime for heavy edge matching is $\mathcal{O}(|E|)$ for each level and we have at least $\mathcal{O}(\log(\frac{|V|}{|V_c|}))$ steps, where $V_c$ is the set of vertices in the coarsest graph. 
+                The runtime for heavy edge matching is $\mathcal{O}(|E|)$ for each level, and we have at least $\mathcal{O}(\log(\frac{|V|}{|V_c|}))$ steps, where $V_c$ is the set of vertices in the coarsest graph. 
                 Assuming $|V_c|$ is a small constant (in the worst-case for refinement $|V_c| = 1$), we get overall $\mathcal{O}(|E| \log(|V|))$ for the refinement procedure.
                 The partitioning step is dependent on the choice of the algorithm.
-                Using the KL $k$-way algorithm we have  $\mathcal{O}(k^2 \cdot |V_c|^2 \cdot \log(|V_c|)$. As $|V_c|$ is small in comparison to the original graph, this results in a reduced overall runtime complexity.
+                Using the KL $k$-way algorithm we have  $\mathcal{O}(k^2 \cdot |V_c|^2 \cdot \log(|V_c|)$. As $|V_c|$ is small compared to the original graph; this results in a reduced overall runtime complexity.
                 Finally the uncoarsening including projection and refinement take $\mathcal{O}(\log(|V|) \cdot (|V_i| + \mathcal{O}(k^2 \cdot |V_i|^2 \cdot \log(|V_i|)))$ with $|V_i|$ the number of vertices in the $i$ times coarsened graph.  
-                As the projection should already induce a reasonable initial partitioning the algorithm should converge quickly~\autocite{hendrickson1995multi}.
+                As the projection should already induce a reasonable initial partitioning, the algorithm should converge quickly~\autocite{hendrickson1995multi}.
                 The overall runtime depends heavily on $|V_c|$. 
                 The refinement phase is the most costly step as it needs to be done for the last level too, resulting in an asymptotic complexity of $\mathcal{O}(\mathcal{O}(k^2 \cdot |V|^2 \cdot \log^2(|V|)))$.
                 
@@ -668,42 +675,42 @@
                     \label{louvain-fig}
                 \end{figure}
                 
-                Optimizing the modularity exactly is computationally hard, so as soon as the graph size increases, approximate optimization is required.
+                Optimizing the modularity computationally exactly is computationally hard, so as soon as the graph size increases, approximate optimization is required.
                 The Louvain method is such an approximation.
-                Its broad control flow comprises the following steps and is visualized in Figure~\ref{louvain-fig}.
+                Its overall control flow comprises the following steps and is visualized in Figure~\ref{louvain-fig}.
                 \begin{enumerate}
                 \item Initialize the initial partition with each node in an own community
                 \item $\forall v \in V \forall u \in N_v:$ 
                 Compute the gain in modularity $\Delta Q(u,v)$ when merging $v$ into the community of $u$. 
                 Place $v$ into the community of the neighboring node $u$ where $\Delta Q(u,v)$ is maximal if the gain is positive.
                 \item Go to step 2 until the improvement is below a threshold.
-                \item Construct a new graph $G_i$ with the communities of the previous graph being the vertices of the new one and Aggregate the edge weights. 
+                \item Construct a new graph $G_i$ with the previous graph communities being the vertices of the new one and Aggregate the edge weights. 
                 Links between nodes of the same communities are aggregated to self-loops.
                 \item If the previous graph and the new graph differ, go to step 2 using the $G_i$ as input graph, else terminate.
                 \end{enumerate}
-                The gain in modularity is computed using a specific formulation, that eases computation
+                The gain in modularity is computed using a specific formulation that eases computation.
                 \[ 
                   \Delta Q(v, C) = \left( \frac{I_c + 2w_{v, C}}{2m} - \left( \frac{w_C + w_v}{2m} \right)^2 \right) - \left( \frac{I_c}{2m} - \left( \frac{w_C}{2m} \right)^2 - \left( \frac{w_v}{2m} \right)^2 \right).
                 \]
-                Here $I_C$ is the sum of edge weights within the community $C$, $w_C$ is the sum of the edge weights incident to nodes in $C$, $w_{v, C}$ is the sum of edge weights between $v$ and nodes in $C$, $w_v$ is the sum of all edge weights incident to $v$ and $m$ is again the sum of all edge weights.
+                Here $I_C$ is the sum of edge weights within the community $C$, $w_C$ is the sum of the edge weights incident to nodes in $C$, $w_{v, C}$ is the sum of edge weights between $v$ and nodes in $C$, $w_v$ is the sum of all edge weights incident to $v$, and $m$ is again the sum of all edge weights.
                 
                 Many of these quantities can be precomputed and easily updated
                 $m$ is constant, $w_v$ is constant, $I_C$ can be updated by adding $w_{v, C}$, $w_C$ can be updated by adding $w_v$, only $w_{v, C}$ needs to be recomputed for every community to consider. 
                 It requires iterating over all edges of $v$ and check if the other incident node is in the community, thus $\text{deg}(V)$.
                 The complexity of the algorithm is determined by computing the gain in modularity for each node and its neighborhood
                 $\mathcal{O}(|V| \cdot \text{deg}(V)^2)$.
-                Notice, that this algorithm is similar to the coarsening phase of the multilevel algorithm.
+                Notice that this algorithm is similar to the coarsening phase of the multilevel algorithm.
                 The contraction is done by calculating the modularity gain.
-                However, not only two vertices are matched during an iteration but arbitrarily many until convergence. 
-                Both partitioning and refinement are not done, as the special contraction mechanism already partitions the graph.
-                That is, opposed to the top-down partitioning of the multilevel partitioning algorithm, the Louvain method works bottom-up.
-                Both algorithms however generate a hierarchy.
+                However, not only are two vertices matched during an iteration but arbitrarily many until convergence. 
+                Both partitioning and refinement are not done, as the unique contraction mechanism already partitions the graph.
+                That is, opposed to the top-down partitioning of the multilevel partitioning algorithm. The Louvain method works bottom-up.
+                Both algorithms, however, generate a hierarchy.
                 
                 One problem with the Louvain method is its resolution limit.
-                For very large and dense graphs, the total edge weight grows extremely large and thus the modularity is always small.
+                For vast and dense graphs, the total edge weight grows extremely large, and thus the modularity is always tiny.
                 This problem is approached in two different ways.
-                Conde-C{\'e}spedes et al.~\autocite{conde2017comparison} experiment with different other modularity measures, that are provably stable to the graph size.
-                However, those measures that provide good results require user defined-parameters, which in turn requires either domain-specific knowledge of the data or parameter optimization, which implies multiple executions of the algorithm. 
+                Conde-C{\'e}spedes et al.~\autocite{conde2017comparison} experiment with different other modularity measures that are provably stable the graph size.
+               However, those measures that provide good results require user defined-parameters, which require either domain-specific knowledge of the data or parameter optimization, which implies multiple executions of the algorithm.  
                 
 
 

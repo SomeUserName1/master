@@ -26,6 +26,20 @@
 #include "../record/node.h"
 #include "../record/relationship.h"
 
+static inline size_t
+get_num_coarse_clusters(in_memory_file_t* db)
+{
+    if (!db) {
+        printf("ICBL - get_num_coarse_clusters: Invalid Arguments!\n");
+        exit(-1);
+    }
+
+    size_t result = ceil((float)db->node_id_counter * sizeof(node_t)
+                         / (2 * sqrt(MEMORY)));
+    printf("Num Clusters %zu\n", result);
+    return result;
+}
+
 inline size_t
 get_num_walks(in_memory_file_t* db)
 {
@@ -54,21 +68,9 @@ get_num_walks(in_memory_file_t* db)
     }
     free(degree_hist);
 
+    printf("Num Walks: %lu\n", num_walks);
+
     return num_walks > 0 ? num_walks : 1;
-}
-
-static inline size_t
-get_num_coarse_clusters(in_memory_file_t* db)
-{
-    if (!db) {
-        printf("ICBL - get_num_coarse_clusters: Invalid Arguments!\n");
-        exit(-1);
-    }
-
-    size_t result =
-          ceil((float)db->node_id_counter
-               + (double)db->rel_id_counter / sqrt(SHARE_OF_MEMORY * MEMORY));
-    return result;
 }
 
 inline size_t
@@ -78,10 +80,10 @@ get_num_steps(in_memory_file_t* db)
         printf("ICBL - get_num_steps: Invalid Arguments!\n");
         exit(-1);
     }
-
+    printf("Num Steps: %lu\n",
+           (unsigned long)(1 + ceil(log2((float)db->node_id_counter)) / 3));
     return (unsigned long)1
-           + ceil(log2((float)db->node_id_counter)
-                  / get_num_coarse_clusters(db));
+           + (unsigned long)ceil(log2((float)db->node_id_counter)) / 3;
 }
 
 void
@@ -137,10 +139,11 @@ dendrogram_print(dendrogram_t* root)
 }
 
 void
-identify_diffustion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
+identify_diffusion_sets(in_memory_file_t* db, dict_ul_ul_t** dif_sets)
 {
+    printf("Identify Diffusion Sets\n");
     if (!db || !dif_sets) {
-        printf("ICBL - identify_diffustion_sets: Invalid Arguments!\n");
+        printf("ICBL - identify_diffusion_sets: Invalid Arguments!\n");
         exit(-1);
     }
 
@@ -254,33 +257,12 @@ insert_match(size_t*       max_degree_nodes,
     }
 }
 
-inline bool
-check_dist_bound(const size_t*  max_degree_nodes,
-                 size_t         candidate,
-                 unsigned long  num_found,
-                 dict_ul_ul_t** dif_sets)
-{
-    if (!max_degree_nodes || !dif_sets) {
-        printf("ICBL - check dist bound: Invalid Arguments!\n");
-        exit(-1);
-    }
-
-    for (size_t i = 0; i < num_found; ++i) {
-        if (weighted_jaccard_dist(dif_sets[max_degree_nodes[i]],
-                                  dif_sets[candidate])
-            < MIN_DIST_INIT_CENTERS) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void
 initialize_centers(in_memory_file_t* db,
                    unsigned long**   centers,
-                   size_t            num_clusters,
-                   dict_ul_ul_t**    dif_sets)
+                   size_t            num_clusters)
 {
+    printf("Initialize centers\n");
     if (!db || !centers) {
         printf("ICBL - initialize_centers: Invalid Argument!\n");
         exit(-1);
@@ -304,9 +286,6 @@ initialize_centers(in_memory_file_t* db,
         nid    = rand() % db->node_id_counter;
         degree = in_memory_get_node(db, nid)->degree;
         if (degree > avg_deg && degree > max_degrees[num_clusters - 1]) {
-            if (!check_dist_bound(max_degree_nodes, nid, num_found, dif_sets)) {
-                continue;
-            }
             insert_match(
                   max_degree_nodes, max_degrees, nid, degree, num_clusters);
             if (num_found < num_clusters) {
@@ -330,6 +309,33 @@ is_center(size_t idx, unsigned long num_centers, const unsigned long* center)
     return false;
 }
 
+float*
+center_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
+{
+    printf("node_distance_matrix\n");
+    if (!dif_sets || !nodes_of_p) {
+        printf("ICBL - node_distance_matrix: Invalid Arguments!\n");
+        exit(-1);
+    }
+
+    unsigned long n_nodes_of_p = list_ul_size(nodes_of_p);
+    float* pairwise_dist = calloc(n_nodes_of_p * n_nodes_of_p, sizeof(float));
+
+    // Compute pairwise distance matrix
+    for (size_t i = 0; i < n_nodes_of_p; ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            pairwise_dist[j * n_nodes_of_p + i] =
+                  weighted_jaccard_dist(dif_sets[list_ul_get(nodes_of_p, i)],
+                                        dif_sets[list_ul_get(nodes_of_p, j)]);
+
+            pairwise_dist[i * n_nodes_of_p + j] =
+                  pairwise_dist[j * n_nodes_of_p + i];
+        }
+    }
+
+    return pairwise_dist;
+}
+
 size_t
 assign_to_cluster(size_t               num_nodes,
                   dict_ul_ul_t**       dif_sets,
@@ -337,6 +343,7 @@ assign_to_cluster(size_t               num_nodes,
                   const unsigned long* centers,
                   size_t               num_clusters)
 {
+    printf("Assign to cluster\n");
     if (!dif_sets || !part || !centers) {
         printf("ICBL - assign_to_cluster: Invalid Argument!\n");
         exit(-1);
@@ -398,6 +405,7 @@ update_centers(size_t               num_nodes,
                unsigned long*       centers,
                size_t               num_clusters)
 {
+    printf("update_centers\n");
     if (!dif_sets || !part || !centers || num_clusters < 1 || num_nodes < 1) {
         printf("ICBL - update_centers: Invalid Argument!\n");
         exit(-1);
@@ -462,8 +470,7 @@ update_centers(size_t               num_nodes,
             // already.
             do {
                 max_node_id = rand() % num_nodes;
-            } while (is_center(max_node_id, num_clusters, centers)
-                     && check_dist_bound(centers, max_node_id, i, dif_sets));
+            } while (is_center(max_node_id, num_clusters, centers));
         }
 
         centers[i]  = max_node_id;
@@ -482,6 +489,7 @@ cluster_coarse(in_memory_file_t* db,
                dict_ul_ul_t**    dif_sets,
                unsigned long*    part)
 {
+    printf("cluster_coarse\n");
     if (!db || !dif_sets || !part) {
         printf("ICBL - cluster_coarse: Invalid arguments!\n");
         exit(-1);
@@ -492,20 +500,17 @@ cluster_coarse(in_memory_file_t* db,
 
     unsigned long* centers = NULL;
 
-    printf("Initialize Centers\n");
-    initialize_centers(db, &centers, num_clusters, dif_sets);
+    initialize_centers(db, &centers, num_clusters);
 
-    printf("Assign to Cluster\n");
     assign_to_cluster(
           db->node_id_counter, dif_sets, part, centers, num_clusters);
 
     do {
-        printf("Update Centers\n");
         update_centers(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
-        printf("Assign to Cluster\n");
         changes = assign_to_cluster(
               db->node_id_counter, dif_sets, part, centers, num_clusters);
+        printf("Changes  %lu\n", changes);
     } while (changes > db->node_id_counter / CHANGE_RATIO);
 
     free(centers);
@@ -575,6 +580,7 @@ initialize_node_dendrograms(list_ul_t* nodes_of_p)
 float*
 node_distance_matrix(dict_ul_ul_t** dif_sets, list_ul_t* nodes_of_p)
 {
+    printf("node_distance_matrix\n");
     if (!dif_sets || !nodes_of_p) {
         printf("ICBL - node_distance_matrix: Invalid Arguments!\n");
         exit(-1);
@@ -701,6 +707,7 @@ cluster_hierarchical(unsigned long   n_nodes,
                      dendrogram_t*** blocks,
                      unsigned long*  block_count)
 {
+    printf("cluster_hierarchical\n");
     if (!dist || !dendros || !blocks || (block_formation && !block_count)) {
         printf("ICBL - cluster_hierarchical: Invalid Arguments!\n");
         printf("%p, \t %p, \t %p, \t %p\n", dist, dendros, blocks, block_count);
@@ -796,6 +803,7 @@ block_formation(in_memory_file_t*    db,
                 unsigned long*       block_count,
                 dendrogram_t****     block_roots)
 {
+    printf("block_formation\n");
     if (!db || !dif_sets || !parts || !blocks || !block_count) {
         printf("ICBL - block_formation: Invalid Arguments!\n");
         exit(-1);
@@ -1048,6 +1056,7 @@ layout_blocks(in_memory_file_t* db,
               unsigned long*    partition,
               dendrogram_t***   block_roots)
 {
+    printf("layout_blocks\n");
     if (!db || !blocks || !*blocks || !**blocks || !block_count || !partition) {
         printf("ICBL - layout_blocks: Invalid Arguments!\n");
         exit(-1);
@@ -1097,7 +1106,7 @@ icbl(in_memory_file_t* db)
         diff_sets[i] = create_dict_ul_ul();
     }
 
-    identify_diffustion_sets(db, diff_sets);
+    identify_diffusion_sets(db, diff_sets);
 
     unsigned long* partition =
           calloc(db->node_id_counter, sizeof(unsigned long));

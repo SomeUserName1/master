@@ -2,55 +2,58 @@
 Graph-structured data is omnipresent in our world:
 road networks are naturally modeled using graphs.
 When thinking about social structures, people can be modeled as nodes and interactions as edges. 
-In dynamical systems like the brain, the structure of the system can be modeled as a graph and the dynamics of the process can be modeled as algorithms on the graph structure like the spreading activation algorithm and by changes to the network itself~\autocite{anderson, dayan1991reinforcing}.
+In dynamical systems like the brain, the system's structure can be modeled as a graph, and the dynamics of the process can be modeled as algorithms on the graph structure like the spreading activation algorithm and by changes to the network itself~\autocite{anderson, dayan1991reinforcing}.
 The internet and routing protocols used by the hardware nodes rely on graph theory to optimize the flow of information~\autocite{bgp}.
-Especially in recent years, modeling pandemic dynamics using graph-based models, like the susceptible-infected-recovered and the susceptible-infected-susceptible model, has gained a lot of attention~\autocite{kermack1927contribution, dawood2012estimated, sridhar2020modeling, chang2020modeling}.
+In recent years, modeling pandemic dynamics using graph-based models, like the susceptible-infected-recovered and the susceptible-infected-susceptible model, has gained a lot of attention~\autocite{kermack1927contribution, dawood2012estimated, sridhar2020modeling, chang2020modeling}.
 
-Reliable and maintainable storage of graphs is necessary when they grow larger in size and complexity.
+Reliable and maintainable storage of graphs is necessary when they grow larger and complexity.
 In addition to resolving maintainability issues, databases provide exceptional performance for some operations. 
 Typical queries on graph data are pattern-based queries and traversal-based queries. 
-While pattern-based queries are used to inspect nodes and edges with specific attributes and their neighborhood, traversal-based queries are used for navigation and structural exploration, for example.
+While pattern-based queries are used to inspect nodes and edges with specific attributes and their neighborhood, traversal-based queries are used for navigation and structural exploration.
 Given a knowledge graph, if we want to retrieve related concepts to a given one, then a breadth-first traversal can be applied~\autocite{anderson}. 
-If you want to find connections between concepts, shortest pathfinding algorithms provide means to examine connections~\autocite{minsky1982semantic}.
+If one wants to find connections between concepts, shortest pathfinding algorithms provide means to examine connections~\autocite{minsky1982semantic}.
 Similarly, when planning a route, shortest pathfinding algorithms are employed. 
-Moreover, when searching for some specific kind of place in the surrounding like when looking for a bar, the next theater, or the next gas station, then another kind of shortest path algorithm is applied as we will see.~\autocite{bast2016route} 
+Moreover, when searching for some specific kind of place in the surrounding, like when looking for a bar, the next theater, or the next gas station, then another kind of shortest path algorithm is applied, as we will see.~\autocite{bast2016route} 
 
-But how do you make sure that these algorithms are exceptionally fast?
-The bottleneck for algorithms operating on large scales of input data is mostly the time spent to load the data. 
+Nevertheless, how does one make sure that these algorithms are fast?
+The bottleneck for algorithms operating on large-scale input data is primarily the time spent to load the data. 
 Caches are about $50$ times faster than DDR4 RAM, which is $1,000$ times faster than a solid-state drive and about $100,000$ times faster than a hard disk drive~\autocite{mem-h}.
 In effect, we want to minimize the number of disk IO operations that need to be done when executing a query.
 This topic has already been tackled in other types of databases, like relational databases.
 A key element to this is the concept of locality. 
 The reason why caching and buffering works is the so-called locality of reference~\autocite{tanenbaum2015modern, jacob2010memory}. 
-That is most of the memory accesses target only a fraction of the overall data but with a very high frequency. 
+Most of the memory accesses target only a fraction of the overall data but with a very high frequency. 
 Here we are going to focus on spatial locality: 
-we want to order the data such that, when an element is accessed, the elements that are accessed next are within the neighborhood of the last one. 
-As disks read and write data based on blocks packing data such that accesses remain local saves IO operations. 
+we want to layout the records such that when an element is accessed, the subsequent access is within the neighborhood of the last one.
+With $X_t$ the address accessed at time $t$,
+\[ \max P(X_{t+1} = A \pm \varepsilon | X_t = A). \]
+As disks read and write data based on blocks, packing data such that accesses remain local saves IO operations. 
 More specifically, whenever subsequent access stays within a block, we need one loading operation less.
 
-to do this sort of reorganization, one can reorganize them statically like in relational databases. 
-There, the data is stored in tables, which are filtered and then joined together. 
-To optimize the two operations, data is stored sorted by the keys which are used for the joins most frequently.
+To perform such reorganization, one can reorganize them statically like in relational databases. 
+These store data in tables, which are filtered and then joined together. 
+The row order is determined by the keys most frequently used for joining tables to optimize the two operations.
 For graphs, the structure is crucial to the traversal-based queries.
-Pattern-based queries have been explored to a certain degree and their optimization is done similarly to relational queries in terms of the query plans~\autocite{Gubichev2015QueryPA}.
-In other words, what is going to be accessed next when doing a traversal, depends only on the connections that a node has and on the nodes that are incident to the edges. 
-Thus we are going to address the issue by elaborating on static data rearrangement methods, based on this structure of the graph.
+Pattern-based queries are explored to a certain degree, and their optimization is similar to relational queries~\autocite{Gubichev2015QueryPA}.
+When dealing with traversal-based queries, what is accessed next depends only on how nodes are connected --- the graph structure. 
+Thus we will address the issue by elaborating on static record layout methods based on the graph's structure.
 
+\newpage
 The contributions of this thesis are 
 \begin{itemize}
  \item a concise description of the problem.
  \item measuring the impact of data organization on the IO behavior and thus the performance of traversal-based queries.
  \item a survey of existing static rearrangement methods.
  \item the proposition of an extension to the current approaches: 
- reorder the incidence lists after reorganizing the data, to reestablish locality and sequential access after rearrangement.
+ reorder the incidence lists after reorganizing the data to reestablish locality and sequential access after rearrangement.
  \item the implementation of an in-memory graph database, traversal-based queries, and the above improvement.
  \item an extensive evaluation of the existing methods with and without the proposed extension.
 \end{itemize}
 
 The rest of this thesis is organized as follows.
 In the second chapter, graphs are defined formally, along with possible representations and the traversal algorithms.
-The third chapter treats the architecture of graph databases and a common data model for graph databases.
-After setting the context, the concept locality is defined in the fourth chapter and an explicit problem definition is given.
+The third chapter treats the architecture of graph databases and a widely-used data model for graph databases.
+After setting the context, the concept locality is defined in the fourth chapter, and an explicit problem definition is given.
 Recent methods and an extension of those are discussed in the fifth chapter.
 The sixth chapter presents the experimental evaluation.
 Finally, in the seventh chapter, the thesis is summarized.

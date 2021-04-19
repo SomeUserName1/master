@@ -1,31 +1,24 @@
 \chapter{Conclusion}\label{\positionnumber}
 
 \section{Summary}\label{\positionnumber}
-In this thesis we examined different methods to reorganize the records of a graph database.
-This was done in order to improve the spatial locality of the referenced addresses and the temporal and spatial locality of the disk blocks.
-
-First concepts and definitions related to graphs were defined, along with popssible data structures to represent graphs and traversal-based and graph partitioning algorithms.
-The the brief architecture of databases was discussed, followed by a graph data model and an example of a popular graph database.
-
+In this thesis, we examined different methods to reorganize the records of a graph database.
+This was done to improve the referenced addresses' spatial locality and the temporal and spatial locality of the disk blocks.
 Then the principle of locality and the problem were defined.
-After that we surveyed existing approaches to the problem and derived an improvement overt the state of the art methods for static graph data rearrangement to minimize block accesses by maximizing locality.
-An important aspect of this was to reorder the incidence list when reordering data to avoid random access patterns that could easily be avoided.
-Using the implementation of an in-memory database, whichs record structures are motivated by the ones of Neo4J, we evaluated the methods on a broad range of different datasets with different size.
-The total number of block accesses and non-sequential accesses were used as a metric, that measures closely how much disk accesses are actually needed and if these acceses can be mitigated using prefetching techniques.  \\
-
-THE RESULTS NEED TO BE SUMMARIZED HERE!
-
-
-
-
+After that, we surveyed existing approaches to the problem and derived an improvement over the state-of-the-art methods for static graph data rearrangement to minimize block accesses by maximizing locality.
+An essential aspect of this was to reorder the incidence list when reordering data to avoid random access patterns that could easily be avoided.
+Using the implementation of an in-memory database, where the record structures are motivated by Neo4J, we evaluated the methods on a broad range of different datasets with different sizes.
+The total number of block accesses and non-sequential accesses were used as a metric that measures closely how much disk accesses are needed and if these accesses can be mitigated using prefetching techniques.  
+We saw that the records' static partition-based reordering leads to fewer disk accesses in the evaluation section.
+The sorting of the incidence list leads to fewer disk accesses when looking at the relationship records.
 
 \section{Future Work}\label{\positionnumber}
-To the current point we restricted ourselves to static rearrangements.
-But as the queries change, the access patterns do too.
-From that the need to rearrange the data dynamically based on the queries emerges.
-Static relocation as proposed by this method are restricted to a specific kind of data, while dynamic reordering may be applied independent of the data model, purely driven by the queries and their access patterns. \\
-Further it is to be examined, in how far the Leiden algorithm produces superior results in contrast with the louvain method. 
+In this thesis, we restricted ourselves to static rearrangements.
+However, as the queries change, the access patterns do too.
+From that, the need to rearrange the data dynamically emerges.
+Additionally, the results have shown that a static layout can be beneficial for one query while performing poorly for another query.
+Static record layout methods as proposed in Chapter~\ref{methods} are restricted to a specific kind of data, while dynamic reordering may be applied independently of the data model, purely driven by the queries and their access patterns. As the results show, a layout that works well for one query may not work for another. \\
+Also, it is to be examined how far the Leiden algorithm produces superior results in contrast with the Louvain method. 
 A runtime comparison between all described methods may not only shed light on the difference between these two algorithms but about the scalability and feasibility of all methods in general. \\
-Further it would be interesting to determine the degradation in locality, when removing or adding nodes and edges for all algorithms as it was done in by Hoque and Gupta~\autocite{hoque2012disk}. \\
-Finally, after the implementation of a disk-based storage mechanism and buffering, an interesting fact to determine would be the total runtime of the traversal-based queries, as well as the impact of the reorganization on the number and rate of page faults.
+Furthermore, it would be interesting to determine the locality's degradation when removing or adding nodes and edges for all algorithms as it was done by Hoque and Gupta~\autocite{hoque2012disk}. \\
+Finally, after implementing a disk-based storage mechanism and buffering, an exciting fact to determine would be the total runtime of the traversal-based queries and the impact of the reorganization on the number and rate of page faults.
 

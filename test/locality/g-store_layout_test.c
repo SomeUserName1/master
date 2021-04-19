@@ -447,19 +447,6 @@ test_full_run(in_memory_file_t* db)
     unsigned long* partition = g_store_layout(db);
     printf("Done.\n");
 
-    FILE* out_f =
-          fopen("/home/someusername/workspace_local/g-store_layout.txt", "w");
-
-    if (!out_f) {
-        printf("Couldn't open file");
-        exit(-1);
-    }
-
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
-        fprintf(out_f, "%lu %lu\n", i, partition[i]);
-    }
-
-    fclose(out_f);
     free(partition);
 }
 
@@ -469,7 +456,7 @@ main(void)
     printf("Start importing\n");
     in_memory_file_t* db  = create_in_memory_file();
     dict_ul_ul_t*     map = import_from_txt(
-          db, "/home/someusername/workspace_local/email_research_eu.txt");
+          db, "/home/someusername/workspace_local/email_eu.txt");
     dict_ul_ul_destroy(map);
 
     test_coarsen(db);

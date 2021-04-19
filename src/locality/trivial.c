@@ -47,7 +47,6 @@ random_partition(in_memory_file_t* db)
     for (size_t i = 0; i < db->node_id_counter; ++i) {
         partition[i] = i;
     }
-
     size_t        pos;
     unsigned long temp;
     for (size_t i = 0; i < db->node_id_counter; ++i) {
