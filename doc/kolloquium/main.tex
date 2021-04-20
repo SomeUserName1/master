@@ -36,30 +36,14 @@
 }
 
 \begin{document}
-  \begin{frame}<beamer>
-    \frametitle{Outline}
-    \tableofcontents[subsectionstyle=hide]
-  \end{frame}
-  
 \section{Introduction}
-        \begin{frame}[allowframebreaks]{Motivation}
+        \begin{frame}{Motivation}
         Current state of performance-optimized \\ [0.5em]
         \begin{itemize}
-            \item relational databases:
-            \begin{itemize}
-                \item Storage order determined by join attribute.  $\rightarrow$ enables localized access.
-                \item Explicit clustered indices (often B+-Trees). $\rightarrow$ represents order, speeds up range queries
-            \end{itemize}
-            $\Rightarrow$ Accesses are made as sequential as possible. \\
+            \item relational databases: accesses are made as sequential as possible. \\
             [1em]
             
-            \item graph databases:
-            \begin{itemize}
-                \item Storage order determined by insertion order.
-                \item Implicit, possibly unclustered index for relationships (doubly-linked list).
-                \item Lucene-based indexes on properties, labels, $\dots$, unclustered.
-            \end{itemize}
-            $\Rightarrow$ Access is mostly random.
+            \item graph databases: access is often random.
         \end{itemize}
     \end{frame}
     
@@ -102,82 +86,77 @@
                 
             \framebreak
             
-           % \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{×}
-            % TODO
-            
             \begin{itemize}
             \item Especially \texttt{Expand} jumps a lot. Potentially back and forth. \\ [2em]
             \item Traversals rely primarily on expand. 
             \end{itemize}
     \end{frame}
         
-        \section{Background}
-            \subsection{Graphs}
-                \begin{frame}{Graphs}
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=0.8\textheight, width=0.6\textwidth]{img/data_struct_gr.png}
-                     \end{center}
-                    \end{figure}
-                \end{frame}
+    \section{Background}
+        \begin{frame}{Property Graph Model}
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=.8\textwidth]{img/property_graph_elements.png}
+                \end{center}
+            \end{figure}
+        \end{frame}
+        
+         \begin{frame}[allowframebreaks]{Data Structures}
+            Two essential record structures: \\ [2em]
+            \begin{enumerate}
+            \item Node records \\ [2em]
+            \item Relationship records \\ [3em]
+            \end{enumerate}
+            Inspired by Neo4J
             
-                \begin{frame}{Traversals}
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=0.8\textheight, width=0.8\textwidth]{img/bfs-dfs.png}
-                     \end{center}
-                    \end{figure}
-                \end{frame}
-                    
-                
-            \subsection{The Property Graph Model}
-                \begin{frame}{Property Graph Model}
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=0.8\textheight, width=.8\textwidth]{img/property_graph_elements.png}
-                     \end{center}
-                    \end{figure}
-                \end{frame}
+            \framebreak
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=\textheight, width=\textwidth]{img/node_record.png}
+                \end{center}
+            \end{figure}
+            
+            \framebreak
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=\textheight, width=\textwidth]{img/relationship_record.png}
+                \end{center}
+            \end{figure}
+            
+            \framebreak
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=0.6\textheight, width=.6\textwidth]{img/graph.png}
+                \end{center}
+            \end{figure}
+            \end{frame}
+            
+            \begin{frame}
+            \vspace{-3.5em}
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=1.2\textheight, width=\textwidth]{img/example_structs.png}
+                \end{center}
+            \end{figure}
+        \end{frame}
         
-                \begin{frame}[allowframebreaks]{Data Structures}
-                    Two essential record structures: \\ [2em]
-                    \begin{enumerate}
-                    \item Node records \\ [2em]
-                    \item Relationship records
-                    \end{enumerate}
+        \begin{frame}{Graphs we focus on}
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.6\textwidth]{img/data_struct_gr.png}
+                \end{center}
+            \end{figure}
+        \end{frame}
+    
+        \begin{frame}{Traversals}
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.75\textwidth]{img/bfs-dfs.png} \hfill
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.2\textwidth]{img/astar.png}
+                \end{center}
+            \end{figure}
+        \end{frame}
                     
-                    \framebreak
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=\textheight, width=\textwidth]{img/node_record.png}
-                     \end{center}
-                    \end{figure}
-                    
-                    \framebreak
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=\textheight, width=\textwidth]{img/relationship_record.png}
-                     \end{center}
-                    \end{figure}
-                    
-                    \framebreak
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=0.6\textheight, width=.6\textwidth]{img/graph.png}
-                     \end{center}
-                    \end{figure}
-                    \end{frame}
-                    
-                    \begin{frame}
-                    \vspace{-3.5em}
-                    \begin{figure}
-                     \begin{center}
-                      \includegraphics[keepaspectratio, height=1.2\textheight, width=\textwidth]{img/example_structs.png}
-                     \end{center}
-                    \end{figure}
-                \end{frame}
-        
-
     \section{Problem Definition}
         \begin{frame}[allowframebreaks]{Problem Definition}
             Given a graph $G$, logical block size $b$, page size $p$. \\ [2em]
@@ -220,9 +199,6 @@
                  edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h} & \colorbox{green!30}{g}, \colorbox{green!30}{k} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} & \colorbox{red!30}{e} \\ \hline
                 \end{tabular}
             \end{table}
-            
-            \framebreak
-            TODO insert incidence list chaos and ordered here
         \end{frame}
         
     \section{Locality-optimizing Record Layout}
@@ -242,10 +218,11 @@
                 \begin{enumerate}
                  \item Project
                  \item Reorder
-                 \item Refine
+                 \item Refine\\ [3em]
                 \end{enumerate}
             \end{enumerate}
-            
+             \[ \min \sum_{(u,v) \in E} |\phi(u) - \phi(v)| \] 
+             
             \framebreak
             \begin{figure}[H]
                 \begin{center}
@@ -289,19 +266,12 @@
              \item Construct new graph from aggregated communities and go to 1.
             \end{enumerate}
             \vspace{2em}
-            \[ Q = \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{w_u w_v}{2m} \right) \cdot \delta (c_u, c_v) \]
+            \[ \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{w_u w_v}{2m} \right) \cdot \delta (c_u, c_v) \]
             
         \end{frame}
     
         \begin{frame}{Incidence List Rearrangement}
-            \begin{enumerate}
-             \item Traverse incidence list and store IDs.
-             \item Sort IDs.
-             \item Assign first relationship pointer to lowest ID.
-             \item Assign next pointer of new first relationship to second ID.
-             \item Assign next pointer of relationship $i$ to $i+1$. ID and prev pointer to $i-1$. ID.
-             \item Assign next pointer of last relation to first and prev pointer of first to last.
-            \end{enumerate}
+            TODO figure
 
         \end{frame}
         
@@ -317,43 +287,24 @@
         \begin{frame}[allowframebreaks]{Results}
             \begin{figure}
                 \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{img/c_elegans_Block_unsorted_io_comparison.pdf}
+                \includegraphics[keepaspectratio, height=\textheight, width=.45\textwidth]{img/c_elegans_Block_unsorted_io_comparison.pdf} \hfill
+                 \includegraphics[keepaspectratio, height=\textheight, width=.45\textwidth]{img/youtube_Block_unsorted_io_comparison.pdf}
                 \end{center}
             \end{figure}
             
             \framebreak
             \begin{figure}
                 \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.48\textwidth]{img/amazon_Block_unsorted_io_comparison.pdf}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.48\textwidth]{img/amazon_Page_unsorted_io_comparison.pdf}
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.45\textwidth]{img/amazon_Block_unsorted_io_comparison.pdf} \hfill
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.45\textwidth]{img/amazon_Page_unsorted_io_comparison.pdf}
                 \end{center}
             \end{figure}
-            
+
             \framebreak
             \begin{figure}
                 \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{img/youtube_Block_unsorted_io_comparison.pdf}
-                \end{center}
-            \end{figure}
-            
-            \framebreak
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{img/email_research_eu_Block_unsorted_io_comparison.pdf}
-                \end{center}
-            \end{figure}
-            
-            \framebreak
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{img/dblp_g-store_alt_block_sil_access_seq.png}
-                \end{center}
-            \end{figure}
-            
-            \framebreak
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=\textwidth]{img/youtube_louvain_bfs_page_sil_access_seq.png}
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=.45\textwidth]{img/dblp_g-store_alt_block_sil_access_seq.png} \hfill
+                \includegraphics[keepaspectratio, height=0.8\textheight, width=.45\textwidth]{img/youtube_louvain_bfs_page_sil_access_seq.png}
                 \end{center}
             \end{figure}
             
@@ -377,12 +328,9 @@
     
         \begin{frame}{Future Work}
         \begin{itemize}
-            \item Leiden instead of Louvain \\ [1em]
-            \item RCM-based rearrangement \\ [1em]
-            \item  Dynamic Rearrangement --- Query-based \\ [1em]
-            \item Disk-based implementation
+            \item Leiden instead of Louvain \\ [2em]
+            \item RCM-based rearrangement \\ [2em]
+            \item  Dynamic Rearrangement --- Query-based
         \end{itemize}
         \end{frame}
-        
-    \printbibliography
 \end{document}
