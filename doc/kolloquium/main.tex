@@ -122,22 +122,6 @@
                 \includegraphics[keepaspectratio, height=\textheight, width=\textwidth]{img/relationship_record.png}
                 \end{center}
             \end{figure}
-            
-            \framebreak
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.6\textheight, width=.6\textwidth]{img/graph.png}
-                \end{center}
-            \end{figure}
-            \end{frame}
-            
-            \begin{frame}
-            \vspace{-3.5em}
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=1.2\textheight, width=\textwidth]{img/example_structs.png}
-                \end{center}
-            \end{figure}
         \end{frame}
         
         \begin{frame}{Graphs we focus on}
@@ -199,6 +183,21 @@
                  edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h} & \colorbox{green!30}{g}, \colorbox{green!30}{k} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} & \colorbox{red!30}{e} \\ \hline
                 \end{tabular}
             \end{table}
+            
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=0.6\textheight, width=.6\textwidth]{img/graph.png}
+                \end{center}
+            \end{figure}
+            \end{frame}
+            
+            \begin{frame}
+            \vspace{-3.5em}
+            \begin{figure}
+                \begin{center}
+                \includegraphics[keepaspectratio, height=1.2\textheight, width=\textwidth]{img/example_structs.png}
+                \end{center}
+            \end{figure}
         \end{frame}
         
     \section{Locality-optimizing Record Layout}
@@ -271,14 +270,17 @@
         \end{frame}
     
         \begin{frame}{Incidence List Rearrangement}
-            TODO figure
-
+            \begin{figure}
+                \begin{center}
+                    \includegraphics[keepaspectratio, height=0.6\textheight, width=.6\textwidth]{img/incl.png}
+                \end{center}
+            \end{figure}
         \end{frame}
         
     \section{Evaluation}
         \begin{frame}{Setup}
         \begin{itemize}
-         \item Queries: BFS, DFS, Dijkstra, A$^*$, ALT. \\ [1em]
+         \item Queries: BFS, DFS, Dijkstra, A$^*$, ALT. \\ [1em]       
          \item Datasets: $[131, 1'134'890]$ nodes, $[764, 2'987'624]$ edges, average degree $[2.6, 25.5]$ \\ [1em]
          \item Domains include biological neural net, E-Mails, Co-authors, Frequent item sets, Comments.
         \end{itemize}
