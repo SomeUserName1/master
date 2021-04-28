@@ -128,19 +128,20 @@
 \section{Problem Definition}
     \begin{frame}[allowframebreaks]{Locality}
             \begin{itemize}
-                \item  ``memory references tend to be localized in time and space''~\autocite{jacob2010memory}. \\ [2em]
-                \item Tendency to access nearby memory locations based on previous accesses~\autocite{denning2006locality}. \\ [2em]
-                \item Enables usage of memory hierarchy. \\ [3em]
+                \item  ``memory references tend to be localized in time and space''~\autocite{jacob2010memory}. \\ [4em]
+                \item Tendency to access nearby memory locations based on previous accesses~\autocite{denning2006locality}. 
             \end{itemize}
             
-            $\Rightarrow$ The more localized the access the less IO ops are necessary~\autocite{gupta2013locality}.
 
          \framebreak
             Temporal locality based on blocks 
-                \[ P (X_{t + \Delta} = B | X_t = B) \] \\ [2em]
+                \[ P (X_{t + \Delta} = B | X_t = B) \] \\ [1em]
             Spatial locality in the same sense 
                 \[ P(X_{t + \Delta} = B \pm \varepsilon | X_t = B) \] 
-                with $\varepsilon = \lceil \frac{p}{b} \rceil$~\autocite{gupta2013locality}.
+                with $\varepsilon = \lceil \frac{p}{b} \rceil$~\autocite{gupta2013locality}. \\ [3em]
+                
+                
+                $\Rightarrow$ The more localized the access, the less IO ops are necessary~\autocite{gupta2013locality}.
           
         \end{frame}
 
@@ -293,8 +294,8 @@
             \begin{itemize}
             \item Simulate IOs using in-memory access layer, queries and record IDs. \\ [1em]
             \item Block no. $=$ record ID $\cdot$ \texttt{sizeof(}record struct\texttt{)} $/$ block size \\  [1em]
-            \item Consecuive accesses to same block require no IO op. \\ [1em]
-            \item All other accesses count as one IO op. \\ [2em]
+            \item Buffer of 1 block.  \\ [1em]
+            \item Consecutive accesses to same block require no additional IO op. \\ All other accesses do. \\ [2em]
             \end{itemize}
             \begin{enumerate}
                 \item Import dataset.
@@ -341,7 +342,6 @@
             \begin{itemize}
                 \item Static rearrangement methods increase locality. \\ [0.5em]
                 $\Rightarrow$ decrease number of block accesses \\ [3em]
-                \item The order of blocks is important for spatial locality \\ [3em]
                 \item Sorting the incidence lists leads to more sequential access sequences. \\ [3em]
                 \item Results differ between queries 
                 \end{itemize}
