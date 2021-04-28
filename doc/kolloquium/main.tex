@@ -1,6 +1,6 @@
  \documentclass[rgb]{beamer}
 \usepackage{silence,lmodern}
-\usepackage[backend=biber, style=nature]{biblatex}
+\usepackage[backend=biber, style=ieee]{biblatex}
 \usepackage{csquotes}
 \usepackage{listings}
 \usepackage{svg}
@@ -37,56 +37,7 @@
 
 \begin{document}
 \section{Introduction}
-        \begin{frame}{Motivation}
-        Current state of performance-optimized \\ [2em]
-        \begin{itemize}
-            \item relational databases: accesses are made as sequential as possible. \\
-            [1em]
-            
-            \item graph databases: access is often random.
-        \end{itemize}
-    \end{frame}
-    
-    \begin{frame}[allowframebreaks,fragile]{Motivation -- Example}
-        Show me all boats owned by sailors with an ID less than 50:
         
-        \begin{figure}[htp]
-        \begin{center}
-        \begin{forest}
-            [ $\quad \bowtie^m$
-            [ $\quad \bowtie^m$
-                [ index $\sigma_{\text{ID} < 50}$ S ]
-                [ scan O ]
-            ]
-            [ scan B ]
-        ]
-        \end{forest} 
-        \end{center}        
-        \end{figure}
-        Reads are mostly sequential. \\   [1em]
-        $\Rightarrow$ Prefetch \& cache hit.
-        
-        \framebreak
-        
-        Nodes are Sailors and Boats, relationships ``owns''
-        
-        \begin{figure}[htp]
-        \begin{center}
-          \begin{forest}
-            [ $\sigma_{y.\text{label = 'Boat'}}$
-            [ $\uparrow_x^y$
-                [ $\sigma_{x.ID < 50 \wedge x.\text{label = 'Sailor'}}$ ($\bigcirc$ x) ]
-            ]
-        ]
-        \end{forest} 
-        \end{center}        
-        \end{figure}
-        Scaning and filtering is sequential. \texttt{Expand} is not. \\ [1em]
-        $\Rightarrow$ \texttt{Expand} causes prefetch \& cache misses. \\ [0.5em]
-        \alert{Traversals rely primarily on expand.}
-    \end{frame}
-        
-    \section{Background}
         \begin{frame}{Graphs}
             \begin{figure}
                 \begin{center}
@@ -94,14 +45,14 @@
                 \end{center}
             \end{figure}
         \end{frame}
-        
+
          \begin{frame}[allowframebreaks]{Data Structures}
             Two essential record structures: \\ [2em]
             \begin{enumerate}
-            \item Node records \\ [2em]
-            \item Relationship records \\ [3em]
+                \item Node records \\ [2em]
+                \item Relationship records \\ [3em]
             \end{enumerate}
-            Inspired by Neo4J
+            Inspired by Neo4J~\autocite{robinson2015graph, Rodriguez2010ConstructionsFD}.
             
             \framebreak
             \begin{figure}
@@ -134,17 +85,66 @@
             \end{figure}
         \end{frame}
     
-        \begin{frame}{Traversals}
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.75\textwidth]{img/bfs-dfs.png} \hfill
-                \includegraphics[keepaspectratio, height=0.8\textheight, width=0.2\textwidth]{img/astar.png}
-                \end{center}
-            \end{figure}
+    \begin{frame}[fragile]{Example Query}        
+        Show me all people that Bob knows:
+        
+        \begin{figure}[htp]
+            \begin{center}
+            \begin{forest}
+                [ $\uparrow_x^y$
+                    [ $\sigma_{x.\text{name = 'Bob'}}$ ($\bigcirc$ x) ]
+                ]
+                \end{forest} 
+            \end{center}        
+        \end{figure}
+        
+        $\Rightarrow$ Scaning and filtering read sequential. \\ [1em]
+        $\Rightarrow$ \texttt{Expand} does not necessarily. \\ [1em]
+    \end{frame}
+    
+    \begin{frame}{Traversal-based Query}
+        \begin{figure}
+            \begin{center}
+            \includegraphics[keepaspectratio, height=0.6\textheight, width=0.6\textwidth]{img/astar.png}
+            \end{center}
+        \end{figure}
+    \end{frame}
+
+    
+     \begin{frame}{Motivation}    
+        \begin{itemize}
+            \item \texttt{Expand}'s access pattern depends on the query, record and incidence list order. \\ [2em]
+            \item When these factors are not considered, access is random. \\ [1em]
+            Potentially leads to \\ [0.5em]
+               \begin{itemize}
+                    \item[$\Rightarrow$] hard-to-predict access patterns.
+                    \item[$\Rightarrow$] cache \& prefetch misses, thrashing and pollution.
+                    \item[$\Rightarrow$] inadequate page eviction behavior. \\ [2em]
+                \end{itemize}
+        \end{itemize}
+        \alert{Traversals rely primarily on \texttt{expand}!}
+    \end{frame}
+    
+\section{Problem Definition}
+    \begin{frame}[allowframebreaks]{Locality}
+            \begin{itemize}
+                \item  ``memory references tend to be localized in time and space''~\autocite{jacob2010memory}. \\ [2em]
+                \item Tendency to access nearby memory locations based on previous accesses~\autocite{denning2006locality}. \\ [2em]
+                \item Enables usage of memory hierarchy. \\ [3em]
+            \end{itemize}
+            
+            $\Rightarrow$ The more localized the access the less IO ops are necessary~\autocite{gupta2013locality}.
+
+         \framebreak
+            Temporal locality based on blocks 
+                \[ P (X_{t + \Delta} = B | X_t = B) \] \\ [2em]
+            Spatial locality in the same sense 
+                \[ P(X_{t + \Delta} = B \pm \varepsilon | X_t = B) \] 
+                with $\varepsilon = \lceil \frac{p}{b} \rceil$~\autocite{gupta2013locality}.
+          
         \end{frame}
-                    
-    \section{Problem Definition}
-        \begin{frame}[allowframebreaks]{Problem Definition}
+
+     \begin{frame}{Problem Definition}
             Given a graph $G$, logical block size $b$, page size $p$. \\ [2em]
             Desired is \\ [1em]
             \begin{enumerate}
@@ -152,16 +152,9 @@
             \item permutations $\pi_v, \pi_e$ of the blocks,\\ [1.5em]
             \end{enumerate}
             such that locality is as high as possible for traversal-based queries.
-            
-            \framebreak
-            
-            Temporal locality based on blocks.
-                \[ P (X_{t + \Delta} = B | X_t = B) \]
-            Spatial locality in the same sense:
-                \[ P(X_{t + \Delta} = B \pm \varepsilon | X_t = B) \]
-                with $\varepsilon = \lceil \frac{p}{b} \rceil$.
-          
-            \framebreak
+    \end{frame}
+    
+    \begin{frame}[fragile]{Example: Block Formation and Order}
             \begin{figure}[htp]
                 \begin{center}
                     \includegraphics[keepaspectratio,height=0.4\textheight,width=\textwidth]{img/example_graph.png}
@@ -185,9 +178,25 @@
                  edge.db &  \colorbox{green!30}{f}, \colorbox{green!30}{h} & \colorbox{green!30}{g}, \colorbox{green!30}{k} & \colorbox{green!30}{i}, \colorbox{green!30}{j} & \colorbox{blue!30}{a}, \colorbox{blue!30}{b} & \colorbox{blue!30}{c}, \colorbox{blue!30}{d} & \colorbox{red!30}{e} \\ \hline
                 \end{tabular}
             \end{table}
-        \end{frame}
+        \end{frame}       
         
-    \section{Locality-optimizing Record Layout}
+\section{Locality-optimizing Record Layout}
+    \begin{frame}{Record Layout Methods: Overview}
+        \begin{itemize}
+            \item Existing methods \\ [0.5em]
+            \begin{itemize}
+                \item G-Store~\autocite{steinhaus2010g} \\ [0.5em]
+                \item ICBL~\autocite{yacsar2017distributed} \\ [2em]
+            \end{itemize}
+            
+            \item Our approach \\ [0.5em]
+            \begin{itemize}
+             \item Community detection --- Louvain method~\autocite{blondel2008fast}. \\ [0.5em]
+             \item Incidence list reordering
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
         \begin{frame}[allowframebreaks, fragile]{G-Store}
             \begin{figure}[H]
                 \begin{center}
@@ -198,7 +207,7 @@
             \framebreak
             \vfill\vspace{0pt}
             \begin{enumerate}
-             \item Coarsening: Heavy-Edge Matching
+             \item Coarsening: Heavy-Edge Matching~\autocite{karypis}
              \item Turn-around
              \item Uncoarsening
                 \begin{enumerate}
@@ -228,9 +237,9 @@
             
             \framebreak
             \begin{enumerate}
-             \item[I ] Feature extraction: Do $t$ random walks of length $l$. 
-             \item[C] Coarse clustering: Adapted K-Means.
-             \item[B] Block Formation: Agglomerative hierarchical clustering.
+             \item[I ] Feature extraction: Do $t$ random walks~\autocite{fouss2007random} of length $l$. 
+             \item[C] Coarse clustering: Adapted K-Means~\autocite{lloyd1982least}.
+             \item[B] Block Formation: Agglomerative hierarchical clustering~\autocite{hac}.
              \item[L] Layout Blocks: Sort blocks and subgraphs
             \end{enumerate}
 
@@ -255,7 +264,7 @@
             \[ \frac{1}{2m} \sum_{u,v \in V} \left( w_{(u, v)} - \frac{w_u w_v}{2m} \right) \cdot \delta (c_u, c_v) \]
             
         \end{frame}
-    
+        
         \begin{frame}{Incidence List Rearrangement}
             \begin{figure}
                 \begin{center}
@@ -266,19 +275,33 @@
         
     \section{Evaluation}
         \begin{frame}[allowframebreaks]{Setup}
-        \begin{itemize}
-         \item Queries: BFS, DFS, Dijkstra, A$^*$, ALT. \\ [3em]       
-            \begin{figure}
-                \begin{center}
-                \includegraphics[keepaspectratio, height=0.4\textheight, width=0.75\textwidth]{img/bfs-dfs.png} \hspace{0.7cm}
-                \includegraphics[keepaspectratio, height=0.4\textheight, width=0.2\textwidth]{img/astar.png}
-                \end{center}
-            \end{figure}
-            
-            \framebreak
-         \item Datasets: $[131, 1'134'890]$ nodes, $[764, 2'987'624]$ edges, average degree $[2.6, 25.5]$ \\ [3em]
-         \item Domains include biological neural net, e-mails, co-authors, frequent item sets, video channel subscriptions.
-        \end{itemize}
+            \begin{itemize}
+            \item Queries: BFS, DFS, Dijkstra, A$^*$, ALT. \\ [3em]       
+                \begin{figure}
+                    \begin{center}
+                    \includegraphics[keepaspectratio, height=0.4\textheight, width=0.75\textwidth]{img/bfs-dfs.png} \hspace{0.7cm}
+                    \includegraphics[keepaspectratio, height=0.4\textheight, width=0.2\textwidth]{img/astar.png}
+                    \end{center}
+                \end{figure}
+                
+                \framebreak
+            \item Datasets: $[131, 1'134'890]$ nodes, $[764, 2'987'624]$ edges, average degree $[2.6, 25.5]$ \\ [3em]
+            \item Domains include biological neural net, e-mails, co-authors, frequent item sets, video channel subscriptions~\autocite{snap}.
+            \end{itemize}
+        \framebreak
+        
+            \begin{itemize}
+            \item Simulate IOs using in-memory access layer, queries and record IDs. \\ [1em]
+            \item Block no. $=$ record ID $\cdot$ \texttt{sizeof(}record struct\texttt{)} $/$ block size \\  [1em]
+            \item Consecuive accesses to same block require no IO op. \\ [1em]
+            \item All other accesses count as one IO op. \\ [2em]
+            \end{itemize}
+            \begin{enumerate}
+                \item Import dataset.
+                \item Run query and log IDs of accessed nodes and relationships.
+                \item Calculate sequence of block no. from sequence of IDs.
+                \item Calculate sequence of page no. from sequence of block no.
+               \end{enumerate}
         \end{frame}
         
         \begin{frame}[allowframebreaks]{Results}
@@ -316,17 +339,18 @@
     \section{Conclusion}
         \begin{frame}{Summary}
             \begin{itemize}
-                \item Static rearrangement methods decrease number of block accesses. \\ [0.5em]
-                $\Rightarrow$ increase locality \\ [3em]
-                \item Ordering the blocks is crucial for spatial locality. \\ [3em]
-                \item Sorting the incidence lists leads to more sequential access sequences. 
+                \item Static rearrangement methods increase locality. \\ [0.5em]
+                $\Rightarrow$ decrease number of block accesses \\ [3em]
+                \item The order of blocks is important for spatial locality \\ [3em]
+                \item Sorting the incidence lists leads to more sequential access sequences. \\ [3em]
+                \item Results differ between queries 
                 \end{itemize}
         \end{frame}
     
         \begin{frame}{Future Work}
         \begin{itemize}
-            \item Leiden instead of Louvain \\ [2em]
-            \item RCM-based rearrangement \\ [2em]
+            \item Leiden~\autocite{traag2019louvain} instead of Louvain \\ [2em]
+            \item RCM-based~\autocite{Cuthill1969ReducingTB} rearrangement \\ [2em]
             \item  Dynamic Rearrangement \\ [1.5em]
                 \begin{itemize}
                  \item Query-based \\ [1em]
@@ -335,4 +359,12 @@
 
         \end{itemize}
         \end{frame}
+        
+\section{References}
+    \begin{frame}[allowframebreaks]
+    \nocite{*}
+      \begin{tiny}
+      \printbibliography
+      \end{tiny}
+    \end{frame}
 \end{document}
