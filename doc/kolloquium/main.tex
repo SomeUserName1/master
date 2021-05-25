@@ -294,7 +294,7 @@
             \begin{itemize}
             \item Simulate IOs using in-memory access layer, queries and record IDs. \\ [1em]
             \item Block no. $=$ record ID $\cdot$ \texttt{sizeof(}record struct\texttt{)} $/$ block size \\  [1em]
-            \item Buffer of 1 block.  \\ [1em]
+            \item Buffer of 1 block. $b = 512$ B, $p = 4096$ B \\ [1em]
             \item Consecutive accesses to same block require no additional IO op. \\ All other accesses do. \\ [2em]
             \end{itemize}
             \begin{enumerate}
@@ -342,6 +342,7 @@
             \begin{itemize}
                 \item Static rearrangement methods increase locality. \\ [0.5em]
                 $\Rightarrow$ decrease number of block accesses \\ [3em]
+                \item Order of blocks determines spatial locality. \\ [3em]
                 \item Sorting the incidence lists leads to more sequential access sequences. \\ [3em]
                 \item Results differ between queries 
                 \end{itemize}
