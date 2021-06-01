@@ -1,0 +1,26 @@
+\begin{titlepage}
+\thispagestyle{plain}
+   \begin{center}
+       \vspace*{1cm}
+        \Huge
+       \textbf{Graph Record Layout Research Environment} \\
+       \Large
+       \textbf{A graph database with some layout tools \& methods} \\
+       \vspace*{1cm}
+       \normalsize
+       Fabian Klopfer \vspace{1em}\\
+       Databases and Information Systems Group \\
+       Department of Computer Science \\
+       University of Konstanz\\
+       \includegraphics[keepaspectratio, height=0.3\textheight]{img/logo.pdf}
+        \vspace*{1cm}
+        
+        \textbf{Abstract: \\}
+        The here described software is focussed on finding new methods to layout the records of a graph database such that the least possible accesses are necessary to satisfy a certain benchmark. A benchmark is here usualy a set of queries, for example traversal-based queries. The current state-of-the-art methods use the graph structure to statically layout the graph on disk using clustering, partitioning or community detection methods to form blocks along with some ordering algorithm.
+        The methods that are to be explored are dynamic --- either in terms of the query or in terms of a changing database.
+        This document provides a high-level user guide to the structure of the database and the methods and tools that are implemented. Furthermore the specification as well as a more extensive design document are captured, along with some benchmark and visualization techniques.
+   \end{center}
+\end{titlepage}
+
+\newpage
+\tableofcontents
