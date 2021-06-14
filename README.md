@@ -18,14 +18,20 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 <p style="text-align: center;"><font size="20"><progress id="write" value="0" max="1">Documentation</progress></font></p>
 
-- Code Comments
+- [x] SRS
+- [ ] SDD
+- [ ] User Guide
+- [ ] Code Comments
 
 
 ## Implementation
 <p style="text-align: center;"><font size="20"><progress id="file" value="0" max="1">Implementation</progress></font></p>  
 
 #### Possible Features 
-  - [ ] Disk-based IO for records only
+  - [ ] Marko-based genereic data structures
+  - [ ] Disk-based IO
+  - [ ] Cache
+  - [ ] Non-consecutive IDs & support deletions
   - [ ] Dynamic Reorganization Impl.
   - [ ] Hop labeling scheme: Use existing impl.
   - [ ] More traversal-based queries
@@ -42,8 +48,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare reorganization of simulated and disk-based
   
 ### Future Work
-  - [ ] Cache
-  - [ ] Non-consecutive IDs & support deletions
   - [ ] thread-safe BSD-style data structures (to avoid wrapper code) or use C++ or Rust
   - [ ] Transactions/MVCC using git-like transaction logs
   - [ ] Alternative record layouts (nodes + adj list in same file)

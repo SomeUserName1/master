@@ -88,8 +88,8 @@
 	\item store a graph $G$ consisting of nodes and edges $(V, E)$.
 	\item store the records in a file on disk.
     \item be able to grow and shrink the size of the file that is used.
-    \item be able to read from disk into main memory.
-    \item be able to write back to disk.
+    \item be able to read from disk.
+    \item be able to write information to disk.
 	\end{enumerate}
 	
 \item Data Caching and Memory  \\
@@ -102,6 +102,10 @@
 	\item maintain a mapping from loaded data to frames.
 	\item evict data from memory when the memory limit is hit
 	\item be able to prefetch by reading more data than required in a neighbourhood
+    \item be able to monitor the numer of overall disk accesses.
+	\item be able to monitor the number of disk accesses that are necessary, if only a certain limited amount of memory is available.
+	\item be able to monitor the cache hit rate.
+	\item be able to monitor the prefetch hit rate.
 	\end{enumerate}
 
 \item Data Access \\
@@ -112,11 +116,7 @@
 	\item be able to create, read, update and write nodes.
 	\item be able to create, read, update and write relationships.
 	\item provide an interface to easily retrieve and traverse data.
-	\item provide functions to retrieve common informations about nodes and relationships, like the node degree.
-	\item be able to monitor the numer of overall disk accesses.
-	\item be able to monitor the number of disk accesses that are necessary, if only a certain limited amount of memory is available.
-	\item be able to monitor the cache hit rate.
-	\item be able to monitor the prefetch hit rate.
+    \item provide functions to retrieve common informations about nodes and relationships, like the node degree.
 	\end{enumerate}
 
 \item Queries \\
@@ -129,21 +129,16 @@
 	\item provide data structures for the results of the above algorithms.
 	\item implement the Louvain method for community detection.
 	\item implement a random walk.
-	\end{enumerate}
-
-\item Data Import \\
-    The system shall
-	\begin{enumerate}[label*=\arabic*]
 	\item be able to import a set of standard data sets from the SNAP data set collection.
 	\end{enumerate}
-	
+
 \item Layout Tools \\
     The system shall
 \begin{enumerate}[label*=\arabic*]
 	\item provide a function to generate a randomized record layout.
 	\item provide functions to reorganize the record layout on disk, given updated record IDs.
-	\item provide a function to sort the incidence list structure after reorganizing the record structure.
 	\item provide a function to reorganize the relationships given a layout of the vertices.
+	\item provide a function to sort the incidence list structure after reorganizing the record structure.
 \end{enumerate}
 
 \item Layout Methods \\

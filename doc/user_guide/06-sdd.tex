@@ -42,19 +42,9 @@
 	\subsection{Software Architecture}
 		\subsubsection{Overview}
 		The graph record layout research environment consists of a database and a set of functions to assist in reordering records, measuring the number of IOs of a certain layout, visualizing the results, queries with certain access patterns, and an interface to implement new layout methods easily into the environment.
-			\begin{description}
-				\item [IO] 
-				\item [Cache]
-				\item [Access] 
-				\item [Queries] 
-				\item [Import] 
-				\item [Layout Utilities] 
-				\item [Layout Methods] 
-				\item [Visualization Utilities]
-			\end{description}
+
 			
 		\subsubsection{Subsystem decomposition}
-
 			\paragraph{IO}
 				The storage module shall provide IO methods, the concepts of a file, a page and a disk manager to manage and keep references to the afore mentioned. \\
                 \includegraphics[keepaspectratio, width=\textwidth]{img/io_arch.png} \\
@@ -94,9 +84,6 @@
 			\paragraph{Queries}
                 Further is shall provides functions that use the other modules in order to generate access patterns, that is sequences of records and thus also disk blocks retreived from disk.
                 The first query to be considered is breadth first search. Additionally Dijkstras algorithm and the A* algorithm are planned to be considered. Another class of possible queries to consider are random walks.
-
-				
-			\paragraph{Import}
 				
 			\paragraph{Layout Utilities}
 			
