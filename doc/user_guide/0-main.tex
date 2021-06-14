@@ -1,4 +1,5 @@
 \documentclass[a4paper]{report}
+\usepackage{a4wide}
 \usepackage{fancyhdr}
 \usepackage{scrextend}
 \usepackage{coordsys,logsys,color}
@@ -19,6 +20,7 @@
 \usepackage{ltxtable}
 \usepackage{cleveref}
 \usepackage[backend=biber]{biblatex}
+\usepackage{minted}
 
 \NeedsTeXFormat{LaTeX2e}
 \definecolor{darkblue}{rgb}{0,0,.6}
@@ -27,7 +29,7 @@
 \pagestyle{fancy}
 \rhead{}
 
-\setlength{\headheight}{14pt}
+\setlength{\headheight}{23pt}
 \bibliography{resources.bib}
 
 \begin{document}
@@ -35,10 +37,9 @@
 \include{00-title}
 
 \chapter{User Guide}
-\include{01-introduction}
-\include{02-architecture} 
-\include{03-methods}
-\include{04-conclusion}
+\include{01-architecture} 
+\include{02-methods}
+\include{03-conclusion}
 
 \printbibliography
 
@@ -46,9 +47,7 @@
 
 \chapter{Technical Documentation}
 \begin{refsection}
-\include{05-srs}
+\include{04-srs_sdd}
 \printbibliography
 \end{refsection}
-\include{06-sdd}
-\include{07-eval}
 \end{document}
