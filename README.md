@@ -16,16 +16,16 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 ## Documentation 
 
-<p style="text-align: center;"><font size="20"><progress id="write" value="0" max="1">Documentation</progress></font></p>
+<p style="text-align: center;"><font size="20"><progress id="write" value="2" max="4">Documentation</progress></font></p>
 
 - [x] SRS
-- [ ] SDD
+- [x] SDD
 - [ ] User Guide
 - [ ] Code Comments
 
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="0" max="1">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="0" max="6">Implementation</progress></font></p>  
 
 #### Possible Features 
   - [ ] Marko-based genereic data structures
@@ -34,8 +34,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Non-consecutive IDs & support deletions
   - [ ] Dynamic Reorganization Impl.
   - [ ] Hop labeling scheme: Use existing impl.
-  - [ ] More traversal-based queries
-  - [ ] Evaluation: Run n% of queries, reorganize, run remaining 1-n%
 
 #### Brainstorm
   - Adapt louvain w RCM
@@ -48,6 +46,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare reorganization of simulated and disk-based
   
 ### Future Work
+  - [ ] More traversal-based queries
   - [ ] thread-safe BSD-style data structures (to avoid wrapper code) or use C++ or Rust
   - [ ] Transactions/MVCC using git-like transaction logs
   - [ ] Alternative record layouts (nodes + adj list in same file)
@@ -57,8 +56,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 
 ## Meeting 1
-- Theodoros insists on no Software Requirement Sheet, no Software Design Document, nor a User Guide
-
 - Goal: Paper  
 	- Intro
 	- X
