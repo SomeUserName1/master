@@ -30,31 +30,31 @@ encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:01-architecture.tex]
+[item:01-intro.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:01-introduction.tex]
+[item:02-architecture.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX
 mode=LaTeX
 
-[item:02-methods.tex]
-archive=true
-encoding=UTF-8
-highlight=LaTeX
-mode=LaTeX
-
-[item:03-conclusion.tex]
+[item:03-methods.tex]
 archive=true
 encoding=
 highlight=
 mode=
 
-[item:04-srs_sdd.tex]
+[item:04-conclusion.tex]
+archive=true
+encoding=
+highlight=
+mode=
+
+[item:05-srs_sdd.tex]
 archive=true
 encoding=UTF-8
 highlight=LaTeX

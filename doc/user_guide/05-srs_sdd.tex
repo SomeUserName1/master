@@ -1,6 +1,4 @@
-\section{Software Requirement Specification and Design Document}
-
-\subsection{Introduction}
+\section{Introduction}
 	\subsubsection{Purpose}
 			The purpose of this combined Software Requirements Specification and Design Documents is to describe the features, constraints, demands and the intended design of a research environment for the optimal layout of graph records on disk in detail. This document is intended for both the stakeholders and the developers of the system and will be proposed to Dr. Theodoros Chondrogiannis, the supervising postdoctoral researcher.
 	\subsubsection{Scope}
@@ -23,8 +21,6 @@
 	Breadth-first Search & BFS & A graph traversal scheme, where all neighbours of the current node are visited before continuing with the next node. \\ \hline
 	Depth-first Search & DFS & A graph traversal scheme, where the next node is considered before visiting all neighbours of the current node. \\ \hline
 	Single Source Shortest Path & SSSP & The problem of finding the shortest path to all nodes in a graph from one source node. \\ \hline
-	\dots & \dots & \dots \\ \hline
-	\hline
 	\end{longtable}
 
 	\subsubsection{Overview}
@@ -62,7 +58,7 @@
 		 	\item (Future) Developers: Uses the existing framework to extend the functionality, for example to implement additional queries of a different type, add new features like storing properties and similar things. Needs to know details of database architecture and implementation, more advanced C programming and some software engineering.
 		\end{itemize}
 		\begin{center}
-		 \includegraphics[keepaspectratio,width=\textwidth]{img/use_case.png}
+		 \includegraphics[keepaspectratio,width=0.8\textwidth]{img/use_case.png}
 		\end{center}
 
 	\subsubsection{Constraints}
@@ -76,12 +72,12 @@
 
 
 
-\subsection{Requirements}
-	\subsubsection{External interfaces}
+\section{Requirement Specification}
+	\subsection{External interfaces}
 	The POSIX interfaces. \\
 	The data format of some of the SNAP data sets. \\
 
-	\subsubsection{Functional requirements}
+	\subsection{Functional requirements}
 \begin{enumerate}[label*=\arabic*]
 \item Data Storage and IO \\
     The system shall
@@ -148,20 +144,14 @@
 	\item implement one static and one dynamic history-based layout method for a static database.
 	\item provide an interface for implementing new layout methods.
 \end{enumerate}
-
-\item Visualization Tools \\
-    The system shall
-\begin{enumerate}[label*=\arabic*]
-    \item provide functions to visualize and visually compare the data that was monitored by the caching functionality.
-\end{enumerate}
 \end{enumerate}
 
-\subsubsection{Performance Requirements}
+\subsection{Performance Requirements}
 \begin{enumerate}[label*=\arabic*]
 		\item The system shall work with limited RAM resources even for very large datasets.
 \end{enumerate}
 
-\subsubsection{Software System Attributes}
+\subsection{Software System Attributes}
 \begin{enumerate}[label*=\arabic*]
     \item Maintainability
     \item Extensibility
@@ -174,16 +164,16 @@
 \end{center}
 		\newpage
 		
-\subsection{Software Design}
-\subsubsection{Overview}
+\section{Software Design}
+\subsection{Overview}
 The graph record layout research environment consists of the lower layers of a database and a set of functions to assist in reordering records, measuring the number of IOs of a certain layout, visualizing the results, queries with certain access patterns, and an interface to implement new layout methods easily into the environment. The database layers are implemented in the IO, Cache and Access layers. The Query package does not contain a complete query language and evaluator but just a set of algorithms to be executed on the graph. \\ [2em]
 
 \hspace{-2cm}\includegraphics[keepaspectratio,width=1.2\textwidth, height=.7\textheight]{img/overview.png}
 
 \newpage
 
-\subsubsection{Subsystem decomposition}
-    \paragraph{IO}
+\subsection{Subsystem decomposition}
+    \subsubsection{IO}
         The IO package shall provide the concepts of a file, a page and a disk manager. \\
         Each page consists of slots that can hold records. The page keeps track of the usage of these slots with a bitmap. It also provides functions to read and write a slot. \\
         Each file consists of a set of pages. The file accounts for the usage of pages with a page directory~\autocite{ramakrishnan2000database}. It also provides functions to read and write a page. \\
@@ -194,39 +184,50 @@ The graph record layout research environment consists of the lower layers of a d
         \end{center}
         \newpage
 
-    \paragraph{Page Cache}
+    \subsubsection{Page Cache}
         This packages provides a cache for pages, that is it loads and stores pages from or to disk in a fixed amount of RAM. To do this it splits the available main memory into frames of the size of a page and maintains a mapping from frames to pages, a list of free frames and evicts pages from main memory to free up space for pages to be loaded.
         \begin{center}
          \includegraphics[keepaspectratio, width=\textwidth, height=0.4\textheight]{img/cache_arch.png} \\
         \end{center}
-    
-    \paragraph{Record Structures}
-    The layout of the records and the structs to keep them in memory are implemented in the record package. Read and write operations are specified using these structs. The records structs are inspired by the ones used in Neo4 (see the documentation on that).  
-    This directory contains the structs and read/write functions of nodes and relationships \\
-    \begin{center}
-     \includegraphics[keepaspectratio, width=\textwidth, height=0.2\textheight]{img/record_arch.png} \\
-    \end{center}
-    \newpage
-    
-    \paragraph{Access}
-        The Accesss package provides methods to create, read, update and delete nodes and relationships. It futher provides these functions for all records and ranges of records at once. Finally it implements the expand operator as described by Grossniklaus and Hoelsch~\autocite{Holsch2016Algeb}.
+        \newpage
+        
+    \subsubsection{Access}
+        The Accesss package provides the record structures along with methods to create, read, update and delete nodes and relationships. The records structs are inspired by the ones used in Neo4 (see the documentation on that).  It futher provides these functions for all records and ranges of records at once. Finally it implements the expand operator as described by Grossniklaus and Hoelsch~\autocite{Holsch2016Algeb}.
 
         \begin{center}
-         \includegraphics[keepaspectratio, width=\textwidth, height=0.3\textheight]{img/access_arch.png} \\
+         \includegraphics[keepaspectratio, width=\textwidth, height=0.5\textheight]{img/access_arch.png} \\
         \end{center}
 
             
-    \paragraph{Queries}
-        The query package is a collection of algorithms to be executed using the lower levels of the graph database. These include traversals, path finding algorithms, community detection methods, but also a utility to import datasets from the stanford network analytics platform project~\autocite{snap}.
+    \subsubsection{Queries}
+        The query package is a collection of algorithms to be executed using the lower levels of the graph database. These include traversals, shortest path algorithms, community detection methods, but also a utility to import datasets from the stanford network analytics platform project~\autocite{snap}. \\
+        Currently implemented are:
+        \begin{itemize}
+         \item Traversals
+         \begin{itemize}
+                \item BFS~\autocite{zuse1948allgemeinen}
+                \item DFS~\autocite{lucas1891recreations}
+                \item Random Walk~\autocite{pearson1905problem}
+               \end{itemize}
+         \item Shortest Path
+         \begin{itemize}
+          \item Dijksta's Algorithm~\autocite{dijkstra1959note}
+          \item A$^*$~\autocite{hart1968formal}
+          \item ALT~\autocite{goldberg2005computing}
+         \end{itemize}
+        \item Community Detection
+        \begin{itemize}
+         \item Louvain Method~\autocite{blondel2008fast}
+        \end{itemize}
+
+        \end{itemize}
+
         
-    \paragraph{Layout Utilities}
+    \subsubsection{Layout Utilities}
     The layout utilities package provides functions to reorder the records given a mapping from the current record IDs to the desired ones. It also provides means to generate a random mapping and to sort the incidence list of the relationships after reorganizing the records.
     
-    \paragraph{Visualization Utilities}
-    The visualization utilities consist of a python script that can be used to visualize the measures by the page cache when executing an algorithm. This can be used for the evaluation of methods.
-    
-    \paragraph{Layout Method Interface} 
-    The layout method interface is to be implemented, such that it returns a map from the current IDs to the desired record IDs, where the record IDs encode the position in the file.
+    \subsubsection{Layout Method Interface} 
+    The layout method interface is to be implemented, such that it returns a map from the current IDs to the desired record IDs, where the record IDs encode the position in the file. The name of the method can be arbitrary, it is just of importance that the arguments and the return type are as specified, as well as the invariants.
     \begin{verbatim}
   unsigned long[] layout_nodes(graph_database db) {
     require db != null;
@@ -242,22 +243,7 @@ The graph record layout research environment consists of the lower layers of a d
     ensure db.num_relationships == result array length
     ensure unique relationship IDs
   }
-
 \end{verbatim}
 
-
-\section{Benchmarks \& Visualizations}
-
- \subsection{Benchmarks}
-    \subsubsection{Traversal-based Queries}
-    The currently implemented benchmark provides a stepwise less branching traversal of the graph. While BFS and DFS are the most branching traversal possible and Dijkstra resembles this, it depends on the heuristic of A$^*$ how branching it is. With the zero heuristic it resembles Dijkstra's, with the perfect heuristic (actual distance to target vertex from source vertex) it does not branch at all (only the neccessary nodes are visited). ALT provides a good heuristic but not a perfect one. \\
-    To conclude: The benchmark tests how well the particular record layout deals with the branching factor od the traversal. \\
-    A neighbourhood-based layout should perform well for BFS-based traversals but could possibly degrade for a non-branching or DFS traversal. \\
-    An access history-based layout should work well for repeated queries of the same path for example.
-    
-    
- \subsection{Visualizations}
-    \paragraph{Total Accesses per Query per Method}
-    A bar diagram that shows the number of disk accesses for a set of queries and possibly many methods. Reasonable if you want to compare the performance of different layouts on the same set of queries.
-    
-    \paragraph{Access sequence} Visualizes the addresses that are accessed as a line chart to inversigate if the access is sequential or ``jumps'' a lot. Samples 50 consecutive accesses at random.
+\subsubsection{Visualization Utilities}
+Finally a python script provides means of visualizing the number of IOs and the cache hit rate as monitored by the page cache package. It relies on matplotlib and numpy.

@@ -1,0 +1,23 @@
+\section{Record Layout Methods}
+
+\subsection{Theoretical Aspects}
+
+\subsection{Static Layout}
+
+\subsection{Dynamic Layout}
+
+ \subsection{Benchmarks}
+    \subsubsection{Traversal-based Queries}
+    The currently implemented benchmark provides a stepwise less branching traversal of the graph. While BFS and DFS are the most branching traversal possible and Dijkstra resembles this, it depends on the heuristic of A$^*$ how branching it is. With the zero heuristic it resembles Dijkstra's, with the perfect heuristic (actual distance to target vertex from source vertex) it does not branch at all (only the neccessary nodes are visited). ALT provides a good heuristic but not a perfect one. \\
+    To conclude: The benchmark tests how well the particular record layout deals with the branching factor od the traversal. \\
+    A neighbourhood-based layout should perform well for BFS-based traversals but could possibly degrade for a non-branching or DFS traversal. \\
+    An access history-based layout should work well for repeated queries of the same path for example.
+    
+    
+ \subsection{Visualizations}
+    \paragraph{Total Accesses per Query per Method}
+    A bar diagram that shows the number of disk accesses for a set of queries and possibly many methods. Reasonable if you want to compare the performance of different layouts on the same set of queries.
+    
+    \paragraph{Access sequence} Visualizes the addresses that are accessed as a line chart to inversigate if the access is sequential or ``jumps'' a lot. Samples 50 consecutive accesses at random.
+
+
