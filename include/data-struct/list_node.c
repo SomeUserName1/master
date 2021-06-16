@@ -1,6 +1,6 @@
 #include "list_node.h"
 
-#include "../record/node.h"
+#include "access/node.h"
 #include "cbs.h"
 #include "list.h"
 

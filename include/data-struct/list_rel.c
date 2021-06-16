@@ -2,7 +2,7 @@
 
 #include "cbs.h"
 
-#include "../record/relationship.h"
+#include "access/relationship.h"
 #include "list.h"
 
 list_relationship_t*

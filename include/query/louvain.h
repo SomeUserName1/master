@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 
 static const double MIN_IMPROVEMENT = 0.005F;
 

@@ -1,17 +1,17 @@
-#include "a-star.h"
+#include "query/a-star.h"
 
 #include <errno.h>
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../access/in_memory_file.h"
 #include "../constants.h"
-#include "../data-struct/fibonacci_heap.h"
-#include "../data-struct/list_rel.h"
-#include "../data-struct/list_ul.h"
-#include "../record/relationship.h"
-#include "result_types.h"
+#include "access/operators.h"
+#include "access/relationship.h"
+#include "data-struct/fibonacci_heap.h"
+#include "data-struct/list_rel.h"
+#include "data-struct/list_ul.h"
+#include "query/result_types.h"
 
 path*
 construct_path(in_memory_file_t* db,

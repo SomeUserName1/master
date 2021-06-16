@@ -11,4 +11,4 @@ add_library(data-struct  cbs.c
                          set.c
                          set_ul.c
                          fibonacci_heap.c)
-target_link_libraries(data-struct PUBLIC record)
+target_link_libraries(data-struct PUBLIC access)

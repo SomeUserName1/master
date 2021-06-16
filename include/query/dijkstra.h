@@ -1,7 +1,7 @@
-#ifndef DIJKSTRA
-#define DIJKSTRA
+#ifndef DIJKSTRA_H
+#define DIJKSTRA_H
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 #include "result_types.h"
 
 sssp_result*

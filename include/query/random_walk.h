@@ -1,9 +1,9 @@
-#ifndef RANDOM_WALK
-#define RANDOM_WALK
+#ifndef RANDOM_WALK_H
+#define RANDOM_WALK_H
 
 #include <stddef.h>
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 #include "result_types.h"
 
 path*

@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../record/node.h"
-#include "../record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
 
 bool
 ptr_eq(const void* a, const void* b)

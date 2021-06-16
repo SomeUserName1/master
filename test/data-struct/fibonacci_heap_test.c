@@ -1,4 +1,4 @@
-#include "../../src/data-struct/fibonacci_heap.h"
+#include "data-struct/fibonacci_heap.h"
 
 #include <assert.h>
 #include <stdio.h>

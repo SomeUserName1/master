@@ -1,16 +1,16 @@
-#include "dfs.h"
+#include "query/dfs.h"
 
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../access/in_memory_file.h"
 #include "../constants.h"
-#include "../data-struct/list_rel.h"
-#include "../data-struct/list_ul.h"
-#include "../record/relationship.h"
-#include "result_types.h"
+#include "access/operators.h"
+#include "access/relationship.h"
+#include "data-struct/list_rel.h"
+#include "data-struct/list_ul.h"
+#include "query/result_types.h"
 
 traversal_result*
 dfs(in_memory_file_t* db,

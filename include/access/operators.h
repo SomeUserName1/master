@@ -1,11 +1,20 @@
-#ifndef IN_MEMORY_FILE
-#define IN_MEMORY_FILE
+#ifndef OPERATORS_H
+#define OPERATORS_H
 
-#include "../data-struct/dict_ul.h"
-#include "../data-struct/list_node.h"
-#include "../data-struct/list_rel.h"
-#include "../record/node.h"
-#include "../record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
+#include "data-struct/dict_ul.h"
+#include "data-struct/list_node.h"
+#include "data-struct/list_rel.h"
+
+#define BUFFER_SIZE (512)
+
+typedef enum record_id_type
+{
+    NODE = 0,
+    REL  = 1,
+    ALL  = 2
+} record_id_t;
 
 typedef enum
 {
@@ -22,8 +31,15 @@ typedef struct in_memory_file
     unsigned long   rel_id_counter;
 } in_memory_file_t;
 
+void
+ids_to_blocks(const char* in_path, const char* out_path, record_id_t type);
+
+void
+blocks_to_pages(const char* in_path, const char* out_path, record_id_t type);
+
 in_memory_file_t*
 create_in_memory_file(void);
+
 void
 in_memory_file_destroy(in_memory_file_t* db);
 

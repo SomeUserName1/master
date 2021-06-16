@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-#include "../record/node.h"
-#include "../record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
 #include "cbs.h"
 #include "htable.h"
 

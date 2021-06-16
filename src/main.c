@@ -5,14 +5,10 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include "access/in_memory_file.h"
+#include "access/operators.h"
 #include "data-struct/dict_ul.h"
-#include "import/snap_importer.h"
-#include "locality/g-store_layout.h"
-#include "locality/icbl.h"
-#include "locality/ids_to_io.h"
-#include "locality/reorganize_records.h"
-#include "locality/trivial.h"
+#include "layout/random_layout.h"
+#include "layout/reorganize_records.h"
 #include "query/a-star.h"
 #include "query/alt.h"
 #include "query/bfs.h"
@@ -20,6 +16,7 @@
 #include "query/dijkstra.h"
 #include "query/louvain.h"
 #include "query/result_types.h"
+#include "query/snap_importer.h"
 
 #define NUM_LANDMARKS  (3)
 #define PERMISSION_NUM (0777)
@@ -46,9 +43,7 @@ main(void)
     const char* trash_file    = "/home/someusername/Downloads/ignore.txt";
     const char* base_path     = "/home/someusername/workspace_local/";
     const char* download_temp = "download.txt.gz";
-    const char* layout_str[]  = {
-        "natural", "random", "louvain", "g-store", "icbl"
-    };
+    const char* layout_str[]  = { "natural", "random", "louvain" };
     const char* dataset_str[] = {
         "c_elegans", "email_research_eu", "dblp", "amazon", "youtube"
     };
@@ -56,9 +51,7 @@ main(void)
 
     typedef unsigned long* (*layout)(in_memory_file_t * db);
 
-    layout layout_method[] = {
-        identity_partition, random_partition, louvain, g_store_layout, icbl
-    };
+    layout layout_method[] = { identity_partition, random_partition, louvain };
 
     // Build download temp string.
     char* temp_path =

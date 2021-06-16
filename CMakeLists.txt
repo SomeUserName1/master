@@ -52,10 +52,7 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_C_CLANG_TIDY
          clang-tidy;
             -header-filter=.*;
-            -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,\
-            performance-inefficient-*,readability-*,\
-            -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,\
-            -bugprone-macro-parentheses,-bugprone-reserved-identifier)
+            -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-macro-parentheses,-bugprone-reserved-identifier)
 
      message("-- Using Clang-Tidy")
 
@@ -68,10 +65,9 @@ endif()
 
 # Subdirectories to consider
 
-message("-- Adding doc/")
-add_subdirectory(doc/)
 message("-- Adding src/")
 add_subdirectory(src/)
+add_subdirectory(include/data-struct)
 
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
     include(CTest)

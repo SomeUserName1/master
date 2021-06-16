@@ -1,5 +1,5 @@
-#ifndef CONSTANTS
-#define CONSTANTS
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 #include <float.h>
 #include <stddef.h>

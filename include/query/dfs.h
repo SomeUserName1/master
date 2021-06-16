@@ -1,7 +1,7 @@
-#ifndef DFS
-#define DFS
+#ifndef DFS_H
+#define DFS_H
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 #include "result_types.h"
 
 traversal_result*

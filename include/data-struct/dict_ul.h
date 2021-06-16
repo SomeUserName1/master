@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "../record/node.h"
-#include "../record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
 
 typedef struct dict_ul_ul            dict_ul_ul_t;
 typedef struct dict_ul_int           dict_ul_int_t;

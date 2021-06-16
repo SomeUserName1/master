@@ -1,8 +1,8 @@
-#ifndef RESULT_TYPES
-#define RESULT_TYPES
+#ifndef RESULT_TYPES_H
+#define RESULT_TYPES_H
 
-#include "../access/in_memory_file.h"
-#include "../data-struct/list_ul.h"
+#include "access/operators.h"
+#include "data-struct/list_ul.h"
 
 typedef struct traversal_result
 {

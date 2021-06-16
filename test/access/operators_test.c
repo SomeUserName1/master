@@ -1,15 +1,15 @@
-#include "../../src/access/in_memory_file.h"
+#include "access/operators.h"
 
 #include <assert.h>
 #include <stdio.h>
 
 #include "../../src/constants.h"
-#include "../../src/data-struct/dict_ul.h"
-#include "../../src/data-struct/list_node.h"
-#include "../../src/data-struct/list_rel.h"
-#include "../../src/import/snap_importer.h"
-#include "../../src/record/node.h"
-#include "../../src/record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
+#include "data-struct/dict_ul.h"
+#include "data-struct/list_node.h"
+#include "data-struct/list_rel.h"
+#include "query/snap_importer.h"
 
 #define NUM_NODES (10)
 #define NUM_EDGES (9)

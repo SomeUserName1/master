@@ -1,7 +1,7 @@
-#ifndef A_STAR
-#define A_STAR
+#ifndef A_STAR_H
+#define A_STAR_H
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 #include "result_types.h"
 
 path*

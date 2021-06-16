@@ -1,6 +1,6 @@
-#ifndef DEGREE
-#define DEGREE
-#include "../access/in_memory_file.h"
+#ifndef DEGREE_H
+#define DEGREE_H
+#include "access/operators.h"
 #include <stdio.h>
 
 size_t

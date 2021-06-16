@@ -1,10 +1,10 @@
-#include "../../src/query/dfs.h"
+#include "query/dfs.h"
 
 #include <assert.h>
 #include <stdio.h>
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/query/result_types.h"
+#include "access/operators.h"
+#include "query/result_types.h"
 
 #define NUM_NODES (10)
 static const unsigned long node0 = 0;

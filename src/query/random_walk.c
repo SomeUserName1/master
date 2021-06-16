@@ -1,14 +1,14 @@
-#include "random_walk.h"
+#include "query/random_walk.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../access/in_memory_file.h"
 #include "../constants.h"
-#include "../data-struct/list_rel.h"
-#include "../data-struct/list_ul.h"
-#include "../record/relationship.h"
-#include "result_types.h"
+#include "access/operators.h"
+#include "access/relationship.h"
+#include "data-struct/list_rel.h"
+#include "data-struct/list_ul.h"
+#include "query/result_types.h"
 
 path*
 random_walk(in_memory_file_t* db,

@@ -1,9 +1,9 @@
-#include "trivial.h"
+#include "layout/random_layout.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 
 unsigned long*
 identity_partition(in_memory_file_t* db)

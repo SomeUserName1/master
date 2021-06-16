@@ -1,7 +1,7 @@
-#ifndef REORGANIZE_RECORDS
-#define REORGANIZE_RECORDS
+#ifndef REORGANIZE_RECORDS_H
+#define REORGANIZE_RECORDS_H
 
-#include "../access/in_memory_file.h"
+#include "access/operators.h"
 
 unsigned long*
 remap_node_ids(in_memory_file_t* db, unsigned long* partition);

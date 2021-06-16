@@ -1,5 +1,5 @@
-#include "../../src/data-struct/queue.h"
-#include "../../src/data-struct/queue_ul.h"
+#include "data-struct/queue.h"
+#include "data-struct/queue_ul.h"
 
 #include <assert.h>
 #include <limits.h>

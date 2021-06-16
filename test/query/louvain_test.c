@@ -1,16 +1,16 @@
-#include "../../src/query/louvain.h"
+#include "query/louvain.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/data-struct/dict_ul.h"
-#include "../../src/import/snap_importer.h"
+#include "access/operators.h"
+#include "data-struct/dict_ul.h"
+#include "query/snap_importer.h"
 
 int
 main(void)
 {
-    printf("Start importing\n");
+    printf("Start querying\n");
     in_memory_file_t* db  = create_in_memory_file();
     dict_ul_ul_t*     map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");

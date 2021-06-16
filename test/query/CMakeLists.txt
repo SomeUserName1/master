@@ -3,26 +3,30 @@ add_executable(degree-test  degree_test.c)
 target_link_libraries(degree-test query)
 
 add_executable(bfs-test  bfs_test.c)
-target_link_libraries(bfs-test -lz -lcurl query import)
+target_link_libraries(bfs-test -lz -lcurl query)
 
 add_executable(dfs-test  dfs_test.c)
-target_link_libraries(dfs-test -lz -lcurl query import)
+target_link_libraries(dfs-test -lz -lcurl query)
 
 add_executable(dijkstra-test  dijkstra_test.c)
-target_link_libraries(dijkstra-test -lz -lcurl query import)
+target_link_libraries(dijkstra-test -lz -lcurl query)
 
 add_executable(a-star-test  a-star_test.c)
-target_link_libraries(a-star-test -lz -lcurl query import)
+target_link_libraries(a-star-test -lz -lcurl query)
 
 add_executable(alt-test  alt_test.c)
-target_link_libraries(alt-test -lz -lcurl query import)
+target_link_libraries(alt-test -lz -lcurl query)
 
 add_executable(random-walk-test  random_walk_test.c)
-target_link_libraries(random-walk-test -lz -lcurl query import)
+target_link_libraries(random-walk-test -lz -lcurl query)
 
 add_executable(louvain-test  louvain_test.c)
-target_link_libraries(louvain-test -lz -lcurl query import)
+target_link_libraries(louvain-test -lz -lcurl query)
 
+add_executable(snap-importer-test   snap_importer_test.c)
+target_link_libraries(snap-importer-test   -lz -lcurl query)
+
+add_test("Import Test" snap-importer-test)
 add_test("Degree Test" degree-test)
 add_test("BFS Test" bfs-test)
 add_test("DFS Test" dfs-test)

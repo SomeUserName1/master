@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "../record/relationship.h"
+#include "access/relationship.h"
 
 typedef struct list_relationship list_relationship_t;
 

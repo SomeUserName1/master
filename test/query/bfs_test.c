@@ -1,11 +1,11 @@
-#include "../../src/query/bfs.h"
+#include "query/bfs.h"
 
 #include <assert.h>
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/data-struct/dict_ul.h"
-#include "../../src/import/snap_importer.h"
-#include "../../src/query/result_types.h"
+#include "access/operators.h"
+#include "data-struct/dict_ul.h"
+#include "query/result_types.h"
+#include "query/snap_importer.h"
 
 #define n(x) dict_ul_ul_get_direct(map, x)
 

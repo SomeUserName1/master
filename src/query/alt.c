@@ -1,15 +1,15 @@
-#include "alt.h"
+#include "query/alt.h"
 
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../access/in_memory_file.h"
-#include "a-star.h"
-#include "degree.h"
-#include "dijkstra.h"
-#include "result_types.h"
+#include "access/operators.h"
+#include "query/a-star.h"
+#include "query/degree.h"
+#include "query/dijkstra.h"
+#include "query/result_types.h"
 
 unsigned long
 alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,

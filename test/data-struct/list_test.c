@@ -1,15 +1,15 @@
-#include "../../src/data-struct/list.h"
-#include "../../src/data-struct/list_l.h"
-#include "../../src/data-struct/list_node.h"
-#include "../../src/data-struct/list_rel.h"
-#include "../../src/data-struct/list_ul.h"
+#include "data-struct/list.h"
+#include "data-struct/list_l.h"
+#include "data-struct/list_node.h"
+#include "data-struct/list_rel.h"
+#include "data-struct/list_ul.h"
 
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 
-#include "../../src/record/node.h"
-#include "../../src/record/relationship.h"
+#include "access/node.h"
+#include "access/relationship.h"
 
 #define MAGIC_TEST_VALUE (42777)
 #define NON_EX_VAL       (666)

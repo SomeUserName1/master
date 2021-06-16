@@ -1,4 +1,4 @@
-#include "../../src/record/relationship.h"
+#include "access/relationship.h"
 
 #include <assert.h>
 #include <stdio.h>

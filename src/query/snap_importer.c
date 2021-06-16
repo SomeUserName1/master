@@ -1,4 +1,4 @@
-#include "snap_importer.h"
+#include "query/snap_importer.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -8,8 +8,8 @@
 #include <zconf.h>
 #include <zlib.h>
 
-#include "../access/in_memory_file.h"
-#include "../data-struct/dict_ul.h"
+#include "access/operators.h"
+#include "data-struct/dict_ul.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */

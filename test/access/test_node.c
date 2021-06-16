@@ -1,4 +1,4 @@
-#include "../../src/record/node.h"
+#include "access/node.h"
 
 #include <assert.h>
 #include <stdio.h>

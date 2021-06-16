@@ -1,10 +1,10 @@
-#include "../../src/import/snap_importer.h"
+#include "query/snap_importer.h"
 
 #include <assert.h>
 #include <string.h>
 
-#include "../../src/access/in_memory_file.h"
-#include "../../src/data-struct/dict_ul.h"
+#include "access/operators.h"
+#include "data-struct/dict_ul.h"
 
 #define DATASET_TEMP   ("/home/someusername/workspace_local/dataset.txt.gz")
 #define PATH_CELEGANS  ("/home/someusername/workspace_local/celegans.txt")

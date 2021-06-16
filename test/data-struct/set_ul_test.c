@@ -1,11 +1,11 @@
-#include "../../src/data-struct/set.h"
-#include "../../src/data-struct/set_ul.h"
+#include "data-struct/set.h"
+#include "data-struct/set_ul.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../src/data-struct/htable.h"
+#include "data-struct/htable.h"
 
 #define MAGIC_TEST_VALUE (42777)
 #define ANOTHER_TV       (11)

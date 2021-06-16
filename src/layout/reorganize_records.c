@@ -1,15 +1,15 @@
-#include "reorganize_records.h"
+#include "layout/reorganize_records.h"
 
-#include "../access/in_memory_file.h"
 #include "../constants.h"
-#include "../data-struct/dict_ul.h"
-#include "../data-struct/htable.h"
-#include "../data-struct/list_node.h"
-#include "../data-struct/list_rel.h"
-#include "../data-struct/list_ul.h"
-#include "../data-struct/set_ul.h"
-#include "../record/node.h"
-#include "../record/relationship.h"
+#include "access/node.h"
+#include "access/operators.h"
+#include "access/relationship.h"
+#include "data-struct/dict_ul.h"
+#include "data-struct/htable.h"
+#include "data-struct/list_node.h"
+#include "data-struct/list_rel.h"
+#include "data-struct/list_ul.h"
+#include "data-struct/set_ul.h"
 
 #include <stdio.h>
 #include <stdlib.h>
