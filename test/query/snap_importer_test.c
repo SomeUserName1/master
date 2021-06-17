@@ -217,9 +217,9 @@ int
 main(void)
 {
     test_celegans();
-    // test_email();
-    // test_dblp();
-    // test_amazon();
+    test_email();
+    test_dblp();
+    test_amazon();
     // test_youtube();
     // test_wikipedia();
     // test_live_journal();
