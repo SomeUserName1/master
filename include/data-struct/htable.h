@@ -17,7 +17,7 @@
     typedef T_key (*typename##_kcopy)(const T_key in);                         \
     typedef void (*typename##_kfree)(T_key in);                                \
     typedef void (*typename##_kprint)(const T_key in);                         \
-    typedef bool (*typename##_veq)(const T_val* first, const T_val* second);   \
+    typedef bool (*typename##_veq)(const T_val first, const T_val second);     \
     typedef T_val (*typename##_vcopy)(const T_val in);                         \
     typedef void (*typename##_vfree)(T_val in);                                \
     typedef void (*typename##_vprint)(const T_val in);                         \
@@ -56,7 +56,7 @@
                                                                                \
     typedef struct                                                             \
     {                                                                          \
-        typename ht;                                                           \
+        typename*          ht;                                                 \
         typename##_bucket* cur;                                                \
         size_t             idx;                                                \
     } typename##_iterator;                                                     \
@@ -71,9 +71,9 @@
         return elem;                                                           \
     }                                                                          \
                                                                                \
-    static void typename##_passthrough_kfree(T_key elem) { &elem = NULL; }     \
+    static void typename##_passthrough_kfree(T_key elem) { elem = elem; }      \
                                                                                \
-    static void typename##_passthrough_vfree(T_val elem) { &elem = NULL; }     \
+    static void typename##_passthrough_vfree(T_val elem) { elem = elem; }      \
                                                                                \
     static bool                                                                \
           typename##_passthrough_veq(const T_val first, const T_val second)    \
@@ -81,7 +81,7 @@
         return first == second;                                                \
     }                                                                          \
                                                                                \
-    static void typename##_pasthrough_kprint(const T_key in)                   \
+    static void typename##_passthrough_kprint(const T_key in)                  \
     {                                                                          \
         printf("%p\n", &in);                                                   \
     }                                                                          \
@@ -114,12 +114,12 @@
         if (!ht->buckets[idx].is_used) {                                       \
             if (!rehash) {                                                     \
                 key = ht->cbs.key_copy(key);                                   \
-                if (!ht.is_set) {                                              \
-                    value = ht->cbs.value_copy(value);                         \
+                if (!ht->is_set) {                                             \
+                    val = ht->cbs.value_copy(val);                             \
                 }                                                              \
             }                                                                  \
             ht->buckets[idx].key   = key;                                      \
-            ht->buckets[idx].value = value;                                    \
+            ht->buckets[idx].value = val;                                      \
             if (!rehash) {                                                     \
                 ht->num_used++;                                                \
             }                                                                  \
@@ -128,15 +128,15 @@
             typename##_bucket* last = NULL;                                    \
             do {                                                               \
                 if (ht->keq(key, cur->key)) {                                  \
-                    if (!ht.is_set) {                                          \
+                    if (!ht->is_set) {                                         \
                         ht->cbs.value_free(cur->value);                        \
                                                                                \
                         if (!rehash) {                                         \
-                            value = ht->cbs.value_copy(value);                 \
+                            val = ht->cbs.value_copy(val);                     \
                         }                                                      \
                     }                                                          \
                                                                                \
-                    cur->value = value;                                        \
+                    cur->value = val;                                          \
                     last       = NULL;                                         \
                     break;                                                     \
                 }                                                              \
@@ -155,17 +155,12 @@
                                                                                \
                 if (!rehash) {                                                 \
                     key = ht->cbs.key_copy(key);                               \
-                    if (key == NULL) {                                         \
-                        free(cur);                                             \
-                        printf("htable - add_to_bucket: Key copy failed!\n");  \
-                        exit(-1);                                              \
-                    }                                                          \
-                    if (!ht.is_set) {                                          \
-                        value = ht->cbs.value_copy(value);                     \
+                    if (!ht->is_set) {                                         \
+                        val = ht->cbs.value_copy(val);                         \
                     }                                                          \
                 }                                                              \
                 cur->key   = key;                                              \
-                cur->value = value;                                            \
+                cur->value = val;                                              \
                 last->next = cur;                                              \
                 if (!rehash) {                                                 \
                     ht->num_used++;                                            \
@@ -223,7 +218,7 @@
         if (!fn || !keq) {                                                     \
             printf("create htable: No hash function or key equality function " \
                    "provided!\n");                                             \
-            return exit(-1);                                                   \
+            exit(-1);                                                          \
         }                                                                      \
                                                                                \
         typename* ht = calloc(1, sizeof(*ht));                                 \
@@ -242,7 +237,7 @@
                                     ? typename##_passthrough_kfree             \
                                     : cbs->key_free;                           \
         ht->cbs.key_print   = cbs == NULL || cbs->key_print == NULL            \
-                                    ? typename##_pasthrough_kprint             \
+                                    ? typename##_passthrough_kprint            \
                                     : cbs->key_print;                          \
         ht->cbs.value_eq    = cbs == NULL || cbs->value_eq == NULL             \
                                     ? typename##_passthrough_veq               \
@@ -254,7 +249,7 @@
                                     ? typename##_passthrough_vfree             \
                                     : cbs->value_free;                         \
         ht->cbs.value_print = cbs == NULL || cbs->value_print == NULL          \
-                                    ? typename##_pasthrough_print              \
+                                    ? typename##_passthrough_vprint            \
                                     : cbs->value_print;                        \
                                                                                \
         ht->num_buckets = BUCKET_START;                                        \
@@ -311,7 +306,7 @@
             exit(-1);                                                          \
         }                                                                      \
         typename##_rehash(ht);                                                 \
-        return typename##_add_to_bucket(ht, key, value, false);                \
+        return typename##_add_to_bucket(ht, key, val, false);                  \
     }                                                                          \
                                                                                \
     int typename##_remove(typename* ht, T_key key)                             \
@@ -331,7 +326,7 @@
         if (ht->keq(ht->buckets[idx].key, key)) {                              \
             ht->cbs.key_free(ht->buckets[idx].key);                            \
             ht->cbs.value_free(ht->buckets[idx].value);                        \
-            ht->buckets[idx].key = NULL;                                       \
+            ht->buckets[idx].is_used = false;                                  \
                                                                                \
             cur = ht->buckets[idx].next;                                       \
             if (cur) {                                                         \
@@ -357,11 +352,11 @@
             last = cur;                                                        \
             cur  = cur->next;                                                  \
         }                                                                      \
-        printf("htable - remove: No such key!, %p\n", key);                    \
+        printf("htable - remove: No such key!");                               \
         exit(-1);                                                              \
     }                                                                          \
                                                                                \
-    int typename##_get(typename* ht, T_key key, T_val* value)                  \
+    int typename##_get(typename* ht, T_key key, T_val* val)                    \
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - get: Invalid Argument!\n");                       \
@@ -376,7 +371,7 @@
         typename##_bucket* cur = ht->buckets + idx;                            \
         while (cur) {                                                          \
             if (ht->keq(cur->key, key)) {                                      \
-                *value = cur->value;                                           \
+                *val = cur->value;                                             \
                                                                                \
                 return 0;                                                      \
             }                                                                  \
@@ -391,9 +386,9 @@
             printf("htable - get_direct: Invalid Argument!\n");                \
             exit(-1);                                                          \
         }                                                                      \
-        T_val val = NULL;                                                      \
-        typename##_get(ht, key, &value);                                       \
-        return value;                                                          \
+        T_val val;                                                             \
+        typename##_get(ht, key, &val);                                         \
+        return val;                                                            \
     }                                                                          \
                                                                                \
     bool typename##_contains(typename* ht, T_key key)                          \
@@ -402,7 +397,7 @@
             printf("htable - contains: Invalid Argument!\n");                  \
             exit(-1);                                                          \
         }                                                                      \
-        T_val val = NULL;                                                      \
+        T_val val;                                                             \
         return typename##_get(ht, key, &val) > -1;                             \
     }                                                                          \
                                                                                \
@@ -466,17 +461,19 @@
             printf("htable - print: Invalid Argument!\n");                     \
             exit(-1);                                                          \
         }                                                                      \
-        typename##_iterator* hi = create_typename##_iterator(ht);              \
+        typename##_iterator* hi = typename##_create_iterator(ht);              \
                                                                                \
-        T_key key = NULL;                                                      \
-        T_val val = NULL;                                                      \
-        while (typename##_iterator_next(hi, &key, &value) != -1) {             \
+        T_key key;                                                             \
+        T_val val;                                                             \
+        while (typename##_iterator_next(hi, &key, &val) != -1) {               \
             printf("%s", "\n_______Next Entry:________ \n");                   \
             hi->ht->cbs.key_print(key);                                        \
-            hi->ht->cbs.value_print(value);                                    \
+            hi->ht->cbs.value_print(val);                                      \
             printf("%s", "_______________________\n");                         \
         }                                                                      \
         typename##_iterator_destroy(hi);                                       \
     }
+
+HTABLE_DEF(dict_ul_ul, unsigned long, unsigned long);
 
 #endif
