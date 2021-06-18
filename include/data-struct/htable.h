@@ -1,6 +1,8 @@
 #ifndef HTABLE_H
 #define HTABLE_H
 
+#include "access/node.h"
+#include "access/relationship.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -11,7 +13,26 @@
 #define TOO_MANY_BUCKETS_BITS (31U)
 
 #define HTABLE_DEF(typename, T_key, T_val)                                     \
-                                                                               \
+    HTABLE_CBS_TYPEDEF(typename, T_key, T_val)                                 \
+    HTABLE_STRUCTS(typename, T_key, T_val)                                     \
+    HTABLE_PASSTHROUGH_CBS(typename, T_key, T_val)                             \
+    HTABLE_BUCKET_IDX(typename, T_key)                                         \
+    HTABLE_ADD_TO_BUCKETS(typename, T_key, T_val)                              \
+    HTABLE_REHASH(typename)                                                    \
+    HTABLE_CREATE(typename)                                                    \
+    HTABLE_DESTROY(typename)                                                   \
+    HTABLE_SIZE(typename)                                                      \
+    HTABLE_INSERT(typename, T_key, T_val)                                      \
+    HTABLE_REMOVE(typename, T_key)                                             \
+    HTABLE_GET(typename, T_key, T_val)                                         \
+    HTABLE_GET_DIRECT(typename, T_key, T_val)                                  \
+    HTABLE_CONTAINS(typename, T_key, T_val)                                    \
+    HTABLE_ITERATOR_CREATE(typename)                                           \
+    HTABLE_ITERATOR_NEXT(typename, T_key, T_val)                               \
+    HTABLE_ITERATOR_DESTROY(typename)                                          \
+    HTABLE_PRINT(typename, T_key, T_val)
+
+#define HTABLE_CBS_TYPEDEF(typename, T_key, T_val)                             \
     typedef size_t (*typename##_hash)(const T_key in, unsigned int seed);      \
     typedef bool (*typename##_keq)(const T_key first, const T_key second);     \
     typedef T_key (*typename##_kcopy)(const T_key in);                         \
@@ -20,8 +41,9 @@
     typedef bool (*typename##_veq)(const T_val first, const T_val second);     \
     typedef T_val (*typename##_vcopy)(const T_val in);                         \
     typedef void (*typename##_vfree)(T_val in);                                \
-    typedef void (*typename##_vprint)(const T_val in);                         \
-                                                                               \
+    typedef void (*typename##_vprint)(const T_val in);
+
+#define HTABLE_STRUCTS(typename, T_key, T_val)                                 \
     typedef struct                                                             \
     {                                                                          \
         typename##_kcopy  key_copy;                                            \
@@ -50,7 +72,6 @@
         typename##_bucket* buckets;                                            \
         size_t             num_buckets;                                        \
         size_t             num_used;                                           \
-        bool               is_set;                                             \
         unsigned int       seed;                                               \
     } typename;                                                                \
                                                                                \
@@ -59,8 +80,9 @@
         typename*          ht;                                                 \
         typename##_bucket* cur;                                                \
         size_t             idx;                                                \
-    } typename##_iterator;                                                     \
-                                                                               \
+    } typename##_iterator;
+
+#define HTABLE_PASSTHROUGH_CBS(typename, T_key, T_val)                         \
     static T_key typename##_passthrough_kcopy(const T_key elem)                \
     {                                                                          \
         return elem;                                                           \
@@ -89,8 +111,9 @@
     static void typename##_passthrough_vprint(const T_val in)                  \
     {                                                                          \
         printf("%p\n", &in);                                                   \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_BUCKET_IDX(typename, T_key)                                     \
     static size_t typename##_bucket_idx(typename* ht, T_key key)               \
     {                                                                          \
         if (!ht) {                                                             \
@@ -100,8 +123,9 @@
         return ht->num_buckets > 0                                             \
                      ? (ht->hash_fn(key, ht->seed) % ht->num_buckets)          \
                      : ht->hash_fn(key, ht->seed);                             \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_ADD_TO_BUCKETS(typename, T_key, T_val)                          \
     static int typename##_add_to_bucket(                                       \
           typename* ht, T_key key, T_val val, bool rehash)                     \
     {                                                                          \
@@ -114,12 +138,11 @@
         if (!ht->buckets[idx].is_used) {                                       \
             if (!rehash) {                                                     \
                 key = ht->cbs.key_copy(key);                                   \
-                if (!ht->is_set) {                                             \
-                    val = ht->cbs.value_copy(val);                             \
-                }                                                              \
+                val = ht->cbs.value_copy(val);                                 \
             }                                                                  \
-            ht->buckets[idx].key   = key;                                      \
-            ht->buckets[idx].value = val;                                      \
+            ht->buckets[idx].key     = key;                                    \
+            ht->buckets[idx].value   = val;                                    \
+            ht->buckets[idx].is_used = true;                                   \
             if (!rehash) {                                                     \
                 ht->num_used++;                                                \
             }                                                                  \
@@ -128,16 +151,15 @@
             typename##_bucket* last = NULL;                                    \
             do {                                                               \
                 if (ht->keq(key, cur->key)) {                                  \
-                    if (!ht->is_set) {                                         \
-                        ht->cbs.value_free(cur->value);                        \
+                    ht->cbs.value_free(cur->value);                            \
                                                                                \
-                        if (!rehash) {                                         \
-                            val = ht->cbs.value_copy(val);                     \
-                        }                                                      \
+                    if (!rehash) {                                             \
+                        val = ht->cbs.value_copy(val);                         \
                     }                                                          \
                                                                                \
-                    cur->value = val;                                          \
-                    last       = NULL;                                         \
+                    cur->value   = val;                                        \
+                    cur->is_used = true;                                       \
+                    last         = NULL;                                       \
                     break;                                                     \
                 }                                                              \
                 last = cur;                                                    \
@@ -155,21 +177,21 @@
                                                                                \
                 if (!rehash) {                                                 \
                     key = ht->cbs.key_copy(key);                               \
-                    if (!ht->is_set) {                                         \
-                        val = ht->cbs.value_copy(val);                         \
-                    }                                                          \
+                    val = ht->cbs.value_copy(val);                             \
                 }                                                              \
-                cur->key   = key;                                              \
-                cur->value = val;                                              \
-                last->next = cur;                                              \
+                cur->key     = key;                                            \
+                cur->value   = val;                                            \
+                cur->is_used = true;                                           \
+                last->next   = cur;                                            \
                 if (!rehash) {                                                 \
                     ht->num_used++;                                            \
                 }                                                              \
             }                                                                  \
         }                                                                      \
         return 0;                                                              \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_REHASH(typename)                                                \
     static int typename##_rehash(typename* ht)                                 \
     {                                                                          \
         if (ht->num_used + 1                                                   \
@@ -210,66 +232,65 @@
         }                                                                      \
         free(buckets);                                                         \
         return 0;                                                              \
-    }                                                                          \
-                                                                               \
-    typename* typename##_create(                                               \
-          typename##_hash fn, typename##_keq keq, typename##_cbs* cbs)         \
-    {                                                                          \
-        if (!fn || !keq) {                                                     \
-            printf("create htable: No hash function or key equality function " \
-                   "provided!\n");                                             \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        typename* ht = calloc(1, sizeof(*ht));                                 \
-                                                                               \
-        if (!ht) {                                                             \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        ht->hash_fn = fn;                                                      \
-        ht->keq     = keq;                                                     \
-                                                                               \
-        ht->cbs.key_copy    = cbs == NULL || cbs->key_copy == NULL             \
-                                    ? typename##_passthrough_kcopy             \
-                                    : cbs->key_copy;                           \
-        ht->cbs.key_free    = cbs == NULL || cbs->key_free == NULL             \
-                                    ? typename##_passthrough_kfree             \
-                                    : cbs->key_free;                           \
-        ht->cbs.key_print   = cbs == NULL || cbs->key_print == NULL            \
-                                    ? typename##_passthrough_kprint            \
-                                    : cbs->key_print;                          \
-        ht->cbs.value_eq    = cbs == NULL || cbs->value_eq == NULL             \
-                                    ? typename##_passthrough_veq               \
-                                    : cbs->value_eq;                           \
-        ht->cbs.value_copy  = cbs == NULL || cbs->value_copy == NULL           \
-                                    ? typename##_passthrough_vcopy             \
-                                    : cbs->value_copy;                         \
-        ht->cbs.value_free  = cbs == NULL || cbs->value_free == NULL           \
-                                    ? typename##_passthrough_vfree             \
-                                    : cbs->value_free;                         \
-        ht->cbs.value_print = cbs == NULL || cbs->value_print == NULL          \
-                                    ? typename##_passthrough_vprint            \
-                                    : cbs->value_print;                        \
-                                                                               \
-        ht->num_buckets = BUCKET_START;                                        \
-        ht->buckets     = calloc(BUCKET_START, sizeof(*ht->buckets));          \
-                                                                               \
-        if (!ht->buckets) {                                                    \
-            printf("htable create: Failed to allocate memory for buckets");    \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        ht->num_used = 0;                                                      \
-                                                                               \
-        ht->seed = rand();                                                     \
-                                                                               \
-        return ht;                                                             \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_CREATE(typename)                                                  \
+    typename* typename##_create(                                                 \
+          typename##_hash fn, typename##_keq keq, typename##_cbs cbs)            \
+    {                                                                            \
+        if (!fn || !keq) {                                                       \
+            printf("create htable: No hash function or key equality function "   \
+                   "provided!\n");                                               \
+            exit(-1);                                                            \
+        }                                                                        \
+                                                                                 \
+        typename* ht = calloc(1, sizeof(*ht));                                   \
+                                                                                 \
+        if (!ht) {                                                               \
+            printf("htable create: failes to allocate memory!\n");               \
+            exit(-1);                                                            \
+        }                                                                        \
+                                                                                 \
+        ht->hash_fn = fn;                                                        \
+        ht->keq     = keq;                                                       \
+                                                                                 \
+        ht->cbs.key_copy   = cbs.key_copy == NULL ? typename##_passthrough_kcopy \
+                                                  : cbs.key_copy;                \
+        ht->cbs.key_free   = cbs.key_free == NULL ? typename##_passthrough_kfree \
+                                                  : cbs.key_free;                \
+        ht->cbs.key_print  = cbs.key_print == NULL                               \
+                                   ? typename##_passthrough_kprint               \
+                                   : cbs.key_print;                              \
+        ht->cbs.value_eq   = cbs.value_eq == NULL ? typename##_passthrough_veq   \
+                                                  : cbs.value_eq;                \
+        ht->cbs.value_copy = cbs.value_copy == NULL                              \
+                                   ? typename##_passthrough_vcopy                \
+                                   : cbs.value_copy;                             \
+        ht->cbs.value_free = cbs.value_free == NULL                              \
+                                   ? typename##_passthrough_vfree                \
+                                   : cbs.value_free;                             \
+        ht->cbs.value_print = cbs.value_print == NULL                            \
+                                    ? typename##_passthrough_vprint              \
+                                    : cbs->value_print;                          \
+                                                                                 \
+        ht->num_buckets = BUCKET_START;                                          \
+        ht->buckets     = calloc(BUCKET_START, sizeof(*ht->buckets));            \
+                                                                                 \
+        if (!ht->buckets) {                                                      \
+            printf("htable create: Failed to allocate memory for buckets");      \
+            exit(-1);                                                            \
+        }                                                                        \
+                                                                                 \
+        ht->num_used = 0;                                                        \
+        ht->seed     = rand();                                                   \
+                                                                                 \
+        return ht;                                                               \
+    }
+
+#define HTABLE_DESTROY(typename)                                               \
     int typename##_destroy(typename* ht)                                       \
     {                                                                          \
-        if (ht == NULL) {                                                      \
+        if (!ht) {                                                             \
             printf("htable - add_to_bucket: Invalid Argument!\n");             \
             exit(-1);                                                          \
         }                                                                      \
@@ -295,10 +316,12 @@
         free(ht);                                                              \
                                                                                \
         return 0;                                                              \
-    }                                                                          \
-                                                                               \
-    size_t typename##_size(typename* ht) { return ht->num_used; }              \
-                                                                               \
+    }
+
+#define HTABLE_SIZE(typename)                                                  \
+    size_t typename##_size(typename* ht) { return ht->num_used; }
+
+#define HTABLE_INSERT(typename, T_key, T_val)                                  \
     int typename##_insert(typename* ht, T_key key, T_val val)                  \
     {                                                                          \
         if (!ht) {                                                             \
@@ -307,8 +330,9 @@
         }                                                                      \
         typename##_rehash(ht);                                                 \
         return typename##_add_to_bucket(ht, key, val, false);                  \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_REMOVE(typename, T_key)                                         \
     int typename##_remove(typename* ht, T_key key)                             \
     {                                                                          \
         if (!ht) {                                                             \
@@ -354,8 +378,9 @@
         }                                                                      \
         printf("htable - remove: No such key!");                               \
         exit(-1);                                                              \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_GET(typename, T_key, T_val)                                     \
     int typename##_get(typename* ht, T_key key, T_val* val)                    \
     {                                                                          \
         if (!ht) {                                                             \
@@ -378,8 +403,9 @@
             cur = cur->next;                                                   \
         }                                                                      \
         return -1;                                                             \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_GET_DIRECT(typename, T_key, T_val)                              \
     T_val typename##_get_direct(typename* ht, T_key key)                       \
     {                                                                          \
         if (!ht) {                                                             \
@@ -389,8 +415,9 @@
         T_val val;                                                             \
         typename##_get(ht, key, &val);                                         \
         return val;                                                            \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_CONTAINS(typename, T_key, T_val)                                \
     bool typename##_contains(typename* ht, T_key key)                          \
     {                                                                          \
         if (!ht) {                                                             \
@@ -399,9 +426,10 @@
         }                                                                      \
         T_val val;                                                             \
         return typename##_get(ht, key, &val) > -1;                             \
-    }                                                                          \
-                                                                               \
-    typename##_iterator* typename##_create_iterator(typename* ht)              \
+    }
+
+#define HTABLE_ITERATOR_CREATE(typename)                                       \
+    typename##_iterator* typename##_iterator_create(typename* ht)              \
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - create_iterator: Invalid Argument!\n");           \
@@ -418,13 +446,14 @@
         hi->ht = ht;                                                           \
                                                                                \
         return hi;                                                             \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_ITERATOR_NEXT(typename, T_key, T_val)                           \
     int typename##_iterator_next(                                              \
           typename##_iterator* hi, T_key* key, T_val* value)                   \
     {                                                                          \
         if (!hi || !key || !value) {                                           \
-            printf("htable - create_iterator_next: Invalid Argument!\n");      \
+            printf("htable - _iterator_next: Invalid Argument!\n");            \
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
@@ -445,16 +474,18 @@
         hi->cur = hi->cur->next;                                               \
                                                                                \
         return 0;                                                              \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_ITERATOR_DESTROY(typename)                                      \
     void typename##_iterator_destroy(typename##_iterator* hi)                  \
     {                                                                          \
         if (!hi) {                                                             \
             return;                                                            \
         }                                                                      \
         free(hi);                                                              \
-    }                                                                          \
-                                                                               \
+    }
+
+#define HTABLE_PRINT(typename, T_key, T_val)                                   \
     void typename##_print(typename* ht)                                        \
     {                                                                          \
         if (!ht) {                                                             \
@@ -475,5 +506,8 @@
     }
 
 HTABLE_DEF(dict_ul_ul, unsigned long, unsigned long);
+HTABLE_DEF(dict_ul_int, unsigned long, int);
+HTABLE_DEF(dict_ul_node, unsigned long, node_t);
+HTABLE_DEF(dict_ul_rel, unsigned long, relationship_t);
 
 #endif

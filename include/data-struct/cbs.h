@@ -1,7 +1,6 @@
 #ifndef CBS_H
 #define CBS_H
 
-#include "htable.h"
 #include <stdbool.h>
 
 bool
