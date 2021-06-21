@@ -1,11 +1,32 @@
 #ifndef ARRAY_LIST_H
 #define ARRAY_LIST_H
 
+#include "access/node.h"
+#include "access/relationship.h"
+#include "cbs.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define ARRAY_LIST_DEF(typename, T)                                            \
+    ARRAY_LIST_CBS_TYPEDEF(typename, T)                                        \
+    ARRAY_LIST_STRUCTS(typename, T)                                            \
+    ARRAY_LIST_CREATE(typename, T)                                             \
+    ARRAY_LIST_DESTROY(typename)                                               \
+    ARRAY_LIST_SIZE(typename)                                                  \
+    ARRAY_LIST_APPEND(typename, T)                                             \
+    ARRAY_LIST_INSERT(typename, T)                                             \
+    ARRAY_LIST_REMOVE_INTERNAL(typename, T)                                    \
+    ARRAY_LIST_REMOVE(typename)                                                \
+    ARRAY_LIST_INDEX_OF(typename, T)                                           \
+    ARRAY_LIST_REMOVE_ELEM(typename, T)                                        \
+    ARRAY_LIST_CONTAINS(typename, T)                                           \
+    ARRAY_LIST_GET(typename, T)                                                \
+    ARRAY_LIST_TAKE(typename, T)
+
+static const size_t initial_alloc = 128;
 
 #define ARRAY_LIST_CBS_TYPEDEF(typename, T)                                    \
     typedef bool (*typename##_eq)(const T, const T);                           \
@@ -13,8 +34,6 @@
     typedef void (*typename##_free_cb)(T*);
 
 #define ARRAY_LIST_STRUCTS(typename, T)                                        \
-    static const size_t initial_alloc = 128;                                   \
-                                                                               \
     typedef struct                                                             \
     {                                                                          \
         typename##_eq      leq;                                                \
@@ -30,23 +49,21 @@
         typename##_cbs cbs;                                                    \
     } typename;
 
-#define ARRAY_LIST_PASSTHROUGH_CBS(typename, T)                                \
-    static bool typename##_passthrough_eq(const T first, const T second)       \
-    {                                                                          \
-        return first == second;                                                \
-    }
-
 #define ARRAY_LIST_CREATE(typename, T)                                         \
     typename* typename##_create(typename##_cbs cbs)                            \
     {                                                                          \
-        typename* list = calloc(sizeof(*list));                                \
+        if (!cbs.leq) {                                                        \
+            printf("array list - create: Invalid arguments! array list!\n");   \
+            exit(-1);                                                          \
+        }                                                                      \
+        typename* list = calloc(1, sizeof(typename));                          \
                                                                                \
         if (!list) {                                                           \
             printf("Failed to allocate structs for array list!\n");            \
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        list->elements = calloc(sizeof(*list->elements) * initial_alloc);      \
+        list->elements = calloc(initial_alloc, sizeof(T));                     \
         if (!list->elements) {                                                 \
             printf("Failed to allocate data array for array list!\n");         \
             exit(-1);                                                          \
@@ -55,13 +72,7 @@
         list->alloced = initial_alloc;                                         \
         list->len     = 0;                                                     \
                                                                                \
-        list->cbs.leq   = cbs.leq;                                             \
-        list->cbs.lcopy = cbs.lcopy;                                           \
-        list->cbs.lfree = cbs.lfree;                                           \
-                                                                               \
-        if (!list->cbs.leq) {                                                  \
-            list->cbs.leq = typename##_passthrough_eq;                         \
-        }                                                                      \
+        list->cbs = cbs;                                                       \
                                                                                \
         return list;                                                           \
     }
@@ -92,20 +103,10 @@
         return l->len;                                                         \
     }
 
-#define ARRAY_LIST_APPEND(typename, T)                                         \
-    int typename##_append(typename* l, T v)                                    \
-    {                                                                          \
-        if (!l) {                                                              \
-            printf("list - append: Invalid Arguments!\n");                     \
-            exit(-1);                                                          \
-        }                                                                      \
-        return typename##_insert(l, v, l->len);                                \
-    }
-
 #define ARRAY_LIST_INSERT(typename, T)                                         \
     int typename##_insert(typename* l, T v, size_t idx)                        \
     {                                                                          \
-        if (!l) {                                                              \
+        if (!l || idx < 0 || idx > l->len) {                                   \
             printf("list - insert: Invalid Arguments!\n");                     \
             exit(-1);                                                          \
         }                                                                      \
@@ -113,8 +114,7 @@
         if (l->alloced == l->len) {                                            \
             l->alloced <<= 2;                                                  \
                                                                                \
-            T* realloc_h =                                                     \
-                  realloc(l->elements, sizeof(*l->elements) * l->alloced);     \
+            T* realloc_h = realloc(l->elements, sizeof(T) * l->alloced);       \
             if (!realloc_h) {                                                  \
                 free(l->elements);                                             \
                 printf("list - insert: Memory Allocation Failed!\n");          \
@@ -128,12 +128,10 @@
             v = l->cbs.lcopy(v);                                               \
         }                                                                      \
                                                                                \
-        if (idx > l->len) {                                                    \
-            idx = l->len;                                                      \
-        } else if (idx < l->len) {                                             \
+        if (idx < l->len) {                                                    \
             memmove(l->elements + idx + 1,                                     \
                     l->elements + idx,                                         \
-                    (l->len - idx) * sizeof(*l->elements));                    \
+                    (l->len - idx) * sizeof(T));                               \
         }                                                                      \
         l->elements[idx] = v;                                                  \
         l->len++;                                                              \
@@ -141,7 +139,17 @@
         return 0;                                                              \
     }
 
-#define ARRAY_LIST_REMOVE_INTERNAL(typename)                                   \
+#define ARRAY_LIST_APPEND(typename, T)                                         \
+    int typename##_append(typename* l, T v)                                    \
+    {                                                                          \
+        if (!l) {                                                              \
+            printf("list - append: Invalid Arguments!\n");                     \
+            exit(-1);                                                          \
+        }                                                                      \
+        return typename##_insert(l, v, l->len);                                \
+    }
+
+#define ARRAY_LIST_REMOVE_INTERNAL(typename, T)                                \
     static int                                                                 \
           typename##_remove_internal(typename* l, size_t idx, bool free_flag)  \
     {                                                                          \
@@ -160,7 +168,7 @@
         }                                                                      \
         memmove(l->elements + idx,                                             \
                 l->elements + idx + 1,                                         \
-                (l->len - idx) * sizeof(*l->elements));                        \
+                (l->len - idx) * sizeof(T));                                   \
         return 0;                                                              \
     }
 
@@ -230,5 +238,24 @@
         typename##_remove_internal(l, idx, false);                             \
         return elem;                                                           \
     }
+
+ARRAY_LIST_DEF(array_list_node, node_t*);
+
+static array_list_node_cbs node_cbs = { node_eq, NULL, NULL };
+
+array_list_node*
+al_node_create(void)
+{
+    return array_list_node_create(node_cbs);
+}
+
+ARRAY_LIST_DEF(array_list_relationship, relationship_t*);
+array_list_relationship_cbs list_rel_cbs = { rel_eq, NULL, NULL };
+
+array_list_relationship*
+al_rel_create(void)
+{
+    return array_list_relationship_create(rel_cbs);
+}
 
 #endif

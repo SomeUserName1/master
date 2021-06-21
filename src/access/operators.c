@@ -9,9 +9,8 @@
 #include "../constants.h"
 #include "access/node.h"
 #include "access/relationship.h"
-#include "data-struct/dict_ul.h"
-#include "data-struct/list_node.h"
-#include "data-struct/list_rel.h"
+#include "data-struct/array_list.h"
+#include "data-struct/htable.h"
 
 void
 ids_to_blocks(const char* in_path, const char* out_path, record_id_t type)
@@ -105,8 +104,8 @@ create_in_memory_file()
         exit(-1);
     }
 
-    file->cache_nodes     = create_dict_ul_node();
-    file->cache_rels      = create_dict_ul_rel();
+    file->cache_nodes     = dict_ul_node_create();
+    file->cache_rels      = dict_ul_rel_create();
     file->node_id_counter = 0;
     file->rel_id_counter  = 0;
 
@@ -153,7 +152,7 @@ in_memory_get_node(in_memory_file_t* db, unsigned long id)
     return dict_ul_node_get_direct(db->cache_nodes, id);
 }
 
-list_node_t*
+list_node*
 in_memory_get_nodes(in_memory_file_t* db)
 {
     if (!db) {
@@ -161,10 +160,10 @@ in_memory_get_nodes(in_memory_file_t* db)
         return NULL;
     }
 
-    list_node_t*             nodes = create_list_node();
-    unsigned long*           id    = NULL;
-    node_t*                  node  = NULL;
-    dict_ul_node_iterator_t* it = create_dict_ul_node_iterator(db->cache_nodes);
+    list_node*             nodes = list_node_create();
+    unsigned long          id    = UNINITIALIZED_LONG;
+    node_t*                node  = NULL;
+    dict_ul_node_iterator* it = dict_ul_node_iterator_create(db->cache_nodes);
 
     while (dict_ul_node_iterator_next(it, &id, &node) > -1) {
         list_node_append(nodes, node);
@@ -185,7 +184,7 @@ in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
     return dict_ul_rel_get_direct(db->cache_rels, id);
 }
 
-list_relationship_t*
+list_relationship*
 in_memory_get_relationships(in_memory_file_t* db)
 {
     if (!db) {
@@ -193,10 +192,10 @@ in_memory_get_relationships(in_memory_file_t* db)
         exit(-1);
     }
 
-    list_relationship_t*    rels = create_list_relationship();
-    unsigned long*          id   = NULL;
-    relationship_t*         rel  = NULL;
-    dict_ul_rel_iterator_t* it   = create_dict_ul_rel_iterator(db->cache_rels);
+    list_relationship*    rels = list_relationship_create();
+    unsigned long         id   = UNINITIALIZED_LONG;
+    relationship_t*       rel  = NULL;
+    dict_ul_rel_iterator* it   = dict_ul_rel_iterator_create(db->cache_rels);
 
     while (dict_ul_rel_iterator_next(it, &id, &rel) > -1) {
         list_relationship_append(rels, rel);
@@ -380,7 +379,7 @@ in_memory_next_relationship(in_memory_file_t* db,
     return UNINITIALIZED_LONG;
 }
 
-list_relationship_t*
+list_relationship*
 in_memory_expand(in_memory_file_t* db,
                  unsigned long     node_id,
                  direction_t       direction)
@@ -397,8 +396,8 @@ in_memory_expand(in_memory_file_t* db,
         exit(-1);
     }
 
-    list_relationship_t* result = create_list_relationship();
-    unsigned long        rel_id = node->first_relationship;
+    list_relationship* result = list_relationship_create();
+    unsigned long      rel_id = node->first_relationship;
 
     if (rel_id == UNINITIALIZED_LONG) {
         return result;
