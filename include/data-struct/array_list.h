@@ -16,8 +16,8 @@
     ARRAY_LIST_CREATE(typename, T)                                             \
     ARRAY_LIST_DESTROY(typename)                                               \
     ARRAY_LIST_SIZE(typename)                                                  \
-    ARRAY_LIST_APPEND(typename, T)                                             \
     ARRAY_LIST_INSERT(typename, T)                                             \
+    ARRAY_LIST_APPEND(typename, T)                                             \
     ARRAY_LIST_REMOVE_INTERNAL(typename, T)                                    \
     ARRAY_LIST_REMOVE(typename)                                                \
     ARRAY_LIST_INDEX_OF(typename, T)                                           \
@@ -30,8 +30,8 @@ static const size_t initial_alloc = 128;
 
 #define ARRAY_LIST_CBS_TYPEDEF(typename, T)                                    \
     typedef bool (*typename##_eq)(const T, const T);                           \
-    typedef T (*typename##_copy_cb)(const T*);                                 \
-    typedef void (*typename##_free_cb)(T*);
+    typedef T (*typename##_copy_cb)(const T);                                  \
+    typedef void (*typename##_free_cb)(T);
 
 #define ARRAY_LIST_STRUCTS(typename, T)                                        \
     typedef struct                                                             \
@@ -104,7 +104,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_INSERT(typename, T)                                         \
-    int typename##_insert(typename* l, T v, size_t idx)                        \
+    void typename##_insert(typename* l, T v, size_t idx)                       \
     {                                                                          \
         if (!l || idx < 0 || idx > l->len) {                                   \
             printf("list - insert: Invalid Arguments!\n");                     \
@@ -135,22 +135,20 @@ static const size_t initial_alloc = 128;
         }                                                                      \
         l->elements[idx] = v;                                                  \
         l->len++;                                                              \
-                                                                               \
-        return 0;                                                              \
     }
 
 #define ARRAY_LIST_APPEND(typename, T)                                         \
-    int typename##_append(typename* l, T v)                                    \
+    void typename##_append(typename* l, T v)                                   \
     {                                                                          \
         if (!l) {                                                              \
             printf("list - append: Invalid Arguments!\n");                     \
             exit(-1);                                                          \
         }                                                                      \
-        return typename##_insert(l, v, l->len);                                \
+        typename##_insert(l, v, l->len);                                       \
     }
 
 #define ARRAY_LIST_REMOVE_INTERNAL(typename, T)                                \
-    static int                                                                 \
+    static void                                                                \
           typename##_remove_internal(typename* l, size_t idx, bool free_flag)  \
     {                                                                          \
         if (!l || idx >= l->len) {                                             \
@@ -163,19 +161,17 @@ static const size_t initial_alloc = 128;
         }                                                                      \
                                                                                \
         l->len--;                                                              \
-        if (idx == l->len) {                                                   \
-            return 0;                                                          \
+        if (idx < l->len) {                                                    \
+            memmove(l->elements + idx,                                         \
+                    l->elements + idx + 1,                                     \
+                    (l->len - idx) * sizeof(T));                               \
         }                                                                      \
-        memmove(l->elements + idx,                                             \
-                l->elements + idx + 1,                                         \
-                (l->len - idx) * sizeof(T));                                   \
-        return 0;                                                              \
     }
 
 #define ARRAY_LIST_REMOVE(typename)                                            \
-    int typename##_remove(typename* l, size_t idx)                             \
+    void typename##_remove(typename* l, size_t idx)                            \
     {                                                                          \
-        return typename##_remove_internal(l, idx, true);                       \
+        typename##_remove_internal(l, idx, true);                              \
     }
 
 #define ARRAY_LIST_INDEX_OF(typename, T)                                       \
@@ -196,13 +192,14 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_REMOVE_ELEM(typename, T)                                    \
-    int typename##_remove_elem(typename* l, T elem)                            \
+    void typename##_remove_elem(typename* l, T elem)                           \
     {                                                                          \
         size_t idx = 0;                                                        \
         if (typename##_index_of(l, elem, &idx) != 0) {                         \
-            return -1;                                                         \
+            printf("array list - remove element: Element not in list!\n");     \
+            exit(-1);                                                          \
         }                                                                      \
-        return typename##_remove_internal(l, idx, true);                       \
+        typename##_remove_internal(l, idx, true);                              \
     }
 
 #define ARRAY_LIST_CONTAINS(typename, T)                                       \
@@ -241,21 +238,21 @@ static const size_t initial_alloc = 128;
 
 ARRAY_LIST_DEF(array_list_node, node_t*);
 
-static array_list_node_cbs node_cbs = { node_eq, NULL, NULL };
+static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
 
 array_list_node*
 al_node_create(void)
 {
-    return array_list_node_create(node_cbs);
+    return array_list_node_create(list_node_cbs);
 }
 
 ARRAY_LIST_DEF(array_list_relationship, relationship_t*);
-array_list_relationship_cbs list_rel_cbs = { rel_eq, NULL, NULL };
+array_list_relationship_cbs list_rel_cbs = { relationship_equals, NULL, NULL };
 
 array_list_relationship*
 al_rel_create(void)
 {
-    return array_list_relationship_create(rel_cbs);
+    return array_list_relationship_create(list_rel_cbs);
 }
 
 #endif

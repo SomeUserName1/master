@@ -13,13 +13,14 @@
 #define BUCKET_START          (8)
 #define TOO_MANY_BUCKETS_BITS (31U)
 
-#define HTABLE_DEF(typename, T_key, T_val, HASH_FN, KEY_EQ, CBS)               \
+#define HTABLE_DEF(typename, T_key, T_val, HASH_FN, KEY_EQ)                    \
     HTABLE_CBS_TYPEDEF(typename, T_key, T_val)                                 \
     HTABLE_STRUCTS(typename, T_key, T_val)                                     \
+    HTABLE_PASSTHROUGH_FN(typename, T_key, T_val)                              \
     HTABLE_BUCKET_IDX(typename, T_key)                                         \
     HTABLE_ADD_TO_BUCKETS(typename, T_key, T_val)                              \
     HTABLE_REHASH(typename)                                                    \
-    HTABLE_CREATE(typename, HASH_FN, KEY_EQ, CBS)                              \
+    HTABLE_CREATE(typename, HASH_FN, KEY_EQ)                                   \
     HTABLE_DESTROY(typename)                                                   \
     HTABLE_SIZE(typename)                                                      \
     HTABLE_INSERT(typename, T_key, T_val)                                      \
@@ -35,11 +36,11 @@
 #define HTABLE_CBS_TYPEDEF(typename, T_key, T_val)                             \
     typedef size_t (*typename##_hash)(const T_key in, unsigned int seed);      \
     typedef bool (*typename##_keq)(const T_key first, const T_key second);     \
-    typedef T_key (*typename##_kcopy)(const T_key in);                         \
+    typedef T_key (*typename##_kcopy)(T_key in);                               \
     typedef void (*typename##_kfree)(T_key in);                                \
     typedef void (*typename##_kprint)(const T_key in);                         \
     typedef bool (*typename##_veq)(const T_val first, const T_val second);     \
-    typedef T_val (*typename##_vcopy)(const T_val in);                         \
+    typedef T_val (*typename##_vcopy)(T_val in);                               \
     typedef void (*typename##_vfree)(T_val in);                                \
     typedef void (*typename##_vprint)(const T_val in);
 
@@ -81,6 +82,31 @@
         typename##_bucket* cur;                                                \
         size_t             idx;                                                \
     } typename##_iterator;
+
+#define HTABLE_PASSTHROUGH_FN(typename, T_key, T_val)                          \
+    static T_key typename##_passthrough_kcopy(T_key elem) { return elem; }     \
+                                                                               \
+    static T_val typename##_passthrough_vcopy(T_val elem) { return elem; }     \
+                                                                               \
+    static void typename##_passthrough_kfree(T_key elem) { elem = elem; }      \
+                                                                               \
+    static void typename##_passthrough_vfree(T_val elem) { elem = elem; }      \
+                                                                               \
+    static bool                                                                \
+          typename##_passthrough_veq(const T_val first, const T_val second)    \
+    {                                                                          \
+        return first == second;                                                \
+    }                                                                          \
+                                                                               \
+    static void typename##_passthrough_kprint(const T_key in)                  \
+    {                                                                          \
+        printf("%p\n", &in);                                                   \
+    }                                                                          \
+                                                                               \
+    static void typename##_passthrough_vprint(const T_val in)                  \
+    {                                                                          \
+        printf("%p\n", &in);                                                   \
+    }
 
 #define HTABLE_BUCKET_IDX(typename, T_key)                                     \
     static size_t typename##_bucket_idx(typename* ht, T_key key)               \
@@ -203,31 +229,50 @@
         return 0;                                                              \
     }
 
-#define HTABLE_CREATE(typename, HASH_FN, KEY_EQ, CBS)                          \
-    typename* typename##_create(void)                                          \
-    {                                                                          \
-        typename* ht = calloc(1, sizeof(*ht));                                 \
-                                                                               \
-        if (!ht) {                                                             \
-            printf("htable create: failes to allocate memory!\n");             \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        ht->hash_fn     = HASH_FN;                                             \
-        ht->keq         = KEY_EQ;                                              \
-        ht->cbs         = (typename##_cbs){ CBS };                             \
-        ht->num_buckets = BUCKET_START;                                        \
-        ht->buckets     = calloc(BUCKET_START, sizeof(*ht->buckets));          \
-                                                                               \
-        if (!ht->buckets) {                                                    \
-            printf("htable create: Failed to allocate memory for buckets");    \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        ht->num_used = 0;                                                      \
-        ht->seed     = rand();                                                 \
-                                                                               \
-        return ht;                                                             \
+#define HTABLE_CREATE(typename, HASH_FN, KEY_EQ)                                 \
+    typename* typename##_create(typename##_cbs cbs)                              \
+    {                                                                            \
+        typename* ht = calloc(1, sizeof(*ht));                                   \
+                                                                                 \
+        if (!ht) {                                                               \
+            printf("htable create: failes to allocate memory!\n");               \
+            exit(-1);                                                            \
+        }                                                                        \
+                                                                                 \
+        ht->hash_fn = HASH_FN;                                                   \
+        ht->keq     = KEY_EQ;                                                    \
+                                                                                 \
+        ht->cbs.key_copy   = cbs.key_copy == NULL ? typename##_passthrough_kcopy \
+                                                  : cbs.key_copy;                \
+        ht->cbs.key_free   = cbs.key_free == NULL ? typename##_passthrough_kfree \
+                                                  : cbs.key_free;                \
+        ht->cbs.key_print  = cbs.key_print == NULL                               \
+                                   ? typename##_passthrough_kprint               \
+                                   : cbs.key_print;                              \
+        ht->cbs.value_eq   = cbs.value_eq == NULL ? typename##_passthrough_veq   \
+                                                  : cbs.value_eq;                \
+        ht->cbs.value_copy = cbs.value_copy == NULL                              \
+                                   ? typename##_passthrough_vcopy                \
+                                   : cbs.value_copy;                             \
+        ht->cbs.value_free = cbs.value_free == NULL                              \
+                                   ? typename##_passthrough_vfree                \
+                                   : cbs.value_free;                             \
+        ht->cbs.value_print = cbs.value_print == NULL                            \
+                                    ? typename##_passthrough_vprint              \
+                                    : cbs.value_print;                           \
+                                                                                 \
+        ht->num_buckets = BUCKET_START;                                          \
+        ht->buckets     = calloc(BUCKET_START, sizeof(*ht->buckets));            \
+                                                                                 \
+        if (!ht->buckets) {                                                      \
+            printf("htable create: Failed to allocate memory for buckets");      \
+            exit(-1);                                                            \
+        }                                                                        \
+                                                                                 \
+        ht->num_used = 0;                                                        \
+        ht->seed     = rand();                                                   \
+                                                                                 \
+        return ht;                                                               \
     }
 
 #define HTABLE_DESTROY(typename)                                               \
@@ -452,52 +497,53 @@ HTABLE_DEF(dict_ul_ul,
            unsigned long,
            unsigned long,
            fnv_hash_ul,
-           unsigned_long_eq,
-           (unsigned_long_copy,
-            free,
-            unsigned_long_print,
-            unsigned_long_eq,
-            unsigned_long_copy,
-            free,
-            unsigned_long_print));
+           unsigned_long_eq);
+dict_ul_ul_cbs d_ul_cbs = { NULL, NULL, unsigned_long_print, unsigned_long_eq,
+                            NULL, NULL, unsigned_long_print };
 
-HTABLE_DEF(dict_ul_int,
-           unsigned long,
-           int,
-           fnv_hash_ul,
-           unsigned_long_eq,
-           (unsigned_long_copy,
-            free,
-            unsigned_long_print,
-            int_eq,
-            int_copy,
-            free,
-            int_print));
+dict_ul_ul*
+d_ul_ul_create(void)
+{
+    return dict_ul_ul_create(d_ul_cbs);
+}
 
-HTABLE_DEF(dict_ul_node,
-           unsigned long,
-           node_t*,
-           fnv_hash_ul,
-           unsigned_long_eq,
-           (unsigned_long_copy,
-            free,
-            unsigned_long_print,
-            node_eq,
-            NULL,
-            free,
-            node_print));
+HTABLE_DEF(dict_ul_int, unsigned long, int, fnv_hash_ul, unsigned_long_eq);
+dict_ul_int_cbs d_int_cbs = { NULL, NULL,     unsigned_long_print, int_eq, NULL,
+                              NULL, int_print };
+
+dict_ul_int*
+d_ul_int_create(void)
+{
+    return dict_ul_int_create(d_int_cbs);
+}
+
+HTABLE_DEF(dict_ul_node, unsigned long, node_t*, fnv_hash_ul, unsigned_long_eq);
+
+dict_ul_node_cbs d_node_cbs = {
+    NULL, NULL,      unsigned_long_print, node_equals,
+    NULL, node_free, node_pretty_print
+};
+
+dict_ul_node*
+d_ul_node_create(void)
+{
+    return dict_ul_node_create(d_node_cbs);
+}
 
 HTABLE_DEF(dict_ul_rel,
            unsigned long,
            relationship_t*,
            fnv_hash_ul,
-           unsigned_long_eq,
-           (unsigned_long_copy,
-            free,
-            unsigned_long_print,
-            int_eq,
-            int_copy,
-            free,
-            int_print));
+           unsigned_long_eq);
+dict_ul_rel_cbs d_rel_cbs = {
+    NULL, NULL,     unsigned_long_print,      relationship_equals,
+    NULL, rel_free, relationship_pretty_print
+};
+
+dict_ul_rel*
+d_ul_rel_create(void)
+{
+    return dict_ul_rel_create(d_rel_cbs);
+}
 
 #endif

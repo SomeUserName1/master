@@ -48,7 +48,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
 ### Future Work
 
   - [ ] Hop labeling scheme: Use existing impl.
-  - [ ] More traversal-based queries
+  - [ ] More traversal-based queries: 
   - [ ] thread-safe data structures
   - [ ] Transactions/MVCC using git-like transaction logs
   - [ ] Alternative record layouts (nodes + adj list in same file)
@@ -77,3 +77,9 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Caching in minimal form, non-consecutive IDS & deletions to be supported: 
     Otherwise the piece of software is too far from an actual database.
 - By End of Semester/July: Measure number of actual disk IOs for the default/dataset order layout 
+
+## Meeting 3
+- Theodoros wants labels and properties stored within the nodes & rel struct
+- Algorithms: The ones that are implemented + hop labeling
+- Out of memory during transaction (e.g. BFS on live journal): Theodoros "Assume everything fits in memory"
+- Theodoros is sceptical
