@@ -1,8 +1,10 @@
 #ifndef RESULT_TYPES_H
 #define RESULT_TYPES_H
 
+#include <stdio.h>
+
 #include "access/operators.h"
-#include "data-struct/list_ul.h"
+#include "data-struct/array_list.h"
 
 typedef struct traversal_result
 {
@@ -20,10 +22,10 @@ typedef struct sssp_result
 
 typedef struct path
 {
-    unsigned long source;
-    unsigned long target;
-    double        distance;
-    list_ul_t*    edges;
+    unsigned long  source;
+    unsigned long  target;
+    double         distance;
+    array_list_ul* edges;
 } path;
 
 traversal_result*
@@ -46,15 +48,23 @@ path*
 sssp_extract_path(sssp_result* result, in_memory_file_t db);
 
 path*
-create_path(unsigned long source_node_id,
-            unsigned long target_node_id,
-            double        distance,
-            list_ul_t*    edges);
+create_path(unsigned long  source_node_id,
+            unsigned long  target_node_id,
+            double         distance,
+            array_list_ul* edges);
 
 void
 path_destroy(path* p);
 
-list_ul_t*
+path*
+construct_path(in_memory_file_t* db,
+               unsigned long     source_node_id,
+               unsigned long     target_node_id,
+               unsigned long*    parents,
+               double            distance,
+               FILE*             log_file);
+
+array_list_ul*
 path_extract_vertices(path* p, in_memory_file_t* db);
 
 #endif

@@ -236,8 +236,16 @@ static const size_t initial_alloc = 128;
         return elem;                                                           \
     }
 
-ARRAY_LIST_DEF(array_list_node, node_t*);
+ARRAY_LIST_DEF(array_list_ul, unsigned long);
+array_list_ul_cbs al_ul_cbs = { unsigned_long_eq, NULL, NULL };
 
+array_list_ul*
+al_ul_create(void)
+{
+    return array_list_ul_create(al_ul_cbs);
+}
+
+ARRAY_LIST_DEF(array_list_node, node_t*);
 static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
 
 array_list_node*

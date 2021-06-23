@@ -8,44 +8,9 @@
 #include "../constants.h"
 #include "access/operators.h"
 #include "access/relationship.h"
+#include "data-struct/array_list.h"
 #include "data-struct/fibonacci_heap.h"
-#include "data-struct/list_rel.h"
-#include "data-struct/list_ul.h"
 #include "query/result_types.h"
-
-path*
-construct_path(in_memory_file_t* db,
-               unsigned long     source_node_id,
-               unsigned long     target_node_id,
-               unsigned long*    parents,
-               double            distance,
-               FILE*             log_file)
-{
-    unsigned long   node_id       = target_node_id;
-    list_ul_t*      edges_reverse = create_list_ul();
-    relationship_t* rel;
-    do {
-        list_ul_append(edges_reverse, parents[node_id]);
-        rel = in_memory_get_relationship(db, parents[node_id]);
-        fprintf(log_file, "%s %lu\n", "R", rel->id);
-
-        node_id =
-              rel->target_node == node_id ? rel->source_node : rel->target_node;
-    } while (node_id != source_node_id);
-
-    list_ul_t* edges = create_list_ul();
-
-    for (size_t i = 1; i < list_ul_size(edges_reverse) + 1; ++i) {
-        list_ul_append(
-              edges,
-              list_ul_get(edges_reverse, list_ul_size(edges_reverse) - i));
-    }
-    list_ul_destroy(edges_reverse);
-    free(parents);
-    fclose(log_file);
-
-    return create_path(source_node_id, target_node_id, distance, edges);
-}
 
 path*
 a_star(in_memory_file_t* db,
@@ -67,34 +32,33 @@ a_star(in_memory_file_t* db,
         distance[i] = DBL_MAX;
     }
 
-    fib_heap_t* prio_queue = create_fib_heap();
-    FILE*       log_file   = fopen(log_path, "w+");
+    fib_heap_ul* prio_queue = fib_heap_ul_create();
+    FILE*        log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
         free(parents);
         free(distance);
-        fib_heap_destroy(prio_queue);
+        fib_heap_ul_destroy(prio_queue);
         printf("dijkstra: Failed to open log file, %d\n", errno);
         return NULL;
     }
 
-    list_relationship_t* current_rels;
-    relationship_t*      current_rel;
-    unsigned long        temp;
-    double               new_dist;
-    fib_node*            fh_node =
-          create_fib_node(distance[source_node_id], source_node_id);
-    fib_heap_insert(prio_queue, fh_node);
+    array_list_relationship* current_rels;
+    relationship_t*          current_rel;
+    unsigned long            temp;
+    double                   new_dist;
+    fib_heap_ul_node*        fh_node = NULL;
+    fib_heap_ul_insert(prio_queue, distance[source_node_id], source_node_id);
     distance[source_node_id] = 0;
 
     while (prio_queue->num_nodes > 0) {
-        fh_node = fib_heap_extract_min(prio_queue);
+        fh_node = fib_heap_ul_extract_min(prio_queue);
 
         if (fh_node->value == target_node_id) {
             new_dist = distance[target_node_id];
             free(distance);
             free(fh_node);
-            fib_heap_destroy(prio_queue);
+            fib_heap_ul_destroy(prio_queue);
             return construct_path(db,
                                   source_node_id,
                                   target_node_id,
@@ -107,8 +71,9 @@ a_star(in_memory_file_t* db,
 
         fprintf(log_file, "%s %lu\n", "N", fh_node->value);
 
-        for (size_t i = 0; i < list_relationship_size(current_rels); ++i) {
-            current_rel = list_relationship_get(current_rels, i);
+        for (size_t i = 0; i < array_list_relationship_size(current_rels);
+             ++i) {
+            current_rel = array_list_relationship_get(current_rels, i);
 
             fprintf(log_file, "%s %lu\n", "R", current_rel->id);
 
@@ -121,18 +86,16 @@ a_star(in_memory_file_t* db,
             if (distance[temp] > new_dist) {
                 distance[temp] = new_dist;
                 parents[temp]  = current_rel->id;
-                fib_heap_insert(prio_queue,
-                                create_fib_node(distance[temp], temp));
+                fib_heap_ul_insert(prio_queue, distance[temp], temp);
             }
         }
         free(fh_node);
-        list_relationship_destroy(current_rels);
+        array_list_relationship_destroy(current_rels);
     }
-    fib_heap_destroy(prio_queue);
+    fib_heap_ul_destroy(prio_queue);
     free(parents);
     free(distance);
     fclose(log_file);
 
-    return create_path(
-          source_node_id, target_node_id, DBL_MAX, create_list_ul());
+    return create_path(source_node_id, target_node_id, DBL_MAX, al_ul_create());
 }

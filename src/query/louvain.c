@@ -5,7 +5,7 @@
 
 #include "access/operators.h"
 #include "access/relationship.h"
-#include "data-struct/list_rel.h"
+#include "data-struct/array_list.h"
 
 louvain_graph_t*
 louvain_graph_init(in_memory_file_t* db)
@@ -23,19 +23,19 @@ louvain_graph_init(in_memory_file_t* db)
         exit(-1);
     }
 
-    result->graph             = db;
-    result->m2                = 0;
-    list_relationship_t* rels = in_memory_get_relationships(db);
-    relationship_t*      rel  = NULL;
+    result->graph                 = db;
+    result->m2                    = 0;
+    array_list_relationship* rels = in_memory_get_relationships(db);
+    relationship_t*          rel  = NULL;
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        rel = list_relationship_get(rels, i);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        rel = array_list_relationship_get(rels, i);
         result->m2 += rel->weight;
     }
 
     result->m2 *= 2;
 
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 
     return result;
 }
@@ -291,10 +291,10 @@ get_neighbouring_communities(louvain_partition_t* p,
         exit(-1);
     }
 
-    unsigned long        neigh;
-    unsigned long        neigh_com;
-    list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
-    relationship_t*      rel  = NULL;
+    unsigned long            neigh;
+    unsigned long            neigh_com;
+    array_list_relationship* rels = in_memory_expand(g->graph, node, BOTH);
+    relationship_t*          rel  = NULL;
 
     if (!all) {
         p->neigh_com_pos[0]                       = p->node_to_com[node];
@@ -302,8 +302,8 @@ get_neighbouring_communities(louvain_partition_t* p,
         p->neigh_com_nb                           = 1;
     }
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        rel   = list_relationship_get(rels, i);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        rel   = array_list_relationship_get(rels, i);
         neigh = rel->source_node == node ? rel->target_node : rel->source_node;
         neigh_com = p->node_to_com[neigh];
 
@@ -318,7 +318,7 @@ get_neighbouring_communities(louvain_partition_t* p,
             p->neigh_com_weights[neigh_com] += rel->weight;
         }
     }
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 }
 
 double
@@ -330,16 +330,16 @@ degree_weighted(louvain_graph_t* g, unsigned long node)
         exit(-1);
     }
 
-    double               res  = 0.0;
-    list_relationship_t* rels = in_memory_expand(g->graph, node, BOTH);
-    relationship_t*      rel  = NULL;
+    double                   res  = 0.0;
+    array_list_relationship* rels = in_memory_expand(g->graph, node, BOTH);
+    relationship_t*          rel  = NULL;
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        rel = list_relationship_get(rels, i);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        rel = array_list_relationship_get(rels, i);
         res += rel->weight;
     }
 
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
     return res;
 }
 

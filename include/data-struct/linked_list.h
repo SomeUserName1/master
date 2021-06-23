@@ -1,14 +1,16 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
-#include "data-struct/queue_ul.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define LINKED_LIST_DEF(typename, T)                                           \
+#include "access/relationship.h"
+#include "data-struct/cbs.h"
+
+#define LINKED_LIST_DEF_BASE(typename, T)                                      \
     LINKED_LIST_CBS_TYPEDEF(typename, T)                                       \
     LINKED_LIST_STRUCTS(typename, T)                                           \
     LINKED_LIST_PASSTHROUGH_CBS(typename, T)                                   \
@@ -16,55 +18,33 @@
     LINKED_LIST_DESTROY(typename)                                              \
     LINKED_LIST_SIZE(typename)                                                 \
     LINKED_LIST_APPEND(typename, T)                                            \
+    LINKED_LIST_PUSH(typename, T)                                              \
     LINKED_LIST_INSERT(typename, T)                                            \
     LINKED_LIST_REMOVE_INTERNAL(typename, T)                                   \
     LINKED_LIST_REMOVE(typename)                                               \
     LINKED_LIST_INDEX_OF(typename, T)                                          \
     LINKED_LIST_REMOVE_ELEM(typename, T)                                       \
     LINKED_LIST_CONTAINS(typename, T)                                          \
-    LINKED_LIST_GET(typename, T)                                               \
+    LINKED_LIST_GET(typename, T)
+
+#define LINKED_LIST_DEF(typename, T)                                           \
+    LINKED_LIST_DEF_BASE(typename, T)                                          \
     LINKED_LIST_TAKE(typename, T)
 
 #define STACK_DEF(typename, T)                                                 \
-    LINKED_LIST_CBS_TYPEDEF(typename, T)                                       \
-    LINKED_LIST_STRUCTS(typename, T)                                           \
-    LINKED_LIST_PASSTHROUGH_CBS(typename, T)                                   \
-    LINKED_LIST_CREATE(typename)                                               \
-    LINKED_LIST_DESTROY(typename)                                              \
-    LINKED_LIST_SIZE(typename)                                                 \
-    LINKED_LIST_POP(typename, T)                                               \
-    LINKED_LIST_INSERT(typename, T)                                            \
-    LINKED_LIST_REMOVE_INTERNAL(typename, T)                                   \
-    LINKED_LIST_REMOVE(typename)                                               \
-    LINKED_LIST_INDEX_OF(typename, T)                                          \
-    LINKED_LIST_REMOVE_ELEM(typename, T)                                       \
-    LINKED_LIST_CONTAINS(typename, T)                                          \
-    LINKED_LIST_GET(typename, T)                                               \
-    STACK_TAKE(typename, T)
+    LINKED_LIST_DEF_BASE(typename, T)                                          \
+    STACK_POP(typename, T)
 
 #define QUEUE_DEF(typename, T)                                                 \
-    LINKED_LIST_CBS_TYPEDEF(typename, T)                                       \
-    LINKED_LIST_STRUCTS(typename, T)                                           \
-    LINKED_LIST_PASSTHROUGH_CBS(typename, T)                                   \
-    LINKED_LIST_CREATE(typename)                                               \
-    LINKED_LIST_DESTROY(typename)                                              \
-    LINKED_LIST_SIZE(typename)                                                 \
-    LINKED_LIST_POP(typename, T)                                               \
-    LINKED_LIST_INSERT(typename, T)                                            \
-    LINKED_LIST_REMOVE_INTERNAL(typename, T)                                   \
-    LINKED_LIST_REMOVE(typename)                                               \
-    LINKED_LIST_INDEX_OF(typename, T)                                          \
-    LINKED_LIST_REMOVE_ELEM(typename, T)                                       \
-    LINKED_LIST_CONTAINS(typename, T)                                          \
-    LINKED_LIST_GET(typename, T)                                               \
-    QUEUE_TAKE(typename, T)
+    LINKED_LIST_DEF_BASE(typename, T)                                          \
+    QUEUE_POP(typename, T)
 
-#define LINKED_LIST_PASSTROUGH_CBS(typename, T)                                \
+#define LINKED_LIST_CBS_TYPEDEF(typename, T)                                   \
     typedef bool (*typename##_eq)(const T a, const T b);                       \
-    typedef T (*typename##_copy)(const T original);                            \
+    typedef T (*typename##_copy)(T original);                                  \
     typedef void (*typename##_free)(T elem);
 
-#define LINKED_LIST_STRUCTS                                                    \
+#define LINKED_LIST_STRUCTS(typename, T)                                       \
     typedef struct                                                             \
     {                                                                          \
         typename##_eq   lleq;                                                  \
@@ -94,17 +74,13 @@
         return first == second;                                                \
     }                                                                          \
                                                                                \
-    static T typename##_passthrough_copy(const T elem) { return elem; }        \
+    static T typename##_passthrough_copy(T elem) { return elem; }              \
                                                                                \
     static void typename##_passthrough_free(T elem) { elem = elem; }
 
 #define LINKED_LIST_CREATE(typename)                                           \
     typename* typename##_create(const typename##_cbs cbs)                      \
     {                                                                          \
-        if (!cbs) {                                                            \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
         typename* ll;                                                          \
         ll = calloc(1, sizeof(*ll));                                           \
                                                                                \
@@ -121,7 +97,7 @@
         ll->cbs.llcopy =                                                       \
               !cbs.llcopy ? typename##_passthrough_copy : cbs.llcopy;          \
         ll->cbs.llfree =                                                       \
-              !cbs->llfree ? typename##_passthrough_free : cbs.llfree;         \
+              !cbs.llfree ? typename##_passthrough_free : cbs.llfree;          \
                                                                                \
         return ll;                                                             \
     }
@@ -195,8 +171,7 @@
     }
 
 #define LINKED_LIST_PUSH(typename, T)                                          \
-    LINKED_LIST_APPEND(typename, T)                                            \
-    void typename##_push(typename ll, T elem) { typename##_append(ll, elem); }
+    void typename##_push(typename* ll, T elem) { typename##_append(ll, elem); }
 
 #define LINKED_LIST_INSERT(typename, T)                                        \
     void typename##_insert(typename* ll, T elem, size_t idx)                   \
@@ -206,7 +181,7 @@
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        typename* new = calloc(1, sizeof(*new));                               \
+        typename##_node* new = calloc(1, sizeof(*new));                        \
                                                                                \
         if (!new) {                                                            \
             printf("Linked list - insert: Failed to allocate memory!\n");      \
@@ -230,21 +205,9 @@
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        if (idx == 0 || idx == ll->len) {                                      \
-            new->prev = ll->tail;                                              \
-            new->next = ll->head;                                              \
-                                                                               \
-            ll->head->prev = new;                                              \
-            ll->tail->next = new;                                              \
-                                                                               \
-            if (idx == 0) {                                                    \
-                ll->head = new;                                                \
-            } else {                                                           \
-                ll->tail = new;                                                \
-            }                                                                  \
-        } else {                                                               \
-            typename_node* cur  = ll->head;                                    \
-            typename_node* next = ll->head;                                    \
+        if (idx != 0 && idx != ll->len) {                                      \
+            typename##_node* cur  = ll->head;                                  \
+            typename##_node* next = ll->head;                                  \
                                                                                \
             for (size_t i = 0; i < idx; ++i) {                                 \
                 cur  = next;                                                   \
@@ -256,6 +219,18 @@
                                                                                \
             cur->next  = new;                                                  \
             next->prev = new;                                                  \
+        } else {                                                               \
+            new->prev = ll->tail;                                              \
+            new->next = ll->head;                                              \
+                                                                               \
+            ll->head->prev = new;                                              \
+            ll->tail->next = new;                                              \
+                                                                               \
+            if (idx == 0) {                                                    \
+                ll->head = new;                                                \
+            } else {                                                           \
+                ll->tail = new;                                                \
+            }                                                                  \
         }                                                                      \
                                                                                \
         ll->len++;                                                             \
@@ -327,8 +302,7 @@
     void typename##_remove_elem(typename* ll, T elem)                          \
     {                                                                          \
         size_t idx;                                                            \
-        typename##_index_of(ll, elem, &idx);                                   \
-        if (idx == -1) {                                                       \
+        if (typename##_index_of(ll, elem, &idx) <= -1) {                       \
             printf("Linked List - remove elem: Element not in the list!\n");   \
             exit(-1);                                                          \
         }                                                                      \
@@ -336,30 +310,29 @@
     }
 
 #define LINKED_LIST_INDEX_OF(typename, T)                                      \
-    void typename##_index_of(typename* ll, T elem, size_t* idx)                \
+    int typename##_index_of(typename* ll, T elem, size_t* idx)                 \
     {                                                                          \
         if (!ll || !idx || ll->len == 0) {                                     \
             printf("linked list - index of: invalid arguments!\n");            \
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        *idx                 = -1;                                             \
         typename##_node* cur = ll->head;                                       \
         for (size_t i = 0; i < ll->len; ++i) {                                 \
             if (ll->cbs.lleq(cur->element, elem)) {                            \
                 *idx = i;                                                      \
-                break;                                                         \
+                return 0;                                                      \
             }                                                                  \
             cur = cur->next;                                                   \
         }                                                                      \
+        return -1;                                                             \
     }
 
 #define LINKED_LIST_CONTAINS(typename, T)                                      \
     bool typename##_contains(typename* ll, T elem)                             \
     {                                                                          \
         size_t idx;                                                            \
-        typename##_index_of(ll, elem, &idx);                                   \
-        return (index > -1);                                                   \
+        return (typename##_index_of(ll, elem, &idx) > -1);                     \
     }
 
 #define LINKED_LIST_GET(typename, T)                                           \
@@ -370,7 +343,7 @@
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        typename_node* cur = ll->head;                                         \
+        typename##_node* cur = ll->head;                                       \
         for (size_t i = 0; i < idx; ++i) {                                     \
             cur = cur->next;                                                   \
         }                                                                      \
@@ -404,8 +377,31 @@
         return result;                                                         \
     }
 
-LINKED_LIST_DEF(list_relationship, relationship_t);
+LINKED_LIST_DEF(linked_list_relationship, relationship_t*);
+linked_list_relationship_cbs ll_rel_cbs = { relationship_equals, NULL, NULL };
+
+linked_list_relationship*
+ll_rel_create(void)
+{
+    return linked_list_relationship_create(ll_rel_cbs);
+}
+
 QUEUE_DEF(queue_ul, unsigned long);
-STACK_DEF(stack_ul, unsiged long);
+queue_ul_cbs q_ul_cbs = { unsigned_long_eq, NULL, NULL };
+
+queue_ul*
+q_ul_create(void)
+{
+    return queue_ul_create(q_ul_cbs);
+}
+
+STACK_DEF(stack_ul, unsigned long);
+stack_ul_cbs st_ul_cbs = { unsigned_long_eq, NULL, NULL };
+
+stack_ul*
+st_ul_create(void)
+{
+    return stack_ul_create(st_ul_cbs);
+}
 
 #endif

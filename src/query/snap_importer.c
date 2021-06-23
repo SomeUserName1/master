@@ -9,7 +9,7 @@
 #include <zlib.h>
 
 #include "access/operators.h"
-#include "data-struct/dict_ul.h"
+#include "data-struct/htable.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
@@ -266,14 +266,14 @@ get_no_rels(dataset_t data)
     return result;
 }
 
-dict_ul_ul_t*
+dict_ul_ul*
 import_from_txt(in_memory_file_t* db, const char* path)
 {
     unsigned long int from_to[IMPORT_FIELDS];
     char              buf[CHUNK];
     int               result       = 2;
     size_t            lines        = 1;
-    dict_ul_ul_t*     txt_to_db_id = create_dict_ul_ul();
+    dict_ul_ul*       txt_to_db_id = d_ul_ul_create();
     unsigned long     db_id        = 0;
 
     FILE* in_file = fopen(path, "r");

@@ -34,7 +34,7 @@ alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,
 
     do {
         landmark_id = rand() % db->node_id_counter;
-        degree      = get_degree(db, landmark_id, direction, log_file);
+        degree      = (double)get_degree(db, landmark_id, direction, log_file);
     } while (degree < avg_degree);
 
     return landmark_id;

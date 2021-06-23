@@ -401,7 +401,10 @@
             exit(-1);                                                          \
         }                                                                      \
         T_val val;                                                             \
-        typename##_get(ht, key, &val);                                         \
+        if (typename##_get(ht, key, &val) < 0) {                               \
+            printf("htable - get_direct: no such key!\n");                     \
+            exit(-1);                                                          \
+        }                                                                      \
         return val;                                                            \
     }
 

@@ -1,8 +1,8 @@
 #ifndef SNAP_IMPORTER_H
 #define SNAP_IMPORTER_H
 
-#include <access/operators.h>
-#include <data-struct/dict_ul.h>
+#include "access/operators.h"
+#include "data-struct/htable.h"
 
 #define C_ELEGANS_URL                                                          \
     ("https://snap.stanford.edu/data/C-elegans-frontal.txt.gz")
@@ -81,6 +81,6 @@ int
 uncompress_dataset(const char* gz_path, const char* out_path);
 
 /* Parsing and importing */
-dict_ul_ul_t*
+dict_ul_ul*
 import_from_txt(in_memory_file_t* db, const char* path);
 #endif

@@ -39,6 +39,15 @@ unsigned_long_print(const unsigned long in)
     printf("%lu", in);
 }
 
+int
+ul_cmp(const void* a, const void* b)
+{
+    unsigned long ai = *(unsigned long*)a;
+    unsigned long bi = *(unsigned long*)b;
+
+    return ai < bi ? -1 : ai == bi ? 0 : 1;
+}
+
 bool
 int_eq(const int first, const int second)
 {

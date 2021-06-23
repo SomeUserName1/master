@@ -6,7 +6,7 @@
 #include "../constants.h"
 #include "access/operators.h"
 #include "access/relationship.h"
-#include "data-struct/list_ul.h"
+#include "data-struct/array_list.h"
 
 traversal_result*
 create_traversal_result(unsigned long  source_node,
@@ -77,10 +77,10 @@ sssp_result_destroy(sssp_result* result)
 }
 
 path*
-create_path(unsigned long source_node_id,
-            unsigned long target_node_id,
-            double        distance,
-            list_ul_t*    edges)
+create_path(unsigned long  source_node_id,
+            unsigned long  target_node_id,
+            double         distance,
+            array_list_ul* edges)
 {
     if (!edges || source_node_id == UNINITIALIZED_LONG) {
         printf("Tried to create path with null pointer as argument\n");
@@ -108,27 +108,62 @@ path_destroy(path* p)
         return;
     }
 
-    list_ul_destroy(p->edges);
+    array_list_ul_destroy(p->edges);
     free(p);
 }
 
-list_ul_t*
+path*
+construct_path(in_memory_file_t* db,
+               unsigned long     source_node_id,
+               unsigned long     target_node_id,
+               unsigned long*    parents,
+               double            distance,
+               FILE*             log_file)
+{
+    unsigned long   node_id       = target_node_id;
+    array_list_ul*  edges_reverse = al_ul_create();
+    relationship_t* rel;
+    do {
+        array_list_ul_append(edges_reverse, parents[node_id]);
+        rel = in_memory_get_relationship(db, parents[node_id]);
+        fprintf(log_file, "%s %lu\n", "R", rel->id);
+
+        node_id =
+              rel->target_node == node_id ? rel->source_node : rel->target_node;
+    } while (node_id != source_node_id);
+
+    array_list_ul* edges = al_ul_create();
+
+    for (size_t i = 1; i < array_list_ul_size(edges_reverse) + 1; ++i) {
+        array_list_ul_append(
+              edges,
+              array_list_ul_get(edges_reverse,
+                                array_list_ul_size(edges_reverse) - i));
+    }
+    array_list_ul_destroy(edges_reverse);
+    free(parents);
+    fclose(log_file);
+
+    return create_path(source_node_id, target_node_id, distance, edges);
+}
+
+array_list_ul*
 path_extract_vertices(path* p, in_memory_file_t* db)
 {
-    list_ul_t* nodes = create_list_ul();
+    array_list_ul* nodes = al_ul_create();
 
-    list_ul_append(nodes, p->source);
+    array_list_ul_append(nodes, p->source);
     unsigned long   prev_node;
     relationship_t* rel;
 
-    for (size_t i = 0; i < list_ul_size(p->edges); ++i) {
-        rel       = in_memory_get_relationship(db, list_ul_get(p->edges, i));
-        prev_node = list_ul_get(nodes, list_ul_size(nodes) - 1);
+    for (size_t i = 0; i < array_list_ul_size(p->edges); ++i) {
+        rel = in_memory_get_relationship(db, array_list_ul_get(p->edges, i));
+        prev_node = array_list_ul_get(nodes, array_list_ul_size(nodes) - 1);
 
         if (rel->source_node == prev_node) {
-            list_ul_append(nodes, rel->target_node);
+            array_list_ul_append(nodes, rel->target_node);
         } else if (rel->target_node == prev_node) {
-            list_ul_append(nodes, rel->source_node);
+            array_list_ul_append(nodes, rel->source_node);
         }
     }
     return nodes;

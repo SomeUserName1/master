@@ -7,7 +7,7 @@
 #include "access/node.h"
 #include "access/operators.h"
 #include "access/relationship.h"
-#include "data-struct/list_rel.h"
+#include "data-struct/array_list.h"
 
 size_t
 get_degree(in_memory_file_t* db,
@@ -27,19 +27,19 @@ get_degree(in_memory_file_t* db,
         return in_memory_get_node(db, node_id)->degree;
     }
 
-    list_relationship_t* rels   = in_memory_expand(db, node_id, direction);
-    size_t               degree = list_relationship_size(rels);
+    array_list_relationship* rels   = in_memory_expand(db, node_id, direction);
+    size_t                   degree = array_list_relationship_size(rels);
 
     if (log_file) {
-        for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+        for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
             fprintf(log_file,
                     "%s %lu\n",
                     "R ",
-                    list_relationship_get(rels, i)->id);
+                    array_list_relationship_get(rels, i)->id);
         }
     }
 
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 
     return degree;
 }
@@ -65,23 +65,24 @@ get_avg_degree(in_memory_file_t* db, direction_t direction, FILE* log_file)
         }
     } else {
 
-        list_relationship_t* rels;
+        array_list_relationship* rels;
 
         for (size_t i = 0; i < num_nodes; ++i) {
             rels = in_memory_expand(db, i, direction);
-            total_degree += list_relationship_size(rels);
+            total_degree += array_list_relationship_size(rels);
 
             if (log_file) {
                 fprintf(log_file, "%s %lu\n", "N ", i);
 
-                for (size_t i = 0; i < list_relationship_size(rels); ++i) {
+                for (size_t i = 0; i < array_list_relationship_size(rels);
+                     ++i) {
                     fprintf(log_file,
                             "%s %lu\n",
                             "R ",
-                            list_relationship_get(rels, i)->id);
+                            array_list_relationship_get(rels, i)->id);
                 }
             }
-            list_relationship_destroy(rels);
+            array_list_relationship_destroy(rels);
         }
     }
 
@@ -103,14 +104,14 @@ get_min_degree(in_memory_file_t* db, direction_t direction)
             }
         }
     } else {
-        list_relationship_t* rels;
+        array_list_relationship* rels;
 
         for (size_t i = 0; i < num_nodes; ++i) {
             rels = in_memory_expand(db, i, direction);
-            if (list_relationship_size(rels) < min_degree) {
-                min_degree = list_relationship_size(rels);
+            if (array_list_relationship_size(rels) < min_degree) {
+                min_degree = array_list_relationship_size(rels);
             }
-            list_relationship_destroy(rels);
+            array_list_relationship_destroy(rels);
         }
     }
     return min_degree;
@@ -132,14 +133,14 @@ get_max_degree(in_memory_file_t* db, direction_t direction)
         }
     } else {
 
-        list_relationship_t* rels;
+        array_list_relationship* rels;
 
         for (size_t i = 0; i < num_nodes; ++i) {
             rels = in_memory_expand(db, i, direction);
-            if (list_relationship_size(rels) > max_degree) {
-                max_degree = list_relationship_size(rels);
+            if (array_list_relationship_size(rels) > max_degree) {
+                max_degree = array_list_relationship_size(rels);
             }
-            list_relationship_destroy(rels);
+            array_list_relationship_destroy(rels);
         }
     }
 

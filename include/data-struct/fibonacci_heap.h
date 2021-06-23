@@ -7,44 +7,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FIBONACCI_HEAP_DEF(typename, T_key, T_value)
+#define FIBONACCI_HEAP_DEF(typename, T)                                        \
+    FIB_HEAP_STRUCTS(typename, T)                                              \
+    FIB_HEAP_CREATE(typename)                                                  \
+    FIB_HEAP_DESTROY(typename)                                                 \
+    FIB_HEAP_INSERT(typename, T)                                               \
+    FIB_HEAP_MIN(typename)                                                     \
+    FIB_HEAP_MAKE_CHILD(typename)                                              \
+    FIB_HEAP_CONSOLIDATE(typename)                                             \
+    FIB_HEAP_EXTRACT_MIN(typename)                                             \
+    FIB_HEAP_UNION(typename)                                                   \
+    FIB_HEAP_CUT(typename)                                                     \
+    FIB_HEAP_CASCADING_CUT(typename)                                           \
+    FIB_HEAP_DECREASE_KEY_INTERNAL(typename)                                   \
+    FIB_HEAP_DECREASE_KEY(typename)                                            \
+    FIB_HEAP_DELETE(typename)
 
-#define FIB_HEAP_MIN_PRIO(T_key)                                               \
-    T_key min_value(void)                                                      \
-    {                                                                          \
-        switch (T_key) {                                                       \
-            case char:                                                         \
-                return CHAR_MIN;                                               \
-            case short:                                                        \
-                return SHRT_MIN;                                               \
-            case int:                                                          \
-                return INT_MIN;                                                \
-            case long:                                                         \
-                return LONG_MIN;                                               \
-            case long long:                                                    \
-                return LLONG_MIN;                                              \
-            case float:                                                        \
-                return -FLT_MAX;                                               \
-            case double:                                                       \
-                return -DBL_MAX;                                               \
-            case long double:                                                  \
-                return -LDBL_MAX;                                              \
-            case unsigned char:                                                \
-            case unsigned short:                                               \
-            case unsigned int:                                                 \
-            case unsigned long:                                                \
-            case unsigned long long:                                           \
-                return 0;                                                      \
-        }                                                                      \
-    }
-
-#define FIB_HEAP_STRUCTS(typename, T_key, T_value)                             \
+#define FIB_HEAP_STRUCTS(typename, T)                                          \
     static const double log_golden_ratio_factor = 2.1;                         \
                                                                                \
     typedef struct fb_nd                                                       \
     {                                                                          \
-        T_key         key;                                                     \
-        T_value       value;                                                   \
+        double        key;                                                     \
+        T             value;                                                   \
         struct fb_nd* parent;                                                  \
         struct fb_nd* child;                                                   \
         struct fb_nd* left;                                                    \
@@ -59,36 +44,7 @@
         unsigned long    num_nodes;                                            \
     } typename;
 
-#define FIB_HEAP_CREATE(typename, T_key, T_value)                              \
-    typename##_node* create_fib_node(double key, T value)                      \
-    {                                                                          \
-        if (key == -DBL_MAX) { /* TODO GENERIC */                              \
-            printf("A key of value DBL_MAX is not allowed!"                    \
-                   "Please use somthing greater than"                          \
-                   "the min value of the type as smallest priority!");         \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        typename##_node* node = malloc(sizeof(*node));                         \
-                                                                               \
-        if (!node) {                                                           \
-            printf("fibonacci heap - create_fib_node: Memory Allocation "      \
-                   "failed!\n");                                               \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        node->key    = key;                                                    \
-        node->value  = value;                                                  \
-        node->parent = NULL;                                                   \
-        node->child  = NULL;                                                   \
-        node->left   = NULL;                                                   \
-        node->right  = NULL;                                                   \
-        node->degree = 0;                                                      \
-        node->mark   = false;                                                  \
-                                                                               \
-        return node;                                                           \
-    }                                                                          \
-                                                                               \
+#define FIB_HEAP_CREATE(typename)                                              \
     typename* typename##_create(void)                                          \
     {                                                                          \
         typename* heap = malloc(sizeof(*heap));                                \
@@ -149,13 +105,37 @@
         free(fh);                                                              \
     }
 
-#define FIB_HEAP_INSERT(typename)                                              \
-    void typename##_insert(typename* fh, typename##_node* node)                \
+#define FIB_HEAP_INSERT(typename, T)                                           \
+    void typename##_insert(typename* fh, double key, T value)                  \
     {                                                                          \
-        if (!fh || !node) {                                                    \
+        if (!fh) {                                                             \
             printf("fibonacci heap - insert: Invalid Argumentd!\n");           \
             exit(-1);                                                          \
         }                                                                      \
+                                                                               \
+        if (key == -DBL_MAX) {                                                 \
+            printf("A key of value DBL_MAX is not allowed!"                    \
+                   "Please use somthing greater than"                          \
+                   "the min value of the type as smallest priority!");         \
+            exit(-1);                                                          \
+        }                                                                      \
+                                                                               \
+        typename##_node* node = malloc(sizeof(*node));                         \
+                                                                               \
+        if (!node) {                                                           \
+            printf("fibonacci heap - fib_node_create: Memory Allocation "      \
+                   "failed!\n");                                               \
+            exit(-1);                                                          \
+        }                                                                      \
+                                                                               \
+        node->key    = key;                                                    \
+        node->value  = value;                                                  \
+        node->parent = NULL;                                                   \
+        node->child  = NULL;                                                   \
+        node->left   = NULL;                                                   \
+        node->right  = NULL;                                                   \
+        node->degree = 0;                                                      \
+        node->mark   = false;                                                  \
                                                                                \
         if (!fh->min) {                                                        \
             fh->min     = node;                                                \
@@ -176,7 +156,7 @@
     }
 
 #define FIB_HEAP_MIN(typename)                                                 \
-    typename##_node* typename##_min(typename* fh) \                            \
+    typename##_node* typename##_min(typename* fh)                              \
     {                                                                          \
         if (!fh) {                                                             \
             printf("fibonacci heap - min: Invalid Argumentd!\n");              \
@@ -227,7 +207,7 @@
         unsigned int max_degree =                                              \
               floor(log_golden_ratio_factor * logf((float)fh->num_nodes));     \
         typename##_node** nodes_w_degree =                                     \
-              calloc(max_degree, sizeof(fib_node*));                           \
+              calloc(max_degree, sizeof(typename##_node*));                    \
                                                                                \
         typename##_node* first = fh->min->right;                               \
         typename##_node* temp;                                                 \
@@ -431,14 +411,14 @@
                 node->mark = true;                                             \
                 break;                                                         \
             }                                                                  \
-            typename_cut(fh, node, parent);                                    \
+            typename##_cut(fh, node, parent);                                  \
             node = parent;                                                     \
         }                                                                      \
     }
 
-#define FIB_HEAP_DECREASE_KEY_INTERNAL(typename, T_key)                        \
+#define FIB_HEAP_DECREASE_KEY_INTERNAL(typename)                               \
     void typename##_decrease_key_internal(                                     \
-          typename* fh, typename##_node* node, T_key new_key, bool delete)     \
+          typename* fh, typename##_node* node, double new_key, bool delete)    \
     {                                                                          \
         if (!fh || !node || new_key > node->key) {                             \
             printf("fib heap - decrease key: Arguments null or previous key "  \
@@ -447,14 +427,14 @@
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        if (!delete &&new_key == -DBL_MAX) { /* TODO GENERIC */                \
-            printf("A key of value DBL_MAX is not allowed!"                    \
+        if (!delete &&new_key == -DBL_MAX) {                                   \
+            printf("-DBL_MAX is reserved as priority!"                         \
                    "Please use somthing greater than"                          \
-                   "-DBL_MAX as smallest priority!");                          \
+                   "that as smallest priority!");                              \
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        fib_node* parent;                                                      \
+        typename##_node* parent;                                               \
                                                                                \
         node->key = new_key;                                                   \
         parent    = node->parent;                                              \
@@ -468,9 +448,9 @@
         }                                                                      \
     }
 
-#define FIB_HEAP_DECREASE_KEY(typename, T_key)                                 \
+#define FIB_HEAP_DECREASE_KEY(typename)                                        \
     void typename##_decrease_key(                                              \
-          typename* fh, typename##_node* node, T_key new_key)                  \
+          typename* fh, typename##_node* node, double new_key)                 \
     {                                                                          \
         typename##_decrease_key_internal(fh, node, new_key, false);            \
     }
@@ -478,11 +458,10 @@
 #define FIB_HEAP_DELETE(typename)                                              \
     void typename##_delete(typename* fh, typename##_node* node)                \
     {                                                                          \
-        typename##_decrease_key_internal(                                      \
-              fh, node, -DBL_MAX, true); /* TODO GENERIC */                    \
+        typename##_decrease_key_internal(fh, node, -DBL_MAX, true);            \
         free(typename##_extract_min(fh));                                      \
     }
 
-FIBONACCI_HEAP_DEF(fib_heap_d_ul, double, unsigned long);
+FIBONACCI_HEAP_DEF(fib_heap_ul, unsigned long);
 
 #endif

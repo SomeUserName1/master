@@ -6,9 +6,10 @@
 #include <time.h>
 
 #include "access/operators.h"
-#include "data-struct/dict_ul.h"
+#include "data-struct/htable.h"
 #include "layout/random_layout.h"
-#include "layout/reorganize_records.h"
+#include "layout/reorganize_nodes.h"
+#include "layout/reorganize_relationships.h"
 #include "query/a-star.h"
 #include "query/alt.h"
 #include "query/bfs.h"
@@ -121,7 +122,8 @@ main(void)
 
             printf("Applying layout method...\n");
             partition = layout_method[i](db);
-            reorganize_records(db, partition);
+            remap_node_ids(db, partition);
+            remap_rel_ids(db);
             printf("Done\n");
 
             // base_path / dataset / layout_method / (sorted_il)? query
