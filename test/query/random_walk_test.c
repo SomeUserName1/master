@@ -4,8 +4,8 @@
 
 #include "access/operators.h"
 #include "access/relationship.h"
-#include "data-struct/dict_ul.h"
-#include "data-struct/list_ul.h"
+#include "data-struct/array_list.h"
+#include "data-struct/htable.h"
 #include "query/result_types.h"
 #include "query/snap_importer.h"
 
@@ -25,14 +25,15 @@ main(void)
         rand_w = random_walk(db, 0, i, BOTH);
         assert(rand_w->distance == i);
         assert(rand_w->source == 0);
-        assert(list_ul_size(rand_w->edges) == i);
+        assert(array_list_ul_size(rand_w->edges) == i);
 
         for (size_t j = 0; j < i - 1; ++j) {
             // for direction BOTH, consecutive edges need to share one node, no
             // matter if src or target
-            r = in_memory_get_relationship(db, list_ul_get(rand_w->edges, j));
+            r      = in_memory_get_relationship(db,
+                                           array_list_ul_get(rand_w->edges, j));
             r_next = in_memory_get_relationship(
-                  db, list_ul_get(rand_w->edges, j + 1));
+                  db, array_list_ul_get(rand_w->edges, j + 1));
             assert(r->target_node == r_next->target_node
                    || r->source_node == r_next->source_node
                    || r->source_node == r_next->target_node
@@ -49,14 +50,15 @@ main(void)
         rand_w = random_walk(db, 0, i, OUTGOING);
         assert(rand_w->distance <= i);
         assert(rand_w->source == 0);
-        assert(list_ul_size(rand_w->edges) <= i);
+        assert(array_list_ul_size(rand_w->edges) <= i);
 
         for (size_t j = 0; j < rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
-            r = in_memory_get_relationship(db, list_ul_get(rand_w->edges, j));
+            r      = in_memory_get_relationship(db,
+                                           array_list_ul_get(rand_w->edges, j));
             r_next = in_memory_get_relationship(
-                  db, list_ul_get(rand_w->edges, j + 1));
+                  db, array_list_ul_get(rand_w->edges, j + 1));
             assert(r->target_node == r_next->source_node);
         }
 
@@ -67,14 +69,15 @@ main(void)
         rand_w = random_walk(db, 0, i, INCOMING);
         assert(rand_w->distance <= i);
         assert(rand_w->source == 0);
-        assert(list_ul_size(rand_w->edges) <= i);
+        assert(array_list_ul_size(rand_w->edges) <= i);
 
         for (size_t j = 0; j < rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
-            r = in_memory_get_relationship(db, list_ul_get(rand_w->edges, j));
+            r      = in_memory_get_relationship(db,
+                                           array_list_ul_get(rand_w->edges, j));
             r_next = in_memory_get_relationship(
-                  db, list_ul_get(rand_w->edges, j + 1));
+                  db, array_list_ul_get(rand_w->edges, j + 1));
             assert(r->source_node == r_next->target_node);
         }
 

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../src/constants.h"
+#include "constants.h"
 
 #define SUFFICENT_BUF_SIZE (512)
 #define SMALL_BUF_SIZE     (32)

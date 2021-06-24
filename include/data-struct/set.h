@@ -1,7 +1,6 @@
 #ifndef SET_H
 #define SET_H
 
-#include "cbs.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -11,10 +10,21 @@
 #define BUCKET_START_S          (32)
 #define TOO_MANY_BUCKETS_BITS_S (31U)
 
-#define SET_DEF(typename, T, HASH_FN, EQ)                                      \
+#define SET_DECL(typename, T)                                                  \
     SET_CBS_TYPEDEF(typename, T)                                               \
     SET_STRUCTS(typename, T)                                                   \
-    SET_PASSTHROUGH_CBS(typename, T)                                           \
+    typename* typename##_create(typename##_cbs cbs);                           \
+    int typename##_destroy(typename* s);                                       \
+    size_t typename##_size(typename* s);                                       \
+    int typename##_insert(typename* s, T elem);                                \
+    int typename##_remove(typename* s, T elem);                                \
+    bool typename##_contains(typename* s, T elem);                             \
+    typename##_iterator* typename##_iterator_create(typename* s);              \
+    int typename##_iterator_next(typename##_iterator* hi, T* elem);            \
+    void typename##_iterator_destroy(typename##_iterator* hi);                 \
+    void typename##_print(typename* s);
+
+#define SET_IMPL(typename, T, HASH_FN, EQ)                                     \
     SET_BUCKET_IDX(typename, T)                                                \
     SET_ADD_TO_BUCKETS(typename, T)                                            \
     SET_REHASH(typename)                                                       \
@@ -70,15 +80,68 @@
         size_t             idx;                                                \
     } typename##_iterator;
 
-#define SET_PASSTHROUGH_CBS(typename, T)                                       \
-    static T typename##_passthrough_copy(T elem) { return elem; }              \
-                                                                               \
-    static void typename##_passthrough_free(T elem) { elem = elem; }           \
-                                                                               \
-    static void typename##_passthrough_print(const T in)                       \
+#define SET_CREATE(typename, HASH_FN, EQ)                                      \
+    typename* typename##_create(typename##_cbs cbs)                            \
     {                                                                          \
-        printf("%p\n", &in);                                                   \
+        typename* s = calloc(1, sizeof(*s));                                   \
+                                                                               \
+        if (!s) {                                                              \
+            printf("set - create: failes to allocate memory!\n");              \
+            exit(-1);                                                          \
+        }                                                                      \
+                                                                               \
+        s->hash_fn     = HASH_FN;                                              \
+        s->eq          = EQ;                                                   \
+        s->cbs         = cbs;                                                  \
+        s->num_buckets = BUCKET_START_S;                                       \
+        s->buckets     = calloc(BUCKET_START_S, sizeof(*s->buckets));          \
+                                                                               \
+        if (!s->buckets) {                                                     \
+            printf("set - create: Failed to allocate memory for buckets");     \
+            exit(-1);                                                          \
+        }                                                                      \
+                                                                               \
+        s->num_used = 0;                                                       \
+        s->seed     = rand();                                                  \
+                                                                               \
+        return s;                                                              \
     }
+
+#define SET_DESTROY(typename)                                                  \
+    int typename##_destroy(typename* s)                                        \
+    {                                                                          \
+        if (!s) {                                                              \
+            printf("s - add_to_bucket: Invalid Argument!\n");                  \
+            exit(-1);                                                          \
+        }                                                                      \
+        typename##_bucket* cur  = NULL;                                        \
+        typename##_bucket* next = NULL;                                        \
+        for (size_t i = 0; i < s->num_buckets; ++i) {                          \
+            if (!s->buckets[i].is_used) {                                      \
+                continue;                                                      \
+            }                                                                  \
+            if (s->cbs.free) {                                                 \
+                s->cbs.free(s->buckets[i].elem);                               \
+            }                                                                  \
+                                                                               \
+            next = s->buckets[i].next;                                         \
+            while (next) {                                                     \
+                cur = next;                                                    \
+                if (s->cbs.free) {                                             \
+                    s->cbs.free(cur->elem);                                    \
+                }                                                              \
+                next = cur->next;                                              \
+                free(cur);                                                     \
+            }                                                                  \
+        }                                                                      \
+        free(s->buckets);                                                      \
+        free(s);                                                               \
+                                                                               \
+        return 0;                                                              \
+    }
+
+#define SET_SIZE(typename)                                                     \
+    size_t typename##_size(typename* s) { return s->num_used; }
 
 #define SET_BUCKET_IDX(typename, T)                                            \
     static size_t typename##_bucket_idx(typename* s, T elem)                   \
@@ -102,7 +165,7 @@
         size_t idx = typename##_bucket_idx(s, elem);                           \
                                                                                \
         if (!s->buckets[idx].is_used) {                                        \
-            if (!rehash) {                                                     \
+            if (!rehash && s->cbs.free) {                                      \
                 elem = s->cbs.copy(elem);                                      \
             }                                                                  \
             s->buckets[idx].elem    = elem;                                    \
@@ -131,7 +194,7 @@
                     exit(-1);                                                  \
                 }                                                              \
                                                                                \
-                if (!rehash) {                                                 \
+                if (!rehash && s->cbs.copy) {                                  \
                     elem = s->cbs.copy(elem);                                  \
                 }                                                              \
                 cur->elem    = elem;                                           \
@@ -187,72 +250,6 @@
         return 0;                                                              \
     }
 
-#define SET_CREATE(typename, HASH_FN, EQ)                                      \
-    typename* typename##_create(typename##_cbs cbs)                            \
-    {                                                                          \
-        typename* s = calloc(1, sizeof(*s));                                   \
-                                                                               \
-        if (!s) {                                                              \
-            printf("set - create: failes to allocate memory!\n");              \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        s->hash_fn = HASH_FN;                                                  \
-        s->eq      = EQ;                                                       \
-                                                                               \
-        s->cbs.copy =                                                          \
-              cbs.copy == NULL ? typename##_passthrough_copy : cbs.copy;       \
-        s->cbs.free =                                                          \
-              cbs.free == NULL ? typename##_passthrough_free : cbs.free;       \
-        s->cbs.print =                                                         \
-              cbs.print == NULL ? typename##_passthrough_print : cbs.print;    \
-                                                                               \
-        s->num_buckets = BUCKET_START_S;                                       \
-        s->buckets     = calloc(BUCKET_START_S, sizeof(*s->buckets));          \
-                                                                               \
-        if (!s->buckets) {                                                     \
-            printf("set - create: Failed to allocate memory for buckets");     \
-            exit(-1);                                                          \
-        }                                                                      \
-                                                                               \
-        s->num_used = 0;                                                       \
-        s->seed     = rand();                                                  \
-                                                                               \
-        return s;                                                              \
-    }
-
-#define SET_DESTROY(typename)                                                  \
-    int typename##_destroy(typename* s)                                        \
-    {                                                                          \
-        if (!s) {                                                              \
-            printf("s - add_to_bucket: Invalid Argument!\n");                  \
-            exit(-1);                                                          \
-        }                                                                      \
-        typename##_bucket* cur  = NULL;                                        \
-        typename##_bucket* next = NULL;                                        \
-        for (size_t i = 0; i < s->num_buckets; ++i) {                          \
-            if (!s->buckets[i].is_used) {                                      \
-                continue;                                                      \
-            }                                                                  \
-            s->cbs.free(s->buckets[i].elem);                                   \
-                                                                               \
-            next = s->buckets[i].next;                                         \
-            while (next) {                                                     \
-                cur = next;                                                    \
-                s->cbs.free(cur->elem);                                        \
-                next = cur->next;                                              \
-                free(cur);                                                     \
-            }                                                                  \
-        }                                                                      \
-        free(s->buckets);                                                      \
-        free(s);                                                               \
-                                                                               \
-        return 0;                                                              \
-    }
-
-#define SET_SIZE(typename)                                                     \
-    size_t typename##_size(typename* s) { return s->num_used; }
-
 #define SET_INSERT(typename, T)                                                \
     int typename##_insert(typename* s, T elem)                                 \
     {                                                                          \
@@ -280,7 +277,9 @@
                                                                                \
         typename##_bucket* cur = NULL;                                         \
         if (s->eq(s->buckets[idx].elem, elem)) {                               \
-            s->cbs.free(s->buckets[idx].elem);                                 \
+            if (s->cbs.free) {                                                 \
+                s->cbs.free(s->buckets[idx].elem);                             \
+            }                                                                  \
             s->buckets[idx].is_used = false;                                   \
                                                                                \
             cur = s->buckets[idx].next;                                        \
@@ -298,7 +297,9 @@
         while (cur) {                                                          \
             if (s->eq(cur->elem, elem)) {                                      \
                 last->next = cur->next;                                        \
-                s->cbs.free(cur->elem);                                        \
+                if (s->cbs.free) {                                             \
+                    s->cbs.free(cur->elem);                                    \
+                }                                                              \
                 free(cur);                                                     \
                 return 0;                                                      \
             }                                                                  \
@@ -319,17 +320,17 @@
                                                                                \
         size_t idx = typename##_bucket_idx(s, elem);                           \
         if (!s->buckets[idx].is_used) {                                        \
-            return -1;                                                         \
+            return false;                                                      \
         }                                                                      \
                                                                                \
         typename##_bucket* cur = s->buckets + idx;                             \
         while (cur) {                                                          \
             if (s->eq(cur->elem, elem)) {                                      \
-                return 0;                                                      \
+                return true;                                                   \
             }                                                                  \
             cur = cur->next;                                                   \
         }                                                                      \
-        return -1;                                                             \
+        return false;                                                          \
     }
 
 #define SET_ITERATOR_CREATE(typename)                                          \
@@ -399,19 +400,19 @@
         T elem;                                                                \
         while (typename##_iterator_next(hi, &elem) != -1) {                    \
             printf("%s", "\n_______Next Entry:________ \n");                   \
-            hi->s->cbs.print(elem);                                            \
+            if (s->cbs.print) {                                                \
+                hi->s->cbs.print(elem);                                        \
+            } else {                                                           \
+                printf("No printf function provided!\n");                      \
+            }                                                                  \
             printf("%s", "_______________________\n");                         \
         }                                                                      \
         typename##_iterator_destroy(hi);                                       \
     }
 
-SET_DEF(set_ul, unsigned long, fnv_hash_ul, unsigned_long_eq);
-set_ul_cbs s_ul_cbs = { NULL, NULL, unsigned_long_print };
+SET_DECL(set_ul, unsigned long);
 
 set_ul*
-s_ul_create(void)
-{
-    return set_ul_create(s_ul_cbs);
-}
+s_ul_create(void);
 
 #endif

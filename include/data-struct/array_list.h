@@ -3,16 +3,28 @@
 
 #include "access/node.h"
 #include "access/relationship.h"
-#include "cbs.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define ARRAY_LIST_DEF(typename, T)                                            \
+#define ARRAY_LIST_DECL(typename, T)                                           \
     ARRAY_LIST_CBS_TYPEDEF(typename, T)                                        \
     ARRAY_LIST_STRUCTS(typename, T)                                            \
+    typename* typename##_create(typename##_cbs cbs);                           \
+    void typename##_destroy(typename* l);                                      \
+    size_t typename##_size(typename* l);                                       \
+    void typename##_insert(typename* l, T v, size_t idx);                      \
+    void typename##_append(typename* l, T v);                                  \
+    void typename##_remove(typename* l, size_t idx);                           \
+    int typename##_index_of(typename* l, T v, size_t* idx);                    \
+    void typename##_remove_elem(typename* l, T elem);                          \
+    bool typename##_contains(typename* l, T elem);                             \
+    T typename##_get(typename* l, size_t idx);                                 \
+    T typename##_take(typename* l, size_t idx);
+
+#define ARRAY_LIST_IMPL(typename, T)                                           \
     ARRAY_LIST_CREATE(typename, T)                                             \
     ARRAY_LIST_DESTROY(typename)                                               \
     ARRAY_LIST_SIZE(typename)                                                  \
@@ -95,7 +107,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_SIZE(typename)                                              \
-    size_t typename##_size(typename* l)                                        \
+    inline size_t typename##_size(typename* l)                                 \
     {                                                                          \
         if (!l) {                                                              \
             return 0;                                                          \
@@ -138,7 +150,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_APPEND(typename, T)                                         \
-    void typename##_append(typename* l, T v)                                   \
+    inline void typename##_append(typename* l, T v)                            \
     {                                                                          \
         if (!l) {                                                              \
             printf("list - append: Invalid Arguments!\n");                     \
@@ -169,7 +181,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_REMOVE(typename)                                            \
-    void typename##_remove(typename* l, size_t idx)                            \
+    inline void typename##_remove(typename* l, size_t idx)                     \
     {                                                                          \
         typename##_remove_internal(l, idx, true);                              \
     }
@@ -192,7 +204,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_REMOVE_ELEM(typename, T)                                    \
-    void typename##_remove_elem(typename* l, T elem)                           \
+    inline void typename##_remove_elem(typename* l, T elem)                    \
     {                                                                          \
         size_t idx = 0;                                                        \
         if (typename##_index_of(l, elem, &idx) != 0) {                         \
@@ -203,7 +215,7 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_CONTAINS(typename, T)                                       \
-    bool typename##_contains(typename* l, T elem)                              \
+    inline bool typename##_contains(typename* l, T elem)                       \
     {                                                                          \
         size_t idx = 0;                                                        \
         return typename##_index_of(l, elem, &idx) == 0 ? true : false;         \
@@ -229,38 +241,30 @@ static const size_t initial_alloc = 128;
     }
 
 #define ARRAY_LIST_TAKE(typename, T)                                           \
-    T typename##_take(typename* l, size_t idx)                                 \
+    inline T typename##_take(typename* l, size_t idx)                          \
     {                                                                          \
         T elem = typename##_get(l, idx);                                       \
         typename##_remove_internal(l, idx, false);                             \
         return elem;                                                           \
     }
 
-ARRAY_LIST_DEF(array_list_ul, unsigned long);
-array_list_ul_cbs al_ul_cbs = { unsigned_long_eq, NULL, NULL };
+ARRAY_LIST_DECL(array_list_ul, unsigned long);
 
 array_list_ul*
-al_ul_create(void)
-{
-    return array_list_ul_create(al_ul_cbs);
-}
+al_ul_create(void);
 
-ARRAY_LIST_DEF(array_list_node, node_t*);
-static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
+ARRAY_LIST_DECL(array_list_l, long);
+
+array_list_l*
+al_l_create(void);
+
+ARRAY_LIST_DECL(array_list_node, node_t*);
 
 array_list_node*
-al_node_create(void)
-{
-    return array_list_node_create(list_node_cbs);
-}
+al_node_create(void);
 
-ARRAY_LIST_DEF(array_list_relationship, relationship_t*);
-array_list_relationship_cbs list_rel_cbs = { relationship_equals, NULL, NULL };
+ARRAY_LIST_DECL(array_list_relationship, relationship_t*);
 
 array_list_relationship*
-al_rel_create(void)
-{
-    return array_list_relationship_create(list_rel_cbs);
-}
-
+al_rel_create(void);
 #endif

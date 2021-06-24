@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../constants.h"
+#include "constants.h"
 
 node_t*
 new_node()

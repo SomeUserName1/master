@@ -19,19 +19,31 @@ test_get_degree(void)
 {
     in_memory_file_t* db = create_in_memory_file();
 
+    printf("t1\n");
     in_memory_create_node(db);
+    printf("t1\n");
     in_memory_create_node(db);
+    printf("t1\n");
     in_memory_create_node(db);
+    printf("t1\n");
     in_memory_create_node(db);
+    printf("t1\n");
 
     in_memory_create_relationship(db, 0, 1);
+    printf("t1\n");
     in_memory_create_relationship(db, 0, 2);
+    printf("t1\n");
     in_memory_create_relationship(db, 0, 3);
+    printf("t1\n");
     in_memory_create_relationship(db, 1, 0);
+    printf("t1\n");
 
     assert(get_degree(db, 0, BOTH, NULL) == 4);
+    printf("t2\n");
     assert(get_degree(db, 0, OUTGOING, NULL) == 3);
+    printf("t3\n");
     assert(get_degree(db, 0, INCOMING, NULL) == 1);
+    printf("t4\n");
 
     in_memory_file_destroy(db);
 }
@@ -117,9 +129,13 @@ int
 main(void)
 {
     test_get_degree();
+    printf("t1\n");
     test_get_avg_degree();
+    printf("t2\n");
     test_get_min_degree();
+    printf("t3\n");
     text_get_max_degree();
+    printf("t4\n");
 
     printf("Tested degree functions successfully!\n");
 }

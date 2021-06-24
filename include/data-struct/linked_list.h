@@ -5,15 +5,37 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "access/relationship.h"
-#include "data-struct/cbs.h"
 
-#define LINKED_LIST_DEF_BASE(typename, T)                                      \
+#define LINKED_LIST_DECL_BASE(typename, T)                                     \
     LINKED_LIST_CBS_TYPEDEF(typename, T)                                       \
     LINKED_LIST_STRUCTS(typename, T)                                           \
-    LINKED_LIST_PASSTHROUGH_CBS(typename, T)                                   \
+    typename* typename##_create(typename##_cbs cbs);                           \
+    size_t typename##_size(typename* ll);                                      \
+    void typename##_destroy(typename* ll);                                     \
+    void typename##_append(typename* ll, T elem);                              \
+    void typename##_push(typename* ll, T elem);                                \
+    void typename##_insert(typename* ll, T elem, size_t idx);                  \
+    void typename##_remove(typename* ll, size_t idx);                          \
+    void typename##_remove_elem(typename* ll, T elem);                         \
+    bool typename##_contains(typename* ll, T elem);                            \
+    int typename##_index_of(typename* ll, T elem, size_t* idx);                \
+    T typename##_get(typename* ll, size_t idx);
+
+#define LINKED_LIST_DECL(typename, T)                                          \
+    LINKED_LIST_DECL_BASE(typename, T)                                         \
+    T typename##_take(typename* ll, size_t idx);
+
+#define STACK_DECL(typename, T)                                                \
+    LINKED_LIST_DECL_BASE(typename, T)                                         \
+    T typename##_pop(typename* ll);
+
+#define QUEUE_DECL(typename, T)                                                \
+    LINKED_LIST_DECL_BASE(typename, T)                                         \
+    T typename##_pop(typename* ll);
+
+#define LINKED_LIST_IMPL_BASE(typename, T)                                     \
     LINKED_LIST_CREATE(typename)                                               \
     LINKED_LIST_DESTROY(typename)                                              \
     LINKED_LIST_SIZE(typename)                                                 \
@@ -27,16 +49,16 @@
     LINKED_LIST_CONTAINS(typename, T)                                          \
     LINKED_LIST_GET(typename, T)
 
-#define LINKED_LIST_DEF(typename, T)                                           \
-    LINKED_LIST_DEF_BASE(typename, T)                                          \
+#define LINKED_LIST_IMPL(typename, T)                                          \
+    LINKED_LIST_IMPL_BASE(typename, T)                                         \
     LINKED_LIST_TAKE(typename, T)
 
-#define STACK_DEF(typename, T)                                                 \
-    LINKED_LIST_DEF_BASE(typename, T)                                          \
+#define STACK_IMPL(typename, T)                                                \
+    LINKED_LIST_IMPL_BASE(typename, T)                                         \
     STACK_POP(typename, T)
 
-#define QUEUE_DEF(typename, T)                                                 \
-    LINKED_LIST_DEF_BASE(typename, T)                                          \
+#define QUEUE_IMPL(typename, T)                                                \
+    LINKED_LIST_IMPL_BASE(typename, T)                                         \
     QUEUE_POP(typename, T)
 
 #define LINKED_LIST_CBS_TYPEDEF(typename, T)                                   \
@@ -68,19 +90,14 @@
         typename##_cbs   cbs;                                                  \
     } typename;
 
-#define LINKED_LIST_PASSTHROUGH_CBS(typename, T)                               \
-    static bool typename##_passthrough_eq(const T first, const T second)       \
-    {                                                                          \
-        return first == second;                                                \
-    }                                                                          \
-                                                                               \
-    static T typename##_passthrough_copy(T elem) { return elem; }              \
-                                                                               \
-    static void typename##_passthrough_free(T elem) { elem = elem; }
-
 #define LINKED_LIST_CREATE(typename)                                           \
-    typename* typename##_create(const typename##_cbs cbs)                      \
+    typename* typename##_create(typename##_cbs cbs)                            \
     {                                                                          \
+        if (!cbs.lleq) {                                                       \
+            printf("linked list - create: You must specify an equality "       \
+                   "function for the elements!\n");                            \
+            exit(-1);                                                          \
+        }                                                                      \
         typename* ll;                                                          \
         ll = calloc(1, sizeof(*ll));                                           \
                                                                                \
@@ -93,11 +110,7 @@
         ll->head = NULL;                                                       \
         ll->tail = NULL;                                                       \
                                                                                \
-        ll->cbs.lleq = !cbs.lleq ? typename##_passthrough_eq : cbs.lleq;       \
-        ll->cbs.llcopy =                                                       \
-              !cbs.llcopy ? typename##_passthrough_copy : cbs.llcopy;          \
-        ll->cbs.llfree =                                                       \
-              !cbs.llfree ? typename##_passthrough_free : cbs.llfree;          \
+        ll->cbs = cbs;                                                         \
                                                                                \
         return ll;                                                             \
     }
@@ -124,7 +137,9 @@
         typename##_node* next;                                                 \
                                                                                \
         for (size_t i = 0; i < ll->len; ++i) {                                 \
-            ll->cbs.llfree(cur->element);                                      \
+            if (ll->cbs.llfree) {                                              \
+                ll->cbs.llfree(cur->element);                                  \
+            }                                                                  \
             next = cur->next;                                                  \
             free(cur);                                                         \
             cur = next;                                                        \
@@ -147,10 +162,14 @@
             printf("Linked list - append: Failed to allocate memory!\n");      \
             exit(-1);                                                          \
         }                                                                      \
+        if (ll->cbs.llcopy) {                                                  \
+            elem = ll->cbs.llcopy(elem);                                       \
+        }                                                                      \
                                                                                \
-        node->element = ll->cbs.llcopy(elem);                                  \
-        node->next    = NULL;                                                  \
-        node->prev    = NULL;                                                  \
+        node->element = elem;                                                  \
+                                                                               \
+        node->next = NULL;                                                     \
+        node->prev = NULL;                                                     \
                                                                                \
         if (ll->tail == NULL) {                                                \
             ll->head   = node;                                                 \
@@ -188,7 +207,11 @@
             exit(-1);                                                          \
         }                                                                      \
                                                                                \
-        new->element = ll->cbs.llcopy(elem);                                   \
+        if (ll->cbs.llcopy) {                                                  \
+            elem = ll->cbs.llcopy(elem);                                       \
+        }                                                                      \
+                                                                               \
+        new->element = elem;                                                   \
                                                                                \
         if (ll->len == 0 && idx == 0) {                                        \
             ll->head = new;                                                    \
@@ -197,6 +220,7 @@
             new->prev = new;                                                   \
             new->next = new;                                                   \
             ll->len++;                                                         \
+            return;                                                            \
         }                                                                      \
                                                                                \
         if (idx >= ll->len) {                                                  \
@@ -246,7 +270,7 @@
         }                                                                      \
                                                                                \
         if (ll->len == 1 && idx == 0) {                                        \
-            if (free_flag) {                                                   \
+            if (free_flag && ll->cbs.llfree) {                                 \
                 ll->cbs.llfree(ll->head->element);                             \
             }                                                                  \
             free(ll->head);                                                    \
@@ -254,7 +278,7 @@
             ll->tail = NULL;                                                   \
             ll->len--;                                                         \
         } else if (idx == 0) {                                                 \
-            if (free_flag) {                                                   \
+            if (free_flag && ll->cbs.llfree) {                                 \
                 ll->cbs.llfree(ll->head->element);                             \
             }                                                                  \
             typename##_node* temp = ll->head->next;                            \
@@ -263,7 +287,7 @@
             ll->head->prev = ll->tail;                                         \
             ll->len--;                                                         \
         } else if (idx == ll->len - 1) {                                       \
-            if (free_flag) {                                                   \
+            if (free_flag && ll->cbs.llfree) {                                 \
                 ll->cbs.llfree(ll->tail->element);                             \
             }                                                                  \
             typename##_node* temp = ll->tail->prev;                            \
@@ -285,7 +309,7 @@
             next->prev              = cur;                                     \
             ll->len--;                                                         \
                                                                                \
-            if (free_flag) {                                                   \
+            if (free_flag && ll->cbs.llfree) {                                 \
                 ll->cbs.llfree(remove->element);                               \
             }                                                                  \
             free(remove);                                                      \
@@ -377,31 +401,19 @@
         return result;                                                         \
     }
 
-LINKED_LIST_DEF(linked_list_relationship, relationship_t*);
-linked_list_relationship_cbs ll_rel_cbs = { relationship_equals, NULL, NULL };
+LINKED_LIST_DECL(linked_list_relationship, relationship_t*);
 
 linked_list_relationship*
-ll_rel_create(void)
-{
-    return linked_list_relationship_create(ll_rel_cbs);
-}
+ll_rel_create(void);
 
-QUEUE_DEF(queue_ul, unsigned long);
-queue_ul_cbs q_ul_cbs = { unsigned_long_eq, NULL, NULL };
+QUEUE_DECL(queue_ul, unsigned long);
 
 queue_ul*
-q_ul_create(void)
-{
-    return queue_ul_create(q_ul_cbs);
-}
+q_ul_create(void);
 
-STACK_DEF(stack_ul, unsigned long);
-stack_ul_cbs st_ul_cbs = { unsigned_long_eq, NULL, NULL };
+STACK_DECL(stack_ul, unsigned long);
 
 stack_ul*
-st_ul_create(void)
-{
-    return stack_ul_create(st_ul_cbs);
-}
+st_ul_create(void);
 
 #endif

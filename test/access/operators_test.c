@@ -3,12 +3,11 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "../../src/constants.h"
 #include "access/node.h"
 #include "access/relationship.h"
-#include "data-struct/dict_ul.h"
-#include "data-struct/list_node.h"
-#include "data-struct/list_rel.h"
+#include "constants.h"
+#include "data-struct/array_list.h"
+#include "data-struct/htable.h"
 #include "query/snap_importer.h"
 
 #define NUM_NODES (10)
@@ -34,7 +33,7 @@ static const size_t ids_n0_inc[] = { 1,  3,  5,  6,  10, 13, 14, 16, 18, 21, 24,
                                      52, 55, 56, 58, 61, 64, 67, 68, 69, 71 };
 
 void
-test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
+test_create_rel_chain(in_memory_file_t* db, dict_ul_ul* map)
 {
     node_t*         node = in_memory_get_node(db, 0);
     relationship_t* rel =
@@ -385,20 +384,20 @@ test_create_rel_chain(in_memory_file_t* db, dict_ul_ul_t* map)
 void
 test_get_nodes(in_memory_file_t* db)
 {
-    size_t       n_nodes_before = db->node_id_counter;
-    list_node_t* nodes          = in_memory_get_nodes(db);
-    assert(list_node_size(nodes) == db->node_id_counter);
-    list_node_destroy(nodes);
+    size_t           n_nodes_before = db->node_id_counter;
+    array_list_node* nodes          = in_memory_get_nodes(db);
+    assert(array_list_node_size(nodes) == db->node_id_counter);
+    array_list_node_destroy(nodes);
     assert(n_nodes_before == db->node_id_counter);
 }
 
 void
 test_get_rels(in_memory_file_t* db)
 {
-    size_t               n_rels_before = db->rel_id_counter;
-    list_relationship_t* rels          = in_memory_get_relationships(db);
-    assert(list_relationship_size(rels) == db->rel_id_counter);
-    list_relationship_destroy(rels);
+    size_t                   n_rels_before = db->rel_id_counter;
+    array_list_relationship* rels          = in_memory_get_relationships(db);
+    assert(array_list_relationship_size(rels) == db->rel_id_counter);
+    array_list_relationship_destroy(rels);
     assert(n_rels_before == db->rel_id_counter);
 }
 
@@ -447,29 +446,31 @@ test_in_memory_next_rel_none(void)
 void
 test_in_memory_expand(in_memory_file_t* db)
 {
-    list_relationship_t* rels = in_memory_expand(db, 0, BOTH);
-    assert(list_relationship_size(rels) == 72);
+    array_list_relationship* rels = in_memory_expand(db, 0, BOTH);
+    assert(array_list_relationship_size(rels) == 72);
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        assert(list_relationship_get(rels, i)->id == rel_ids_n0[i]);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        assert(array_list_relationship_get(rels, i)->id == rel_ids_n0[i]);
     }
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, OUTGOING);
-    assert(list_relationship_size(rels) == 41);
+    assert(array_list_relationship_size(rels) == 41);
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_out[i]]);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        assert(array_list_relationship_get(rels, i)->id
+               == rel_ids_n0[ids_n0_out[i]]);
     }
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, INCOMING);
-    assert(list_relationship_size(rels) == 32);
+    assert(array_list_relationship_size(rels) == 32);
 
-    for (size_t i = 0; i < list_relationship_size(rels); ++i) {
-        assert(list_relationship_get(rels, i)->id == rel_ids_n0[ids_n0_inc[i]]);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        assert(array_list_relationship_get(rels, i)->id
+               == rel_ids_n0[ids_n0_inc[i]]);
     }
-    list_relationship_destroy(rels);
+    array_list_relationship_destroy(rels);
 }
 
 void
@@ -502,7 +503,7 @@ int
 main(void)
 {
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(
+    dict_ul_ul*       map = import_from_txt(
           db, "/home/someusername/workspace_local/email_eu.txt");
 
     test_create_rel_chain(db, map);

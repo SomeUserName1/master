@@ -1,24 +1,21 @@
 #include "data-struct/set.h"
-#include "data-struct/set_ul.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "data-struct/htable.h"
 
 #define MAGIC_TEST_VALUE (42777)
 #define ANOTHER_TV       (11)
 #define NON_EX_VAL       (666)
 
 void
-test_create_set_ul(void)
+test_s_ul_create(void)
 {
-    set_ul_t* set = create_set_ul();
+    set_ul* set = s_ul_create();
 
     assert(set);
-    assert(((htable_t*)set)->num_used == 0);
-    assert(((htable_t*)set)->num_buckets == BUCKET_START);
+    assert(set->num_used == 0);
+    assert(set->num_buckets == BUCKET_START_S);
 
     set_ul_destroy(set);
 }
@@ -26,14 +23,14 @@ test_create_set_ul(void)
 void
 test_set_ul_size(void)
 {
-    set_ul_t* set = create_set_ul();
+    set_ul* set = s_ul_create();
 
-    assert(((htable_t*)set)->num_used == set_ul_size(set));
+    assert(set->num_used == set_ul_size(set));
 
     unsigned long value = MAGIC_TEST_VALUE;
-    set_insert((set_t*)set, (void*)&value);
+    set_ul_insert(set, value);
 
-    assert(((htable_t*)set)->num_used == set_ul_size(set));
+    assert(set->num_used == set_ul_size(set));
     assert(1 == set_ul_size(set));
 
     set_ul_destroy(set);
@@ -42,7 +39,7 @@ test_set_ul_size(void)
 void
 test_set_ul_insert(void)
 {
-    set_ul_t* set = create_set_ul();
+    set_ul* set = s_ul_create();
     assert(0 == set_ul_size(set));
 
     if (set_ul_insert(set, MAGIC_TEST_VALUE)) {
@@ -66,7 +63,7 @@ test_set_ul_insert(void)
 void
 test_set_ul_remove(void)
 {
-    set_ul_t* set = create_set_ul();
+    set_ul* set = s_ul_create();
 
     set_ul_insert(set, MAGIC_TEST_VALUE);
     set_ul_insert(set, 0);
@@ -85,7 +82,7 @@ test_set_ul_remove(void)
 void
 test_set_ul_contains(void)
 {
-    set_ul_t* set = create_set_ul();
+    set_ul* set = s_ul_create();
 
     assert(0 == set_ul_size(set));
 
@@ -102,7 +99,7 @@ test_set_ul_contains(void)
 void
 test_set_ul_destroy(void)
 {
-    set_ul_t* lst = create_set_ul();
+    set_ul* lst = s_ul_create();
     for (size_t i = 0; i < MAGIC_TEST_VALUE; ++i) {
         set_ul_insert(lst, i);
     }
@@ -112,7 +109,7 @@ test_set_ul_destroy(void)
 int
 main(void)
 {
-    test_create_set_ul();
+    test_s_ul_create();
     test_set_ul_size();
     test_set_ul_insert();
     test_set_ul_remove();

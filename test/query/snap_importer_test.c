@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "access/operators.h"
-#include "data-struct/dict_ul.h"
+#include "data-struct/htable.h"
 
 #define DATASET_TEMP   ("/home/someusername/workspace_local/dataset.txt.gz")
 #define PATH_CELEGANS  ("/home/someusername/workspace_local/celegans.txt")
@@ -26,7 +26,7 @@ test_celegans(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_CELEGANS) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_CELEGANS);
+    dict_ul_ul*       map = import_from_txt(db, PATH_CELEGANS);
 
     assert(dict_ul_node_size(db->cache_nodes) == C_ELEGANS_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == C_ELEGANS_NO_RELS);
@@ -43,7 +43,7 @@ test_email(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_EMAIL) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_EMAIL);
+    dict_ul_ul*       map = import_from_txt(db, PATH_EMAIL);
 
     assert(dict_ul_node_size(db->cache_nodes) == EMAIL_EU_CORE_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == EMAIL_EU_CORE_NO_RELS);
@@ -60,7 +60,7 @@ test_dblp(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_DBLP) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_DBLP);
+    dict_ul_ul*       map = import_from_txt(db, PATH_DBLP);
 
     assert(dict_ul_node_size(db->cache_nodes) == DBLP_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == DBLP_NO_RELS);
@@ -77,7 +77,7 @@ test_amazon(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_AMAZON) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_AMAZON);
+    dict_ul_ul*       map = import_from_txt(db, PATH_AMAZON);
 
     assert(dict_ul_node_size(db->cache_nodes) == AMAZON_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == AMAZON_NO_RELS);
@@ -94,7 +94,7 @@ test_youtube(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_YOUTUBE) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_YOUTUBE);
+    dict_ul_ul*       map = import_from_txt(db, PATH_YOUTUBE);
 
     assert(dict_ul_node_size(db->cache_nodes) == YOUTUBE_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == YOUTUBE_NO_RELS);
@@ -111,7 +111,7 @@ test_wikipedia(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_WIKIPEDIA) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_WIKIPEDIA);
+    dict_ul_ul*       map = import_from_txt(db, PATH_WIKIPEDIA);
 
     assert(dict_ul_node_size(db->cache_nodes) == WIKIPEDIA_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == WIKIPEDIA_NO_RELS);
@@ -128,7 +128,7 @@ test_live_journal(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_LIVE_JOURNAL) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_LIVE_JOURNAL);
+    dict_ul_ul*       map = import_from_txt(db, PATH_LIVE_JOURNAL);
 
     assert(dict_ul_node_size(db->cache_nodes) == LIVE_JOURNAL_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == LIVE_JOURNAL_NO_RELS);
@@ -145,7 +145,7 @@ test_orkut(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_ORKUT) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_ORKUT);
+    dict_ul_ul*       map = import_from_txt(db, PATH_ORKUT);
 
     assert(dict_ul_node_size(db->cache_nodes) == ORKUT_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == ORKUT_NO_RELS);
@@ -162,7 +162,7 @@ test_friendster(void)
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_FRIENDSTER) == 0);
     in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul_t*     map = import_from_txt(db, PATH_FRIENDSTER);
+    dict_ul_ul*       map = import_from_txt(db, PATH_FRIENDSTER);
 
     assert(dict_ul_node_size(db->cache_nodes) == FRIENDSTER_NO_NODES);
     assert(dict_ul_rel_size(db->cache_rels) == FRIENDSTER_NO_RELS);

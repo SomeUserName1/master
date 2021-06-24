@@ -7,8 +7,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FIBONACCI_HEAP_DEF(typename, T)                                        \
-    FIB_HEAP_STRUCTS(typename, T)                                              \
+#define FIBONACCI_HEAP_DECL(typename, T)                                       \
+    FIB_HEAP_STRUCTS(typename, T);                                             \
+    typename* typename##_create(void);                                         \
+    void typename##_destroy(typename* fh);                                     \
+    void typename##_insert(typename* fh, double key, T value);                 \
+    typename##_node* typename##_min(typename* fh);                             \
+    void typename##_make_child(typename##_node* x, typename##_node* y);        \
+    void typename##_consolidate(typename* fh);                                 \
+    typename##_node* typename##_extract_min(typename* fh);                     \
+    typename* typename##_union(typename* fh1, typename* fh2);                  \
+    void typename##_cut(                                                       \
+          typename* fh, typename##_node* node, typename##_node* parent);       \
+    void typename##_cascading_cut(typename* fh, typename##_node* node);        \
+    void typename##_decrease_key(                                              \
+          typename* fh, typename##_node* node, double new_key);                \
+    void typename##_delete(typename* fh, typename##_node* node);
+
+#define FIBONACCI_HEAP_IMPL(typename, T)                                       \
     FIB_HEAP_CREATE(typename)                                                  \
     FIB_HEAP_DESTROY(typename)                                                 \
     FIB_HEAP_INSERT(typename, T)                                               \
@@ -24,8 +40,6 @@
     FIB_HEAP_DELETE(typename)
 
 #define FIB_HEAP_STRUCTS(typename, T)                                          \
-    static const double log_golden_ratio_factor = 2.1;                         \
-                                                                               \
     typedef struct fb_nd                                                       \
     {                                                                          \
         double        key;                                                     \
@@ -198,6 +212,7 @@
     }
 
 #define FIB_HEAP_CONSOLIDATE(typename)                                         \
+    static const double log_golden_ratio_factor = 2.1;                         \
     void typename##_consolidate(typename* fh)                                  \
     {                                                                          \
         if (!fh || !fh->min) {                                                 \
@@ -462,6 +477,6 @@
         free(typename##_extract_min(fh));                                      \
     }
 
-FIBONACCI_HEAP_DEF(fib_heap_ul, unsigned long);
+FIBONACCI_HEAP_DECL(fib_heap_ul, unsigned long);
 
 #endif

@@ -1,9 +1,9 @@
 #include "layout/reorganize_relationships.h"
 
-#include "../constants.h"
 #include "access/node.h"
 #include "access/operators.h"
 #include "access/relationship.h"
+#include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/cbs.h"
 #include "data-struct/htable.h"
