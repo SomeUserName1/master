@@ -389,6 +389,7 @@ in_memory_expand(in_memory_file_t* db,
         exit(-1);
     }
 
+    printf("node_id %lu\n", node_id);
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
 
     if (!node || !db) {
@@ -403,6 +404,7 @@ in_memory_expand(in_memory_file_t* db,
         return result;
     }
 
+    printf("rel id start %lu\n", rel_id);
     relationship_t* rel = in_memory_get_relationship(db, rel_id);
     unsigned long   start_id;
 
@@ -410,20 +412,20 @@ in_memory_expand(in_memory_file_t* db,
         || (rel->target_node == node_id && direction != OUTGOING)) {
         start_id = rel_id;
     } else {
-        rel_id   = in_memory_next_relationship(db, node_id, rel, direction);
-        rel      = dict_ul_rel_get_direct(db->cache_rels, rel_id);
+        rel_id = in_memory_next_relationship(db, node_id, rel, direction);
+        printf("rel id mid %lu\n", rel_id);
         start_id = rel_id;
     }
 
     while (rel_id != UNINITIALIZED_LONG) {
+        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
         array_list_relationship_append(result, rel);
         rel_id = in_memory_next_relationship(db, node->id, rel, direction);
+        printf("rel id last %lu\n", rel_id);
 
         if (rel_id == start_id) {
             return result;
         }
-
-        rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
     }
 
     return result;
