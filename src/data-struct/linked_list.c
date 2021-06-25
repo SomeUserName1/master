@@ -1,6 +1,5 @@
-#include "linked_list.h"
-
-#include "cbs.h"
+#include "data-struct/linked_list.h"
+#include "data-struct/cbs.h"
 
 LINKED_LIST_IMPL(linked_list_relationship, relationship_t*);
 linked_list_relationship_cbs ll_rel_cbs = { relationship_equals, NULL, NULL };

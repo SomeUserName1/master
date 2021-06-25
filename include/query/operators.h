@@ -30,12 +30,6 @@ typedef struct in_memory_file
     unsigned long rel_id_counter;
 } in_memory_file_t;
 
-void
-ids_to_blocks(const char* in_path, const char* out_path, record_id_t type);
-
-void
-blocks_to_pages(const char* in_path, const char* out_path, record_id_t type);
-
 in_memory_file_t*
 create_in_memory_file(void);
 

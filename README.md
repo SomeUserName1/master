@@ -27,7 +27,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
 <p style="text-align: center;"><font size="20"><progress id="file" value="1" max="7">Implementation</progress></font></p>  
 
   - [x] Fixup Includes
-  - [ ] Marko-based genereic data structures
+  - [x] Marko-based genereic data structures
   - [ ] Disk-based IO
   - [ ] Cache
   - [ ] Non-consecutive IDs & support deletions

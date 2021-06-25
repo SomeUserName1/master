@@ -1,6 +1,6 @@
-#include "set.h"
+#include "data-struct/set.h"
 
-#include "cbs.h"
+#include "data-struct/cbs.h"
 
 SET_IMPL(set_ul, unsigned long, fnv_hash_ul, unsigned_long_eq);
 set_ul_cbs s_ul_cbs = { NULL, NULL, unsigned_long_print };

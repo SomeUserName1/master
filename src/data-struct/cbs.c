@@ -1,4 +1,4 @@
-#include "cbs.h"
+#include "data-struct/cbs.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,7 +1,7 @@
 \section{Introduction}
-	\subsubsection{Purpose}
+	\subsection{Purpose}
 			The purpose of this combined Software Requirements Specification and Design Documents is to describe the features, constraints, demands and the intended design of a research environment for the optimal layout of graph records on disk in detail. This document is intended for both the stakeholders and the developers of the system and will be proposed to Dr. Theodoros Chondrogiannis, the supervising postdoctoral researcher.
-	\subsubsection{Scope}
+	\subsection{Scope}
 			This Software system shall implement a graph record layout research environment, that consists of a graph database along with tools, that rearranges the recrods of the database based on a predefined format, measure the number of disk accesses needed to service a certain query and that provide other layouts to compare against. The time frame is three months, distributed over four months with $75\%$ work load. When the system is implemented, a specific method that is to be dervied shall be too implemented, evaluated and published within the same time frame.
 
     \subsubsection{Definitions, Acronyms, Abbreviations}
@@ -174,20 +174,18 @@ The graph record layout research environment consists of the lower layers of a d
 
 \subsection{Subsystem decomposition}
     \subsubsection{IO}
-        The IO package shall provide the concepts of a file, a page and a disk manager. \\
-        Each page consists of slots that can hold records. The page keeps track of the usage of these slots with a bitmap. It also provides functions to read and write a slot. \\
+        The IO package shall provide the concepts of a disk file and the disk manager. \\
         Each file consists of a set of pages. The file accounts for the usage of pages with a page directory~\autocite{ramakrishnan2000database}. It also provides functions to read and write a page. \\
-        The database stores its data in the slots contained in the pages contained in the files. The files are created, grown and shrinked by the disk space manager.  \\
+        The database stores its data in the slots contained in the pages contained in the files. The files are created, grown and shrinked by the disk space manager.   \\
         
         \begin{center}
-         \includegraphics[keepaspectratio, width=\textwidth, height=0.6\textheight]{img/io_arch.png} \\
+         \includegraphics[keepaspectratio, width=\textwidth, height=0.3\textheight]{img/io_arch.png} \\
         \end{center}
-        \newpage
 
     \subsubsection{Page Cache}
-        This packages provides a cache for pages, that is it loads and stores pages from or to disk in a fixed amount of RAM. To do this it splits the available main memory into frames of the size of a page and maintains a mapping from frames to pages, a list of free frames and evicts pages from main memory to free up space for pages to be loaded.
+        This packages provides a cache for pages, that is it loads and stores pages from or to disk in a fixed amount of RAM. To do this it splits the available main memory into frames of the size of a page and maintains a mapping from frames to pages, a list of free frames and evicts pages from main memory to free up space for pages to be loaded. Each page consists of slots that can hold records. The page keeps track of the usage of these slots with a bitmap. \\
         \begin{center}
-         \includegraphics[keepaspectratio, width=\textwidth, height=0.4\textheight]{img/cache_arch.png} \\
+         \includegraphics[keepaspectratio, width=\textwidth, height=0.3\textheight]{img/cache_arch.png} \\
         \end{center}
         \newpage
         

@@ -1,6 +1,5 @@
-#include "array_list.h"
-
-#include "cbs.h"
+#include "data-struct/array_list.h"
+#include "data-struct/cbs.h"
 
 ARRAY_LIST_IMPL(array_list_ul, unsigned long);
 array_list_ul_cbs al_ul_cbs = { unsigned_long_eq, NULL, NULL };
