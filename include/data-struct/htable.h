@@ -1,8 +1,6 @@
 #ifndef HTABLE_H
 #define HTABLE_H
 
-#include "access/node.h"
-#include "access/relationship.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -512,15 +510,5 @@ HTABLE_DECL(dict_ul_int, unsigned long, int);
 
 dict_ul_int*
 d_ul_int_create(void);
-
-HTABLE_DECL(dict_ul_node, unsigned long, node_t*);
-
-dict_ul_node*
-d_ul_node_create(void);
-
-HTABLE_DECL(dict_ul_rel, unsigned long, relationship_t*)
-
-dict_ul_rel*
-d_ul_rel_create(void);
 
 #endif

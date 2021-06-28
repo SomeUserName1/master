@@ -1,2 +1,2 @@
 add_library(layout  reorganize_nodes.c reorganize_relationships.c random_layout.c)
-target_link_libraries(layout  PRIVATE access record data-struct)
+target_link_libraries(layout  PRIVATE query access data-struct)

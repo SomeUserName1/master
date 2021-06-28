@@ -11,21 +11,12 @@
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 
-typedef enum
-{
-    bitmap_page       = 1,
-    node_page         = sizeof(node_t),
-    relationship_page = sizeof(relationship_t)
-} page_type;
-
 typedef struct
 {
-    page_type     pt;
     size_t        page_no;
-    short         slot_size;
     unsigned int  pin_count;
     bool          dirty;
-    unsigned char data[PAGE_SIZE / sizeof(unsigned char)];
+    unsigned char data[PAGE_SIZE];
 } page;
 
 page*
@@ -34,17 +25,29 @@ create_page(size_t id, size_t slot_size);
 bool
 page_equals(const page* fst, const page* snd);
 
-size_t
-get_free_slot(const page* p);
+unsigned long
+read_ulong(page* p, size_t offset);
 
 void
-clear_slot(page* p, size_t slot_no);
+write_ulong(page* p, size_t offset, unsigned long value);
+
+unsigned char
+read_uchar(page* p, size_t offset);
 
 void
-write_slot(page* p);
+write_uchar(page* p, size_t offset, unsigned char value);
 
-unsigned char*
-read_slot(const page* p, size_t slot_no);
+double
+read_double(page* p, size_t offset);
+
+double
+write_double(page* p, size_t offset, double value);
+
+const char*
+read_string(page* p, size_t offset);
+
+void
+write_string(page* p, size_t offset);
 
 void
 page_pretty_print(const page* p);

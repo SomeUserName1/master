@@ -5,7 +5,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include "access/operators.h"
 #include "data-struct/htable.h"
 #include "layout/random_layout.h"
 #include "layout/reorganize_nodes.h"
@@ -16,6 +15,7 @@
 #include "query/dfs.h"
 #include "query/dijkstra.h"
 #include "query/louvain.h"
+#include "query/operators.h"
 #include "query/result_types.h"
 #include "query/snap_importer.h"
 

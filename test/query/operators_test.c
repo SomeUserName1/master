@@ -1,4 +1,4 @@
-#include "access/operators.h"
+#include "query/operators.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -6,7 +6,6 @@
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
-#include "data-struct/array_list.h"
 #include "data-struct/htable.h"
 #include "query/snap_importer.h"
 

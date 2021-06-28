@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <stddef.h>
 
-typedef char word_t;
+typedef unsigned char word_t;
 enum
 {
     BITS_PER_WORD = sizeof(word_t) * CHAR_BIT
@@ -19,7 +19,7 @@ set_bit(word_t *words, size_t n);
 void
 clear_bit(word_t *words, size_t n);
 
-char
+unsigned char
 get_bit(const word_t *words, size_t n);
 
 #endif

@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "data-struct/array_list.h"
+#include "data-struct/htable.h"
+#include "data-struct/linked_list.h"
+
 /**
  * The flags field is structured the floowoing way:
  * [       x] In Use
@@ -105,5 +109,23 @@ relationship_set_first_source(relationship_t* rel);
 
 void
 relationship_set_first_target(relationship_t* rel);
+
+void
+rel_free(relationship_t* rel);
+
+ARRAY_LIST_DECL(array_list_relationship, relationship_t*);
+
+array_list_relationship*
+al_rel_create(void);
+
+HTABLE_DECL(dict_ul_rel, unsigned long, relationship_t*)
+
+dict_ul_rel*
+d_ul_rel_create(void);
+
+LINKED_LIST_DECL(linked_list_relationship, relationship_t*);
+
+linked_list_relationship*
+ll_rel_create(void);
 
 #endif

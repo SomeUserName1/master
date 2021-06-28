@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "access/operators.h"
+#include "query/operators.h"
 
 unsigned long*
 identity_partition(in_memory_file_t* db)

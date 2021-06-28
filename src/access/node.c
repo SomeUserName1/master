@@ -1,12 +1,14 @@
 #include "access/node.h"
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "constants.h"
+#include "data-struct/array_list.h"
+#include "data-struct/cbs.h"
+#include "data-struct/htable.h"
 
-node_t*
+inline node_t*
 new_node()
 {
     node_t* node = malloc(sizeof(*node));
@@ -41,7 +43,7 @@ node_write(const node_t* record)
     return 0;
 }
 
-void
+inline void
 node_clear(node_t* record)
 {
     if (!record) {
@@ -54,7 +56,7 @@ node_clear(node_t* record)
     record->degree             = 0;
 }
 
-node_t*
+inline node_t*
 node_copy(const node_t* original)
 {
     if (!original) {
@@ -75,7 +77,7 @@ node_copy(const node_t* original)
     return copy;
 }
 
-bool
+inline bool
 node_equals(const node_t* first, const node_t* second)
 {
     if (!first || !second) {
@@ -104,7 +106,7 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
     if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote node string representation to a buffer that was too "
                "small!");
-        return EOVERFLOW;
+        return -1;
     }
 
     int result = snprintf(buffer,
@@ -137,3 +139,36 @@ node_pretty_print(const node_t* record)
            record->first_relationship,
            record->degree);
 }
+
+inline void
+node_free(node_t* node)
+{
+    free(node);
+}
+
+ARRAY_LIST_IMPL(array_list_node, node_t*);
+static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
+
+inline array_list_node*
+al_node_create(void)
+{
+    return array_list_node_create(list_node_cbs);
+}
+
+HTABLE_IMPL(dict_ul_node,
+            unsigned long,
+            node_t*,
+            fnv_hash_ul,
+            unsigned_long_eq);
+
+dict_ul_node_cbs d_node_cbs = {
+    NULL, NULL,      unsigned_long_print, node_equals,
+    NULL, node_free, node_pretty_print
+};
+
+dict_ul_node*
+d_ul_node_create(void)
+{
+    return dict_ul_node_create(d_node_cbs);
+}
+

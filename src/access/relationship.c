@@ -4,8 +4,12 @@
 #include <stdlib.h>
 
 #include "constants.h"
+#include "data-struct/array_list.h"
+#include "data-struct/cbs.h"
+#include "data-struct/htable.h"
+#include "data-struct/linked_list.h"
 
-relationship_t*
+inline relationship_t*
 new_relationship()
 {
     relationship_t* rel = malloc(sizeof(*rel));
@@ -32,7 +36,7 @@ relationship_write(const relationship_t* record)
     return 0;
 }
 
-void
+inline void
 relationship_clear(relationship_t* record)
 {
     record->id              = UNINITIALIZED_LONG;
@@ -46,7 +50,7 @@ relationship_clear(relationship_t* record)
     record->weight          = UNINITIALIZED_WEIGHT;
 }
 
-relationship_t*
+inline relationship_t*
 relationship_copy(const relationship_t* original)
 {
     relationship_t* copy = malloc(sizeof(*copy));
@@ -68,7 +72,7 @@ relationship_copy(const relationship_t* original)
     return copy;
 }
 
-bool
+inline bool
 relationship_equals(const relationship_t* first, const relationship_t* second)
 {
     return ((first->id == second->id) && (first->flags == second->flags)
@@ -163,7 +167,7 @@ relationship_pretty_print(const relationship_t* record)
            record->weight);
 }
 
-void
+inline void
 relationship_set_first_source(relationship_t* rel)
 {
     if (!rel) {
@@ -177,7 +181,7 @@ relationship_set_first_source(relationship_t* rel)
     }
 }
 
-void
+inline void
 relationship_set_first_target(relationship_t* rel)
 {
     if (!rel) {
@@ -190,3 +194,44 @@ relationship_set_first_target(relationship_t* rel)
         rel->flags = rel->flags | FIRST_REL_TARGET_FLAG;
     }
 }
+
+inline void
+rel_free(relationship_t* rel)
+{
+    free(rel);
+}
+
+ARRAY_LIST_IMPL(array_list_relationship, relationship_t*);
+array_list_relationship_cbs list_rel_cbs = { relationship_equals, NULL, NULL };
+
+inline array_list_relationship*
+al_rel_create(void)
+{
+    return array_list_relationship_create(list_rel_cbs);
+}
+
+HTABLE_IMPL(dict_ul_rel,
+            unsigned long,
+            relationship_t*,
+            fnv_hash_ul,
+            unsigned_long_eq);
+dict_ul_rel_cbs d_rel_cbs = {
+    NULL, NULL,     unsigned_long_print,      relationship_equals,
+    NULL, rel_free, relationship_pretty_print
+};
+
+dict_ul_rel*
+d_ul_rel_create(void)
+{
+    return dict_ul_rel_create(d_rel_cbs);
+}
+
+LINKED_LIST_IMPL(linked_list_relationship, relationship_t*);
+linked_list_relationship_cbs ll_rel_cbs = { relationship_equals, NULL, NULL };
+
+linked_list_relationship*
+ll_rel_create(void)
+{
+    return linked_list_relationship_create(ll_rel_cbs);
+}
+

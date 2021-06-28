@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "access/operators.h"
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
+#include "query/operators.h"
 #include "query/result_types.h"
 
 path*

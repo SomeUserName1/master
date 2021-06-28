@@ -1,7 +1,7 @@
 #ifndef ALT_H
 #define ALT_H
 
-#include "access/operators.h"
+#include "query/operators.h"
 #include "result_types.h"
 
 void

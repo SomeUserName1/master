@@ -8,8 +8,8 @@
 #include <zconf.h>
 #include <zlib.h>
 
-#include "access/operators.h"
 #include "data-struct/htable.h"
+#include "query/operators.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */

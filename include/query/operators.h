@@ -3,8 +3,6 @@
 
 #include "access/node.h"
 #include "access/relationship.h"
-#include "data-struct/array_list.h"
-#include "data-struct/htable.h"
 
 #define BUFFER_SIZE (512)
 

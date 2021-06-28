@@ -4,9 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "access/node.h"
-#include "access/relationship.h"
-
 bool
 ptr_eq(const void* a, const void* b);
 
@@ -33,11 +30,5 @@ long_eq(long first, long second);
 
 void
 long_print(long in);
-
-void
-node_free(node_t* node);
-
-void
-rel_free(relationship_t* rel);
 
 #endif

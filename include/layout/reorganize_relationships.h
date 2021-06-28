@@ -1,7 +1,7 @@
 #ifndef REORGANIZE_RELATIONSHIPS_H
 #define REORGANIZE_RELATIONSHIPS_H
 
-#include "access/operators.h"
+#include "query/operators.h"
 
 unsigned long*
 remap_rel_ids(in_memory_file_t* db);

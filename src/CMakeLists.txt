@@ -11,4 +11,4 @@ add_subdirectory(layout/)
 add_executable(gndb main.c)
 
 # Link executable
-target_link_libraries(gndb -lcurl -lz layout query access data-struct)
+target_link_libraries(gndb layout query access data-struct)

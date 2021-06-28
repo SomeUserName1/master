@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "access/operators.h"
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/fibonacci_heap.h"
+#include "query/operators.h"
 #include "query/result_types.h"
 
 sssp_result*

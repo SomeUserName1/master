@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "data-struct/array_list.h"
+#include "data-struct/htable.h"
+
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
  * but a byte is used to align the struct to be a aligned.
@@ -89,5 +92,18 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size);
 
 void
 node_pretty_print(const node_t* record);
+
+void
+node_free(node_t* node);
+
+ARRAY_LIST_DECL(array_list_node, node_t*);
+
+array_list_node*
+al_node_create(void);
+
+HTABLE_DECL(dict_ul_node, unsigned long, node_t*);
+
+dict_ul_node*
+d_ul_node_create(void);
 
 #endif

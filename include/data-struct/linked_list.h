@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "access/relationship.h"
-
 #define LINKED_LIST_DECL_BASE(typename, T)                                     \
     LINKED_LIST_CBS_TYPEDEF(typename, T)                                       \
     LINKED_LIST_STRUCTS(typename, T)                                           \
@@ -400,11 +398,6 @@
                                                                                \
         return result;                                                         \
     }
-
-LINKED_LIST_DECL(linked_list_relationship, relationship_t*);
-
-linked_list_relationship*
-ll_rel_create(void);
 
 QUEUE_DECL(queue_ul, unsigned long);
 

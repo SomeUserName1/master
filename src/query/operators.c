@@ -1,16 +1,12 @@
-#include "access/operators.h"
+#include "query/operators.h"
 
-#include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
-#include "data-struct/array_list.h"
-#include "data-struct/htable.h"
 
 in_memory_file_t*
 create_in_memory_file()

@@ -1,7 +1,9 @@
 #ifndef DEGREE_H
 #define DEGREE_H
-#include "access/operators.h"
+
 #include <stdio.h>
+
+#include "query/operators.h"
 
 size_t
 get_degree(in_memory_file_t* db,

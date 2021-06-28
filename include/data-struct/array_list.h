@@ -1,8 +1,6 @@
 #ifndef ARRAY_LIST_H
 #define ARRAY_LIST_H
 
-#include "access/node.h"
-#include "access/relationship.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -258,13 +256,4 @@ ARRAY_LIST_DECL(array_list_l, long);
 array_list_l*
 al_l_create(void);
 
-ARRAY_LIST_DECL(array_list_node, node_t*);
-
-array_list_node*
-al_node_create(void);
-
-ARRAY_LIST_DECL(array_list_relationship, relationship_t*);
-
-array_list_relationship*
-al_rel_create(void);
 #endif

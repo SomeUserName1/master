@@ -1,10 +1,6 @@
 #include "data-struct/cbs.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-
-#include "access/node.h"
-#include "access/relationship.h"
 
 inline bool
 ptr_eq(const void* a, const void* b)
@@ -72,14 +68,3 @@ long_print(const long in)
     printf("%li\n", in);
 }
 
-inline void
-node_free(node_t* node)
-{
-    free(node);
-}
-
-inline void
-rel_free(relationship_t* rel)
-{
-    free(rel);
-}

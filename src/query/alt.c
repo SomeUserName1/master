@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "access/operators.h"
 #include "query/a-star.h"
 #include "query/degree.h"
 #include "query/dijkstra.h"
+#include "query/operators.h"
 #include "query/result_types.h"
 
 unsigned long

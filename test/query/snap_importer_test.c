@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <string.h>
 
-#include "access/operators.h"
+#include "access/node.h"
+#include "access/relationship.h"
 #include "data-struct/htable.h"
+#include "query/operators.h"
 
 #define DATASET_TEMP   ("/home/someusername/workspace_local/dataset.txt.gz")
 #define PATH_CELEGANS  ("/home/someusername/workspace_local/celegans.txt")

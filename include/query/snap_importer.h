@@ -1,8 +1,8 @@
 #ifndef SNAP_IMPORTER_H
 #define SNAP_IMPORTER_H
 
-#include "access/operators.h"
 #include "data-struct/htable.h"
+#include "query/operators.h"
 
 #define C_ELEGANS_URL                                                          \
     ("https://snap.stanford.edu/data/C-elegans-frontal.txt.gz")

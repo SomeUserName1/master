@@ -1,7 +1,7 @@
 #ifndef BFS_H
 #define BFS_H
 
-#include "access/operators.h"
+#include "query/operators.h"
 #include "result_types.h"
 
 traversal_result*

@@ -5,9 +5,9 @@
 #include <stdlib.h>
 
 #include "access/node.h"
-#include "access/operators.h"
 #include "access/relationship.h"
 #include "data-struct/array_list.h"
+#include "query/operators.h"
 
 size_t
 get_degree(in_memory_file_t* db,

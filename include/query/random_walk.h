@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "access/operators.h"
+#include "query/operators.h"
 #include "result_types.h"
 
 path*

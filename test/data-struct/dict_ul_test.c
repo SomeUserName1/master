@@ -5,8 +5,8 @@
 #include <stdio.h>
 
 #include "access/node.h"
-#include "access/operators.h"
 #include "access/relationship.h"
+#include "query/operators.h"
 #include "query/snap_importer.h"
 
 #define TEST_KEY       (42)

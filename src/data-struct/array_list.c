@@ -19,21 +19,3 @@ al_l_create(void)
     return array_list_l_create(al_l_cbs);
 }
 
-ARRAY_LIST_IMPL(array_list_node, node_t*);
-static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
-
-inline array_list_node*
-al_node_create(void)
-{
-    return array_list_node_create(list_node_cbs);
-}
-
-ARRAY_LIST_IMPL(array_list_relationship, relationship_t*);
-array_list_relationship_cbs list_rel_cbs = { relationship_equals, NULL, NULL };
-
-inline array_list_relationship*
-al_rel_create(void)
-{
-    return array_list_relationship_create(list_rel_cbs);
-}
-
