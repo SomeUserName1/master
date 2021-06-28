@@ -2,10 +2,10 @@
 
 #include <assert.h>
 
+#include "access/in_memory_file.h"
 #include "access/relationship.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
-#include "query/operators.h"
 #include "query/result_types.h"
 #include "query/snap_importer.h"
 
@@ -52,7 +52,7 @@ main(void)
         assert(rand_w->source == 0);
         assert(array_list_ul_size(rand_w->edges) <= i);
 
-        for (size_t j = 0; j < rand_w->distance - 1; ++j) {
+        for (size_t j = 0; j < (size_t)rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
             r      = in_memory_get_relationship(db,
@@ -71,7 +71,7 @@ main(void)
         assert(rand_w->source == 0);
         assert(array_list_ul_size(rand_w->edges) <= i);
 
-        for (size_t j = 0; j < rand_w->distance - 1; ++j) {
+        for (size_t j = 0; j < (size_t)rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
             r      = in_memory_get_relationship(db,

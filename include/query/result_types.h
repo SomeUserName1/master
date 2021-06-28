@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
+#include "access/in_memory_file.h"
 #include "data-struct/array_list.h"
-#include "query/operators.h"
 
 typedef struct traversal_result
 {

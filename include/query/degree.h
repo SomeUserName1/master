@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
+#include "access/relationship.h"
 
 size_t
 get_degree(in_memory_file_t* db,

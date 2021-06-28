@@ -1,4 +1,4 @@
-#include "query/operators.h"
+#include "access/in_memory_file.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -7,6 +7,7 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/htable.h"
+#include "query/in_memory_operators.h"
 #include "query/snap_importer.h"
 
 #define NUM_NODES (10)
@@ -406,22 +407,22 @@ test_in_memory_next_rel(in_memory_file_t* db)
     relationship_t* rel = in_memory_get_relationship(db, 0);
 
     unsigned long next_rel_id =
-          in_memory_next_relationship(db, 0, rel, OUTGOING);
+          in_memory_next_relationship_id(db, 0, rel, OUTGOING);
     assert(next_rel_id == 2181);
 
-    next_rel_id = in_memory_next_relationship(db, 0, rel, INCOMING);
+    next_rel_id = in_memory_next_relationship_id(db, 0, rel, INCOMING);
     assert(next_rel_id == 411);
 
-    next_rel_id = in_memory_next_relationship(db, 0, rel, BOTH);
+    next_rel_id = in_memory_next_relationship_id(db, 0, rel, BOTH);
     assert(next_rel_id == 411);
 
-    next_rel_id = in_memory_next_relationship(db, 1, rel, OUTGOING);
+    next_rel_id = in_memory_next_relationship_id(db, 1, rel, OUTGOING);
     assert(next_rel_id == 2334);
 
-    next_rel_id = in_memory_next_relationship(db, 1, rel, INCOMING);
+    next_rel_id = in_memory_next_relationship_id(db, 1, rel, INCOMING);
     assert(next_rel_id == 225);
 
-    next_rel_id = in_memory_next_relationship(db, 1, rel, BOTH);
+    next_rel_id = in_memory_next_relationship_id(db, 1, rel, BOTH);
     assert(next_rel_id == 225);
 }
 
@@ -436,7 +437,7 @@ test_in_memory_next_rel_none(void)
     in_memory_create_relationship(db, 0, 1);
     relationship_t* rel = in_memory_get_relationship(db, 0);
 
-    unsigned long rel_id = in_memory_next_relationship(db, 0, rel, BOTH);
+    unsigned long rel_id = in_memory_next_relationship_id(db, 0, rel, BOTH);
     assert(rel_id == UNINITIALIZED_LONG);
 
     in_memory_file_destroy(db);

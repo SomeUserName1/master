@@ -4,9 +4,17 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
+
+typedef enum
+{
+    OUTGOING = 0,
+    INCOMING = 1,
+    BOTH     = 2
+} direction_t;
 
 /**
  * The flags field is structured the floowoing way:
@@ -25,7 +33,7 @@ typedef struct RelationshipRecord
     unsigned long prev_rel_target;
     unsigned long next_rel_target;
     double        weight;
-    // first_property; properties not impelemented yet
+    char          label[MAX_STR_LEN];
 } relationship_t;
 
 /**

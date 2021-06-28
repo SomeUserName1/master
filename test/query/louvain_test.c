@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/in_memory_file.h"
 #include "data-struct/htable.h"
-#include "query/operators.h"
 #include "query/snap_importer.h"
 
 int

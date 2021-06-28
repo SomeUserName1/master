@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
 #include "query/result_types.h"
 
 #define NUM_NODES (10)

@@ -1,7 +1,8 @@
 #ifndef A_STAR_H
 #define A_STAR_H
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
+#include "access/relationship.h"
 #include "result_types.h"
 
 path*

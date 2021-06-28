@@ -3,12 +3,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "access/in_memory_file.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
+#include "query/in_memory_operators.h"
 #include "query/louvain.h"
-#include "query/operators.h"
 #include "query/snap_importer.h"
 
 void

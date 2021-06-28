@@ -4,8 +4,7 @@
 #include <stdlib.h>
 
 #include "access/relationship.h"
-#include "data-struct/array_list.h"
-#include "query/operators.h"
+#include "query/in_memory_operators.h"
 
 louvain_graph_t*
 louvain_graph_init(in_memory_file_t* db)

@@ -3,7 +3,8 @@
 
 #include <stddef.h>
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
+#include "access/relationship.h"
 #include "result_types.h"
 
 path*

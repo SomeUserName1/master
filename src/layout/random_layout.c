@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "query/operators.h"
-
 unsigned long*
 identity_partition(in_memory_file_t* db)
 {

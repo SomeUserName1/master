@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "access/node.h"
-#include "access/relationship.h"
 #include "constants.h"
 
 #include "data-struct/htable.h"

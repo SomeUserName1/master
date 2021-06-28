@@ -1,6 +1,6 @@
 #include "query/degree.h"
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
 
 #include <assert.h>
 #include <stdio.h>

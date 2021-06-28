@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
 
@@ -18,6 +19,7 @@ typedef struct NodeRecord
     unsigned char     flags;
     unsigned long int first_relationship;
     unsigned long     degree;
+    char              label[MAX_STR_LEN];
 } node_t;
 
 /**

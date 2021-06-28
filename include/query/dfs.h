@@ -1,7 +1,8 @@
 #ifndef DFS_H
 #define DFS_H
 
-#include "query/operators.h"
+#include "access/in_memory_file.h"
+#include "access/relationship.h"
 #include "result_types.h"
 
 traversal_result*

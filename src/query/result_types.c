@@ -6,7 +6,6 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
-#include "query/operators.h"
 
 traversal_result*
 create_traversal_result(unsigned long  source_node,

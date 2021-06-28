@@ -40,7 +40,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - Access-History Graph
 
 ### Coverage
-<p style="text-align: center;"><font size="14"><progress id="file" value="1419" max="2028">Coverage</progress></font></p>  
+<p style="text-align: center;"><font size="14"><progress id="file" value="1435" max="1710">Coverage</progress></font></p>  
 
 #### Test Cases
   - [ ] Compare reorganization of simulated and disk-based

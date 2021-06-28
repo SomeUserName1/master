@@ -1,5 +1,5 @@
-add_executable(operators-test  operators_test.c)
-target_link_libraries(operators-test  query)
+add_executable(in-memory-operators-test  in_memory_operators_test.c)
+target_link_libraries(in-memory-operators-test  query)
 
 add_executable(degree-test  degree_test.c)
 target_link_libraries(degree-test query)
@@ -28,7 +28,7 @@ target_link_libraries(louvain-test query)
 add_executable(snap-importer-test   snap_importer_test.c)
 target_link_libraries(snap-importer-test query)
 
-add_test("Operators Test" operators-test)
+add_test("In-Memory Operators Test" in-memory-operators-test)
 add_test("Import Test" snap-importer-test)
 add_test("Degree Test" degree-test)
 add_test("BFS Test" bfs-test)

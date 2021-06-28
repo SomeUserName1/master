@@ -6,7 +6,7 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
-#include "query/operators.h"
+#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
 path*

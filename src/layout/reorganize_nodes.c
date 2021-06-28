@@ -7,7 +7,7 @@
 #include "data-struct/cbs.h"
 #include "data-struct/htable.h"
 #include "data-struct/set.h"
-#include "query/operators.h"
+#include "query/in_memory_operators.h"
 
 #include <stdio.h>
 #include <stdlib.h>
