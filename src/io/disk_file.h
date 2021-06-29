@@ -4,15 +4,19 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "constants.h"
+
 typedef struct
 {
-    char*  file_name;
-    FILE*  file;
-    size_t num_pages;
+    const char* file_name;
+    FILE*       file;
+    long        file_size;
+    size_t      num_pages;
+    char*       f_buf;
 } disk_file;
 
 disk_file*
-disk_file_create(char* file_name);
+disk_file_create(const char* file_name);
 
 void
 disk_file_destroy(disk_file* df);
@@ -26,11 +30,11 @@ get_free_page(disk_file* df);
 size_t
 get_num_pages(disk_file* df);
 
-unsigned char*
-read_page(disk_file* df, size_t page_no);
+void
+read_page(disk_file* df, size_t page_no, char* buf);
 
 unsigned char*
-read_pages(disk_file* df, size_t fst_page, size_t lst_page);
+read_pages(disk_file* df, size_t fst_page, size_t lst_page, char* buf);
 
 void
 write_page(disk_file* df, size_t page_no, unsigned char* data);
