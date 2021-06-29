@@ -3,6 +3,8 @@
 
 #include "disk_file.h"
 
+#include <stddef.h>
+
 typedef struct
 {
     disk_file* node_file;
@@ -11,11 +13,8 @@ typedef struct
     size_t     write_count;
 } phy_database;
 
-phy_database
+phy_database*
 phy_database_create(char* db_name);
-
-phy_database
-phy_database_open(char* db_name);
 
 void
 phy_database_delete(phy_database* db);

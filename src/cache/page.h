@@ -4,17 +4,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "constants.h"
-
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 
 typedef struct
 {
-    size_t        page_no;
-    unsigned int  pin_count;
-    bool          dirty;
-    unsigned char data[PAGE_SIZE];
+    size_t       page_no;
+    unsigned int pin_count;
+    bool         dirty;
+    char*        data;
 } page;
 
 page*

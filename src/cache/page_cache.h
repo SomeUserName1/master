@@ -1,7 +1,8 @@
 #ifndef PAGE_CACHE_H
 #define PAGE_CACHE_H
 
-#include "disk_file.h"
+#include <stddef.h>
+
 #include "page.h"
 #include "physical_database.h"
 
