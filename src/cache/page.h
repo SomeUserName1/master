@@ -9,7 +9,6 @@
 
 typedef struct
 {
-    size_t         frame_no;
     size_t         page_no;
     unsigned int   pin_count;
     bool           dirty;
@@ -17,7 +16,7 @@ typedef struct
 } page;
 
 page*
-page_create(size_t page_no, size_t frame_no);
+page_create(size_t page_no, unsigned char* data);
 
 void
 page_destroy(page* p);
@@ -43,11 +42,11 @@ read_double(page* p, size_t offset);
 void
 write_double(page* p, size_t offset, double value);
 
-const char*
+char*
 read_string(page* p, size_t offset);
 
 void
-write_string(page* p, size_t offset);
+write_string(page* p, size_t offset, char* value);
 
 void
 page_pretty_print(const page* p);

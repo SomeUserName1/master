@@ -20,28 +20,21 @@
 #define DOUBLE_EXP_EXTRACT_UPPER    (111)
 #define DOUBLE_MANTISSA_SECOND_BYTE (1111)
 #define DOUBLE_MANTISSA_N_BYTES     (7)
-// TODO binary converters
 
 page*
-page_create(size_t page_no, size_t frame_no)
+page_create(size_t page_no, unsigned char* data)
 {
     page* p = calloc(1, sizeof(page));
 
-    if (!p) {
-        printf("page - create: failed to allocate memory!\n");
+    if (!p || !p->data) {
+        printf("page - create: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    p->frame_no  = frame_no;
     p->page_no   = page_no;
     p->pin_count = 0;
     p->dirty     = false;
-    p->data      = calloc(1, PAGE_SIZE);
-
-    if (!p->data) {
-        printf("page - create: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
-    }
+    p->data      = data;
 
     return p;
 }
@@ -81,11 +74,8 @@ read_ulong(page* p, size_t offset)
         exit(EXIT_FAILURE);
     }
 
-    unsigned long res = 0;
-
-    for (size_t i = 0; i < sizeof(unsigned long); ++i) {
-        res += p->data[offset + i] << ((sizeof(unsigned long) - i) * CHAR_BIT);
-    }
+    unsigned long res;
+    memcpy(&res, p->data + offset, sizeof(unsigned long));
 
     return res;
 }
@@ -98,9 +88,7 @@ write_ulong(page* p, size_t offset, unsigned long value)
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < sizeof(unsigned long); ++i) {
-        p->data[offset + i] = value >> ((sizeof(unsigned long) - i) * CHAR_BIT);
-    }
+    memcpy(p->data + offset, &value, sizeof(unsigned long));
 }
 
 unsigned char
@@ -146,12 +134,11 @@ write_double(page* p, size_t offset, double value)
         printf("page - write double: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
-    memcpy(p->data + offset, &value, sizeof(value));
+
+    memcpy(p->data + offset, &value, sizeof(double));
 }
 
-// TODO continue here
-
-const char*
+char*
 read_string(page* p, size_t offset)
 {
     if (!p) {
@@ -161,17 +148,7 @@ read_string(page* p, size_t offset)
 
     char* res = calloc(MAX_STR_LEN, sizeof(char));
 
-    int ret = sscanf(p->data + offset, "%s", res);
-
-    if (ret != 1) {
-        printf("page - string double: ");
-        if (ret == EOF) {
-            printf("%s\n", strerror(errno));
-        } else {
-            printf("couldn't read a value\n");
-        }
-        exit(EXIT_FAILURE);
-    }
+    memcpy(res, p->data + offset, sizeof(char) * MAX_STR_LEN);
 
     return res;
 }
@@ -184,22 +161,23 @@ write_string(page* p, size_t offset, char* value)
         exit(EXIT_FAILURE);
     }
 
-    int ret = sprintf(p->data + offset, "%s", value);
-
-    if (ret != sizeof(double)) {
-        printf("page - write string: ");
-        if (ret < 0) {
-            printf("%s\n", strerror(errno));
-        } else {
-            printf("couldn't write the neccesarry amount of bytes\n");
-        }
-        exit(EXIT_FAILURE);
-    }
+    memcpy(p->data + offset, value, MAX_STR_LEN * sizeof(char));
 }
 
 void
 page_pretty_print(const page* p)
-{}
+{
+    if (!p) {
+        printf("page - write string: Invalid arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Frame No. %zu, Page No. %zu, pin count: %u, is dirty? %s\n",
+           p->frame_no,
+           p->page_no,
+           p->pin_count,
+           p->dirty ? "true" : "false");
+}
 
 HTABLE_IMPL(dict_ul_page, unsigned long, page*, fnv_hash_ul, unsigned_long_eq);
 dict_ul_page_cbs d_page_cbs = { NULL, NULL, unsigned_long_print, page_equals,
