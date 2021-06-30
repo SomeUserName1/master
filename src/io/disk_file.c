@@ -108,20 +108,20 @@ disk_file_delete(disk_file* df)
 }
 
 void
-read_page(disk_file* df, size_t page_no, char* buf)
+read_page(disk_file* df, size_t page_no, unsigned char* buf)
 {
     read_pages(df, page_no, page_no, buf);
 }
 
 void
-read_pages(disk_file* df, size_t fst_page, size_t lst_page, char* buf)
+read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
 {
     if (!df || !buf) {
         printf("disk file - read pages: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    if (fst_page * PAGE_SIZE > LONG_MAX || lst_page * PAGE_SIZE > LONG_MAX
+    if (fst_page > MAX_PAGE_NO || lst_page > MAX_PAGE_NO
         || fst_page > df->num_pages || lst_page > df->num_pages) {
         printf("disk file - read pages: One of the page numbers you specified "
                "(%lu or %lu) are "
@@ -134,7 +134,7 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, char* buf)
                df->num_pages,
                df->file_size,
                LONG_MAX >> PiB_OFFSET,
-               LONG_MAX / PAGE_SIZE);
+               MAX_PAGE_NO);
         exit(EXIT_FAILURE);
     }
 
@@ -168,20 +168,23 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, char* buf)
 }
 
 void
-write_page(disk_file* df, size_t page_no, char* data)
+write_page(disk_file* df, size_t page_no, unsigned char* data)
 {
     write_pages(df, page_no, page_no, data);
 }
 
 void
-write_pages(disk_file* df, size_t fst_page, size_t lst_page, char* data)
+write_pages(disk_file*     df,
+            size_t         fst_page,
+            size_t         lst_page,
+            unsigned char* data)
 {
     if (!df || !data) {
         printf("disk file - write page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    if (fst_page * PAGE_SIZE > LONG_MAX || lst_page * PAGE_SIZE > LONG_MAX) {
+    if (fst_page > MAX_PAGE_NO || lst_page > MAX_PAGE_NO) {
         printf("disk file - write page: One of the page numbers you specified "
                "(%lu or %lu) are "
                "too large!\n "
@@ -190,7 +193,7 @@ write_pages(disk_file* df, size_t fst_page, size_t lst_page, char* data)
                fst_page,
                lst_page,
                LONG_MAX >> PiB_OFFSET,
-               LONG_MAX / PAGE_SIZE);
+               MAX_PAGE_NO);
         exit(EXIT_FAILURE);
     }
 
@@ -235,7 +238,7 @@ write_pages(disk_file* df, size_t fst_page, size_t lst_page, char* data)
 void
 clear_page(disk_file* df, size_t page_no)
 {
-    char* data = calloc(1, PAGE_SIZE);
+    unsigned char* data = calloc(1, PAGE_SIZE);
 
     if (!data) {
         printf("disk page - clear page: Failed to allocate memory!\n");
@@ -254,7 +257,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
         exit(EXIT_FAILURE);
     }
 
-    if (df->num_pages + by_num_pages >= LONG_MAX / PAGE_SIZE) {
+    if (df->num_pages + by_num_pages >= MAX_PAGE_NO) {
         printf("disk file - grow: Cannot grow database by %lu pages! Exceeds "
                "max database size "
                "of %li PiB!\n",
@@ -304,7 +307,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
 void
 disk_file_shrink(disk_file* df, size_t by_num_pages)
 {
-    if (!df || PAGE_SIZE * by_num_pages > LONG_MAX) {
+    if (!df || by_num_pages > MAX_PAGE_NO) {
         printf("disk file - shrink: invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }

@@ -5,12 +5,20 @@
 
 #include <stddef.h>
 
+typedef enum
+{
+    node_file,
+    relationship_file
+} record_file;
+
 typedef struct
 {
     disk_file* node_file;
     disk_file* rel_file;
-    size_t     read_count;
-    size_t     write_count;
+    size_t     node_read_count;
+    size_t     node_write_count;
+    size_t     rel_read_count;
+    size_t     rel_write_count;
 } phy_database;
 
 phy_database*

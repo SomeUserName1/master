@@ -4,12 +4,14 @@
 #include <stdlib.h>
 
 #include "constants.h"
+#include "data-struct/bitmap.h"
 #include "data-struct/linked_list.h"
+#include "disk_file.h"
 #include "page.h"
 #include "physical_database.h"
 
 page_cache*
-page_cache_create(phy_database* pdb, replacement_policy rp)
+page_cache_create(phy_database* pdb)
 {
     if (!pdb) {
         printf("page cache - create: Invalid Arguments!\n");
@@ -23,63 +25,12 @@ page_cache_create(phy_database* pdb, replacement_policy rp)
         exit(EXIT_FAILURE);
     }
 
-    pc->pdb            = pdb;
-    pc->total_pinned   = 0;
-    pc->total_unpinned = 0;
-    pc->free_pages     = ll_page_create();
-    pc->policy         = rp;
-
-    switch (pc->policy) {
-        case RANDOM: {
-            pc->rp_init         = rp_passtrough_fn;
-            pc->rp_clean        = rp_passtrough_fn;
-            pc->rp_handle_pin   = random_handle_pin;
-            pc->rp_handle_unpin = random_handle_unpin;
-            pc->rp_evict        = random_evict;
-            break;
-        }
-        case FIFO: {
-            pc->rp_init         = rp_queue_init;
-            pc->rp_clean        = rp_queue_clean;
-            pc->rp_handle_pin   = fifo_handle_pin;
-            pc->rp_handle_unpin = fifo_handle_unpin;
-            pc->rp_evict        = fifo_evict;
-            break;
-        }
-        case LRU: {
-            pc->rp_init         = rp_queue_init;
-            pc->rp_clean        = rp_queue_clean;
-            pc->rp_handle_pin   = lru_handle_pin;
-            pc->rp_handle_unpin = lru_handle_unpin;
-            pc->rp_evict        = lru_evict;
-            break;
-        }
-        case LRU_K: {
-            pc->rp_init         = rp_queue_init;
-            pc->rp_clean        = rp_queue_clean;
-            pc->rp_handle_pin   = lru_handle_pin;
-            pc->rp_handle_unpin = lru_handle_unpin;
-            pc->rp_evict        = lru_k_evict;
-            break;
-        }
-        case CLOCK: {
-            pc->rp_init         = clock_init;
-            pc->rp_clean        = rp_queue_clean;
-            pc->rp_handle_pin   = clock_handle_pin;
-            pc->rp_handle_unpin = clock_handle_unpin;
-            pc->rp_evict        = clock_evict;
-            break;
-        }
-        case GCLOCK: {
-            pc->rp_init         = clock_init;
-            pc->rp_clean        = rp_queue_clean;
-            pc->rp_handle_pin   = gclock_handle_pin;
-            pc->rp_handle_unpin = gclock_handle_unpin;
-            pc->rp_evict        = gclock_evict;
-            break;
-        }
-    }
-    pc->page_map = d_ul_page_create();
+    pc->pdb                 = pdb;
+    pc->total_pinned        = 0;
+    pc->total_unpinned      = 0;
+    pc->pinned              = bitmap_create(CACHE_N_PAGES);
+    pc->recently_referenced = q_ul_create();
+    pc->page_map            = d_ul_page_create();
 
     unsigned char* data = calloc(CACHE_N_PAGES, PAGE_SIZE);
 
@@ -89,10 +40,7 @@ page_cache_create(phy_database* pdb, replacement_policy rp)
 
     for (int i = 0; i < CACHE_N_PAGES; ++i) {
         pc->cache[i] = page_create(ULONG_MAX, data + (PAGE_SIZE * i));
-        linked_list_page_append(pc->free_pages, pc->cache[i]);
     }
-
-    pc->rp_init(pc);
 
     return pc;
 }
@@ -102,11 +50,11 @@ page_cache_destroy(page_cache* pc)
 {
     if (!pc) {
         printf("page_cache - destroy: Invalid Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
-    pc->rp_clean(pc);
-    linked_list_page_destroy(pc->free_pages);
+    free(pc->pinned);
+    queue_ul_destroy(pc->recently_referenced);
     dict_ul_page_destroy(pc->page_map);
 
     for (int i = 0; i < CACHE_N_PAGES; ++i) {
@@ -117,16 +65,105 @@ page_cache_destroy(page_cache* pc)
 }
 
 page*
-pin_page(page_cache* pc, size_t page_no)
-{}
+pin_page(page_cache* pc, size_t page_no, record_file rf)
+{
+    if (!pc || page_no > MAX_PAGE_NO) {
+        printf("page cache - pin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    page* pinned_page;
+    if (dict_ul_page_contains(pc->page_map, page_no)) {
+        pinned_page = dict_ul_page_get_direct(pc->page_map, page_no);
+        pinned_page->pin_count++;
+    } else {
+        if (all_bits_set(pc->pinned)) {
+            pinned_page = pc->cache[evict_page(pc)];
+        } else {
+            pinned_page = pc->cache[get_first_unset(pc->pinned)];
+        }
+
+        pinned_page->page_no   = page_no;
+        pinned_page->dirty     = false;
+        pinned_page->pin_count = 1;
+        pinned_page->rf        = rf;
+
+        disk_file* df;
+
+        if (rf == node_file) {
+            df = pc->pdb->node_file;
+            pc->pdb->node_read_count++;
+        } else {
+            df = pc->pdb->rel_file;
+            pc->pdb->rel_read_count++;
+        }
+
+        read_page(df, page_no, pinned_page->data);
+    }
+
+    set_bit(pc->pinned, page_no);
+
+    pc->total_pinned++;
+
+    return pinned_page;
+}
 
 void
 unpin_page(page_cache* pc, size_t page_no)
-{}
+{
+    if (!pc || page_no > MAX_PAGE_NO
+        || !dict_ul_page_contains(pc->page_map, page_no)) {
+        printf("page cache - unpin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
 
-void
-evict_page(void)
-{}
+    page* unpinned_page = dict_ul_page_get_direct(pc->page_map, page_no);
+
+    if (unpinned_page->pin_count == 0) {
+        printf("page cache - unpin page: Page %zu is not pinned (page count is "
+               "zero)!\n",
+               page_no);
+        exit(EXIT_FAILURE);
+    }
+
+    unpinned_page->pin_count--;
+
+    if (unpinned_page->pin_count == 0) {
+        clear_bit(pc->pinned, page_no);
+    }
+
+    if (queue_ul_contains(pc->recently_referenced, page_no)) {
+        queue_ul_remove_elem(pc->recently_referenced, page_no);
+    }
+
+    queue_ul_push(pc->recently_referenced, page_no);
+
+    pc->total_unpinned++;
+}
+
+size_t
+evict_page(page_cache* pc)
+{
+    if (!pc) {
+        printf("page cache - evict page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t evict;
+    for (int i = 0; i < CACHE_N_PAGES; ++i) {
+        evict = queue_ul_get(pc->recently_referenced, i);
+        if (get_bit(pc->pinned, evict) == 0) {
+            if (pc->cache[evict]->dirty) {
+                flush_page(pc, evict);
+            }
+            queue_ul_remove(pc->recently_referenced, i);
+            return evict;
+        }
+    }
+    printf("page cache - evict: could not find a page to evict, as all pages "
+           "are pinned!\n");
+    exit(EXIT_FAILURE);
+}
 
 page*
 copy_page(page_cache* pc, size_t to_copy_page_no)
@@ -146,98 +183,5 @@ flush_page(page_cache* pc, size_t page_no)
 
 void
 flush_all_pages(page_cache* pc, size_t page_no)
-{}
-
-void
-rp_passtrough_fn(page_cache* pc)
-{
-    pc->evict_current = pc->evict_current;
-}
-
-void
-random_evict(page_cache* pc)
-{}
-
-void
-random_handle_pin(page_cache* pc, size_t page_no)
-{}
-
-void
-random_handle_unpin(page_cache* pc, size_t page_no)
-{}
-
-void
-rp_queue_init(page_cache* pc)
-{
-    pc->evict_references = q_ul_create();
-}
-
-void
-rp_queue_clean(page_cache* pc)
-{
-    queue_ul_destroy(pc->evict_references);
-}
-
-void
-fifo_evict(page_cache* pc)
-{}
-
-void
-fifo_handle_pin(page_cache* pc, size_t page_no)
-{}
-
-void
-fifo_handle_unpin(page_cache* pc, size_t page_no)
-{}
-
-void
-lru_evict(page_cache* pc)
-{}
-
-void
-lru_k_evict(page_cache* pc)
-{}
-
-void
-lru_handle_pin(page_cache* pc, size_t page_no)
-{}
-
-void
-lru_handle_unpin(page_cache* pc, size_t page_no)
-{}
-
-void
-clock_init(page_cache* pc)
-{
-    pc->evict_current    = 0;
-    pc->evict_references = q_ul_create();
-
-    for (int i = 0; i < CACHE_N_PAGES; ++i) {
-        queue_ul_append(pc->evict_references, 0);
-    }
-}
-
-void
-clock_evict(page_cache* pc)
-{}
-
-void
-clock_handle_pin(page_cache* pc, size_t page_no)
-{}
-
-void
-clock_handle_unpin(page_cache* pc, size_t page_no)
-{}
-
-void
-gclock_evict(page_cache* pc)
-{}
-
-void
-gclock_handle_pin(page_cache* pc, size_t page_no)
-{}
-
-void
-gclock_handle_unpin(page_cache* pc, size_t page_no)
 {}
 

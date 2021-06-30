@@ -2,24 +2,40 @@
 #define BITMAP_H
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <zconf.h>
 
-typedef unsigned char word_t;
-enum
+#define BITMAP_WORD_OFFSET(b) ((b) / CHAR_BIT)
+#define BITMAP_BIT_OFFSET(b)  ((b) % CHAR_BIT)
+#define BITMAP_N_BYTES(n_bits)                                                 \
+    (((n_bits) / CHAR_BIT) + ((n_bits) % CHAR_BIT != 0))
+
+typedef struct
 {
-    BITS_PER_WORD = sizeof(word_t) * CHAR_BIT
-};
+    unsigned char* words;
+    size_t         n_bits;
+} bitmap;
 
-#define WORD_OFFSET(b) ((b) / BITS_PER_WORD)
-#define BIT_OFFSET(b)  ((b) % BITS_PER_WORD)
-
-void
-set_bit(word_t *words, size_t n);
+bitmap*
+bitmap_create(size_t size);
 
 void
-clear_bit(word_t *words, size_t n);
+bitmap_destroy(bitmap* b);
+
+void
+set_bit(bitmap* b, size_t n);
+
+void
+clear_bit(bitmap* b, size_t n);
 
 unsigned char
-get_bit(const word_t *words, size_t n);
+get_bit(const bitmap* b, size_t n);
+
+bool
+all_bits_set(const bitmap* b);
+
+size_t
+get_first_unset(const bitmap* b);
 
 #endif

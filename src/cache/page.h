@@ -6,9 +6,11 @@
 
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
+#include "physical_database.h"
 
 typedef struct
 {
+    record_file    rf;
     size_t         page_no;
     unsigned int   pin_count;
     bool           dirty;

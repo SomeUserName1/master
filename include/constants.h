@@ -13,7 +13,9 @@ static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
 #define PAGE_SIZE     (4096)
 #define CACHE_SIZE    (2 << 30) /* 2 GiB */
 #define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
-#define MAX_STR_LEN   (32)
+#define MAX_PAGE_NO   (LONG_MAX / PAGE_SIZE)
+
+#define MAX_STR_LEN (32)
 
 #define EVICT_LRU_K (42)
 

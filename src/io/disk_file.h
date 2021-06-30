@@ -22,16 +22,19 @@ void
 disk_file_delete(disk_file* df);
 
 void
-read_page(disk_file* df, size_t page_no, char* buf);
+read_page(disk_file* df, size_t page_no, unsigned char* buf);
 
 void
-read_pages(disk_file* df, size_t fst_page, size_t lst_page, char* buf);
+read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf);
 
 void
-write_page(disk_file* df, size_t page_no, char* data);
+write_page(disk_file* df, size_t page_no, unsigned char* data);
 
 void
-write_pages(disk_file* df, size_t fst_page, size_t lst_page, char* data);
+write_pages(disk_file*     df,
+            size_t         fst_page,
+            size_t         lst_page,
+            unsigned char* data);
 
 void
 clear_page(disk_file* df, size_t page_no);
