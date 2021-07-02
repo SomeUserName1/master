@@ -90,12 +90,11 @@ pin_page(page_cache* pc, size_t page_no, record_file rf)
 
         disk_file* df;
 
+        // FIXME records or headers... how?
         if (rf == node_file) {
             df = pc->pdb->node_file;
-            pc->pdb->node_read_count++;
         } else {
             df = pc->pdb->rel_file;
-            pc->pdb->rel_read_count++;
         }
 
         read_page(df, page_no, pinned_page->data);
@@ -150,38 +149,58 @@ evict_page(page_cache* pc)
     }
 
     size_t evict;
+    size_t evicted = 0;
     for (int i = 0; i < CACHE_N_PAGES; ++i) {
         evict = queue_ul_get(pc->recently_referenced, i);
         if (get_bit(pc->pinned, evict) == 0) {
             if (pc->cache[evict]->dirty) {
                 flush_page(pc, evict);
             }
+
             queue_ul_remove(pc->recently_referenced, i);
-            return evict;
+            evicted++;
+
+            if (evicted >= EVICT_LRU_K) {
+                break;
+            }
         }
     }
-    printf("page cache - evict: could not find a page to evict, as all pages "
-           "are pinned!\n");
-    exit(EXIT_FAILURE);
+    if (evicted == 0) {
+        printf("page cache - evict: could not find a page to evict, as all "
+               "pages "
+               "are pinned!\n");
+        exit(EXIT_FAILURE);
+    }
+    return evict;
 }
-
-page*
-copy_page(page_cache* pc, size_t to_copy_page_no)
-{}
-
-page*
-new_empty_page(page_cache* pc)
-{}
-
-void
-delete_page(page_cache* pc, size_t page_no)
-{}
 
 void
 flush_page(page_cache* pc, size_t page_no)
-{}
+{
+    if (!pc) {
+        printf("page cache - flush page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // FIXME Records or headers how?
+    disk_file* df;
+    if (pc->cache[page_no]->rf == node_file) {
+        df = pc->pdb->node_file;
+    } else if (pc->cache[page_no]->rf == relationship_file) {
+        df = pc->pdb->rel_file;
+    }
+
+    write_page(df, page_no, pc->cache[page_no]->data);
+    df->write_count++;
+}
 
 void
-flush_all_pages(page_cache* pc, size_t page_no)
-{}
+flush_all_pages(page_cache* pc)
+{
+    for (int i = 0; i < CACHE_N_PAGES; ++i) {
+        if (pc->cache[i]->dirty) {
+            flush_page(pc, pc->cache[i]->page_no);
+        }
+    }
+}
 

@@ -13,29 +13,29 @@
 
 typedef struct
 {
+    unsigned long  n_bits;
     unsigned char* words;
-    size_t         n_bits;
 } bitmap;
 
 bitmap*
-bitmap_create(size_t size);
+bitmap_create(unsigned long size);
 
 void
 bitmap_destroy(bitmap* b);
 
 void
-set_bit(bitmap* b, size_t n);
+set_bit(bitmap* b, unsigned long n);
 
 void
-clear_bit(bitmap* b, size_t n);
+clear_bit(bitmap* b, unsigned long n);
 
 unsigned char
-get_bit(const bitmap* b, size_t n);
+get_bit(const bitmap* b, unsigned long n);
 
 bool
 all_bits_set(const bitmap* b);
 
-size_t
+unsigned long
 get_first_unset(const bitmap* b);
 
 #endif

@@ -10,13 +10,25 @@ static const double        UNINITIALIZED_WEIGHT  = 0x1.FFFFFFFFFF666p-1;
 static const unsigned char FIRST_REL_SOURCE_FLAG = 0x02;
 static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
 
-#define PAGE_SIZE     (4096)
-#define CACHE_SIZE    (2 << 30) /* 2 GiB */
-#define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
-#define MAX_PAGE_NO   (LONG_MAX / PAGE_SIZE)
-
+/* The size of a page, the maximum number of pages (limited by the standard
+ * library using the type long for file offsets) and the maximum amount of
+ * characters in a string to be stored to disk. */
+#define PAGE_SIZE (4 << 10) /* 4 KiB */
+#define MAX_PAGE_NO                                                            \
+    (LONG_MAX / PAGE_SIZE) /* Approx 2 Peta or 2 << 50 pages; Overall Maximum  \
+                              size of the database in bytes is 8 EiB */
 #define MAX_STR_LEN (32)
 
-#define EVICT_LRU_K (42)
+#define RELATIONSHIP_RECORD_BYTES (71)
+#define NODE_RECORD_BYTES         (57)
+
+/* size of the cache for the actual graph */
+#define CACHE_SIZE    (2 << 30) /* 2 GiB */
+#define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
+
+/* The implemented LRU-K evicts 1 + CACHE_N_PAGES / EVICT_LRU_DIV pages
+ * per call to evict. For example with a cache size of 1k pages, 11 pages
+ * would be evicted per call */
+#define EVICT_LRU_K (1)
 
 #endif

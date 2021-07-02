@@ -67,7 +67,9 @@ disk_file_create(char* file_name)
         exit(EXIT_FAILURE);
     }
 
-    df->num_pages = df->file_size / PAGE_SIZE;
+    df->num_pages   = df->file_size / PAGE_SIZE;
+    df->read_count  = 0;
+    df->write_count = 0;
 
     return df;
 }
@@ -165,6 +167,7 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
                strerror(errno));
         exit(EXIT_FAILURE);
     }
+    df->read_count++;
 }
 
 void
@@ -208,8 +211,10 @@ write_pages(disk_file*     df,
     if (lst_page + 1 > df->num_pages) {
         // +1 as the page indexes start at 0 while the number of pages starts
         // counting at 1
-        size_t grow_by = lst_page - df->num_pages + 1;
-        disk_file_grow(df, grow_by);
+        printf("disk file - write: File not large enough! You need to allocate "
+               "more pages using the respective function of the physical "
+               "database.\n");
+        exit(-1);
     }
 
     long offset = (long)(PAGE_SIZE * fst_page);
@@ -233,6 +238,7 @@ write_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
+    df->write_count++;
 }
 
 void
@@ -296,6 +302,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
                strerror(errno));
         exit(EXIT_FAILURE);
     }
+
+    df->num_pages = df->file_size / PAGE_SIZE;
 }
 
 /**
@@ -337,5 +345,21 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
                strerror(errno));
         exit(EXIT_FAILURE);
     }
+
+    if (fseek(df->file, 0, SEEK_END) == -1) {
+        printf("disk file - grow: failed to fseek with errno %d\n", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    df->file_size = ftell(df->file);
+
+    if (df->file_size == -1) {
+        printf("disk file - grow: failed to ftell file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    df->num_pages = df->file_size / PAGE_SIZE;
 }
 

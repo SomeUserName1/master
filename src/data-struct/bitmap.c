@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 bitmap*
-bitmap_create(size_t size)
+bitmap_create(unsigned long size)
 {
     bitmap* b = calloc(1, sizeof(bitmap));
     b->n_bits = size;
@@ -23,7 +23,7 @@ bitmap_destroy(bitmap* b)
 }
 
 void
-set_bit(bitmap* b, size_t n)
+set_bit(bitmap* b, unsigned long n)
 {
     if (n >= b->n_bits - 1) {
         printf("bitmap - set bit: Out of Range. tried to set bit %zu, bitmap "
@@ -37,7 +37,7 @@ set_bit(bitmap* b, size_t n)
 }
 
 void
-clear_bit(bitmap* b, size_t n)
+clear_bit(bitmap* b, unsigned long n)
 {
     if (n >= b->n_bits - 1) {
         printf("bitmap - clear bit: Out of Range. tried to clear bit %zu, "
@@ -51,7 +51,7 @@ clear_bit(bitmap* b, size_t n)
 }
 
 unsigned char
-get_bit(const bitmap* b, size_t n)
+get_bit(const bitmap* b, unsigned long n)
 {
     if (n >= b->n_bits - 1) {
         printf("bitmap - get bit: Out of Range. tried to get bit %zu, bitmap "
@@ -71,22 +71,22 @@ all_bits_set(const bitmap* b)
 {
     unsigned char set_bits = 0;
 
-    for (size_t i = 0; i < BITMAP_N_BYTES(b->n_bits); ++i) {
+    for (unsigned long i = 0; i < BITMAP_N_BYTES(b->n_bits); ++i) {
         set_bits |= b->words[i];
     }
 
     return set_bits;
 }
 
-size_t
+unsigned long
 get_first_unset(const bitmap* b)
 {
     /* Iterate over the bytes */
-    for (size_t i = 0; i < BITMAP_N_BYTES(b->n_bits); ++i) {
+    for (unsigned long i = 0; i < BITMAP_N_BYTES(b->n_bits); ++i) {
         /* If a byte is not [1111 1111] */
         if (b->words[i] != UCHAR_MAX) {
             /* compute the bit offset from the beginning to the byte */
-            size_t pos = (i * CHAR_BIT);
+            unsigned long pos = (i * CHAR_BIT);
             /* iterate over the bits of the byte of interest */
             for (unsigned char j = 0; j < CHAR_BIT; ++j) {
                 /* mask the j-th bit and see if it is 0 */

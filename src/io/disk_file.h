@@ -9,6 +9,8 @@ typedef struct
     FILE*  file;
     long   file_size;
     size_t num_pages;
+    size_t read_count;
+    size_t write_count;
     char*  f_buf;
 } disk_file;
 

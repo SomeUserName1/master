@@ -15,11 +15,11 @@
  */
 typedef struct NodeRecord
 {
-    unsigned long int id;
-    unsigned char     flags;
-    unsigned long int first_relationship;
-    unsigned long     degree;
-    char              label[MAX_STR_LEN];
+    unsigned long id;
+    unsigned char flags;
+    unsigned long first_relationship;
+    unsigned long degree;
+    char          label[MAX_STR_LEN];
 } node_t;
 
 /**
