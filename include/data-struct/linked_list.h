@@ -399,6 +399,11 @@
         return result;                                                         \
     }
 
+LINKED_LIST_DECL(llist_ul, unsigned long);
+
+llist_ul*
+ll_ul_create(void);
+
 QUEUE_DECL(queue_ul, unsigned long);
 
 queue_ul*

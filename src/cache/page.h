@@ -53,13 +53,4 @@ write_string(page* p, size_t offset, char* value);
 void
 page_pretty_print(const page* p);
 
-LINKED_LIST_DECL(linked_list_page, page*);
-linked_list_page*
-ll_page_create(void);
-
-HTABLE_DECL(dict_ul_page, unsigned long, page*)
-
-dict_ul_page*
-d_ul_page_create(void);
-
 #endif

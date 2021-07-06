@@ -1,6 +1,15 @@
 #include "data-struct/linked_list.h"
 #include "data-struct/cbs.h"
 
+LINKED_LIST_IMPL(llist_ul, unsigned long);
+llist_ul_cbs ll_ul_cbs = { unsigned_long_eq, NULL, NULL };
+
+llist_ul*
+ll_ul_create(void)
+{
+    return llist_ul_create(ll_ul_cbs);
+}
+
 QUEUE_IMPL(queue_ul, unsigned long);
 queue_ul_cbs q_ul_cbs = { unsigned_long_eq, NULL, NULL };
 
