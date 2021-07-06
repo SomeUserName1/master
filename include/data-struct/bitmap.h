@@ -3,8 +3,6 @@
 
 #include <limits.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include <zconf.h>
 
 #define BITMAP_WORD_OFFSET(b) ((b) / CHAR_BIT)
 #define BITMAP_BIT_OFFSET(b)  ((b) % CHAR_BIT)

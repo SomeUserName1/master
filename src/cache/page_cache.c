@@ -65,7 +65,7 @@ page_cache_destroy(page_cache* pc)
 }
 
 page*
-pin_page(page_cache* pc, size_t page_no, record_file rf)
+pin_page(page_cache* pc, size_t page_no, file_type rf)
 {
     if (!pc || page_no > MAX_PAGE_NO) {
         printf("page cache - pin page: Invalid Arguments!\n");
@@ -83,19 +83,12 @@ pin_page(page_cache* pc, size_t page_no, record_file rf)
             pinned_page = pc->cache[get_first_unset(pc->pinned)];
         }
 
-        pinned_page->page_no   = page_no;
-        pinned_page->dirty     = false;
-        pinned_page->pin_count = 1;
         pinned_page->rf        = rf;
+        pinned_page->page_no   = page_no;
+        pinned_page->pin_count = 1;
+        pinned_page->dirty     = false;
 
-        disk_file* df;
-
-        // FIXME records or headers... how?
-        if (rf == node_file) {
-            df = pc->pdb->node_file;
-        } else {
-            df = pc->pdb->rel_file;
-        }
+        disk_file* df = pc->pdb->files[rf];
 
         read_page(df, page_no, pinned_page->data);
     }
@@ -182,13 +175,7 @@ flush_page(page_cache* pc, size_t page_no)
         exit(EXIT_FAILURE);
     }
 
-    // FIXME Records or headers how?
-    disk_file* df;
-    if (pc->cache[page_no]->rf == node_file) {
-        df = pc->pdb->node_file;
-    } else if (pc->cache[page_no]->rf == relationship_file) {
-        df = pc->pdb->rel_file;
-    }
+    disk_file* df = pc->pdb->files[pc->cache[page_no]->rf];
 
     write_page(df, page_no, pc->cache[page_no]->data);
     df->write_count++;

@@ -11,16 +11,6 @@
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 
-#define DOUBLE_SIGN_SHIFT           (7)
-#define DOUBLE_EXP_N_BYTES          (2)
-#define DOUBLE_EXP_BIAS             (1023)
-#define DOUBLE_EXP_FIRST_BYTE       (1111111)
-#define DOUBLE_EXP_SECOND_BYTE      (11110000)
-#define DOUBLE_EXP_EXTRACT_LOWER    (1111)
-#define DOUBLE_EXP_EXTRACT_UPPER    (111)
-#define DOUBLE_MANTISSA_SECOND_BYTE (1111)
-#define DOUBLE_MANTISSA_N_BYTES     (7)
-
 page*
 page_create(size_t page_no, unsigned char* data)
 {
@@ -63,7 +53,8 @@ page_equals(const page* fst, const page* snd)
         printf("page - equals: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
-    return (fst->page_no == snd->page_no && fst->frame_no == snd->frame_no);
+    return (fst->rf == snd->rf && fst->pin_count == snd->pin_count
+            && fst->dirty == snd->dirty && fst->page_no == snd->page_no);
 }
 
 unsigned long
@@ -172,8 +163,8 @@ page_pretty_print(const page* p)
         exit(EXIT_FAILURE);
     }
 
-    printf("Frame No. %zu, Page No. %zu, pin count: %u, is dirty? %s\n",
-           p->frame_no,
+    printf("File Type: %d, Page No. %zu, pin count: %u, is dirty? %s\n",
+           p->rf,
            p->page_no,
            p->pin_count,
            p->dirty ? "true" : "false");

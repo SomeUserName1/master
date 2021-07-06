@@ -10,7 +10,7 @@
 
 typedef struct
 {
-    record_file    rf;
+    file_type      rf;
     size_t         page_no;
     unsigned int   pin_count;
     bool           dirty;

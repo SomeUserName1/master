@@ -26,7 +26,7 @@ void
 page_cache_destroy(page_cache* pc);
 
 page*
-pin_page(page_cache* pc, size_t page_no, record_file rf);
+pin_page(page_cache* pc, size_t page_no, file_type rf);
 
 void
 unpin_page(page_cache* pc, size_t page_no);

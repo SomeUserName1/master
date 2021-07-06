@@ -8,16 +8,16 @@
 
 typedef enum
 {
+    node_header,
+    relationship_header,
     node_file,
     relationship_file
-} record_file;
+} file_type;
 
 typedef struct
 {
-    disk_file*    record_files[2];
-    disk_file*    header_files[2];
-    size_t        remaining_header_bits[2];
-    unsigned char fst_header_cache[2][PAGE_SIZE];
+    disk_file* files[4];
+    size_t     remaining_header_bits[2];
 } phy_database;
 
 phy_database*
@@ -30,9 +30,15 @@ void
 phy_database_close(phy_database* db);
 
 void
-phy_database_allocate_page(phy_database* db, record_file rf);
+phy_database_validate_empty_header(phy_database* db, file_type i);
 
 void
-phy_database_deallocate_page(phy_database* db, record_file rf);
+phy_database_validate_header(phy_database* db, file_type i);
+
+void
+phy_database_allocate_page(phy_database* db, file_type rf);
+
+void
+phy_database_deallocate_page(phy_database* db, file_type rf);
 
 #endif
