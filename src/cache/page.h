@@ -4,13 +4,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "data-struct/htable.h"
-#include "data-struct/linked_list.h"
 #include "physical_database.h"
 
 typedef struct
 {
-    file_type      rf;
+    file_type      ft;
     size_t         page_no;
     unsigned int   pin_count;
     bool           dirty;
@@ -37,6 +35,16 @@ read_uchar(page* p, size_t offset);
 
 void
 write_uchar(page* p, size_t offset, unsigned char value);
+
+unsigned char*
+read_bits(page* p, size_t page_offset, size_t byte_offset, size_t n_bits);
+
+void
+write_bits(page*          p,
+           size_t         page_offset,
+           size_t         byte_offset,
+           size_t         n_bits,
+           unsigned char* data);
 
 double
 read_double(page* p, size_t offset);

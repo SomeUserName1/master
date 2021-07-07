@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "data-struct/bitmap.h"
+#include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "page.h"
 #include "physical_database.h"
@@ -16,7 +17,7 @@ typedef struct
     llist_ul*     free_frames;
     bitmap*       pinned;
     queue_ul*     recently_referenced;
-    dict_ul_ul*   page_map[2]; /* Page M is stored in frame N */
+    dict_ul_ul*   page_map[4]; /* Page M is stored in frame N */
     page*         cache[];     /* Frame N contains page M */
 } page_cache;
 
@@ -27,7 +28,7 @@ void
 page_cache_destroy(page_cache* pc);
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_type rf);
+pin_page(page_cache* pc, size_t page_no, file_type ft);
 
 void
 unpin_page(page_cache* pc, size_t page_no, file_type ft);
@@ -42,6 +43,6 @@ void
 flush_all_pages(page_cache* pc);
 
 void
-swap_page(page_cache* pc, size_t fst, size_t snd, file_type tf);
+swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft);
 
 #endif

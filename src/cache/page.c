@@ -1,15 +1,10 @@
 #include "page.h"
 
-#include <errno.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "constants.h"
-#include "data-struct/cbs.h"
-#include "data-struct/htable.h"
-#include "data-struct/linked_list.h"
 
 page*
 page_create(size_t page_no, unsigned char* data)

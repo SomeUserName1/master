@@ -31,22 +31,8 @@ create_relationship(heap_file*    hf,
 node_t*
 read_node(heap_file* hf, unsigned long node_id);
 
-node_t**
-bulk_read_nodes(heap_file* hf, unsigned long first_id, unsigned long last_id);
-
-node_t**
-read_nodes(heap_file* hf, unsigned long* ids);
-
 relationship_t*
 read_relationship(heap_file* hf, unsigned long rel_id);
-
-relationship_t**
-bulk_read_relationships(heap_file*    hf,
-                        unsigned long first_id,
-                        unsigned long last_id);
-
-relationship_t**
-read_relationships(heap_file* hf, unsigned long* ids);
 
 void
 update_node(heap_file* hf, unsigned long target_node_id, node_t* node_to_write);

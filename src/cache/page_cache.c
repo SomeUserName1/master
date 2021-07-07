@@ -1,11 +1,14 @@
 #include "page_cache.h"
 
 #include <limits.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "constants.h"
 #include "data-struct/bitmap.h"
+#include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "disk_file.h"
 #include "page.h"
@@ -32,16 +35,19 @@ page_cache_create(phy_database* pdb)
     pc->free_frames         = ll_ul_create();
     pc->pinned              = bitmap_create(CACHE_N_PAGES);
     pc->recently_referenced = q_ul_create();
-    pc->page_map[0]         = d_ul_ul_create();
-    pc->page_map[1]         = d_ul_ul_create();
+
+    for (unsigned long i = 0; i < invalid; ++i) {
+        pc->page_map[i] = d_ul_ul_create();
+    }
 
     unsigned char* data = calloc(CACHE_N_PAGES, PAGE_SIZE);
 
     if (!data) {
         printf("page cache - create: failed to allocate memory!\n");
+        exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < CACHE_N_PAGES; ++i) {
+    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
         pc->cache[i] = page_create(ULONG_MAX, data + (PAGE_SIZE * i));
         llist_ul_append(pc->free_frames, i);
     }
@@ -60,10 +66,12 @@ page_cache_destroy(page_cache* pc)
     free(pc->pinned);
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
-    dict_ul_ul_destroy(pc->page_map[0]);
-    dict_ul_ul_destroy(pc->page_map[1]);
 
-    for (int i = 0; i < CACHE_N_PAGES; ++i) {
+    for (size_t i = 0; i < invalid; ++i) {
+        dict_ul_ul_destroy(pc->page_map[i]);
+    }
+
+    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
         page_destroy(pc->cache[i]);
     }
 
@@ -71,7 +79,7 @@ page_cache_destroy(page_cache* pc)
 }
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_type rf)
+pin_page(page_cache* pc, size_t page_no, file_type ft)
 {
     if (!pc || page_no > MAX_PAGE_NO) {
         printf("page cache - pin page: Invalid Arguments!\n");
@@ -80,8 +88,8 @@ pin_page(page_cache* pc, size_t page_no, file_type rf)
 
     size_t frame_no;
     page*  pinned_page;
-    if (dict_ul_ul_contains(pc->page_map[rf - 2], page_no)) {
-        frame_no    = dict_ul_ul_get_direct(pc->page_map[rf - 2], page_no);
+    if (dict_ul_ul_contains(pc->page_map[ft], page_no)) {
+        frame_no    = dict_ul_ul_get_direct(pc->page_map[ft], page_no);
         pinned_page = pc->cache[frame_no];
         pinned_page->pin_count++;
     } else {
@@ -93,16 +101,16 @@ pin_page(page_cache* pc, size_t page_no, file_type rf)
 
         pinned_page = pc->cache[frame_no];
 
-        pinned_page->rf        = rf;
+        pinned_page->ft        = ft;
         pinned_page->page_no   = page_no;
         pinned_page->pin_count = 1;
         pinned_page->dirty     = false;
 
-        disk_file* df = pc->pdb->files[rf];
+        disk_file* df = pc->pdb->files[ft];
 
         read_page(df, page_no, pinned_page->data);
 
-        dict_ul_ul_insert(pc->page_map[rf - 2], page_no, frame_no);
+        dict_ul_ul_insert(pc->page_map[ft], page_no, frame_no);
     }
 
     set_bit(pc->pinned, frame_no);
@@ -116,12 +124,12 @@ void
 unpin_page(page_cache* pc, size_t page_no, file_type ft)
 {
     if (!pc || page_no > MAX_PAGE_NO
-        || !dict_ul_ul_contains(pc->page_map[ft - 2], page_no)) {
+        || !dict_ul_ul_contains(pc->page_map[ft], page_no)) {
         printf("page cache - unpin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[ft - 2], page_no);
+    size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[ft], page_no);
     page*  unpinned_page = pc->cache[frame_no];
 
     if (unpinned_page->pin_count == 0) {
@@ -168,13 +176,13 @@ evict_page(page_cache* pc)
             /* Remove freed frame from the recently referenced queue */
             queue_ul_remove(pc->recently_referenced, i);
             /* Remove reference of page from lookup table */
-            dict_ul_ul_remove(pc->page_map[pc->cache[evict]->rf - 2],
+            dict_ul_ul_remove(pc->page_map[pc->cache[evict]->ft],
                               pc->cache[evict]->page_no);
             /* Add the frame to the free frames list */
             llist_ul_append(pc->free_frames, i);
 
             pc->cache[evict]->page_no = UNINITIALIZED_LONG;
-            pc->cache[evict]->rf      = invalid;
+            pc->cache[evict]->ft      = invalid;
 
             evicted++;
 
@@ -202,7 +210,7 @@ flush_page(page_cache* pc, size_t frame_no)
 
     if (pc->cache[frame_no]->dirty) {
 
-        disk_file* df = pc->pdb->files[pc->cache[frame_no]->rf];
+        disk_file* df = pc->pdb->files[pc->cache[frame_no]->ft];
 
         write_page(df, pc->cache[frame_no]->page_no, pc->cache[frame_no]->data);
         df->write_count++;
@@ -214,7 +222,7 @@ flush_page(page_cache* pc, size_t frame_no)
 void
 flush_all_pages(page_cache* pc)
 {
-    for (int i = 0; i < CACHE_N_PAGES; ++i) {
+    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
         if (pc->cache[i]->dirty) {
             flush_page(pc, pc->cache[i]->page_no);
         }
@@ -222,23 +230,68 @@ flush_all_pages(page_cache* pc)
 }
 
 void
-swap_page(page_cache* pc, size_t fst, size_t snd, file_type tf)
+swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
 {
     // FIXME Header contents need to be swapped, too... do this in heap file
     unsigned char* buf = malloc(sizeof(unsigned char) * PAGE_SIZE);
 
-    pin_page(pc, fst, tf);
-    pin_page(pc, snd, tf);
+    size_t record_size =
+          ft == node_file ? NODE_RECORD_BYTES : RELATIONSHIP_RECORD_BYTES;
+    size_t slots_per_page = PAGE_SIZE / record_size;
 
-    memcpy(buf, pc->cache[fst]->data, PAGE_SIZE);
-    memcpy(pc->cache[fst]->data, pc->cache[snd]->data, PAGE_SIZE);
-    memcpy(pc->cache[snd]->data, buf, PAGE_SIZE);
+    size_t header_bit_fst      = sizeof(unsigned long) + (fst * slots_per_page);
+    size_t header_page_fst     = (header_bit_fst / CHAR_BIT) / PAGE_SIZE;
+    size_t header_p_offset_fst = header_bit_fst % CHAR_BIT;
+
+    size_t header_bit_snd = sizeof(unsigned long) + (snd * slots_per_page);
+    size_t header_page_snd =
+          ((header_bit_snd / CHAR_BIT) + (header_bit_snd % CHAR_BIT != 0))
+          / PAGE_SIZE;
+    size_t header_p_offset_snd = header_bit_snd % PAGE_SIZE;
+
+    pin_page(pc, fst, ft);
+    pin_page(pc, snd, ft);
+    pin_page(pc, header_page_fst, ft - 2);
+    pin_page(pc, header_page_snd, ft - 2);
+
+    size_t frame_no[4];
+    frame_no[0] = dict_ul_ul_get_direct(pc->page_map[ft], fst);
+    frame_no[1] = dict_ul_ul_get_direct(pc->page_map[ft], snd);
+    frame_no[2] = dict_ul_ul_get_direct(pc->page_map[ft - 2], header_page_fst);
+    frame_no[3] = dict_ul_ul_get_direct(pc->page_map[ft - 2], header_page_snd);
+
+    memcpy(buf, pc->cache[frame_no[0]]->data, PAGE_SIZE);
+    memcpy(pc->cache[frame_no[0]]->data,
+           pc->cache[frame_no[1]]->data,
+           PAGE_SIZE);
+    memcpy(pc->cache[frame_no[1]]->data, buf, PAGE_SIZE);
+
+    buf = read_bits(pc->cache[frame_no[2]],
+                    header_page_fst,
+                    header_p_offset_fst,
+                    slots_per_page);
+
+    unsigned char* buf_o = (buf + slots_per_page);
+    buf_o                = read_bits(pc->cache[frame_no[3]],
+                      header_page_snd,
+                      header_p_offset_snd,
+                      slots_per_page);
+    write_bits(pc->cache[frame_no[2]],
+               header_page_fst,
+               header_p_offset_fst,
+               slots_per_page,
+               buf_o);
+    write_bits(pc->cache[frame_no[3]],
+               header_page_snd,
+               header_p_offset_snd,
+               slots_per_page,
+               buf);
 
     pc->cache[fst]->dirty = true;
     pc->cache[snd]->dirty = true;
 
-    unpin_page(pc, snd, tf);
-    unpin_page(pc, fst, tf);
+    unpin_page(pc, snd, ft);
+    unpin_page(pc, fst, ft);
 
     free(buf);
 }

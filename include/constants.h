@@ -13,7 +13,7 @@ static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
 /* The size of a page, the maximum number of pages (limited by the standard
  * library using the type long for file offsets) and the maximum amount of
  * characters in a string to be stored to disk. */
-#define PAGE_SIZE (4 << 10) /* 4 KiB */
+#define PAGE_SIZE (4UL << 10) /* 4 KiB */
 #define MAX_PAGE_NO                                                            \
     (LONG_MAX / PAGE_SIZE) /* Approx 2 Peta or 2 << 50 pages; Overall Maximum  \
                               size of the database in bytes is 8 EiB */
@@ -23,7 +23,7 @@ static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
 #define NODE_RECORD_BYTES         (57)
 
 /* size of the cache for the actual graph */
-#define CACHE_SIZE    (2 << 30) /* 2 GiB */
+#define CACHE_SIZE    (2UL << 30) /* 2 GiB */
 #define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
 
 /* The implemented LRU-K evicts 1 + CACHE_N_PAGES / EVICT_LRU_DIV pages

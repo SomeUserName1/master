@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 
-#include "constants.h"
 #include "disk_file.h"
 
 typedef enum
@@ -11,7 +10,8 @@ typedef enum
     node_header,
     relationship_header,
     node_file,
-    relationship_file
+    relationship_file,
+    invalid
 } file_type;
 
 typedef struct
