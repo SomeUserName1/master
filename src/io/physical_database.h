@@ -11,8 +11,7 @@ typedef enum
     node_header,
     relationship_header,
     node_file,
-    relationship_file,
-    invalid
+    relationship_file
 } file_type;
 
 typedef struct
