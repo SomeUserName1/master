@@ -48,7 +48,7 @@ page_equals(const page* fst, const page* snd)
         printf("page - equals: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
-    return (fst->rf == snd->rf && fst->pin_count == snd->pin_count
+    return (fst->ft == snd->ft && fst->pin_count == snd->pin_count
             && fst->dirty == snd->dirty && fst->page_no == snd->page_no);
 }
 
@@ -98,6 +98,19 @@ write_uchar(page* p, size_t offset, unsigned char value)
 
     p->data[offset] = value;
 }
+
+// TODO continue here!
+unsigned char*
+read_bits(page* p, size_t page_offset, size_t byte_offset, size_t n_bits)
+{}
+
+void
+write_bits(page*          p,
+           size_t         page_offset,
+           size_t         byte_offset,
+           size_t         n_bits,
+           unsigned char* data)
+{}
 
 double
 read_double(page* p, size_t offset)
@@ -159,7 +172,7 @@ page_pretty_print(const page* p)
     }
 
     printf("File Type: %d, Page No. %zu, pin count: %u, is dirty? %s\n",
-           p->rf,
+           p->ft,
            p->page_no,
            p->pin_count,
            p->dirty ? "true" : "false");

@@ -232,7 +232,6 @@ flush_all_pages(page_cache* pc)
 void
 swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
 {
-    // FIXME Header contents need to be swapped, too... do this in heap file
     unsigned char* buf = malloc(sizeof(unsigned char) * PAGE_SIZE);
 
     size_t record_size =
@@ -266,33 +265,39 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
            PAGE_SIZE);
     memcpy(pc->cache[frame_no[1]]->data, buf, PAGE_SIZE);
 
-    buf = read_bits(pc->cache[frame_no[2]],
-                    header_page_fst,
-                    header_p_offset_fst,
-                    slots_per_page);
+    unsigned char* fst_header = read_bits(pc->cache[frame_no[2]],
+                                          header_page_fst,
+                                          header_p_offset_fst,
+                                          slots_per_page);
 
-    unsigned char* buf_o = (buf + slots_per_page);
-    buf_o                = read_bits(pc->cache[frame_no[3]],
-                      header_page_snd,
-                      header_p_offset_snd,
-                      slots_per_page);
+    unsigned char* snd_header = read_bits(pc->cache[frame_no[3]],
+                                          header_page_snd,
+                                          header_p_offset_snd,
+                                          slots_per_page);
+
     write_bits(pc->cache[frame_no[2]],
                header_page_fst,
                header_p_offset_fst,
                slots_per_page,
-               buf_o);
+               snd_header);
     write_bits(pc->cache[frame_no[3]],
                header_page_snd,
                header_p_offset_snd,
                slots_per_page,
-               buf);
+               fst_header);
 
-    pc->cache[fst]->dirty = true;
-    pc->cache[snd]->dirty = true;
+    pc->cache[frame_no[0]]->dirty = true;
+    pc->cache[frame_no[1]]->dirty = true;
+    pc->cache[frame_no[2]]->dirty = true;
+    pc->cache[frame_no[3]]->dirty = true;
 
+    unpin_page(pc, header_page_fst, ft - 2);
+    unpin_page(pc, header_page_snd, ft - 2);
     unpin_page(pc, snd, ft);
     unpin_page(pc, fst, ft);
 
     free(buf);
+    free(fst_header);
+    free(snd_header);
 }
 
