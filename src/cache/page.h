@@ -37,13 +37,16 @@ void
 write_uchar(page* p, size_t offset, unsigned char value);
 
 unsigned char*
-read_bits(page* p, size_t page_offset, size_t byte_offset, size_t n_bits);
+read_bits(page*          p,
+          unsigned short byte_offset_in_page,
+          unsigned char  bit_offset_in_byte,
+          unsigned short n_bits);
 
 void
 write_bits(page*          p,
-           size_t         page_offset,
-           size_t         byte_offset,
-           size_t         n_bits,
+           unsigned short byte_offset_in_page,
+           unsigned char  bit_offset_in_byte,
+           unsigned short n_bits,
            unsigned char* data);
 
 double
