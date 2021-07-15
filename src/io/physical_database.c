@@ -9,11 +9,13 @@
 #include "constants.h"
 #include "disk_file.h"
 
-#define NODE_FILE_POSTFIX_LEN (strlen("_nodes.db"))
-#define RELS_FILE_POSTFIX_LEN (strlen("_relationships.db"))
+#define NODE_FILE_POSTFIX_LEN   (strlen("_nodes.db"))
+#define RELS_FILE_POSTFIX_LEN   (strlen("_relationships.db"))
+#define RECORD_FILE_POSTFIX_LEN (strlen(".db"))
 
 #define NODE_HEADER_POSTFIX_LEN (strlen("_nodes.idx"))
 #define RELS_HEADER_POSTFIX_LEN (strlen("_relationships.idx"))
+#define HEADER_FILE_POSTFIX_LEN (strlen(".idx"))
 
 phy_database*
 phy_database_create(char* db_name)
@@ -25,6 +27,28 @@ phy_database_create(char* db_name)
 
     phy_database* phy_db = calloc(1, sizeof(phy_database));
 
+#ifdef ADJ_LIST
+    char* header_name =
+          calloc(strlen(db_name) + HEADER_POSTFIX_LEN + 1, sizeof(char));
+
+    strncpy(header_name, db_name, strlen(db_name) + 1);
+
+    strncat(rels_header_name, ".idx", HEADER_POSTFIX_LEN);
+
+    phy_db->files[header_file] = disk_file_create(header_name);
+
+    /* Create or open Record files */
+    // +1 as strlen does not count \0
+    char* record_file_name =
+          calloc(strlen(db_name) + RECORD_FILE_POSTFIX_LEN + 1, sizeof(char));
+
+    strncpy(record_file_name, db_name, strlen(db_name) + 1);
+
+    strncat(rels_file_name, ".db", RECORD_FILE_POSTFIX_LEN);
+
+    phy_db->files[record_file] = disk_file_create(record_file_name);
+
+#else
     /* Create or open header files for the record files */
     // +1 as strlen does not count \0
     char* nodes_header_name =
@@ -56,19 +80,19 @@ phy_database_create(char* db_name)
 
     phy_db->files[node_file]         = disk_file_create(nodes_file_name);
     phy_db->files[relationship_file] = disk_file_create(rels_file_name);
+#endif
 
-    for (file_type i = 0; i <= relationship_header; ++i) {
+    for (file_type ft = 0; ft < invalid; ft += 2) {
         /* check if record file is empty. */
 
         /* If it is empty, write an empty page to the header file. Alternatively
          * check if the header is one page long and has zero entries. */
         /* The first 8 byte encode the number of used bits. */
-        if (phy_db->files[i + 2]->file_size == 0) {
-
-            phy_database_validate_empty_header(phy_db, i);
+        if (phy_db->files[ft + 1]->file_size == 0) {
+            phy_database_validate_empty_header(phy_db, ft);
         } else {
             /* If the record file is not empty, the header is checked. */
-            phy_database_validate_header(phy_db, i);
+            phy_database_validate_header(phy_db, ft);
         }
     }
 
@@ -82,9 +106,9 @@ phy_database_close(phy_database* db)
         exit(EXIT_FAILURE);
     }
 
-    for (file_type i = 0; i <= relationship_file; ++i) {
-        free(db->files[i]->file_name);
-        disk_file_destroy(db->files[i]);
+    for (file_type ft = 0; ft < invalid; ++ft) {
+        free(db->files[ft]->file_name);
+        disk_file_destroy(db->files[ft]);
     }
 
     free(db);
@@ -98,33 +122,33 @@ phy_database_delete(phy_database* db)
         exit(EXIT_FAILURE);
     }
 
-    for (file_type i = 0; i <= relationship_file; ++i) {
-        disk_file_delete(db->files[i]);
-        free(db->files[i]->file_name);
-        free(db->files[i]);
+    for (file_type ft = 0; ft < invalid; ++ft) {
+        disk_file_delete(db->files[ft]);
+        free(db->files[ft]->file_name);
+        free(db->files[ft]);
     }
 
     free(db);
 }
 
 void
-phy_database_validate_empty_header(phy_database* db, file_type i)
+phy_database_validate_empty_header(phy_database* db, file_type ft)
 {
 
     /* first check if the header is also empty */
-    if (db->files[i]->file_size != 0) {
+    if (db->files[ft]->file_size != 0) {
         /* if not, validate that it has zero entries and is one page long. */
 
         unsigned char buf[sizeof(unsigned long)];
         unsigned long size;
 
         /* read the first 8 bytes */
-        rewind(db->files[i]->file);
-        if (fread(buf, sizeof(unsigned long), 1, db->files[i]->file)
+        rewind(db->files[ft]->file);
+        if (fread(buf, sizeof(unsigned long), 1, db->files[ft]->file)
             != sizeof(unsigned long)) {
             printf(" physical database - create: Failed to read the "
                    "header size from header file %s: %s\n",
-                   db->files[i]->file_name,
+                   db->files[ft]->file_name,
                    strerror(errno));
             exit(EXIT_FAILURE);
         }
@@ -133,44 +157,45 @@ phy_database_validate_empty_header(phy_database* db, file_type i)
 
         /* if it has more than zero entries or is larger than a page,
          * the header is invalid */
-        if (size != 0 || db->files[i]->file_size != PAGE_SIZE) {
+        if (size != 0 || db->files[ft]->file_size != PAGE_SIZE) {
             printf("physical database - create: Non-empty header %s "
                    "for empty record file %s!\n",
-                   db->files[i]->file_name,
-                   db->files[i + 2]->file_name);
+                   db->files[ft]->file_name,
+                   db->files[ft + 1]->file_name);
             exit(EXIT_FAILURE);
         }
     } else {
         /* if the header file is empty, write a page of zeros. */
-        disk_file_grow(db->files[i], 1);
+        disk_file_grow(db->files[ft], 1);
     }
-    /* Mark all bits but the first 64 as unsused */
-    db->remaining_header_bits[i] =
+    /* Mark all bits but the first 8 bytes (carrying the size of the bitmap) as
+     * unsused */
+    db->remaining_header_bits[ft] =
           (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT;
 }
 
 void
-phy_database_validate_header(phy_database* db, file_type i)
+phy_database_validate_header(phy_database* db, file_type ft)
 {
     unsigned char buf[sizeof(unsigned long)];
     unsigned long size;
 
     /* first check if the header is empty */
-    if (db->files[i]->file_size == 0) {
+    if (db->files[ft]->file_size == 0) {
         printf("physical database - create: Empty header %s for "
                "non-empty record file %s!\n",
-               db->files[i]->file_name,
-               db->files[i + 2]->file_name);
+               db->files[ft]->file_name,
+               db->files[ft + 1]->file_name);
         exit(EXIT_FAILURE);
     }
 
     /* read the first 8 bytes */
-    rewind(db->files[i]->file);
-    if (fread(buf, sizeof(unsigned long), 1, db->files[i]->file)
+    rewind(db->files[ft]->file);
+    if (fread(buf, sizeof(unsigned long), 1, db->files[ft]->file)
         != sizeof(unsigned long)) {
         printf(" physical database - create: Failed to read the "
                "header size from header file %s: %s\n",
-               db->files[i]->file_name,
+               db->files[ft]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
@@ -178,54 +203,49 @@ phy_database_validate_header(phy_database* db, file_type i)
     memcpy(&size, buf, sizeof(unsigned long));
 
     /* caluclate the number of slots in the record file */
-    unsigned char record_size =
-          i + 2 == node_file ? NODE_RECORD_BYTES : RELATIONSHIP_RECORD_BYTES;
-
-    size_t n_slots = (db->files[i + 2]->file_size / record_size);
+    size_t n_slots = (db->files[ft + 1]->file_size / SLOT_SIZE);
 
     /* check if the number of slots and the size of the header match */
     if (size != n_slots) {
         printf(
               "physical database - validate header: Missmatch in the number of "
               "slots and entries between header %s: %zu and record %s: %zu!\n",
-              db->files[i]->file_name,
+              db->files[ft]->file_name,
               size,
-              db->files[i + 2]->file_name,
+              db->files[ft + 1]->file_name,
               n_slots);
     }
 
-    db->remaining_header_bits[i] =
-          db->files[i]->file_size - (sizeof(unsigned long) * CHAR_BIT) - size;
+    db->remaining_header_bits[ft] =
+          db->files[ft]->file_size - (sizeof(unsigned long) * CHAR_BIT) - size;
 }
 
 void
-allocate_pages(phy_database* db, file_type rf, size_t num_pages)
+allocate_pages(phy_database* db, file_type ft, size_t num_pages)
 {
-    if (!db || rf <= relationship_header) {
+    if (!db || ft <= relationship_header) {
         printf("physical database - allocate: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    disk_file_grow(db->files[rf], num_pages);
+    disk_file_grow(db->files[ft], num_pages);
 
-    unsigned char record_size =
-          rf == node_file ? NODE_RECORD_BYTES : RELATIONSHIP_RECORD_BYTES;
-    size_t neccessary_bits = num_pages * (PAGE_SIZE / record_size);
+    size_t neccessary_bits = num_pages * (PAGE_SIZE / SLOT_SIZE);
 
-    if (db->remaining_header_bits[rf] < neccessary_bits) {
+    if (db->remaining_header_bits[ft] < neccessary_bits) {
         size_t additional_bits =
-              neccessary_bits - db->remaining_header_bits[rf];
+              neccessary_bits - db->remaining_header_bits[ft];
         size_t additional_bytes =
               (additional_bits / CHAR_BIT) + (additional_bits % CHAR_BIT != 0);
         size_t additional_pages = (additional_bytes / PAGE_SIZE)
                                   + (additional_bytes % PAGE_SIZE != 0);
 
-        disk_file_grow(db->files[rf - 2], additional_pages);
+        disk_file_grow(db->files[ft - 1], additional_pages);
 
-        db->remaining_header_bits[rf] +=
+        db->remaining_header_bits[ft] +=
               (additional_pages * PAGE_SIZE * CHAR_BIT - additional_bits);
     } else {
-        db->remaining_header_bits[rf] -= neccessary_bits;
+        db->remaining_header_bits[ft] -= neccessary_bits;
     }
 
     /* Write the size back to disk */
@@ -233,12 +253,12 @@ allocate_pages(phy_database* db, file_type rf, size_t num_pages)
     unsigned char file_bits[sizeof(unsigned long)];
     size_t        bits;
 
-    rewind(db->files[rf - 2]->file);
-    if (fread(file_bits, sizeof(unsigned long), 1, db->files[rf - 2]->file)
+    rewind(db->files[ft - 1]->file);
+    if (fread(file_bits, sizeof(unsigned long), 1, db->files[ft - 1]->file)
         != sizeof(unsigned long)) {
         printf(" physical database - allocate page: Failed to read the "
                "header size from header file %s: %s\n",
-               db->files[rf - 2]->file_name,
+               db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
@@ -248,19 +268,19 @@ allocate_pages(phy_database* db, file_type rf, size_t num_pages)
     bits += neccessary_bits;
 
     memcpy(file_bits, &bits, sizeof(unsigned long));
-    rewind(db->files[rf - 2]->file);
-    if (fwrite(file_bits, sizeof(unsigned long), 1, db->files[rf - 2]->file)
+    rewind(db->files[ft - 1]->file);
+    if (fwrite(file_bits, sizeof(unsigned long), 1, db->files[ft - 1]->file)
         != sizeof(unsigned long)) {
         printf(" physical database - allocate page: Failed to write the "
                "header size to header file %s: %s\n",
-               db->files[rf - 2]->file_name,
+               db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
 }
 
 void
-deallocate_pages(phy_database* db, file_type rf)
+deallocate_pages(phy_database* db, file_type ft)
 {
     if (!db) {
         printf("physical database - deallocate page: Invalid "
@@ -268,7 +288,7 @@ deallocate_pages(phy_database* db, file_type rf)
         exit(EXIT_FAILURE);
     }
 
-    printf("pyhsical database - dealloc: Not Implemented! %p, %i\n", db, rf);
+    printf("pyhsical database - dealloc: Not Implemented! %p, %i\n", db, ft);
     exit(-1);
 }
 

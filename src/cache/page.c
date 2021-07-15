@@ -7,10 +7,8 @@
 
 #include "constants.h"
 
-static unsigned char
-get_offset_mask(size_t bit_offset_in_byte)
-
-      page* page_create(size_t page_no, unsigned char* data)
+page*
+page_create(size_t page_no, unsigned char* data)
 {
     page* p = calloc(1, sizeof(page));
 
@@ -175,7 +173,9 @@ write_bits(page*          p,
            unsigned char  bit_offset_in_byte,
            unsigned short n_bits,
            unsigned char* data)
-{}
+{
+    // TODO implement
+}
 
 double
 read_double(page* p, size_t offset)

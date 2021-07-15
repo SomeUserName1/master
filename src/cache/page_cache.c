@@ -1,5 +1,6 @@
 #include "page_cache.h"
 
+#include <endian.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -13,6 +14,8 @@
 #include "disk_file.h"
 #include "page.h"
 #include "physical_database.h"
+
+#define SWAP_MAX_NUM_PINNED_PAGES (6)
 
 page_cache*
 page_cache_create(phy_database* pdb)
@@ -230,34 +233,108 @@ flush_all_pages(page_cache* pc)
 }
 
 void
+shift_bit_array(unsigned char* ar, size_t size, char amount)
+{
+    // TODO implement
+}
+
+/*
+ * Concat the first bit array and the second both into the first one. The second
+ * array is freed.
+ */
+void
+concat_bit_arrays(unsigned char* first,
+                  unsigned char* second,
+                  size_t         n_bist_fst,
+                  size_t         n_bits_snd)
+{
+    // TODO implement
+}
+
+/*
+ * Modifies the first array, such that it carries the MSBs and returns another
+ * array with the LSBs
+ */
+unsigned char*
+split_bit_array(unsigned char* ar, size_t size, size_t split_at_idx)
+{
+
+    // TODO implement
+}
+
+void
 swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
 {
+    // FIXME deal with header bits on two pages:
+    // if header_page_first < ((header_bit_fst + slots_per_page) / CHAR_BIT) /
+    // PAGE_SIZE calculate how many bits are on each page pin next page read and
+    // write first read and write second
     unsigned char* buf = malloc(sizeof(unsigned char) * PAGE_SIZE);
 
-    size_t record_size =
-          ft == node_file ? NODE_RECORD_BYTES : RELATIONSHIP_RECORD_BYTES;
-    size_t slots_per_page = PAGE_SIZE / record_size;
+    size_t slots_per_page = PAGE_SIZE / SLOT_SIZE;
 
-    size_t header_bit_fst      = sizeof(unsigned long) + (fst * slots_per_page);
-    size_t header_page_fst     = (header_bit_fst / CHAR_BIT) / PAGE_SIZE;
-    size_t header_p_offset_fst = header_bit_fst % CHAR_BIT;
+    size_t header_bits_fst = sizeof(unsigned long) + (fst * slots_per_page);
+    size_t header_page_fst = (header_bits_fst / CHAR_BIT) / PAGE_SIZE;
+    unsigned short header_byte_offset_fst =
+          (header_bits_fst / CHAR_BIT) % PAGE_SIZE;
+    unsigned char header_bit_offset_fst = header_bits_fst % CHAR_BIT;
 
-    size_t header_bit_snd = sizeof(unsigned long) + (snd * slots_per_page);
-    size_t header_page_snd =
-          ((header_bit_snd / CHAR_BIT) + (header_bit_snd % CHAR_BIT != 0))
-          / PAGE_SIZE;
-    size_t header_p_offset_snd = header_bit_snd % PAGE_SIZE;
+    unsigned short bits_on_first_fst;
+    unsigned short bits_on_second_fst;
+    if (header_byte_offset_fst == PAGE_SIZE - 1
+        && header_bit_offset_fst + slots_per_page > CHAR_BIT) {
+        bits_on_first_fst  = CHAR_BIT - header_bit_offset_fst;
+        bits_on_second_fst = slots_per_page - bits_on_first_fst;
+    } else {
+        bits_on_first_fst  = slots_per_page;
+        bits_on_second_fst = 0;
+    }
+
+    size_t header_bits_snd = sizeof(unsigned long) + (snd * slots_per_page);
+    size_t header_page_snd = (header_bits_snd / CHAR_BIT) / PAGE_SIZE;
+    unsigned short header_byte_offset_snd =
+          (header_bits_snd / CHAR_BIT) % PAGE_SIZE;
+    unsigned char header_bit_offset_snd = header_bits_snd % CHAR_BIT;
+
+    unsigned short bits_on_first_snd;
+    unsigned short bits_on_second_snd;
+    if (header_byte_offset_snd == PAGE_SIZE - 1
+        && header_bit_offset_snd + slots_per_page > CHAR_BIT) {
+        bits_on_first_snd  = CHAR_BIT - header_bit_offset_snd;
+        bits_on_second_snd = slots_per_page - bits_on_first_snd;
+    } else {
+        bits_on_first_snd  = slots_per_page;
+        bits_on_second_snd = 0;
+    }
 
     pin_page(pc, fst, ft);
     pin_page(pc, snd, ft);
-    pin_page(pc, header_page_fst, ft - 2);
-    pin_page(pc, header_page_snd, ft - 2);
+    pin_page(pc, header_page_fst, ft - 1);
+    pin_page(pc, header_page_snd, ft - 1);
 
-    size_t frame_no[4];
+    if (bits_on_second_fst != 0) {
+        pin_page(pc, header_page_fst + 1, ft - 1);
+    }
+
+    if (bits_on_second_snd != 0) {
+        pin_page(pc, header_page_snd + 1, ft - 1);
+    }
+
+    size_t frame_no[SWAP_MAX_NUM_PINNED_PAGES];
     frame_no[0] = dict_ul_ul_get_direct(pc->page_map[ft], fst);
     frame_no[1] = dict_ul_ul_get_direct(pc->page_map[ft], snd);
-    frame_no[2] = dict_ul_ul_get_direct(pc->page_map[ft - 2], header_page_fst);
-    frame_no[3] = dict_ul_ul_get_direct(pc->page_map[ft - 2], header_page_snd);
+    frame_no[2] = dict_ul_ul_get_direct(pc->page_map[ft - 1], header_page_fst);
+    frame_no[3] = dict_ul_ul_get_direct(pc->page_map[ft - 1], header_page_snd);
+
+    if (bits_on_second_fst) {
+        frame_no[4] =
+              dict_ul_ul_get_direct(pc->page_map[ft - 1], header_page_fst + 1);
+    }
+
+    if (bits_on_second_snd) {
+        frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1] =
+              dict_ul_ul_get_direct(pc->page_map[ft - 1], header_page_snd + 1);
+    }
 
     memcpy(buf, pc->cache[frame_no[0]]->data, PAGE_SIZE);
     memcpy(pc->cache[frame_no[0]]->data,
@@ -266,33 +343,75 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
     memcpy(pc->cache[frame_no[1]]->data, buf, PAGE_SIZE);
 
     unsigned char* fst_header = read_bits(pc->cache[frame_no[2]],
-                                          header_page_fst,
-                                          header_p_offset_fst,
-                                          slots_per_page);
+                                          header_byte_offset_fst,
+                                          header_bit_offset_fst,
+                                          bits_on_first_fst);
+    if (bits_on_second_fst != 0) {
+        unsigned char* fst_header_cont = read_bits(pc->cache[frame_no[4]],
+                                                   header_page_fst + 1,
+                                                   0,
+                                                   bits_on_second_fst);
+        concat_bit_arrays(fst_header,
+                          fst_header_cont,
+                          bits_on_first_fst,
+                          bits_on_second_fst);
+    }
 
     unsigned char* snd_header = read_bits(pc->cache[frame_no[3]],
-                                          header_page_snd,
-                                          header_p_offset_snd,
+                                          header_byte_offset_snd,
+                                          header_bit_offset_snd,
                                           slots_per_page);
 
-    write_bits(pc->cache[frame_no[2]],
-               header_page_fst,
-               header_p_offset_fst,
-               slots_per_page,
-               snd_header);
-    write_bits(pc->cache[frame_no[3]],
-               header_page_snd,
-               header_p_offset_snd,
-               slots_per_page,
-               fst_header);
+    if (bits_on_second_snd != 0) {
+        unsigned char* snd_header_cont =
+              read_bits(pc->cache[frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1]],
+                        header_page_snd + 1,
+                        0,
+                        bits_on_second_snd);
+
+        concat_bit_arrays(snd_header,
+                          snd_header_cont,
+                          bits_on_first_snd,
+                          bits_on_second_snd);
+    }
+
+    // FIXME if one or both headers span over two pages they must be written
+    // back accordingly.
+    if (bits_on_second_fst != 0) {
+    } else {
+        write_bits(pc->cache[frame_no[2]],
+                   header_byte_offset_fst,
+                   header_bit_offset_fst,
+                   slots_per_page,
+                   snd_header);
+    }
+
+    if (bits_on_second_snd != 0) {
+    } else {
+        write_bits(pc->cache[frame_no[3]],
+                   header_byte_offset_snd,
+                   header_bit_offset_snd,
+                   slots_per_page,
+                   fst_header);
+    }
 
     pc->cache[frame_no[0]]->dirty = true;
     pc->cache[frame_no[1]]->dirty = true;
     pc->cache[frame_no[2]]->dirty = true;
     pc->cache[frame_no[3]]->dirty = true;
 
-    unpin_page(pc, header_page_fst, ft - 2);
-    unpin_page(pc, header_page_snd, ft - 2);
+    if (bits_on_second_fst != 0) {
+        pc->cache[frame_no[4]]->dirty = true;
+        unpin_page(pc, header_page_fst + 1, ft - 1);
+    }
+
+    if (bits_on_second_snd != 0) {
+        pc->cache[frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1]]->dirty = true;
+        unpin_page(pc, header_page_snd + 1, ft - 1);
+    }
+
+    unpin_page(pc, header_page_fst, ft - 1);
+    unpin_page(pc, header_page_snd, ft - 1);
     unpin_page(pc, snd, ft);
     unpin_page(pc, fst, ft);
 

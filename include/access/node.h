@@ -16,9 +16,8 @@
 typedef struct NodeRecord
 {
     unsigned long id;
-    unsigned char flags;
     unsigned long first_relationship;
-    unsigned long degree;
+    unsigned char flags;
     char          label[MAX_STR_LEN];
 } node_t;
 

@@ -25,7 +25,6 @@ typedef enum
 typedef struct RelationshipRecord
 {
     unsigned long id;
-    unsigned char flags;
     unsigned long source_node;
     unsigned long target_node;
     unsigned long prev_rel_source;
@@ -33,6 +32,7 @@ typedef struct RelationshipRecord
     unsigned long prev_rel_target;
     unsigned long next_rel_target;
     double        weight;
+    unsigned char flags;
     char          label[MAX_STR_LEN];
 } relationship_t;
 

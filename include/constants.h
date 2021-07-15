@@ -17,10 +17,9 @@ static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
 #define MAX_PAGE_NO                                                            \
     (LONG_MAX / PAGE_SIZE) /* Approx 2 Peta or 2 << 50 pages; Overall Maximum  \
                               size of the database in bytes is 8 EiB */
-#define MAX_STR_LEN (32)
+#define MAX_STR_LEN (31)
 
-#define RELATIONSHIP_RECORD_BYTES (71)
-#define NODE_RECORD_BYTES         (57)
+#define SLOT_SIZE (16)
 
 /* size of the cache for the actual graph */
 #define CACHE_SIZE    (2UL << 30) /* 2 GiB */
