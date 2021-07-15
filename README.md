@@ -28,8 +28,8 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
   - [x] Fixup Includes
   - [x] Marko-based genereic data structures
-  - [ ] Disk-based IO
-  - [ ] Cache
+  - [x] Disk-based IO
+  - [-] Cache (WIP)
   - [ ] Non-consecutive IDs & support deletions
        => End of July  
   - [ ] Dynamic Reorganization Impl.
