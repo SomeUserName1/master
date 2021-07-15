@@ -82,4 +82,3 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Theodoros wants labels and properties stored within the nodes & rel struct
 - Algorithms: The ones that are implemented + hop labeling
 - Out of memory during transaction (e.g. BFS on live journal): Theodoros "Assume everything fits in memory"
-- Theodoros is sceptical
