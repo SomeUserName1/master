@@ -100,6 +100,126 @@ write_uchar(page* p, size_t offset, unsigned char value)
     p->data[offset] = value;
 }
 
+/**
+ * a negative amount means left, a positive one right.
+ */
+void
+shift_bit_array(unsigned char* ar, size_t size, long n_bits)
+{
+    if (!ar || (unsigned int)labs(n_bits * CHAR_BIT) > size) {
+        printf("page - shift bit array: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (n_bits == 0) {
+        return;
+    }
+
+    unsigned char carry_mask;
+    if (n_bits > 0) {
+        carry_mask = UCHAR_MAX >> (CHAR_BIT - n_bits);
+    } else {
+
+        carry_mask = UCHAR_MAX << (CHAR_BIT + n_bits);
+    }
+
+    unsigned char carry      = 0;
+    unsigned char next_carry = 0;
+
+    for (size_t i = 0; i < size; ++i) {
+        next_carry = ar[i] & carry_mask;
+
+        if (n_bits > 0) {
+            ar[i] = (carry << (CHAR_BIT - n_bits)) | (ar[i] >> n_bits);
+        } else {
+            ar[i] = (carry >> (CHAR_BIT - n_bits)) | (ar[i] << n_bits);
+        }
+
+        next_carry = carry;
+    }
+}
+
+/*
+ * Concat the first bit array and the second both into the first one. The second
+ * array is freed.
+ */
+void
+concat_bit_arrays(unsigned char* first,
+                  unsigned char* second,
+                  size_t         n_bist_fst,
+                  size_t         n_bits_snd)
+{
+    if (!first || !second || n_bist_fst > LONG_MAX || n_bits_snd > LONG_MAX) {
+        printf("page - concat bit arrays: Invalid Arguemnts!\n");
+        exit(EXIT_FAILURE);
+    }
+    size_t result_size = ((n_bist_fst + n_bits_snd) / CHAR_BIT)
+                         + ((n_bist_fst + n_bits_snd) % CHAR_BIT != 0);
+
+    size_t first_size = (n_bist_fst / CHAR_BIT) + (n_bist_fst % CHAR_BIT != 0);
+
+    first = realloc(first, result_size * sizeof(unsigned char));
+
+    if (!first) {
+        free(first);
+        printf("page - concat_bit_arrays: Failed to allocate memory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = first_size; i < result_size; ++i) {
+        first[i] = 0;
+    }
+
+    // [XXXX XXXX] concat [0000 00YY] => [0000 00XX] [XXXX XXYY]
+
+    shift_bit_array(first, n_bist_fst, (long)n_bits_snd);
+
+    for (size_t i = 0; i < result_size; ++i) {
+        first[i] = first[i] | second[i];
+    }
+
+    free(second);
+}
+
+/*
+ * Modifies the first array, such that it carries the MSBs and returns another
+ * array with the LSBs
+ */
+unsigned char*
+split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
+{
+    if (!ar
+        || (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0) > size) {
+        printf("page - split bit array: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t second_size =
+          size - (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0);
+
+    size_t first_size =
+          (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0);
+
+    unsigned char* second = calloc(second_size, sizeof(unsigned char));
+
+    memcpy(second,
+           ar + (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0),
+           second_size);
+    second[0] =
+          second[0] | (UCHAR_MAX >> (CHAR_BIT - (split_at_bit % CHAR_BIT)));
+
+    shift_bit_array(ar, size, -((long)split_at_bit % CHAR_BIT));
+
+    ar = realloc(ar, first_size * sizeof(unsigned char));
+    if (!ar) {
+        free(ar);
+        printf("page - concat_bit_arrays: Failed to allocate memory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return second;
+}
+
 unsigned char*
 read_bits(page*          p,
           unsigned short byte_offset_in_page,
@@ -149,8 +269,8 @@ read_bits(page*          p,
     //
     // e.g. We want to read 7 bit with an offset of 2:
     //
-    // [00XX XXXX] [X___ ____] will be shifted 16 - (7 + 2) = 7 places
-    // first byte: [____ ___0], carry: [00XX XXXX], result [0XXX XXXX]
+    // [__XX XXXX] [X___ ____] will be shifted 16 - (7 + 2) = 7 places
+    // first byte: [____ ____], carry: [__XX XXXX], result [_XXX XXXX]
     //
     if (n_bytes_read == n_bytes_result) {
         result[j] = result[j] >> shift;
@@ -174,7 +294,53 @@ write_bits(page*          p,
            unsigned short n_bits,
            unsigned char* data)
 {
-    // TODO implement
+    if (!p || bit_offset_in_byte > CHAR_BIT - 1
+        || byte_offset_in_page > PAGE_SIZE - 1
+        || n_bits > PAGE_SIZE * CHAR_BIT - 1 || !data) {
+        printf("page - read bits: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t n_bytes_write = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
+                           + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
+
+    // Shift data by (CHAR_BIT - n_bits) - bit offset to left
+    // CHAR_BIT - n_bits give the leading zeros of the data array
+    // - bit_offset gives how many zeros need to be removed
+    // e.g. with 5 bits and 1 offset
+    // [000X XXXX] => [0XXX XX00]
+    // or e.g. with 8 bit and 2 offset
+    // [XXXX XXXX] => [00XX XXXX] [XX00 0000]
+
+    // FIXME what if result is longer than before
+    // e.g. 8 bit shifted 2 to the right needs another byte => realloc
+    shift_bit_array(
+          data, n_bytes_write, (CHAR_BIT - n_bits) - bit_offset_in_byte);
+
+    // Write the data to the page buffer using a mask
+    // Current page b.    mask      shifted input   resulting page byte
+    // ([YYYY YYYY] & [1000 0011]) | [0XXX XX00] => [YXXX XXYY]
+
+    // Mask what is currently on the page
+    unsigned char mask[n_bytes_write];
+
+    // Set all bits to 0
+    for (size_t i = 0; i < n_bytes_write; ++i) {
+        mask[i] = 0;
+    }
+
+    // set the first bit_offset bits to preserve the data on the page
+    mask[0] = mask[0] | UCHAR_MAX << (CHAR_BIT - bit_offset_in_byte);
+
+    // set the last 8 - offset - n_bits to preserve the data on the page
+    mask[n_bytes_write - 1] =
+          mask[n_bytes_write - 1] | UCHAR_MAX >> (n_bits % CHAR_BIT);
+
+    // FIXME here
+    for (size_t i = 0; i < n_bytes_write; ++i) {
+        p->data[byte_offset_in_page + i] =
+              (p->data[byte_offset_in_page + i] & mask[i]) | data[i];
+    }
 }
 
 double

@@ -233,42 +233,8 @@ flush_all_pages(page_cache* pc)
 }
 
 void
-shift_bit_array(unsigned char* ar, size_t size, char amount)
-{
-    // TODO implement
-}
-
-/*
- * Concat the first bit array and the second both into the first one. The second
- * array is freed.
- */
-void
-concat_bit_arrays(unsigned char* first,
-                  unsigned char* second,
-                  size_t         n_bist_fst,
-                  size_t         n_bits_snd)
-{
-    // TODO implement
-}
-
-/*
- * Modifies the first array, such that it carries the MSBs and returns another
- * array with the LSBs
- */
-unsigned char*
-split_bit_array(unsigned char* ar, size_t size, size_t split_at_idx)
-{
-
-    // TODO implement
-}
-
-void
 swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
 {
-    // FIXME deal with header bits on two pages:
-    // if header_page_first < ((header_bit_fst + slots_per_page) / CHAR_BIT) /
-    // PAGE_SIZE calculate how many bits are on each page pin next page read and
-    // write first read and write second
     unsigned char* buf = malloc(sizeof(unsigned char) * PAGE_SIZE);
 
     size_t slots_per_page = PAGE_SIZE / SLOT_SIZE;
@@ -346,6 +312,12 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
                                           header_byte_offset_fst,
                                           header_bit_offset_fst,
                                           bits_on_first_fst);
+
+    unsigned char* snd_header = read_bits(pc->cache[frame_no[3]],
+                                          header_byte_offset_snd,
+                                          header_bit_offset_snd,
+                                          slots_per_page);
+
     if (bits_on_second_fst != 0) {
         unsigned char* fst_header_cont = read_bits(pc->cache[frame_no[4]],
                                                    header_page_fst + 1,
@@ -356,11 +328,6 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
                           bits_on_first_fst,
                           bits_on_second_fst);
     }
-
-    unsigned char* snd_header = read_bits(pc->cache[frame_no[3]],
-                                          header_byte_offset_snd,
-                                          header_bit_offset_snd,
-                                          slots_per_page);
 
     if (bits_on_second_snd != 0) {
         unsigned char* snd_header_cont =
@@ -375,25 +342,35 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
                           bits_on_second_snd);
     }
 
-    // FIXME if one or both headers span over two pages they must be written
-    // back accordingly.
     if (bits_on_second_fst != 0) {
-    } else {
-        write_bits(pc->cache[frame_no[2]],
-                   header_byte_offset_fst,
-                   header_bit_offset_fst,
-                   slots_per_page,
-                   snd_header);
+        write_bits(
+              pc->cache[frame_no[4]],
+              0,
+              0,
+              bits_on_first_snd,
+              split_bit_array(snd_header, slots_per_page, bits_on_first_fst));
     }
 
     if (bits_on_second_snd != 0) {
-    } else {
-        write_bits(pc->cache[frame_no[3]],
-                   header_byte_offset_snd,
-                   header_bit_offset_snd,
-                   slots_per_page,
-                   fst_header);
+        write_bits(
+              pc->cache[frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1]],
+              0,
+              0,
+              bits_on_second_snd,
+              split_bit_array(fst_header, slots_per_page, bits_on_first_fst));
     }
+
+    write_bits(pc->cache[frame_no[2]],
+               header_byte_offset_fst,
+               header_bit_offset_fst,
+               bits_on_first_fst,
+               snd_header);
+
+    write_bits(pc->cache[frame_no[3]],
+               header_byte_offset_snd,
+               header_bit_offset_snd,
+               slots_per_page,
+               fst_header);
 
     pc->cache[frame_no[0]]->dirty = true;
     pc->cache[frame_no[1]]->dirty = true;
