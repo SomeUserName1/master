@@ -24,7 +24,7 @@ a_star(in_memory_file_t* db,
     double*        distance = malloc(db->node_id_counter * sizeof(*distance));
     if (!parents || !distance || !log_path) {
         printf("A*: invalid arguments or memory allocation failed!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {

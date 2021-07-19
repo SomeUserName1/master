@@ -13,7 +13,7 @@ create_in_memory_file()
     in_memory_file_t* file = (in_memory_file_t*)malloc(sizeof(*file));
 
     if (file == NULL) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     file->cache_nodes     = d_ul_node_create();
@@ -37,7 +37,7 @@ in_memory_create_node(in_memory_file_t* db)
 {
     if (!db) {
         printf("in_memory - create node: Invalid arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     node_t* node = new_node();
@@ -46,7 +46,7 @@ in_memory_create_node(in_memory_file_t* db)
 
     if (dict_ul_node_insert(db->cache_nodes, node->id, node) < 0) {
         printf("%s", "Inserting the new node failed\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     return node->id;
@@ -101,7 +101,7 @@ in_memory_get_relationships(in_memory_file_t* db)
 {
     if (!db) {
         printf("in_memory - get_relationships: Invalid arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* rels = al_rel_create();
@@ -141,7 +141,7 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
                node_from,
                node_to,
                weight);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     unsigned long   temp_id;
     relationship_t* last_rel_source  = NULL;
@@ -158,7 +158,7 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
                "to create does not exist:",
                node_from,
                node_to);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     relationship_t* rel = new_relationship();

@@ -13,13 +13,13 @@ create_traversal_result(unsigned long  source_node,
                         unsigned long* parents)
 {
     if (!traversal_numbers || !parents) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     traversal_result* result = malloc(sizeof(*result));
 
     if (!result) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     result->source            = source_node;
@@ -47,13 +47,13 @@ create_sssp_result(unsigned long  source_node,
                    unsigned long* parents)
 {
     if (!distances || !parents) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     sssp_result* result = malloc(sizeof(*result));
 
     if (!result) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     result->source     = source_node;
@@ -83,13 +83,13 @@ create_path(unsigned long  source_node_id,
 {
     if (!edges || source_node_id == UNINITIALIZED_LONG) {
         printf("Tried to create path with null pointer as argument\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     path* result = malloc(sizeof(*result));
 
     if (!result) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     result->source   = source_node_id;

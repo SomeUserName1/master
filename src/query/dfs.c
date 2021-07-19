@@ -21,7 +21,7 @@ dfs(in_memory_file_t* db,
     unsigned long* dfs     = malloc(db->node_id_counter * sizeof(*dfs));
 
     if (!parents || !dfs) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {

@@ -14,7 +14,7 @@ new_node()
     node_t* node = malloc(sizeof(*node));
 
     if (!node) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     node_clear(node);
@@ -25,7 +25,7 @@ int
 node_read(node_t* record, const unsigned char* bytes)
 {
     if (!record || !bytes) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     printf("%lu, %c", record->id, *bytes);
@@ -36,7 +36,7 @@ int
 node_write(const node_t* record)
 {
     if (!record) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     printf("%lu", record->id);
@@ -47,7 +47,7 @@ inline void
 node_clear(node_t* record)
 {
     if (!record) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     record->id                 = UNINITIALIZED_LONG;
@@ -60,13 +60,13 @@ inline node_t*
 node_copy(const node_t* original)
 {
     if (!original) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     node_t* copy = malloc(sizeof(*copy));
 
     if (!copy) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     copy->id                 = original->id;

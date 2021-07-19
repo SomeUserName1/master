@@ -8,7 +8,7 @@ identity_partition(in_memory_file_t* db)
 {
     if (!db) {
         printf("trivial partitions - identity: Invalid Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     unsigned long* partition =
@@ -16,7 +16,7 @@ identity_partition(in_memory_file_t* db)
 
     if (!partition) {
         printf("trivial partitions - identity: Memory Allocation failed!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -31,7 +31,7 @@ random_partition(in_memory_file_t* db)
 {
     if (!db) {
         printf("trivial partitions - identity: Invalid Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     unsigned long* partition =
@@ -39,7 +39,7 @@ random_partition(in_memory_file_t* db)
 
     if (!partition) {
         printf("trivial partitions - identity: Memory Allocation failed!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {

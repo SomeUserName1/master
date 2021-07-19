@@ -44,7 +44,7 @@ test_set_ul_insert(void)
 
     if (set_ul_insert(set, MAGIC_TEST_VALUE)) {
         printf("Insertion failed");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     assert(1 == set_ul_size(set));
 

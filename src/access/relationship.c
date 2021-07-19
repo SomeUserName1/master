@@ -15,7 +15,7 @@ new_relationship()
     relationship_t* rel = malloc(sizeof(*rel));
 
     if (!rel) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     relationship_clear(rel);
@@ -171,7 +171,7 @@ inline void
 relationship_set_first_source(relationship_t* rel)
 {
     if (!rel) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     if (rel->flags == UNINITIALIZED_BYTE) {
@@ -185,7 +185,7 @@ inline void
 relationship_set_first_target(relationship_t* rel)
 {
     if (!rel) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     if (rel->flags == UNINITIALIZED_BYTE) {

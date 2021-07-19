@@ -17,14 +17,14 @@ alt_chose_avg_deg_rand_landmark(in_memory_file_t* db,
 {
     if (!db || !log_path) {
         printf("ALT chose landmarks: Invalid Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     FILE* log_file = fopen(log_path, "w+");
 
     if (log_file == NULL) {
         printf("bfs: Failed to open log file, %d\n", errno);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     double        avg_degree = get_avg_degree(db, direction, log_file);
@@ -48,7 +48,7 @@ alt_preprocess(in_memory_file_t* db,
 {
     if (!db || !landmark_dists || !log_path) {
         printf("ALT preprocess: Invalid arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     unsigned long landmarks[num_landmarks];
@@ -77,12 +77,12 @@ alt(in_memory_file_t* db,
 {
     if (!db || !landmark_dists || !log_path) {
         printf("ALT: Invalid arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     double* heuristic = calloc(db->node_id_counter, sizeof(*heuristic));
     if (!heuristic) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     double temp_dist;

@@ -289,12 +289,12 @@ deallocate_pages(phy_database* db, file_type ft)
     }
 
     printf("pyhsical database - dealloc: Not Implemented! %p, %i\n", db, ft);
-    exit(-1);
+    exit(EXIT_FAILURE);
 }
 
 void
 physical_database_defragment(phy_database* pdb)
 {
     printf("pyhsical database - defragment: Not Implemented! %p\n", pdb);
-    exit(-1);
+    exit(EXIT_FAILURE);
 }

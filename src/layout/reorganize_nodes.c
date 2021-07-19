@@ -17,7 +17,7 @@ remap_node_ids(in_memory_file_t* db, const unsigned long* partition)
 {
     if (!db || !partition || db->node_id_counter < 1) {
         printf("remap node ids: Invalid Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     set_ul* part_numbers = s_ul_create();

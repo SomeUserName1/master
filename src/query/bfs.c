@@ -21,7 +21,7 @@ bfs(in_memory_file_t* db,
     unsigned long* bfs     = malloc(db->node_id_counter * sizeof(*bfs));
 
     if (!parents || !bfs) {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (size_t i = 0; i < db->node_id_counter; ++i) {
@@ -37,7 +37,7 @@ bfs(in_memory_file_t* db,
         free(bfs);
         queue_ul_destroy(nodes_queue);
         printf("bfs: Failed to open log file, %d\n", errno);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* current_rels = NULL;

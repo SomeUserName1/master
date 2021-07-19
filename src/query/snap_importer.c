@@ -278,7 +278,7 @@ import_from_txt(in_memory_file_t* db, const char* path)
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
         perror("Failed to open file to read from");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     while (fgets(buf, sizeof buf, in_file) && result == 2) {
@@ -308,7 +308,7 @@ import_from_txt(in_memory_file_t* db, const char* path)
 
     if (result != 2) {
         printf("%s\n", "Failed to read line from file");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     return txt_to_db_id;

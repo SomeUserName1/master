@@ -16,7 +16,7 @@ get_degree(in_memory_file_t* db,
 {
     if (!db) {
         printf("get_degree: Invaliud Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     if (log_file) {
         fprintf(log_file, "%s %lu\n", "N ", node_id);
@@ -48,7 +48,7 @@ get_avg_degree(in_memory_file_t* db, direction_t direction, FILE* log_file)
 {
     if (!db) {
         printf("get_degree: Invaliud Arguments!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     size_t num_nodes    = db->node_id_counter;

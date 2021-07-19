@@ -214,7 +214,7 @@ write_pages(disk_file*     df,
         printf("disk file - write: File not large enough! You need to allocate "
                "more pages using the respective function of the physical "
                "database.\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     long offset = (long)(PAGE_SIZE * fst_page);

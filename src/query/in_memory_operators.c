@@ -16,7 +16,7 @@ in_memory_next_relationship_id(in_memory_file_t* db,
 {
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
         printf("in_memory - next_relationship: Arguments must be not NULL!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     unsigned long start_rel_id = rel->id;
@@ -46,7 +46,7 @@ in_memory_expand(in_memory_file_t* db,
 {
     if (!db) {
         printf("in_memory - expand: Arguments must be not NULL!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     printf("node_id %lu\n", node_id);
@@ -54,7 +54,7 @@ in_memory_expand(in_memory_file_t* db,
 
     if (!node || !db) {
         printf("in_memory - expand: Arguments must be not NULL!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* result = al_rel_create();
@@ -112,7 +112,7 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
 
     if (!source_node || !target_node) {
         printf("in_memory - contains relationship: No such nodes!\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     if (source_node->first_relationship == UNINITIALIZED_LONG
