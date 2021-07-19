@@ -1,4 +1,5 @@
 #include "data-struct/array_list.h"
+
 #include "data-struct/cbs.h"
 
 ARRAY_LIST_IMPL(array_list_ul, unsigned long);

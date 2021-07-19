@@ -120,14 +120,7 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
         return NULL;
     }
 
-    node_t* traversed_node =
-          source_node->degree < target_node->degree ? source_node : target_node;
-
-    direction_t trav_dir = traversed_node->id == node_to && direction != BOTH
-                                 ? direction == OUTGOING ? INCOMING : OUTGOING
-                                 : direction;
-
-    unsigned long next_id  = traversed_node->first_relationship;
+    unsigned long next_id  = source_node->first_relationship;
     unsigned long start_id = next_id;
 
     do {
@@ -139,7 +132,7 @@ in_memory_contains_relationship_from_to(in_memory_file_t* db,
             return rel;
         }
         next_id = in_memory_next_relationship_id(
-              db, traversed_node->id, rel, trav_dir);
+              db, source_node->id, rel, direction);
     } while (next_id != start_id && next_id != UNINITIALIZED_LONG);
 
     return NULL;

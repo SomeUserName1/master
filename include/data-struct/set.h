@@ -2,7 +2,6 @@
 #define SET_H
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -87,7 +86,7 @@
                                                                                \
         if (!s) {                                                              \
             printf("set - create: failes to allocate memory!\n");              \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         s->hash_fn     = HASH_FN;                                              \
@@ -98,7 +97,7 @@
                                                                                \
         if (!s->buckets) {                                                     \
             printf("set - create: Failed to allocate memory for buckets");     \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         s->num_used = 0;                                                       \
@@ -112,7 +111,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("s - add_to_bucket: Invalid Argument!\n");                  \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_bucket* cur  = NULL;                                        \
         typename##_bucket* next = NULL;                                        \
@@ -148,7 +147,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - bucket_idx: Invalid Argument!\n");                   \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return s->num_buckets > 0                                              \
                      ? (s->hash_fn(elem, s->seed) % s->num_buckets)            \
@@ -160,7 +159,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - add_to_bucket: Invalid Argument!\n");                \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         size_t idx = typename##_bucket_idx(s, elem);                           \
                                                                                \
@@ -191,7 +190,7 @@
                 if (!cur) {                                                    \
                     printf("set - add_to_bucket: Memory Allocation "           \
                            "failed!\n");                                       \
-                    exit(EXIT_FAILURE);                                                  \
+                    exit(EXIT_FAILURE);                                        \
                 }                                                              \
                                                                                \
                 if (!rehash && s->cbs.copy) {                                  \
@@ -225,7 +224,7 @@
                                                                                \
         if (!s->buckets) {                                                     \
             printf("set - rehash: Memory Allocation failed!\n");               \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_bucket* cur  = NULL;                                        \
@@ -255,7 +254,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - insert: Invalid Argument!\n");                       \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_rehash(s);                                                  \
         return typename##_add_to_bucket(s, elem, false);                       \
@@ -266,13 +265,13 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - remove: Invalid Argument! \n");                      \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         size_t idx = typename##_bucket_idx(s, elem);                           \
         if (!s->buckets[idx].is_used) {                                        \
             printf("set - remove: No such element!\n");                        \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_bucket* cur = NULL;                                         \
@@ -307,7 +306,7 @@
             cur  = cur->next;                                                  \
         }                                                                      \
         printf("set - remove: No such element!");                              \
-        exit(EXIT_FAILURE);                                                              \
+        exit(EXIT_FAILURE);                                                    \
     }
 
 #define SET_CONTAINS(typename, T)                                              \
@@ -315,7 +314,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - get: Invalid Argument!\n");                          \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         size_t idx = typename##_bucket_idx(s, elem);                           \
@@ -338,14 +337,14 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - create_iterator: Invalid Argument!\n");              \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_iterator* hi = calloc(1, sizeof(*hi));                      \
                                                                                \
         if (!hi) {                                                             \
             printf("set - create iterator: Memory Allocation failed!\n");      \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         hi->s = s;                                                             \
@@ -358,7 +357,7 @@
     {                                                                          \
         if (!hi || !elem) {                                                    \
             printf("set - iterator_next: Invalid Argument!\n");                \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         if (!hi->cur) {                                                        \
@@ -393,7 +392,7 @@
     {                                                                          \
         if (!s) {                                                              \
             printf("set - print: Invalid Argument!\n");                        \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_iterator* hi = typename##_iterator_create(s);               \
                                                                                \

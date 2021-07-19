@@ -123,8 +123,8 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
         carry_mask = UCHAR_MAX << (CHAR_BIT + n_bits);
     }
 
-    unsigned char carry      = 0;
-    unsigned char next_carry = 0;
+    unsigned char carry = 0;
+    unsigned char next_carry;
 
     for (size_t i = 0; i < size; ++i) {
         next_carry = ar[i] & carry_mask;
@@ -135,7 +135,7 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
             ar[i] = (carry >> (CHAR_BIT - n_bits)) | (ar[i] << n_bits);
         }
 
-        next_carry = carry;
+        carry = next_carry;
     }
 }
 
@@ -185,7 +185,7 @@ concat_bit_arrays(unsigned char* first,
  * Modifies the first array, such that it carries the MSBs and returns another
  * array with the LSBs
  */
-unsigned char*
+unsigned char**
 split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
 {
     if (!ar
@@ -210,14 +210,19 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
 
     shift_bit_array(ar, size, -((long)split_at_bit % CHAR_BIT));
 
-    ar = realloc(ar, first_size * sizeof(unsigned char));
+    unsigned char* new_ar = realloc(ar, first_size * sizeof(unsigned char));
     if (!ar) {
-        free(ar);
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+    } else {
+        ar = new_ar;
     }
 
-    return second;
+    unsigned char** result = malloc(2 * sizeof(unsigned char*));
+    result[0]              = ar;
+    result[1]              = second;
+
+    return result;
 }
 
 unsigned char*
@@ -281,7 +286,7 @@ read_bits(page*          p,
         next_carry    = p->data[byte_offset_in_page + i] & carry_mask;
         result[i + j] = (carry << (CHAR_BIT - shift))
                         | (p->data[byte_offset_in_page + i] >> shift);
-        next_carry = carry;
+        carry = next_carry;
     }
 
     return result;
@@ -296,7 +301,7 @@ write_bits(page*          p,
 {
     if (!p || bit_offset_in_byte > CHAR_BIT - 1
         || byte_offset_in_page > PAGE_SIZE - 1
-        || n_bits > PAGE_SIZE * CHAR_BIT - 1 || !data) {
+        || n_bits > PAGE_SIZE * CHAR_BIT - 1 || n_bits < 1 || !data) {
         printf("page - read bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -312,10 +317,19 @@ write_bits(page*          p,
     // or e.g. with 8 bit and 2 offset
     // [XXXX XXXX] => [00XX XXXX] [XX00 0000]
 
-    // FIXME what if result is longer than before
-    // e.g. 8 bit shifted 2 to the right needs another byte => realloc
-    shift_bit_array(
-          data, n_bytes_write, (CHAR_BIT - n_bits) - bit_offset_in_byte);
+    unsigned char* shifted_data;
+    if ((n_bits / CHAR_BIT) + (n_bits % CHAR_BIT) < n_bytes_write) {
+        shifted_data = calloc(n_bytes_write, sizeof(unsigned char));
+        memcpy(shifted_data + 1,
+               data,
+               (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0));
+    } else {
+        shifted_data = data;
+    }
+
+    shift_bit_array(shifted_data,
+                    n_bytes_write,
+                    (CHAR_BIT - n_bits) - bit_offset_in_byte);
 
     // Write the data to the page buffer using a mask
     // Current page b.    mask      shifted input   resulting page byte
@@ -336,10 +350,13 @@ write_bits(page*          p,
     mask[n_bytes_write - 1] =
           mask[n_bytes_write - 1] | UCHAR_MAX >> (n_bits % CHAR_BIT);
 
-    // FIXME here
     for (size_t i = 0; i < n_bytes_write; ++i) {
         p->data[byte_offset_in_page + i] =
-              (p->data[byte_offset_in_page + i] & mask[i]) | data[i];
+              (p->data[byte_offset_in_page + i] & mask[i]) | shifted_data[i];
+    }
+
+    if (data != shifted_data) {
+        free(shifted_data);
     }
 }
 

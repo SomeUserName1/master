@@ -53,7 +53,7 @@ concat_bit_arrays(unsigned char* first,
  * Modifies the first array, such that it carries the MSBs and returns another
  * array with the LSBs
  */
-unsigned char*
+unsigned char**
 split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit);
 
 unsigned char*

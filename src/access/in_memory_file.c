@@ -252,9 +252,6 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
         target_node->first_relationship = rel->id;
     }
 
-    source_node->degree++;
-    target_node->degree++;
-
     dict_ul_rel_insert(db->cache_rels, rel->id, rel);
 
     return rel->id;

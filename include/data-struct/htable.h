@@ -2,7 +2,6 @@
 #define HTABLE_H
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -111,7 +110,7 @@
                                                                                \
         if (!ht->buckets) {                                                    \
             printf("htable - rehash: Memory Allocation failed!\n");            \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_bucket* cur  = NULL;                                        \
@@ -144,7 +143,7 @@
                                                                                \
         if (!ht) {                                                             \
             printf("htable create: failes to allocate memory!\n");             \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         ht->hash_fn = HASH_FN;                                                 \
@@ -157,7 +156,7 @@
                                                                                \
         if (!ht->buckets) {                                                    \
             printf("htable create: Failed to allocate memory for buckets");    \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         ht->num_used = 0;                                                      \
@@ -171,7 +170,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - add_to_bucket: Invalid Argument!\n");             \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_bucket* cur  = NULL;                                        \
         typename##_bucket* next = NULL;                                        \
@@ -213,7 +212,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - bucket_idx: Invalid Argument!\n");                \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return ht->num_buckets > 0                                             \
                      ? (ht->hash_fn(key, ht->seed) % ht->num_buckets)          \
@@ -226,7 +225,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - add_to_bucket: Invalid Argument!\n");             \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         size_t idx = typename##_bucket_idx(ht, key);                           \
                                                                                \
@@ -273,7 +272,7 @@
                 if (!cur) {                                                    \
                     printf("htable - add_to_bucket: Memory Allocation "        \
                            "failed!\n");                                       \
-                    exit(EXIT_FAILURE);                                                  \
+                    exit(EXIT_FAILURE);                                        \
                 }                                                              \
                                                                                \
                 if (!rehash) {                                                 \
@@ -301,7 +300,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - insert: Invalid Argument!\n");                    \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_rehash(ht);                                                 \
         return typename##_add_to_bucket(ht, key, val, false);                  \
@@ -312,13 +311,13 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - remove: Invalid Argument! \n");                   \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         size_t idx = typename##_bucket_idx(ht, key);                           \
         if (!ht->buckets[idx].is_used) {                                       \
             printf("htable - remove: No such key!\n");                         \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_bucket* cur = NULL;                                         \
@@ -360,7 +359,7 @@
             cur  = cur->next;                                                  \
         }                                                                      \
         printf("htable - remove: No such key!");                               \
-        exit(EXIT_FAILURE);                                                              \
+        exit(EXIT_FAILURE);                                                    \
     }
 
 #define HTABLE_GET(typename, T_key, T_val)                                     \
@@ -368,7 +367,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - get: Invalid Argument!\n");                       \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         size_t idx = typename##_bucket_idx(ht, key);                           \
@@ -394,12 +393,12 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - get_direct: Invalid Argument!\n");                \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         T_val val;                                                             \
         if (typename##_get(ht, key, &val) < 0) {                               \
             printf("htable - get_direct: no such key!\n");                     \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return val;                                                            \
     }
@@ -409,7 +408,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - contains: Invalid Argument!\n");                  \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         T_val val;                                                             \
         return typename##_get(ht, key, &val) > -1;                             \
@@ -420,14 +419,14 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - create_iterator: Invalid Argument!\n");           \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_iterator* hi = calloc(1, sizeof(*hi));                      \
                                                                                \
         if (!hi) {                                                             \
             printf("htable - create iterator: Memory Allocation failed!\n");   \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         hi->ht = ht;                                                           \
@@ -441,7 +440,7 @@
     {                                                                          \
         if (!hi || !key || !value) {                                           \
             printf("htable - _iterator_next: Invalid Argument!\n");            \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         if (!hi->cur) {                                                        \
@@ -477,7 +476,7 @@
     {                                                                          \
         if (!ht) {                                                             \
             printf("htable - print: Invalid Argument!\n");                     \
-            exit(EXIT_FAILURE);                                                          \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_iterator* hi = typename##_iterator_create(ht);              \
                                                                                \

@@ -1,6 +1,5 @@
 #include "page_cache.h"
 
-#include <endian.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -342,35 +341,50 @@ swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
                           bits_on_second_snd);
     }
 
+    unsigned char** split;
     if (bits_on_second_fst != 0) {
-        write_bits(
-              pc->cache[frame_no[4]],
-              0,
-              0,
-              bits_on_first_snd,
-              split_bit_array(snd_header, slots_per_page, bits_on_first_fst));
+        split = split_bit_array(snd_header, slots_per_page, bits_on_first_fst);
+
+        write_bits(pc->cache[frame_no[4]], 0, 0, bits_on_first_snd, split[1]);
+        write_bits(pc->cache[frame_no[2]],
+                   header_byte_offset_fst,
+                   header_bit_offset_fst,
+                   bits_on_first_fst,
+                   split[0]);
+
+        free(split[0]);
+        free(split[1]);
+    } else {
+        write_bits(pc->cache[frame_no[2]],
+                   header_byte_offset_fst,
+                   header_bit_offset_fst,
+                   bits_on_first_fst,
+                   snd_header);
     }
 
     if (bits_on_second_snd != 0) {
-        write_bits(
-              pc->cache[frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1]],
-              0,
-              0,
-              bits_on_second_snd,
-              split_bit_array(fst_header, slots_per_page, bits_on_first_fst));
+        split = split_bit_array(fst_header, slots_per_page, bits_on_second_fst);
+
+        write_bits(pc->cache[frame_no[SWAP_MAX_NUM_PINNED_PAGES - 1]],
+                   0,
+                   0,
+                   bits_on_second_snd,
+                   split[1]);
+        write_bits(pc->cache[frame_no[3]],
+                   header_byte_offset_snd,
+                   header_bit_offset_snd,
+                   bits_on_second_fst,
+                   split[0]);
+
+        free(split[0]);
+        free(split[1]);
+    } else {
+        write_bits(pc->cache[frame_no[3]],
+                   header_byte_offset_snd,
+                   header_bit_offset_snd,
+                   bits_on_second_fst,
+                   fst_header);
     }
-
-    write_bits(pc->cache[frame_no[2]],
-               header_byte_offset_fst,
-               header_bit_offset_fst,
-               bits_on_first_fst,
-               snd_header);
-
-    write_bits(pc->cache[frame_no[3]],
-               header_byte_offset_snd,
-               header_bit_offset_snd,
-               slots_per_page,
-               fst_header);
 
     pc->cache[frame_no[0]]->dirty = true;
     pc->cache[frame_no[1]]->dirty = true;
