@@ -19,21 +19,23 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - [x] SRS
 - [x] SDD
 - [ ] Code Comments
-- [ ] User Guide
-
+- [ ] Dev Manual
 
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="1" max="7">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="4" max="10">Implementation</progress></font></p>  
 
   - [x] Fixup Includes
   - [x] Marko-based genereic data structures
   - [x] Disk-based IO
-  - [-] Cache (WIP)
-  - [ ] Non-consecutive IDs & support deletions
+  - [x] Cache
+  - [ ] Heap file
+  - [ ] Queries
+  - [ ] layout
        => End of July  
   - [ ] Dynamic Reorganization Impl.
   - [ ] G-Store Data format converter
+  - [ ] Gorder integration
 
 #### Brainstorm
   - Adapt louvain w. RCM
@@ -44,14 +46,14 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 #### Test Cases
   - [ ] Compare reorganization of simulated and disk-based
+  - [ ] Compare IOs of query on data set order
   
 ### Future Work
-
   - [ ] Hop labeling scheme: Use existing impl.
-  - [ ] More traversal-based queries: 
+  - [ ] bulk ops
+  - [ ] Alternative record layouts (nodes + adj list in same file)
   - [ ] thread-safe data structures
   - [ ] Transactions/MVCC using git-like transaction logs
-  - [ ] Alternative record layouts (nodes + adj list in same file)
   - [ ] Distributed
   - [ ] Multi-Model
 
@@ -79,6 +81,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - By End of Semester/July: Measure number of actual disk IOs for the default/dataset order layout 
 
 ## Meeting 3
-- Theodoros wants labels and properties stored within the nodes & rel struct
+- labels stored within the nodes & rel struct
 - Algorithms: The ones that are implemented + hop labeling
-- Out of memory during transaction (e.g. BFS on live journal): Theodoros "Assume everything fits in memory"
+- Out of memory during transaction (e.g. BFS on live journal): Assume everything fits in memory
+

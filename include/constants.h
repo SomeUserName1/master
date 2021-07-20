@@ -7,8 +7,8 @@
 static const unsigned long UNINITIALIZED_LONG    = 0xFFFFFFFFFFFFF666;
 static const unsigned char UNINITIALIZED_BYTE    = 0x00;
 static const double        UNINITIALIZED_WEIGHT  = 0x1.FFFFFFFFFF666p-1;
-static const unsigned char FIRST_REL_SOURCE_FLAG = 0x02;
-static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
+static const unsigned char FIRST_REL_SOURCE_FLAG = 0x01;
+static const unsigned char FIRST_REL_TARGET_FLAG = 0x02;
 
 /* The size of a page, the maximum number of pages (limited by the standard
  * library using the type long for file offsets) and the maximum amount of
@@ -19,7 +19,8 @@ static const unsigned char FIRST_REL_TARGET_FLAG = 0x04;
                               size of the database in bytes is 8 EiB */
 #define MAX_STR_LEN (31)
 
-#define SLOT_SIZE (16)
+#define SLOT_SIZE      (16)
+#define SLOTS_PER_PAGE (4096 / 16)
 
 /* size of the cache for the actual graph */
 #define CACHE_SIZE    (2UL << 30) /* 2 GiB */

@@ -309,6 +309,11 @@ write_bits(page*          p,
     size_t n_bytes_write = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
                            + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
 
+    if (n_bytes_write < 1) {
+        n_bytes_write = 1;
+        printf("page - write bits: Unreachable!\n");
+    }
+
     // Shift data by (CHAR_BIT - n_bits) - bit offset to left
     // CHAR_BIT - n_bits give the leading zeros of the data array
     // - bit_offset gives how many zeros need to be removed
@@ -318,6 +323,7 @@ write_bits(page*          p,
     // [XXXX XXXX] => [00XX XXXX] [XX00 0000]
 
     unsigned char* shifted_data;
+
     if ((n_bits / CHAR_BIT) + (n_bits % CHAR_BIT) < n_bytes_write) {
         shifted_data = calloc(n_bytes_write, sizeof(unsigned char));
         memcpy(shifted_data + 1,

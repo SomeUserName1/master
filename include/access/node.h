@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
+#include "page.h"
 
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
@@ -17,7 +18,6 @@ typedef struct NodeRecord
 {
     unsigned long id;
     unsigned long first_relationship;
-    unsigned char flags;
     char          label[MAX_STR_LEN];
 } node_t;
 
@@ -37,18 +37,18 @@ new_node(void);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int
-node_read(node_t* record, const unsigned char* bytes);
+void
+node_read(node_t* record, page* read_from_page, unsigned char slot);
 
 /**
  *  Writes the contents of the given record struct to the given address/id.
  *
  *  @param record: The struct to read the record into.
- *  @param id: Offset to read from.
+ *  @param id: Offset to write to.
  *  @return: 0 on success, a negative int on failure.
  */
-int
-node_write(const node_t* record);
+void
+node_write(const node_t* record, page* write_to_page, unsigned char slot);
 
 /**
  * Clears the current record struct.
@@ -88,7 +88,7 @@ node_equals(const node_t* first, const node_t* second);
  *
  *  @return: 0 on success, negative value on error.
  */
-int
+void
 node_to_string(const node_t* record, char* buffer, size_t buffer_size);
 
 void

@@ -42,7 +42,4 @@ flush_page(page_cache* pc, size_t frame_no);
 void
 flush_all_pages(page_cache* pc);
 
-void
-swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft);
-
 #endif
