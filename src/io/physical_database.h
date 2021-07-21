@@ -46,9 +46,9 @@ void
 phy_database_validate_header(phy_database* db, file_type ft);
 
 void
-phy_database_allocate_page(phy_database* db, file_type ft);
+allocate_pages(phy_database* db, file_type ft, size_t num_pages);
 
 void
-phy_database_deallocate_page(phy_database* db, file_type ft);
+deallocate_pages(phy_database* db, file_type ft);
 
 #endif

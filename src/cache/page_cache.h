@@ -27,6 +27,9 @@ page_cache_create(phy_database* pdb);
 void
 page_cache_destroy(page_cache* pc);
 
+unsigned long
+new_page(page_cache* pc, file_type ft);
+
 page*
 pin_page(page_cache* pc, size_t page_no, file_type ft);
 

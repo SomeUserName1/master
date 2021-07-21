@@ -1,1 +1,1 @@
-Checks: '-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*, readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-macro-parentheses,-bugprone-reserved-identifier'
+Checks: '-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*, readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-bugprone-macro-parentheses,-bugprone-reserved-identifier,-readability-function-cognitive-complexity'

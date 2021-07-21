@@ -1,5 +1,6 @@
 #include "access/heap_file.h"
 
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 
@@ -25,8 +26,10 @@ heap_file_create(page_cache* pc)
         exit(EXIT_FAILURE);
     }
 
-    heap_file* hf = malloc(sizeof(heap_file));
-    hf->cache     = pc;
+    heap_file* hf            = malloc(sizeof(heap_file));
+    hf->cache                = pc;
+    hf->last_alloc_node_slot = 0;
+    hf->last_alloc_rel_slot  = 0;
 
     return hf;
 }
@@ -40,6 +43,102 @@ heap_file_destroy(heap_file* hf)
     }
 
     free(hf);
+}
+
+unsigned long
+next_free_slots(heap_file* hf, file_type ft)
+{
+    if (!hf || (ft != node_file && ft != relationship_file)) {
+        printf("heap file - nex free slots: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    file_type hft = ft == node_file ? node_header : relationship_header;
+
+    unsigned char n_slots =
+          ft == node_file ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
+
+    unsigned long* prev_allocd_slots = ft == node_file
+                                             ? &(hf->last_alloc_node_slot)
+                                             : &(hf->last_alloc_rel_slot);
+
+    unsigned long prev_allocd_slots_byte = sizeof(unsigned long)
+                                           + (*prev_allocd_slots / CHAR_BIT)
+                                           + (*prev_allocd_slots % CHAR_BIT);
+
+    unsigned long prev_allocd_page_header_id =
+          prev_allocd_slots_byte / PAGE_SIZE;
+
+    page* prev_free_page_header =
+          pin_page(hf->cache, prev_allocd_page_header_id, hft);
+
+    unsigned short byte_offset = prev_allocd_slots_byte % PAGE_SIZE;
+
+    unsigned char nxt_bits        = prev_free_page_header->data[byte_offset];
+    page*         cur_page        = prev_free_page_header;
+    unsigned long cur_page_id     = prev_allocd_page_header_id;
+    unsigned long cur_byte_offset = byte_offset;
+    unsigned long start_slot =
+          *prev_allocd_slots - (*prev_allocd_slots % CHAR_BIT);
+    unsigned long cur_slot               = start_slot;
+    unsigned char consecutive_free_slots = 0;
+    unsigned char first_free_slot;
+    unsigned char write_mask = 1;
+
+    for (size_t i = 1; i < n_slots; ++i) {
+        write_mask = (write_mask << 1) | (1 << i);
+    }
+
+    do {
+        for (unsigned char i = CHAR_BIT; i >= 0; --i) {
+            if (((1 << i) & nxt_bits) == 0) {
+                if (consecutive_free_slots == 0) {
+                    first_free_slot = i;
+                } else if ((cur_slot + i - sizeof(unsigned long) * CHAR_BIT)
+                                 % SLOTS_PER_PAGE
+                           == 0) {
+                    consecutive_free_slots = 0;
+                    first_free_slot        = i;
+                }
+
+                consecutive_free_slots++;
+
+                if (consecutive_free_slots == n_slots) {
+                    *prev_allocd_slots =
+                          (cur_page_id * PAGE_SIZE - sizeof(unsigned long))
+                                * CHAR_BIT
+                          + cur_byte_offset * CHAR_BIT + first_free_slot;
+
+                    write_bits(
+                          cur_page, cur_byte_offset, i, n_slots, &write_mask);
+
+                    unpin_page(hf->cache, prev_allocd_page_header_id, hft);
+
+                    return ft == node_file ? hf->last_alloc_node_slot
+                                           : hf->last_alloc_rel_slot;
+                }
+            } else {
+                consecutive_free_slots = 0;
+            }
+        }
+
+        if (cur_byte_offset >= PAGE_SIZE) {
+            cur_byte_offset = 0;
+            unpin_page(hf->cache, prev_allocd_page_header_id, hft);
+            cur_page_id++;
+            cur_page = pin_page(hf->cache, cur_page_id, hft);
+        } else {
+            cur_byte_offset++;
+        }
+
+        nxt_bits = cur_page->data[cur_byte_offset];
+
+        cur_slot += CHAR_BIT;
+
+    } while (cur_slot != start_slot);
+
+    return new_page(hf->cache, ft) * SLOTS_PER_PAGE
+           - (sizeof(unsigned long) * CHAR_BIT);
 }
 
 void
@@ -116,6 +215,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
 {}
 
 // FIXME: Adjust record IDs
+// FIXME move read & write btw. pages to read/write bits
 void
 swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft)
 {

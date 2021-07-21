@@ -34,12 +34,12 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] layout
        => End of July  
   - [ ] Dynamic Reorganization Impl.
-  - [ ] G-Store Data format converter
   - [ ] Gorder integration
 
 #### Brainstorm
-  - Adapt louvain w. RCM
   - Access-History Graph
+  - Extend Gorder's loss function to take HAG into account
+  - Adapt louvain w. RCM
 
 ### Coverage
 <p style="text-align: center;"><font size="14"><progress id="file" value="1435" max="1710">Coverage</progress></font></p>  
@@ -85,3 +85,8 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Algorithms: The ones that are implemented + hop labeling
 - Out of memory during transaction (e.g. BFS on live journal): Assume everything fits in memory
 
+
+# Short-term TODO:
+- [ ] extend read\_bits & write\_bits to write over page borders
+- [ ] Adjust record IDs when swapping pages
+- [ ] CRUD

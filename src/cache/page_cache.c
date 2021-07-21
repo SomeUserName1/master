@@ -80,6 +80,18 @@ page_cache_destroy(page_cache* pc)
     free(pc);
 }
 
+unsigned long
+new_page(page_cache* pc, file_type ft)
+{
+    if (!ft || (ft != node_file && ft != relationship_file)) {
+        printf("page cache - pin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    allocate_pages(pc->pdb, ft, 1);
+    return pc->pdb->files[ft]->num_pages - 1;
+}
+
 page*
 pin_page(page_cache* pc, size_t page_no, file_type ft)
 {
