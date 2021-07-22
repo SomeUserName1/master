@@ -7,6 +7,7 @@
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
+#include "header_page.h"
 #include "page.h"
 #include "page_cache.h"
 #include "physical_database.h"
@@ -109,8 +110,12 @@ next_free_slots(heap_file* hf, file_type ft)
                                 * CHAR_BIT
                           + cur_byte_offset * CHAR_BIT + first_free_slot;
 
-                    write_bits(
-                          cur_page, cur_byte_offset, i, n_slots, &write_mask);
+                    write_bits(hf->cache,
+                               cur_page,
+                               cur_byte_offset,
+                               i,
+                               n_slots,
+                               &write_mask);
 
                     unpin_page(hf->cache, prev_allocd_page_header_id, hft);
 
@@ -175,7 +180,7 @@ create_node(heap_file* hf, char* label)
     unsigned char bit_offset = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
     unsigned char used_bits  = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
 
-    write_bits(header, byte_offset, bit_offset, 1, &used_bits);
+    write_bits(hf->cache, header, byte_offset, bit_offset, 1, &used_bits);
 
     unpin_page(hf->cache, header_id, node_header);
 }

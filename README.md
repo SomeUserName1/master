@@ -87,6 +87,5 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 
 # Short-term TODO:
-- [ ] extend read\_bits & write\_bits to write over page borders
 - [ ] Adjust record IDs when swapping pages
 - [ ] CRUD
