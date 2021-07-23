@@ -2,12 +2,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/cbs.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
+#include "page.h"
 
 inline relationship_t*
 new_relationship()
@@ -22,18 +24,80 @@ new_relationship()
     return rel;
 }
 
-int
-relationship_read(relationship_t* record, const unsigned char* bytes)
+void
+relationship_read(relationship_t* record, page* read_from_page)
 {
-    printf("%lu, %c", record->id, *bytes);
-    return 0;
+    if (!record || !read_from_page) {
+        printf("relationship - read: Invalid Arguments\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t first_slot = record->id * ON_DISK_REL_SIZE % PAGE_SIZE;
+
+    record->source_node = read_ulong(read_from_page, first_slot);
+    record->target_node =
+          read_ulong(read_from_page, first_slot + sizeof(unsigned long));
+
+    record->prev_rel_source =
+          read_ulong(read_from_page, first_slot + 2 * sizeof(unsigned long));
+    record->next_rel_source =
+          read_ulong(read_from_page, first_slot + 3 * sizeof(unsigned long));
+    record->prev_rel_source =
+          read_ulong(read_from_page, first_slot + 4 * sizeof(unsigned long));
+    record->next_rel_target =
+          read_ulong(read_from_page, first_slot + 5 * sizeof(unsigned long));
+
+    record->weight =
+          read_double(read_from_page, first_slot + 6 * sizeof(unsigned long));
+    record->flags =
+          read_uchar(read_from_page,
+                     first_slot + 6 * sizeof(unsigned long) + sizeof(double));
+
+    read_string(read_from_page,
+                first_slot + 6 * sizeof(unsigned long) + sizeof(double)
+                      + sizeof(unsigned char),
+                record->label);
 }
 
-int
-relationship_write(const relationship_t* record)
+void
+relationship_write(relationship_t* record, page* write_to_page)
 {
-    printf("%lu", record->id);
-    return 0;
+    if (!record || !write_to_page) {
+        printf("relationship - read: Invalid Arguments\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t first_slot = record->id * ON_DISK_REL_SIZE % PAGE_SIZE;
+
+    write_ulong(write_to_page, first_slot, record->source_node);
+    write_ulong(write_to_page,
+                first_slot + sizeof(unsigned long),
+                record->target_node);
+
+    write_ulong(write_to_page,
+                first_slot + 2 * sizeof(unsigned long),
+                record->prev_rel_source);
+    write_ulong(write_to_page,
+                first_slot + 3 * sizeof(unsigned long),
+                record->next_rel_source);
+    write_ulong(write_to_page,
+                first_slot + 4 * sizeof(unsigned long),
+                record->prev_rel_source);
+    write_ulong(write_to_page,
+                first_slot + 5 * sizeof(unsigned long),
+                record->next_rel_target);
+
+    write_double(write_to_page,
+                 first_slot + 6 * sizeof(unsigned long),
+                 record->weight);
+    write_uchar(write_to_page,
+                first_slot + 6 * sizeof(unsigned long) + sizeof(double),
+                record->flags);
+
+    write_string(write_to_page,
+                 first_slot + 6 * sizeof(unsigned long) + sizeof(double)
+                       + sizeof(unsigned char),
+                 record->label);
 }
 
 inline void
@@ -48,6 +112,7 @@ relationship_clear(relationship_t* record)
     record->prev_rel_target = UNINITIALIZED_LONG;
     record->next_rel_target = UNINITIALIZED_LONG;
     record->weight          = UNINITIALIZED_WEIGHT;
+    memset(record->label, 0, MAX_STR_LEN);
 }
 
 inline relationship_t*
@@ -84,7 +149,7 @@ relationship_equals(const relationship_t* first, const relationship_t* second)
             && (first->weight == second->weight));
 }
 
-int
+void
 relationship_to_string(const relationship_t* record,
                        char*                 buffer,
                        size_t                buffer_size)
@@ -116,8 +181,7 @@ relationship_to_string(const relationship_t* record,
         printf("String length: %lu, Buffer size, %lu\n",
                (size_t)length,
                buffer_size);
-
-        return -1;
+        exit(EXIT_FAILURE);
     }
 
     int result = snprintf(buffer,
@@ -141,7 +205,10 @@ relationship_to_string(const relationship_t* record,
                           record->next_rel_target,
                           record->weight);
 
-    return result > 0 ? 0 : result;
+    if (result < 0) {
+        printf("relationship - to string: Failed to write to buffer!\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void

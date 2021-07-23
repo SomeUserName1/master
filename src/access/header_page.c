@@ -8,6 +8,28 @@
 #include "constants.h"
 #include "page_cache.h"
 
+bool
+compare_bits(const unsigned char* ar,
+             size_t               size,
+             unsigned char        mask,
+             unsigned char        mask_len,
+             size_t               offset)
+{
+    if (!ar || offset > size || mask_len > CHAR_BIT) {
+        printf("header page - compare bits: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned char start_byte = offset / CHAR_BIT;
+    unsigned char upper_mask = mask >> (CHAR_BIT - offset);
+    unsigned char lower_mask = mask << (CHAR_BIT - offset);
+
+    return (ar[start_byte] & upper_mask) + (ar[start_byte + 1] & lower_mask)
+                       == mask
+                 ? true
+                 : false;
+}
+
 /**
  * a negative amount means left, a positive one right.
  */

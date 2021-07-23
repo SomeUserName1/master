@@ -41,8 +41,8 @@ read_double(page* p, size_t offset);
 void
 write_double(page* p, size_t offset, double value);
 
-char*
-read_string(page* p, size_t offset);
+void
+read_string(page* p, size_t offset, char* buf);
 
 void
 write_string(page* p, size_t offset, char* value);

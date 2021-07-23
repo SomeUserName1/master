@@ -8,6 +8,14 @@
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
+#include "page.h"
+
+#define ON_DISK_REL_SIZE                                                       \
+    (6 * sizeof(unsigned long) + sizeof(double) + sizeof(unsigned char)        \
+     + MAX_STR_LEN * sizeof(char))
+
+#define FIRST_REL_SOURCE_FLAG (0x01)
+#define FIRST_REL_TARGET_FLAG (0x02)
 
 typedef enum
 {
@@ -52,8 +60,8 @@ new_relationship(void);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int
-relationship_read(relationship_t* record, const unsigned char* bytes);
+void
+relationship_read(relationship_t* record, page* read_from_page);
 
 /**
  *  Writes the contents of the given relationship struct to the given
@@ -63,8 +71,8 @@ relationship_read(relationship_t* record, const unsigned char* bytes);
  *  @param id: Offset to read from.
  *  @return: 0 on success, a negative int on failure.
  */
-int
-relationship_write(const relationship_t* record);
+void
+relationship_write(relationship_t* record, page* write_to_page);
 
 /**
  * Clears the current relationship struct.
@@ -104,7 +112,7 @@ relationship_equals(const relationship_t* first, const relationship_t* second);
  *
  *  @return: 0 on success, negative value on error.
  */
-int
+void
 relationship_to_string(const relationship_t* record,
                        char*                 buffer,
                        size_t                buffer_size);

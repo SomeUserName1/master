@@ -200,8 +200,8 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
 
     // The amount of if clauses significantly decreases when we exclude
     // self-loops.
-    // We are altering things appart from setting the first and last
-    // relationships in chains as doing so meanwhile figuring out the first and
+    // We are altering things after setting the first and last
+    // relationships in chains as doing so while figuring out the first and
     // last rels, may produce garbage like when changing a collection during
     // iteration
 

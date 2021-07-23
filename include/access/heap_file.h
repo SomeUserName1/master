@@ -23,8 +23,8 @@ create_node(heap_file* hf, char* label);
 
 void
 create_relationship(heap_file*    hf,
-                    unsigned long node_from,
-                    unsigned long node_to,
+                    unsigned long from_node_id,
+                    unsigned long to_node_id,
                     double        weight,
                     char*         label);
 
@@ -35,12 +35,10 @@ relationship_t*
 read_relationship(heap_file* hf, unsigned long rel_id);
 
 void
-update_node(heap_file* hf, unsigned long target_node_id, node_t* node_to_write);
+update_node(heap_file* hf, node_t* node_to_write);
 
 void
-update_relationship(heap_file*      hf,
-                    unsigned long   target_rel_id,
-                    relationship_t* rel_to_write);
+update_relationship(heap_file* hf, relationship_t* rel_to_write);
 
 void
 delete_node(heap_file* hf, unsigned long node_id);
@@ -49,6 +47,12 @@ void
 delete_relationship(heap_file* hf, unsigned long rel_id);
 
 void
-swap_page(page_cache* pc, size_t fst, size_t snd, file_type ft);
+move_node(heap_file* hf, unsigned long id, unsigned long to_id);
+
+void
+move_relationship(heap_file* hf, unsigned long id, unsigned long to_id);
+
+void
+swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft);
 
 #endif

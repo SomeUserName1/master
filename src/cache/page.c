@@ -126,19 +126,15 @@ write_double(page* p, size_t offset, double value)
     memcpy(p->data + offset, &value, sizeof(double));
 }
 
-char*
-read_string(page* p, size_t offset)
+void
+read_string(page* p, size_t offset, char* buf)
 {
     if (!p) {
         printf("page - read string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    char* res = calloc(MAX_STR_LEN, sizeof(char));
-
-    memcpy(res, p->data + offset, sizeof(char) * MAX_STR_LEN);
-
-    return res;
+    memcpy(buf, p->data + offset, sizeof(char) * MAX_STR_LEN);
 }
 
 void

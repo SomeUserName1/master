@@ -9,6 +9,8 @@
 #include "data-struct/htable.h"
 #include "page.h"
 
+#define ON_DISK_NODE_SIZE (sizeof(unsigned long) + MAX_STR_LEN * sizeof(char))
+
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
  * but a byte is used to align the struct to be a aligned.
@@ -38,7 +40,7 @@ new_node(void);
  *  @return: 0 on success, a negative int on failure.
  */
 void
-node_read(node_t* record, page* read_from_page, unsigned char slot);
+node_read(node_t* record, page* read_from_page);
 
 /**
  *  Writes the contents of the given record struct to the given address/id.
@@ -48,7 +50,7 @@ node_read(node_t* record, page* read_from_page, unsigned char slot);
  *  @return: 0 on success, a negative int on failure.
  */
 void
-node_write(const node_t* record, page* write_to_page, unsigned char slot);
+node_write(node_t* record, page* write_to_page);
 
 /**
  * Clears the current record struct.
