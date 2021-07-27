@@ -244,10 +244,6 @@ read_bits(page_cache*    pc,
         carry = next_carry;
     }
 
-    if (split_read) {
-        ;
-    }
-
     return split_read ? concat_bit_arrays(
                  result, second_part, n_bits, n_bits_split_read)
                       : result;

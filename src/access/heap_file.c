@@ -672,11 +672,7 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     unsigned char n_slots =
           ft == node_file ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
 
-    unsigned char slot_used_mask = 1;
-
-    for (size_t i = 1; i < n_slots; ++i) {
-        slot_used_mask = (slot_used_mask << 1) | (1 << i);
-    }
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - n_slots);
 
     unsigned long id    = UNINITIALIZED_LONG;
     unsigned long to_id = UNINITIALIZED_LONG;
@@ -750,28 +746,40 @@ get_nodes(heap_file* hf)
         exit(EXIT_FAILURE);
     }
 
-    page* fst_header = pin_page(hf->cache, 0, node_header);
-    bool  first      = true;
+    size_t header_id = 0;
+    page*  header    = pin_page(hf->cache, header_id, node_header);
+    bool   first     = true;
 
-    unsigned long n_slots = read_ulong(fst_header, 0);
+    unsigned long n_slots = read_ulong(header, 0);
 
     array_list_node* result = al_node_create();
     node_t*          node;
 
-    for (size_t i = 0; i < n_slots; ++i) {
-        unsigned char* used = read_bits(hf->cache,
-                                        fst_header,
-                                        sizeof(unsigned long) + i / CHAR_BIT,
-                                        i % CHAR_BIT,
-                                        1);
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
 
-        if (used) {
+    unsigned char* slot_used;
+    for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_NODE) {
+        slot_used = read_bits(hf->cache,
+                              header,
+                              sizeof(unsigned long) + i / CHAR_BIT,
+                              i % CHAR_BIT,
+                              NUM_SLOTS_PER_NODE);
+
+        if (compare_bits(slot_used, slot_used_mask, i)) {
             node = read_node(hf, i);
             array_list_node_append(result, node);
         }
-        free(used);
 
-        if ()
+        free(slot_used);
+
+        // FIXME correct this! How to detect if page boundary is reached?
+        if ((first
+             && (sizeof(unsigned long) * CHAR_BIT + i) % SLOTS_PER_PAGE == 0)
+            || (!first && i % SLOTS_PER_PAGE == 0)) {
+            unpin_page(hf->cache, header_id, node_header);
+            ++header_id;
+            pin_page(hf->cache, header_id, node_header);
+        }
     }
 
     return result;
@@ -779,7 +787,51 @@ get_nodes(heap_file* hf)
 
 array_list_relationship*
 get_relationships(heap_file* hf)
-{}
+{
+    if (!hf) {
+        printf("heap file operators - get relationships: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t header_id = 0;
+    page*  header    = pin_page(hf->cache, header_id, relationship_header);
+    bool   first     = true;
+
+    unsigned long n_slots = read_ulong(header, 0);
+
+    array_list_relationship* result = al_rel_create();
+    relationship_t*          rel;
+
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_REL);
+
+    unsigned char* slot_used;
+    for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_REL) {
+        slot_used = read_bits(hf->cache,
+                              header,
+                              sizeof(unsigned long) + i / CHAR_BIT,
+                              i % CHAR_BIT,
+                              NUM_SLOTS_PER_REL);
+
+        if (compare_bits(slot_used, slot_used_mask, i)) {
+
+            rel = read_relationship(hf, i);
+            array_list_relationship_append(result, rel);
+        }
+
+        free(slot_used);
+
+        // FIXME correct this! How to detect if page boundary is reached?
+        if ((first
+             && (sizeof(unsigned long) * CHAR_BIT + i) % SLOTS_PER_PAGE == 0)
+            || (!first && i % SLOTS_PER_PAGE == 0)) {
+            unpin_page(hf->cache, header_id, node_header);
+            ++header_id;
+            pin_page(hf->cache, header_id, node_header);
+        }
+    }
+
+    return result;
+}
 
 unsigned long
 next_relationship_id(heap_file*      hf,
