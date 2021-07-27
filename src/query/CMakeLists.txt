@@ -5,5 +5,5 @@ add_library(query  heap_file_operators.c in_memory_operators.c degree.c result_t
     random_walk.c dijkstra.c a-star.c alt.c louvain.c snap_importer.c)
 
 target_link_libraries(query
-    PRIVATE  access
+    PUBLIC  access
     PUBLIC   -lz -lcurl)

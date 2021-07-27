@@ -742,3 +742,60 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     free(snd_header);
 }
 
+array_list_node*
+get_nodes(heap_file* hf)
+{
+    if (!hf) {
+        printf("heap file operators - get nodes: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    page* fst_header = pin_page(hf->cache, 0, node_header);
+    bool  first      = true;
+
+    unsigned long n_slots = read_ulong(fst_header, 0);
+
+    array_list_node* result = al_node_create();
+    node_t*          node;
+
+    for (size_t i = 0; i < n_slots; ++i) {
+        unsigned char* used = read_bits(hf->cache,
+                                        fst_header,
+                                        sizeof(unsigned long) + i / CHAR_BIT,
+                                        i % CHAR_BIT,
+                                        1);
+
+        if (used) {
+            node = read_node(hf, i);
+            array_list_node_append(result, node);
+        }
+        free(used);
+
+        if ()
+    }
+
+    return result;
+}
+
+array_list_relationship*
+get_relationships(heap_file* hf)
+{}
+
+unsigned long
+next_relationship_id(heap_file*      hf,
+                     unsigned long   node_id,
+                     relationship_t* rel,
+                     direction_t     direction)
+{}
+
+array_list_relationship*
+expand(heap_file* db, unsigned long node_id, direction_t direction)
+{}
+
+relationship_t*
+contains_relationship_from_to(heap_file*    hf,
+                              unsigned long node_from,
+                              unsigned long node_to,
+                              direction_t   direction)
+{}
+
