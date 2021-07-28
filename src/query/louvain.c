@@ -4,27 +4,27 @@
 #include <stdlib.h>
 
 #include "access/relationship.h"
-#include "query/in_memory_operators.h"
+
+// FIXME Major rework: Need in memory graphs for louvain
 
 louvain_graph_t*
-louvain_graph_init(in_memory_file_t* db)
+louvain_graph_init(heap_file* hf)
 {
-    if (!db) {
-
-        printf("louvain: louvain_graph_init: Passed NULL ptr as argument!\n");
+    if (!hf) {
+        printf("louvain - louvain_graph_init: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     louvain_graph_t* result = malloc(sizeof(*result));
 
     if (!result) {
-        printf("louvain: louvain_graph_init: Allocating memory failed!\n");
+        printf("louvain - louvain_graph_init: Allocating memory failed!\n");
         exit(EXIT_FAILURE);
     }
 
-    result->graph                 = db;
+    result->graph                 = hf;
     result->m2                    = 0;
-    array_list_relationship* rels = in_memory_get_relationships(db);
+    array_list_relationship* rels = get_relationships(hf);
     relationship_t*          rel  = NULL;
 
     for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
@@ -482,14 +482,14 @@ louvain_one_level(louvain_partition_t* p, louvain_graph_t* g)
 }
 
 unsigned long*
-louvain(in_memory_file_t* db)
+louvain(heap_file* hf)
 {
     if (!db) {
         printf("louvain: louvain: Passed NULL ptr as argument!\n");
         exit(EXIT_FAILURE);
     }
 
-    unsigned long  original_size = db->node_id_counter;
+    unsigned long  original_size = hf->n_nodes;
     unsigned long* partition     = calloc(original_size, sizeof(unsigned long));
 
     if (!partition) {

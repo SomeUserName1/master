@@ -1,7 +1,7 @@
 #ifndef SNAP_IMPORTER_H
 #define SNAP_IMPORTER_H
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 #include "data-struct/htable.h"
 
 #define C_ELEGANS_URL                                                          \
@@ -82,5 +82,5 @@ uncompress_dataset(const char* gz_path, const char* out_path);
 
 /* Parsing and importing */
 dict_ul_ul*
-import_from_txt(in_memory_file_t* db, const char* path);
+import_from_txt(heap_file* hf, const char* path);
 #endif

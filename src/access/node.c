@@ -151,7 +151,7 @@ node_free(node_t* node)
 }
 
 ARRAY_LIST_IMPL(array_list_node, node_t*);
-static array_list_node_cbs list_node_cbs = { node_equals, NULL, NULL };
+static array_list_node_cbs list_node_cbs = { node_equals, NULL, node_free };
 
 inline array_list_node*
 al_node_create(void)

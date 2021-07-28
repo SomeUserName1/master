@@ -8,23 +8,24 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/linked_list.h"
-#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
+// FIXME use dicts instead of arrays!
+
 traversal_result*
-bfs(in_memory_file_t* db,
-    unsigned long     source_node_id,
-    direction_t       direction,
-    const char*       log_path)
+bfs(heap_file*    hf,
+    unsigned long source_node_id,
+    direction_t   direction,
+    const char*   log_path)
 {
-    unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    unsigned long* bfs     = malloc(db->node_id_counter * sizeof(*bfs));
+    unsigned long* parents = malloc(hf->n_nodes * sizeof(*parents));
+    unsigned long* bfs     = malloc(hf->n_nodes * sizeof(*bfs));
 
     if (!parents || !bfs) {
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         parents[i] = UNINITIALIZED_LONG;
         bfs[i]     = ULONG_MAX;
     }
@@ -49,7 +50,7 @@ bfs(in_memory_file_t* db,
 
     while (queue_ul_size(nodes_queue) > 0) {
         node_id      = queue_ul_pop(nodes_queue);
-        current_rels = in_memory_expand(db, node_id, direction);
+        current_rels = expand(hf, node_id, direction);
         fprintf(log_file, "%s %lu\n", "N", node_id);
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);

@@ -8,23 +8,22 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/fibonacci_heap.h"
-#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
 sssp_result*
-dijkstra(in_memory_file_t* db,
-         unsigned long     source_node_id,
-         direction_t       direction,
-         const char*       log_path)
+dijkstra(heap_file*    hf,
+         unsigned long source_node_id,
+         direction_t   direction,
+         const char*   log_path)
 {
-    unsigned long* parents  = malloc(db->node_id_counter * sizeof(*parents));
-    double*        distance = malloc(db->node_id_counter * sizeof(*distance));
+    unsigned long* parents  = malloc(hf->n_nodes * sizeof(*parents));
+    double*        distance = malloc(hf->n_nodes * sizeof(*distance));
     if (!parents || !distance) {
         printf("Dijkstra: invalid arguments or memory allocation failed!\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         parents[i]  = UNINITIALIZED_LONG;
         distance[i] = DBL_MAX;
     }
@@ -50,7 +49,7 @@ dijkstra(in_memory_file_t* db,
 
     while (prio_queue->num_nodes > 0) {
         fh_node      = fib_heap_ul_extract_min(prio_queue);
-        current_rels = in_memory_expand(db, fh_node->value, direction);
+        current_rels = expand(hf, fh_node->value, direction);
 
         fprintf(log_file, "%s %lu\n", "N", fh_node->value);
 

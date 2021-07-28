@@ -29,9 +29,11 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [x] Marko-based genereic data structures
   - [x] Disk-based IO
   - [x] Cache
-  - [ ] Heap file
-  - [ ] Queries
+  - [x] Heap file
+  - [ ] (WIP) Queries - use dicts instead of arrays!
   - [ ] layout
+  - [ ] IO logging not in queries but in page cache
+  - [ ] Weights for snap importer
        => Milestone 1  
   - [ ] Dynamic Reorganization Impl.
   - [ ] Gorder integration
@@ -39,8 +41,9 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 #### Brainstorm
   - Access-History Graph
-  - Extend Gorder's loss function to take HAG into account
-  - Adapt louvain w. RCM
+  - Dynamic: Extend Gorder's loss function to take HAG into account
+  - Dynamic: RCM based on HAG
+  - Static: Adapt louvain w. RCM
 
 ### Coverage
 <p style="text-align: center;"><font size="14"><progress id="file" value="1435" max="1710">Coverage</progress></font></p>  
@@ -51,15 +54,15 @@ Dynamic record locality optimizing storage scheme for graph databases.
   
 ### Future Work
   - [ ] Transaction Buffer
+  - [ ] System Catalog (n\_slots from first 4 bytes of header and n\_nodes, n\_rels for now)
   - [ ] Hop labeling scheme: Use existing impl.
   - [ ] bulk ops
   - [ ] Alternative record layouts (nodes + adj list in same file)
   - [ ] thread-safe data structures
-  - [ ] Transactions/MVCC using git-like transaction logs
+  - [ ] Transactions/
   - [ ] Distributed
+  - [ ] MVCC using git-like transaction logs
   - [ ] Multi-Model
-
-
 
 ## Meeting 1
 - Goal: Paper  
@@ -87,7 +90,3 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Algorithms: The ones that are implemented + hop labeling
 - Out of memory during transaction (e.g. BFS on live journal): Assume everything fits in memory
 
-
-# Short-term TODO:
-- [ ] Adjust record IDs when swapping pages
-- [ ] CRUD

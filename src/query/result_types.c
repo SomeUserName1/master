@@ -112,19 +112,19 @@ path_destroy(path* p)
 }
 
 path*
-construct_path(in_memory_file_t* db,
-               unsigned long     source_node_id,
-               unsigned long     target_node_id,
-               unsigned long*    parents,
-               double            distance,
-               FILE*             log_file)
+construct_path(heap_file*     hf,
+               unsigned long  source_node_id,
+               unsigned long  target_node_id,
+               unsigned long* parents,
+               double         distance,
+               FILE*          log_file)
 {
     unsigned long   node_id       = target_node_id;
     array_list_ul*  edges_reverse = al_ul_create();
     relationship_t* rel;
     do {
         array_list_ul_append(edges_reverse, parents[node_id]);
-        rel = in_memory_get_relationship(db, parents[node_id]);
+        rel = read_relationship(hf, parents[node_id]);
         fprintf(log_file, "%s %lu\n", "R", rel->id);
 
         node_id =
@@ -147,7 +147,7 @@ construct_path(in_memory_file_t* db,
 }
 
 array_list_ul*
-path_extract_vertices(path* p, in_memory_file_t* db)
+path_extract_vertices(path* p, heap_file* hf)
 {
     array_list_ul* nodes = al_ul_create();
 
@@ -156,7 +156,7 @@ path_extract_vertices(path* p, in_memory_file_t* db)
     relationship_t* rel;
 
     for (size_t i = 0; i < array_list_ul_size(p->edges); ++i) {
-        rel = in_memory_get_relationship(db, array_list_ul_get(p->edges, i));
+        rel       = read_relationship(hf, array_list_ul_get(p->edges, i));
         prev_node = array_list_ul_get(nodes, array_list_ul_size(nodes) - 1);
 
         if (rel->source_node == prev_node) {
@@ -165,5 +165,6 @@ path_extract_vertices(path* p, in_memory_file_t* db)
             array_list_ul_append(nodes, rel->source_node);
         }
     }
+
     return nodes;
 }

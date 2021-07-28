@@ -32,6 +32,14 @@ heap_file_create(page_cache* pc)
     hf->last_alloc_node_slot = 0;
     hf->last_alloc_rel_slot  = 0;
 
+    array_list_node* nodes = get_nodes(hf);
+    hf->n_nodes            = array_list_node_size(nodes);
+    array_list_node_destroy(nodes);
+
+    array_list_relationship* rels = get_relationships(hf);
+    hf->n_rels                    = array_list_relationship_size(rels);
+    array_list_relationship_destroy(rels);
+
     return hf;
 }
 
@@ -146,7 +154,7 @@ next_free_slots(heap_file* hf, file_type ft)
            - (sizeof(unsigned long) * CHAR_BIT);
 }
 
-void
+unsigned long
 create_node(heap_file* hf, char* label)
 {
     if (!hf || !label) {
@@ -162,6 +170,8 @@ create_node(heap_file* hf, char* label)
     strncpy(node->label, label, MAX_STR_LEN);
 
     update_node(hf, node);
+
+    free(node);
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -183,9 +193,13 @@ create_node(heap_file* hf, char* label)
                &used_bits);
 
     unpin_page(hf->cache, header_id, node_header);
+
+    hf->n_nodes++;
+
+    return node_id;
 }
 
-void
+unsigned long
 create_relationship(heap_file*    hf,
                     unsigned long from_node_id,
                     unsigned long to_node_id,
@@ -286,6 +300,12 @@ create_relationship(heap_file*    hf,
     update_relationship(hf, first_rel_to);
     update_relationship(hf, last_rel_to);
 
+    free(rel);
+    free(first_rel_from);
+    free(last_rel_from);
+    free(first_rel_to);
+    free(last_rel_to);
+
     unsigned long header_id =
           (sizeof(unsigned long) + ((rel_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
           / PAGE_SIZE;
@@ -306,6 +326,10 @@ create_relationship(heap_file*    hf,
                &used_bits);
 
     unpin_page(hf->cache, header_id, node_header);
+
+    hf->n_rels++;
+
+    return rel_id;
 }
 
 node_t*
@@ -436,6 +460,8 @@ delete_node(heap_file* hf, unsigned long node_id)
                &unused_bits);
 
     unpin_page(hf->cache, header_id, node_header);
+
+    hf->n_nodes--;
 }
 
 void
@@ -531,6 +557,8 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
                &unused_bits);
 
     unpin_page(hf->cache, header_id, node_header);
+
+    hf->n_rels--;
 }
 
 void

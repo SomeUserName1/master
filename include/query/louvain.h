@@ -7,14 +7,14 @@
 
 #include <stdbool.h>
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 
 static const double MIN_IMPROVEMENT = 0.005F;
 
 typedef struct
 {
-    in_memory_file_t* graph;
-    double            m2;
+    heap_file* graph;
+    double     m2;
 } louvain_graph_t;
 
 typedef struct
@@ -38,7 +38,7 @@ typedef struct
 } louvain_partition_t;
 
 louvain_graph_t*
-louvain_graph_init(in_memory_file_t* db);
+louvain_graph_init(heap_file* hf);
 
 void
 louvain_graph_destroy(louvain_graph_t* g);
@@ -133,6 +133,6 @@ louvain_one_level(louvain_partition_t* p, louvain_graph_t* g);
   @return nothing
   */
 unsigned long*
-louvain(in_memory_file_t* db);
+louvain(heap_file* hf);
 
 #endif

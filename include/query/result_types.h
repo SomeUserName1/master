@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 #include "data-struct/array_list.h"
 
 typedef struct traversal_result
@@ -45,7 +45,7 @@ void
 sssp_result_destroy(sssp_result* result);
 
 path*
-sssp_extract_path(sssp_result* result, in_memory_file_t db);
+sssp_extract_path(sssp_result* result, heap_file* hf);
 
 path*
 create_path(unsigned long  source_node_id,
@@ -57,14 +57,14 @@ void
 path_destroy(path* p);
 
 path*
-construct_path(in_memory_file_t* db,
-               unsigned long     source_node_id,
-               unsigned long     target_node_id,
-               unsigned long*    parents,
-               double            distance,
-               FILE*             log_file);
+construct_path(heap_file*     hf,
+               unsigned long  source_node_id,
+               unsigned long  target_node_id,
+               unsigned long* parents,
+               double         distance,
+               FILE*          log_file);
 
 array_list_ul*
-path_extract_vertices(path* p, in_memory_file_t* db);
+path_extract_vertices(path* p, heap_file* hf);
 
 #endif

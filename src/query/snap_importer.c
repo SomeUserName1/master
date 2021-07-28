@@ -12,7 +12,7 @@
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
-#define CHUNK         (524288)
+#define CHUNK         (1 << 19)
 #define IMPORT_FIELDS (2)
 #define STATUS_LINES  (100000)
 #define TIMEOUT       (999)
@@ -152,30 +152,40 @@ get_url(dataset_t data)
         case C_ELEGANS:
             result = C_ELEGANS_URL;
             break;
+
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_URL;
             break;
+
         case DBLP:
             result = DBLP_URL;
             break;
+
         case AMAZON:
             result = AMAZON_URL;
             break;
+
         case YOUTUBE:
             result = YOUTUBE_URL;
             break;
+
         case WIKIPEDIA:
             result = WIKIPEDIA_URL;
             break;
+
         case LIVE_JOURNAL:
             result = LIVE_JOURNAL_URL;
             break;
+
         case ORKUT:
             result = ORKUT_URL;
             break;
+
         case FRIENDSTER:
             result = FRIENDSTER_URL;
+            break;
     }
+
     return result;
 }
 
@@ -187,6 +197,7 @@ get_no_nodes(dataset_t data)
         case C_ELEGANS:
             result = C_ELEGANS_NO_NODES;
             break;
+
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_NO_NODES;
             break;
@@ -219,6 +230,7 @@ get_no_nodes(dataset_t data)
             result = FRIENDSTER_NO_NODES;
             break;
     }
+
     return result;
 }
 
@@ -230,6 +242,7 @@ get_no_rels(dataset_t data)
         case C_ELEGANS:
             result = C_ELEGANS_NO_RELS;
             break;
+
         case EMAIL_EU_CORE:
             result = EMAIL_EU_CORE_NO_RELS;
             break;
@@ -266,7 +279,7 @@ get_no_rels(dataset_t data)
 }
 
 dict_ul_ul*
-import_from_txt(in_memory_file_t* db, const char* path)
+import_from_txt(heap_file* hf, const char* path)
 {
     unsigned long int from_to[IMPORT_FIELDS];
     char              buf[CHUNK];
@@ -274,6 +287,7 @@ import_from_txt(in_memory_file_t* db, const char* path)
     size_t            lines        = 1;
     dict_ul_ul*       txt_to_db_id = d_ul_ul_create();
     unsigned long     db_id        = 0;
+    char              label        = '\0';
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -295,12 +309,12 @@ import_from_txt(in_memory_file_t* db, const char* path)
             if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
             } else {
-                db_id = in_memory_create_node(db);
+                db_id = create_node(hf, &label);
                 dict_ul_ul_insert(txt_to_db_id, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
-        in_memory_create_relationship(db, from_to[0], from_to[1]);
+        create_relationship(hf, from_to[0], from_to[1], 1, &label);
         lines++;
     }
 

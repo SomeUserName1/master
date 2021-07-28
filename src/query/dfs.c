@@ -8,23 +8,23 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/linked_list.h"
-#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
 traversal_result*
-dfs(in_memory_file_t* db,
-    unsigned long     source_node_id,
-    direction_t       direction,
-    const char*       log_path)
+dfs(heap_file*    hf,
+    unsigned long source_node_id,
+    direction_t   direction,
+    const char*   log_path)
 {
-    unsigned long* parents = malloc(db->node_id_counter * sizeof(*parents));
-    unsigned long* dfs     = malloc(db->node_id_counter * sizeof(*dfs));
+    unsigned long* parents = malloc(hf->n_nodes * sizeof(*parents));
+    unsigned long* dfs     = malloc(hf->n_nodes * sizeof(*dfs));
 
     if (!parents || !dfs) {
+        printf("dfs: failed to allocate memory!\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         parents[i] = UNINITIALIZED_LONG;
         dfs[i]     = ULONG_MAX;
     }
@@ -51,7 +51,7 @@ dfs(in_memory_file_t* db,
 
     while (stack_size > 0) {
         node_id      = stack_ul_pop(node_stack);
-        current_rels = in_memory_expand(db, node_id, direction);
+        current_rels = expand(hf, node_id, direction);
         fprintf(log_file, "%s %lu\n", "N", node_id);
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);

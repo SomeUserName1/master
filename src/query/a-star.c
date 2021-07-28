@@ -9,25 +9,31 @@
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/fibonacci_heap.h"
-#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
 path*
-a_star(in_memory_file_t* db,
-       const double*     heuristic,
-       unsigned long     source_node_id,
-       unsigned long     target_node_id,
-       direction_t       direction,
-       const char*       log_path)
+a_star(heap_file*    hf,
+       const double* heuristic,
+       unsigned long source_node_id,
+       unsigned long target_node_id,
+       direction_t   direction,
+       const char*   log_path)
 {
-    unsigned long* parents  = malloc(db->node_id_counter * sizeof(*parents));
-    double*        distance = malloc(db->node_id_counter * sizeof(*distance));
-    if (!parents || !distance || !log_path) {
-        printf("A*: invalid arguments or memory allocation failed!\n");
+    if (!hf || source_node_id == UNINITIALIZED_LONG
+        || target_node_id == UNINITIALIZED_LONG || !log_path) {
+        printf("a-star: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    unsigned long* parents  = malloc(hf->n_nodes * sizeof(*parents));
+    double*        distance = malloc(hf->n_nodes * sizeof(*distance));
+
+    if (!parents || !distance) {
+        printf("a-star: memory allocation failed!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         parents[i]  = UNINITIALIZED_LONG;
         distance[i] = DBL_MAX;
     }
@@ -59,7 +65,7 @@ a_star(in_memory_file_t* db,
             free(distance);
             free(fh_node);
             fib_heap_ul_destroy(prio_queue);
-            return construct_path(db,
+            return construct_path(hf,
                                   source_node_id,
                                   target_node_id,
                                   parents,
@@ -67,7 +73,7 @@ a_star(in_memory_file_t* db,
                                   log_file);
         }
 
-        current_rels = in_memory_expand(db, fh_node->value, direction);
+        current_rels = expand(hf, fh_node->value, direction);
 
         fprintf(log_file, "%s %lu\n", "N", fh_node->value);
 

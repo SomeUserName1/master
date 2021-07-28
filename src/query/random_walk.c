@@ -6,16 +6,15 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
-#include "query/in_memory_operators.h"
 #include "query/result_types.h"
 
 path*
-random_walk(in_memory_file_t* db,
-            unsigned long     node_id,
-            size_t            num_steps,
-            direction_t       direction)
+random_walk(heap_file*    hf,
+            unsigned long node_id,
+            size_t        num_steps,
+            direction_t   direction)
 {
-    if (!db || node_id == UNINITIALIZED_LONG) {
+    if (!hf || node_id == UNINITIALIZED_LONG) {
         printf("DB is NULL or node id uninitialized");
     }
 
@@ -26,7 +25,7 @@ random_walk(in_memory_file_t* db,
     unsigned long            current_node = node_id;
 
     for (size_t i = 0; i < num_steps; ++i) {
-        cur_rels = in_memory_expand(db, current_node, direction);
+        cur_rels = expand(hf, current_node, direction);
         if (array_list_relationship_size(cur_rels) == 0) {
             array_list_relationship_destroy(cur_rels);
             break;

@@ -8,6 +8,8 @@
 typedef struct
 {
     page_cache*   cache;
+    unsigned long n_nodes;
+    unsigned long n_rels;
     unsigned long last_alloc_node_slot;
     unsigned long last_alloc_rel_slot;
 } heap_file;
@@ -18,10 +20,10 @@ heap_file_create(page_cache* pc);
 void
 heap_file_destroy(heap_file* hf);
 
-void
+unsigned long
 create_node(heap_file* hf, char* label);
 
-void
+unsigned long
 create_relationship(heap_file*    hf,
                     unsigned long from_node_id,
                     unsigned long to_node_id,

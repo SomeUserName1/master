@@ -269,7 +269,9 @@ rel_free(relationship_t* rel)
 }
 
 ARRAY_LIST_IMPL(array_list_relationship, relationship_t*);
-array_list_relationship_cbs list_rel_cbs = { relationship_equals, NULL, NULL };
+array_list_relationship_cbs list_rel_cbs = { relationship_equals,
+                                             NULL,
+                                             rel_free };
 
 inline array_list_relationship*
 al_rel_create(void)
