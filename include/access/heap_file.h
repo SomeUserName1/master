@@ -68,7 +68,7 @@ next_relationship_id(heap_file*      hf,
                      direction_t     direction);
 
 array_list_relationship*
-expand(heap_file* db, unsigned long node_id, direction_t direction);
+expand(heap_file* hf, unsigned long node_id, direction_t direction);
 
 relationship_t*
 contains_relationship_from_to(heap_file*    hf,

@@ -851,16 +851,108 @@ next_relationship_id(heap_file*      hf,
                      unsigned long   node_id,
                      relationship_t* rel,
                      direction_t     direction)
-{}
+{
+    if (!hf || node_id == UNINITIALIZED_LONG || !rel) {
+        printf("heap_file - next relationship id: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long start_rel_id = rel->id;
+    unsigned long rel_id = node_id == rel->source_node ? rel->next_rel_source
+                                                       : rel->next_rel_target;
+
+    do {
+        rel = read_relationship(hf, rel_id);
+
+        if (rel_id != start_rel_id
+            && ((rel->source_node == node_id && direction != INCOMING)
+                || (rel->target_node == node_id && direction != OUTGOING))) {
+            return rel->id;
+        }
+        rel_id = node_id == rel->source_node ? rel->next_rel_source
+                                             : rel->next_rel_target;
+
+    } while (rel_id != start_rel_id);
+
+    return UNINITIALIZED_LONG;
+}
 
 array_list_relationship*
-expand(heap_file* db, unsigned long node_id, direction_t direction)
-{}
+expand(heap_file* hf, unsigned long node_id, direction_t direction)
+{
+    if (!hf) {
+        printf("heap file - expand: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    node_t* node = read_node(hf, node_id);
+
+    array_list_relationship* result = al_rel_create();
+    unsigned long            rel_id = node->first_relationship;
+
+    if (rel_id == UNINITIALIZED_LONG) {
+        return result;
+    }
+
+    relationship_t* rel = read_relationship(hf, rel_id);
+    unsigned long   start_id;
+
+    if ((rel->source_node == node_id && direction != INCOMING)
+        || (rel->target_node == node_id && direction != OUTGOING)) {
+        start_id = rel_id;
+    } else {
+        rel_id   = next_relationship_id(hf, node_id, rel, direction);
+        start_id = rel_id;
+    }
+
+    while (rel_id != UNINITIALIZED_LONG) {
+        rel = read_relationship(hf, rel_id);
+        array_list_relationship_append(result, rel);
+        rel_id = next_relationship_id(hf, node->id, rel, direction);
+
+        if (rel_id == start_id) {
+            return result;
+        }
+    }
+
+    return result;
+}
 
 relationship_t*
 contains_relationship_from_to(heap_file*    hf,
                               unsigned long node_from,
                               unsigned long node_to,
                               direction_t   direction)
-{}
+{
+    if (!hf || node_from == UNINITIALIZED_LONG
+        || node_to == UNINITIALIZED_LONG) {
+        printf("heap file - contains relationship: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    relationship_t* rel;
+    node_t*         source_node = read_node(hf, node_from);
+    node_t*         target_node = read_node(hf, node_to);
+
+    if (source_node->first_relationship == UNINITIALIZED_LONG
+        || target_node->first_relationship == UNINITIALIZED_LONG) {
+        return NULL;
+    }
+
+    unsigned long next_id  = source_node->first_relationship;
+    unsigned long start_id = next_id;
+
+    do {
+        rel = read_relationship(hf, next_id);
+        if ((direction != INCOMING && rel->source_node == node_from
+             && rel->target_node == node_to)
+            || (direction != OUTGOING && rel->source_node == node_to
+                && rel->target_node == node_from)) {
+            return rel;
+        }
+        next_id = next_relationship_id(hf, source_node->id, rel, direction);
+    } while (next_id != start_id && next_id != UNINITIALIZED_LONG);
+
+    return NULL;
+}
 

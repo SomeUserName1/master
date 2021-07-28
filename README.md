@@ -32,9 +32,10 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Heap file
   - [ ] Queries
   - [ ] layout
-       => End of July  
+       => Milestone 1  
   - [ ] Dynamic Reorganization Impl.
   - [ ] Gorder integration
+        => Milestone 2
 
 #### Brainstorm
   - Access-History Graph
@@ -49,6 +50,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare IOs of query on data set order
   
 ### Future Work
+  - [ ] Transaction Buffer
   - [ ] Hop labeling scheme: Use existing impl.
   - [ ] bulk ops
   - [ ] Alternative record layouts (nodes + adj list in same file)
