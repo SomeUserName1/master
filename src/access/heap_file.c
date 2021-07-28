@@ -738,6 +738,7 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     free(snd_header);
 }
 
+// TODO Transaction cache
 array_list_node*
 get_nodes(heap_file* hf)
 {
@@ -746,9 +747,11 @@ get_nodes(heap_file* hf)
         exit(EXIT_FAILURE);
     }
 
-    size_t header_id = 0;
-    page*  header    = pin_page(hf->cache, header_id, node_header);
-    bool   first     = true;
+    size_t         header_id = 0;
+    page*          header    = pin_page(hf->cache, header_id, node_header);
+    bool           first     = true;
+    unsigned long  bit_pos_h;
+    unsigned short byte_pos_h;
 
     unsigned long n_slots = read_ulong(header, 0);
 
@@ -759,12 +762,17 @@ get_nodes(heap_file* hf)
 
     unsigned char* slot_used;
     for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_NODE) {
-        slot_used = read_bits(hf->cache,
-                              header,
-                              sizeof(unsigned long) + i / CHAR_BIT,
-                              i % CHAR_BIT,
-                              NUM_SLOTS_PER_NODE);
+        // for the first page we need to take the unsigned long at the start
+        // into account that stores the amount of slots
+        byte_pos_h = first ? (sizeof(unsigned long) + i / CHAR_BIT) % PAGE_SIZE
+                           : (i / CHAR_BIT) % PAGE_SIZE;
 
+        // Read the corresponding header bits for the slots
+        slot_used = read_bits(
+              hf->cache, header, byte_pos_h, i % CHAR_BIT, NUM_SLOTS_PER_NODE);
+
+        // If the slot is used, load the node and append it to the resulting
+        // array list
         if (compare_bits(slot_used, slot_used_mask, i)) {
             node = read_node(hf, i);
             array_list_node_append(result, node);
@@ -772,10 +780,12 @@ get_nodes(heap_file* hf)
 
         free(slot_used);
 
-        // FIXME correct this! How to detect if page boundary is reached?
-        if ((first
-             && (sizeof(unsigned long) * CHAR_BIT + i) % SLOTS_PER_PAGE == 0)
-            || (!first && i % SLOTS_PER_PAGE == 0)) {
+        // if header page boundary is reached, unpin the current one and pin the
+        // next one
+        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
+        if (bit_pos_h % SLOTS_PER_PAGE
+            > (bit_pos_h + NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE) {
+            first = false;
             unpin_page(hf->cache, header_id, node_header);
             ++header_id;
             pin_page(hf->cache, header_id, node_header);
@@ -793,9 +803,11 @@ get_relationships(heap_file* hf)
         exit(EXIT_FAILURE);
     }
 
-    size_t header_id = 0;
-    page*  header    = pin_page(hf->cache, header_id, relationship_header);
-    bool   first     = true;
+    size_t         header_id = 0;
+    page*          header = pin_page(hf->cache, header_id, relationship_header);
+    bool           first  = true;
+    unsigned long  bit_pos_h;
+    unsigned short byte_pos_h;
 
     unsigned long n_slots = read_ulong(header, 0);
 
@@ -806,11 +818,10 @@ get_relationships(heap_file* hf)
 
     unsigned char* slot_used;
     for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_REL) {
-        slot_used = read_bits(hf->cache,
-                              header,
-                              sizeof(unsigned long) + i / CHAR_BIT,
-                              i % CHAR_BIT,
-                              NUM_SLOTS_PER_REL);
+        byte_pos_h = first ? (sizeof(unsigned long) + i / CHAR_BIT) % PAGE_SIZE
+                           : (i / CHAR_BIT) % PAGE_SIZE;
+        slot_used  = read_bits(
+              hf->cache, header, byte_pos_h, i % CHAR_BIT, NUM_SLOTS_PER_REL);
 
         if (compare_bits(slot_used, slot_used_mask, i)) {
 
@@ -820,10 +831,12 @@ get_relationships(heap_file* hf)
 
         free(slot_used);
 
-        // FIXME correct this! How to detect if page boundary is reached?
-        if ((first
-             && (sizeof(unsigned long) * CHAR_BIT + i) % SLOTS_PER_PAGE == 0)
-            || (!first && i % SLOTS_PER_PAGE == 0)) {
+        // if header page boundary is readed, unpin the current one and pin the
+        // next one
+        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
+        if (bit_pos_h % SLOTS_PER_PAGE
+            > (bit_pos_h + NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE) {
+            first = false;
             unpin_page(hf->cache, header_id, node_header);
             ++header_id;
             pin_page(hf->cache, header_id, node_header);
