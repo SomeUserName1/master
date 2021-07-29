@@ -766,7 +766,6 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     free(snd_header);
 }
 
-// TODO Transaction cache
 array_list_node*
 get_nodes(heap_file* hf)
 {

@@ -32,7 +32,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [x] Heap file
   - [ ] (WIP) Queries - use dicts instead of arrays!
   - [ ] layout
-  - [ ] IO logging not in queries but in page cache
+  - [ ] logging
   - [ ] Weights for snap importer
        => Milestone 1  
   - [ ] Dynamic Reorganization Impl.
@@ -53,13 +53,13 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare IOs of query on data set order
   
 ### Future Work
-  - [ ] Transaction Buffer
+  - [ ] Transaction/Intermediate Buffer
   - [ ] System Catalog (n\_slots from first 4 bytes of header and n\_nodes, n\_rels for now)
-  - [ ] Hop labeling scheme: Use existing impl.
   - [ ] bulk ops
+  - [ ] Hop labeling scheme: Use existing impl.
   - [ ] Alternative record layouts (nodes + adj list in same file)
   - [ ] thread-safe data structures
-  - [ ] Transactions/
+  - [ ] Transactions
   - [ ] Distributed
   - [ ] MVCC using git-like transaction logs
   - [ ] Multi-Model
@@ -89,4 +89,20 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - labels stored within the nodes & rel struct
 - Algorithms: The ones that are implemented + hop labeling
 - Out of memory during transaction (e.g. BFS on live journal): Assume everything fits in memory
+
+
+
+## Meeting XY
+- Leave louvain aside for now 
+- Probably need in-memory graph, adjust in\_memory\_file
+- Logging of 
+    + algos => nodes & rels on algo level
+    + CRUD => NODES/REL on system level
+    + pages => un/pin in page cache
+    + IOs => read/write page on disk files; 
+- Intermediate/Transaction memory => Just malloc for now
+- System catalog => leave as numbers in structs for now
+- Tests first 
+- Write data transformer from index free incidence list to adjacency list
+- Layout afterwards when method is impl.
 
