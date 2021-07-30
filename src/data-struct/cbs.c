@@ -1,5 +1,7 @@
 #include "data-struct/cbs.h"
 
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 
 inline bool
@@ -66,5 +68,21 @@ inline void
 long_print(const long in)
 {
     printf("%li\n", in);
+}
+
+inline bool
+double_eq(const double first, const double second)
+{
+    return first == second
+                 ? true
+                 : fabs(first - second)
+                         < DBL_EPSILON
+                                 * fmax(1.0, fmax(fabs(first), fabs(second)));
+}
+
+inline void
+double_print(const double in)
+{
+    printf("%g\n", in);
 }
 

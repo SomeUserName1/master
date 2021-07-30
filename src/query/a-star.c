@@ -9,11 +9,12 @@
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/fibonacci_heap.h"
+#include "data-struct/htable.h"
 #include "query/result_types.h"
 
 path*
 a_star(heap_file*    hf,
-       const double* heuristic,
+       dict_ul_d*    heuristic,
        unsigned long source_node_id,
        unsigned long target_node_id,
        direction_t   direction,
@@ -25,18 +26,8 @@ a_star(heap_file*    hf,
         exit(EXIT_FAILURE);
     }
 
-    unsigned long* parents  = malloc(hf->n_nodes * sizeof(*parents));
-    double*        distance = malloc(hf->n_nodes * sizeof(*distance));
-
-    if (!parents || !distance) {
-        printf("a-star: memory allocation failed!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (size_t i = 0; i < hf->n_nodes; ++i) {
-        parents[i]  = UNINITIALIZED_LONG;
-        distance[i] = DBL_MAX;
-    }
+    dict_ul_ul* parents  = d_ul_ul_create();
+    dict_ul_d*  distance = d_ul_d_create();
 
     fib_heap_ul* prio_queue = fib_heap_ul_create();
     FILE*        log_file   = fopen(log_path, "w+");
@@ -54,14 +45,14 @@ a_star(heap_file*    hf,
     unsigned long            temp;
     double                   new_dist;
     fib_heap_ul_node*        fh_node = NULL;
-    fib_heap_ul_insert(prio_queue, distance[source_node_id], source_node_id);
-    distance[source_node_id] = 0;
+    fib_heap_ul_insert(prio_queue, DBL_MAX, source_node_id);
+    dict_ul_d_insert(distance, source_node_id, 0);
 
     while (prio_queue->num_nodes > 0) {
         fh_node = fib_heap_ul_extract_min(prio_queue);
 
         if (fh_node->value == target_node_id) {
-            new_dist = distance[target_node_id];
+            new_dist = dict_ul_d_get_direct(distance, target_node_id);
             free(distance);
             free(fh_node);
             fib_heap_ul_destroy(prio_queue);
@@ -87,12 +78,13 @@ a_star(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            new_dist = distance[fh_node->value] + current_rel->weight
-                       + heuristic[fh_node->value];
-            if (distance[temp] > new_dist) {
-                distance[temp] = new_dist;
-                parents[temp]  = current_rel->id;
-                fib_heap_ul_insert(prio_queue, distance[temp], temp);
+            new_dist = dict_ul_d_get_direct(distance, fh_node->value)
+                       + current_rel->weight
+                       + dict_ul_d_get_direct(heuristic, fh_node->value);
+            if (dict_ul_d_get_direct(distance, temp) > new_dist) {
+                dict_ul_d_insert(distance, temp, new_dist);
+                dict_ul_ul_insert(parents, temp, current_rel->id);
+                fib_heap_ul_insert(prio_queue, new_dist, temp);
             }
         }
         free(fh_node);

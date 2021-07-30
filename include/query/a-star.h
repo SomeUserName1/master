@@ -7,7 +7,7 @@
 
 path*
 a_star(heap_file*    hf,
-       const double* heuristic,
+       dict_ul_d*    heuristic,
        unsigned long source_node_id,
        unsigned long target_node_id,
        direction_t   direction,

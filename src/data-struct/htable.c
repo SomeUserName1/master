@@ -16,6 +16,16 @@ d_ul_ul_create(void)
     return dict_ul_ul_create(d_ul_cbs);
 }
 
+HTABLE_IMPL(dict_ul_d, unsigned long, double, fnv_hash_ul, unsigned_long_eq);
+dict_ul_d_cbs d_d_cbs = { NULL, NULL, unsigned_long_print, double_eq,
+                          NULL, NULL, double_print };
+
+dict_ul_d*
+d_ul_d_create(void)
+{
+    return dict_ul_d_create(d_d_cbs);
+}
+
 HTABLE_IMPL(dict_ul_int, unsigned long, int, fnv_hash_ul, unsigned_long_eq);
 dict_ul_int_cbs d_int_cbs = { NULL, NULL,     unsigned_long_print, int_eq, NULL,
                               NULL, int_print };

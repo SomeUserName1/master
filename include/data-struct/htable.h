@@ -510,4 +510,9 @@ HTABLE_DECL(dict_ul_int, unsigned long, int);
 dict_ul_int*
 d_ul_int_create(void);
 
+HTABLE_DECL(dict_ul_d, unsigned long, double);
+
+dict_ul_d*
+d_ul_d_create(void);
+
 #endif

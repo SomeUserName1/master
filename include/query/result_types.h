@@ -57,12 +57,12 @@ void
 path_destroy(path* p);
 
 path*
-construct_path(heap_file*     hf,
-               unsigned long  source_node_id,
-               unsigned long  target_node_id,
-               unsigned long* parents,
-               double         distance,
-               FILE*          log_file);
+construct_path(heap_file*    hf,
+               unsigned long source_node_id,
+               unsigned long target_node_id,
+               dict_ul_ul*   parents,
+               double        distance,
+               FILE*         log_file);
 
 array_list_ul*
 path_extract_vertices(path* p, heap_file* hf);

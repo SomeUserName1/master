@@ -31,4 +31,10 @@ long_eq(long first, long second);
 void
 long_print(long in);
 
+bool
+double_eq(double first, double second);
+
+void
+double_print(double in);
+
 #endif
