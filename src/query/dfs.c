@@ -7,6 +7,7 @@
 
 #include "access/relationship.h"
 #include "constants.h"
+#include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "query/result_types.h"
 
@@ -16,28 +17,23 @@ dfs(heap_file*    hf,
     direction_t   direction,
     const char*   log_path)
 {
-    unsigned long* parents = malloc(hf->n_nodes * sizeof(*parents));
-    unsigned long* dfs     = malloc(hf->n_nodes * sizeof(*dfs));
-
-    if (!parents || !dfs) {
-        printf("dfs: failed to allocate memory!\n");
+    if (!hf || source_node_id == UNINITIALIZED_LONG) {
+        printf("dfs: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < hf->n_nodes; ++i) {
-        parents[i] = UNINITIALIZED_LONG;
-        dfs[i]     = ULONG_MAX;
-    }
+    dict_ul_ul* parents = d_ul_ul_create();
+    dict_ul_ul* dfs     = d_ul_ul_create();
 
     stack_ul* node_stack = st_ul_create();
     FILE*     log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
-        free(parents);
-        free(dfs);
+        dict_ul_ul_destroy(parents);
+        dict_ul_ul_destroy(dfs);
         stack_ul_destroy(node_stack);
         printf("bfs: Failed to open log file, %d\n", errno);
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* current_rels = NULL;
@@ -45,7 +41,7 @@ dfs(heap_file*    hf,
     unsigned long            temp;
     unsigned long            node_id;
     stack_ul_push(node_stack, source_node_id);
-    dfs[source_node_id] = 0;
+    dict_ul_ul_insert(dfs, source_node_id, 0);
 
     size_t stack_size = stack_ul_size(node_stack);
 
@@ -62,9 +58,10 @@ dfs(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            if (dfs[temp] == ULONG_MAX) {
-                dfs[temp]     = dfs[node_id] + 1;
-                parents[temp] = current_rel->id;
+            if (!dict_ul_ul_contains(dfs, temp)) {
+                dict_ul_ul_insert(
+                      dfs, temp, dict_ul_ul_get_direct(dfs, node_id) + 1);
+                dict_ul_ul_insert(parents, temp, current_rel->id);
                 stack_ul_push(node_stack, temp);
             }
         }

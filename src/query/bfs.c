@@ -7,10 +7,9 @@
 
 #include "access/relationship.h"
 #include "constants.h"
+#include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "query/result_types.h"
-
-// FIXME use dicts instead of arrays!
 
 traversal_result*
 bfs(heap_file*    hf,
@@ -18,24 +17,20 @@ bfs(heap_file*    hf,
     direction_t   direction,
     const char*   log_path)
 {
-    unsigned long* parents = malloc(hf->n_nodes * sizeof(*parents));
-    unsigned long* bfs     = malloc(hf->n_nodes * sizeof(*bfs));
-
-    if (!parents || !bfs) {
+    if (!hf || source_node_id == UNINITIALIZED_LONG) {
+        printf("bfs: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < hf->n_nodes; ++i) {
-        parents[i] = UNINITIALIZED_LONG;
-        bfs[i]     = ULONG_MAX;
-    }
+    dict_ul_ul* parents = d_ul_ul_create();
+    dict_ul_ul* bfs     = d_ul_ul_create();
 
     queue_ul* nodes_queue = q_ul_create();
     FILE*     log_file    = fopen(log_path, "w+");
 
     if (log_file == NULL) {
-        free(parents);
-        free(bfs);
+        dict_ul_ul_destroy(parents);
+        dict_ul_ul_destroy(bfs);
         queue_ul_destroy(nodes_queue);
         printf("bfs: Failed to open log file, %d\n", errno);
         exit(EXIT_FAILURE);
@@ -46,7 +41,7 @@ bfs(heap_file*    hf,
     unsigned long            temp;
     unsigned long            node_id;
     queue_ul_push(nodes_queue, source_node_id);
-    bfs[source_node_id] = 0;
+    dict_ul_ul_insert(bfs, source_node_id, 0);
 
     while (queue_ul_size(nodes_queue) > 0) {
         node_id      = queue_ul_pop(nodes_queue);
@@ -61,9 +56,10 @@ bfs(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            if (bfs[temp] == ULONG_MAX) {
-                bfs[temp]     = bfs[node_id] + 1;
-                parents[temp] = current_rel->id;
+            if (!dict_ul_ul_contains(bfs, temp)) {
+                dict_ul_ul_insert(
+                      bfs, temp, dict_ul_ul_get_direct(bfs, node_id) + 1);
+                dict_ul_ul_insert(parents, temp, current_rel->id);
                 queue_ul_push(nodes_queue, temp);
             }
         }

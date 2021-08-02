@@ -33,11 +33,11 @@ a_star(heap_file*    hf,
     FILE*        log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
-        free(parents);
-        free(distance);
+        dict_ul_ul_destroy(parents);
+        dict_ul_d_destroy(distance);
         fib_heap_ul_destroy(prio_queue);
         printf("dijkstra: Failed to open log file, %d\n", errno);
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* current_rels;
@@ -53,7 +53,7 @@ a_star(heap_file*    hf,
 
         if (fh_node->value == target_node_id) {
             new_dist = dict_ul_d_get_direct(distance, target_node_id);
-            free(distance);
+            dict_ul_d_destroy(distance);
             free(fh_node);
             fib_heap_ul_destroy(prio_queue);
             return construct_path(hf,
@@ -91,8 +91,8 @@ a_star(heap_file*    hf,
         array_list_relationship_destroy(current_rels);
     }
     fib_heap_ul_destroy(prio_queue);
-    free(parents);
-    free(distance);
+    dict_ul_ul_destroy(parents);
+    dict_ul_d_destroy(distance);
     fclose(log_file);
 
     return create_path(source_node_id, target_node_id, DBL_MAX, al_ul_create());

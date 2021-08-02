@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
 
@@ -46,13 +47,14 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
         exit(EXIT_FAILURE);
     }
 
-    size_t num_nodes    = hf->n_nodes;
-    size_t total_degree = 0;
+    array_list_node* nodes        = get_nodes(hf);
+    size_t           num_nodes    = array_list_node_size(nodes);
+    size_t           total_degree = 0;
 
     array_list_relationship* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        rels = expand(hf, i, direction);
+        rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
         total_degree += array_list_relationship_size(rels);
 
         if (log_file) {
@@ -74,18 +76,25 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
 size_t
 get_min_degree(heap_file* hf, direction_t direction)
 {
-    size_t num_nodes  = hf->n_nodes;
-    size_t min_degree = SIZE_MAX;
+    if (!hf) {
+        printf("degree - get min degree: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    array_list_node* nodes      = get_nodes(hf);
+    size_t           num_nodes  = array_list_node_size(nodes);
+    size_t           min_degree = SIZE_MAX;
 
     array_list_relationship* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        rels = expand(hf, i, direction);
+        rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
         if (array_list_relationship_size(rels) < min_degree) {
             min_degree = array_list_relationship_size(rels);
         }
         array_list_relationship_destroy(rels);
     }
+    array_list_node_destroy(nodes);
 
     return min_degree;
 }
@@ -93,18 +102,26 @@ get_min_degree(heap_file* hf, direction_t direction)
 size_t
 get_max_degree(heap_file* hf, direction_t direction)
 {
-    size_t num_nodes  = hf->n_nodes;
-    size_t max_degree = 0;
+    if (!hf) {
+        printf("degree - get max degree: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    array_list_node* nodes      = get_nodes(hf);
+    size_t           num_nodes  = array_list_node_size(nodes);
+    size_t           max_degree = 0;
 
     array_list_relationship* rels;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        rels = expand(hf, i, direction);
+        rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
         if (array_list_relationship_size(rels) > max_degree) {
             max_degree = array_list_relationship_size(rels);
         }
         array_list_relationship_destroy(rels);
     }
+
+    array_list_node_destroy(nodes);
 
     return max_degree;
 }

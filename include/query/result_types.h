@@ -8,16 +8,16 @@
 
 typedef struct traversal_result
 {
-    unsigned long  source;
-    unsigned long* traversal_numbers;
-    unsigned long* parents;
+    unsigned long source;
+    dict_ul_ul*   traversal_numbers;
+    dict_ul_ul*   parents;
 } traversal_result;
 
 typedef struct sssp_result
 {
-    unsigned long  source;
-    double*        distances;
-    unsigned long* pred_edges;
+    unsigned long source;
+    dict_ul_d*    distances;
+    dict_ul_ul*   pred_edges;
 } sssp_result;
 
 typedef struct path
@@ -29,17 +29,17 @@ typedef struct path
 } path;
 
 traversal_result*
-create_traversal_result(unsigned long  source_node,
-                        unsigned long* traversal_numbers,
-                        unsigned long* parents);
+create_traversal_result(unsigned long source_node,
+                        dict_ul_ul*   traversal_numbers,
+                        dict_ul_ul*   parents);
 
 void
 traversal_result_destroy(traversal_result* result);
 
 sssp_result*
-create_sssp_result(unsigned long  source_node,
-                   double*        distances,
-                   unsigned long* parents);
+create_sssp_result(unsigned long source_node,
+                   dict_ul_d*    distances,
+                   dict_ul_ul*   parents);
 
 void
 sssp_result_destroy(sssp_result* result);

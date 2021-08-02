@@ -82,5 +82,5 @@ uncompress_dataset(const char* gz_path, const char* out_path);
 
 /* Parsing and importing */
 dict_ul_ul*
-import_from_txt(heap_file* hf, const char* path);
+import_from_txt(heap_file* hf, const char* path, bool weighted);
 #endif

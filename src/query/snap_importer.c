@@ -8,14 +8,14 @@
 #include <zconf.h>
 #include <zlib.h>
 
+#include "constants.h"
 #include "data-struct/htable.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
-#define CHUNK         (1 << 19)
-#define IMPORT_FIELDS (2)
-#define STATUS_LINES  (100000)
-#define TIMEOUT       (999)
+#define CHUNK        (1 << 19)
+#define STATUS_LINES (100000)
+#define TIMEOUT      (999)
 
 static size_t
 write_data(void* ptr, size_t size, size_t nmemb, void* stream)
@@ -279,23 +279,32 @@ get_no_rels(dataset_t data)
 }
 
 dict_ul_ul*
-import_from_txt(heap_file* hf, const char* path)
+import_from_txt(heap_file* hf, const char* path, bool weighted)
 {
-    unsigned long int from_to[IMPORT_FIELDS];
-    char              buf[CHUNK];
-    int               result       = 2;
-    size_t            lines        = 1;
-    dict_ul_ul*       txt_to_db_id = d_ul_ul_create();
-    unsigned long     db_id        = 0;
-    char              label        = '\0';
-
-    FILE* in_file = fopen(path, "r");
-    if (in_file == NULL) {
-        perror("Failed to open file to read from");
+    if (!hf || !path) {
+        printf("snap importer - import from txt: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(buf, sizeof buf, in_file) && result == 2) {
+    int import_fields = weighted ? 3 : 2;
+
+    unsigned long from_to[2];
+    double        weight;
+    char          buf[CHUNK];
+    size_t        lines        = 1;
+    dict_ul_ul*   txt_to_db_id = d_ul_ul_create();
+    unsigned long db_id        = 0;
+    char          label[MAX_STR_LEN];
+    int           label_len;
+
+    FILE* in_file = fopen(path, "r");
+    if (in_file == NULL) {
+        perror("snap importer - import from txt: Failed to open file to read "
+               "from");
+        exit(EXIT_FAILURE);
+    }
+
+    while (fgets(buf, sizeof(buf), in_file)) {
         if (lines % STATUS_LINES == 0) {
             printf("%s %lu\n", "Processed", lines);
         }
@@ -304,26 +313,52 @@ import_from_txt(heap_file* hf, const char* path)
             continue;
         }
 
-        result = sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]);
-        for (size_t i = 0; i < IMPORT_FIELDS; ++i) {
+        for (int i = 0; i < import_fields; ++i) {
+
+            if (weighted && i == import_fields - 1) {
+                if (sscanf(buf, "%lf", &weight) != 1) {
+                    printf("%s\n",
+                           "snap importer - import from txt: Failed to read "
+                           "input\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                continue;
+            }
+
+            if (sscanf(buf, "%lu", &from_to[i]) != 1) {
+                printf("%s\n",
+                       "snap importer - import from txt: Failed to read "
+                       "input\n");
+                exit(EXIT_FAILURE);
+            }
+
             if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
             } else {
-                db_id = create_node(hf, &label);
+                label_len = snprintf(NULL, 0, "%lu", from_to[i]);
+                if (label_len
+                    != snprintf(label, label_len + 1, "%lu", from_to[i])) {
+                    printf("snap importer - import from txt: failed to write "
+                           "id as label!\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                db_id = create_node(hf, label);
                 dict_ul_ul_insert(txt_to_db_id, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
-        create_relationship(hf, from_to[0], from_to[1], 1, &label);
+
+        if (weighted) {
+            create_relationship(hf, from_to[0], from_to[1], weight, "\0");
+        } else {
+            create_relationship(hf, from_to[0], from_to[1], 1, "\0");
+        }
         lines++;
     }
 
     fclose(in_file);
-
-    if (result != 2) {
-        printf("%s\n", "Failed to read line from file");
-        exit(EXIT_FAILURE);
-    }
 
     return txt_to_db_id;
 }

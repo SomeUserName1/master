@@ -6,11 +6,12 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/array_list.h"
+#include "data-struct/htable.h"
 
 traversal_result*
-create_traversal_result(unsigned long  source_node,
-                        unsigned long* traversal_numbers,
-                        unsigned long* parents)
+create_traversal_result(unsigned long source_node,
+                        dict_ul_ul*   traversal_numbers,
+                        dict_ul_ul*   parents)
 {
     if (!traversal_numbers || !parents) {
         exit(EXIT_FAILURE);
@@ -36,15 +37,15 @@ traversal_result_destroy(traversal_result* result)
         return;
     }
 
-    free(result->traversal_numbers);
-    free(result->parents);
+    dict_ul_ul_destroy(result->traversal_numbers);
+    dict_ul_ul_destroy(result->parents);
     free(result);
 }
 
 sssp_result*
-create_sssp_result(unsigned long  source_node,
-                   double*        distances,
-                   unsigned long* parents)
+create_sssp_result(unsigned long source_node,
+                   dict_ul_d*    distances,
+                   dict_ul_ul*   parents)
 {
     if (!distances || !parents) {
         exit(EXIT_FAILURE);
@@ -70,8 +71,8 @@ sssp_result_destroy(sssp_result* result)
         return;
     }
 
-    free(result->distances);
-    free(result->pred_edges);
+    dict_ul_d_destroy(result->distances);
+    dict_ul_ul_destroy(result->pred_edges);
     free(result);
 }
 
@@ -112,19 +113,21 @@ path_destroy(path* p)
 }
 
 path*
-construct_path(heap_file*     hf,
-               unsigned long  source_node_id,
-               unsigned long  target_node_id,
-               unsigned long* parents,
-               double         distance,
-               FILE*          log_file)
+construct_path(heap_file*    hf,
+               unsigned long source_node_id,
+               unsigned long target_node_id,
+               dict_ul_ul*   parents,
+               double        distance,
+               FILE*         log_file)
 {
     unsigned long   node_id       = target_node_id;
     array_list_ul*  edges_reverse = al_ul_create();
     relationship_t* rel;
+    unsigned long   parent_id;
     do {
-        array_list_ul_append(edges_reverse, parents[node_id]);
-        rel = read_relationship(hf, parents[node_id]);
+        parent_id = dict_ul_ul_get_direct(parents, node_id);
+        array_list_ul_append(edges_reverse, parent_id);
+        rel = read_relationship(hf, parent_id);
         fprintf(log_file, "%s %lu\n", "R", rel->id);
 
         node_id =
@@ -140,7 +143,7 @@ construct_path(heap_file*     hf,
                                 array_list_ul_size(edges_reverse) - i));
     }
     array_list_ul_destroy(edges_reverse);
-    free(parents);
+    dict_ul_ul_destroy(parents);
     fclose(log_file);
 
     return create_path(source_node_id, target_node_id, distance, edges);

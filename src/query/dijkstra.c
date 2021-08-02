@@ -8,6 +8,7 @@
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/fibonacci_heap.h"
+#include "data-struct/htable.h"
 #include "query/result_types.h"
 
 sssp_result*
@@ -16,27 +17,23 @@ dijkstra(heap_file*    hf,
          direction_t   direction,
          const char*   log_path)
 {
-    unsigned long* parents  = malloc(hf->n_nodes * sizeof(*parents));
-    double*        distance = malloc(hf->n_nodes * sizeof(*distance));
-    if (!parents || !distance) {
-        printf("Dijkstra: invalid arguments or memory allocation failed!\n");
+    if (!hf || source_node_id == UNINITIALIZED_LONG) {
+        printf("dijkstra: Invalid Arguemnts!\n");
         exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < hf->n_nodes; ++i) {
-        parents[i]  = UNINITIALIZED_LONG;
-        distance[i] = DBL_MAX;
-    }
+    dict_ul_ul* parents  = d_ul_ul_create();
+    dict_ul_d*  distance = d_ul_d_create();
 
     fib_heap_ul* prio_queue = fib_heap_ul_create();
     FILE*        log_file   = fopen(log_path, "w+");
 
     if (log_file == NULL) {
-        free(parents);
-        free(distance);
+        dict_ul_ul_destroy(parents);
+        dict_ul_d_destroy(distance);
         fib_heap_ul_destroy(prio_queue);
         printf("dijkstra: Failed to open log file, %d\n", errno);
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     array_list_relationship* current_rels;
@@ -44,8 +41,8 @@ dijkstra(heap_file*    hf,
     unsigned long            temp;
     double                   new_dist;
     fib_heap_ul_node*        fh_node = NULL;
-    fib_heap_ul_insert(prio_queue, distance[source_node_id], source_node_id);
-    distance[source_node_id] = 0;
+    fib_heap_ul_insert(prio_queue, DBL_MAX, source_node_id);
+    dict_ul_d_insert(distance, source_node_id, 0);
 
     while (prio_queue->num_nodes > 0) {
         fh_node      = fib_heap_ul_extract_min(prio_queue);
@@ -63,11 +60,12 @@ dijkstra(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            new_dist = distance[fh_node->value] + current_rel->weight;
-            if (distance[temp] > new_dist) {
-                distance[temp] = new_dist;
-                parents[temp]  = current_rel->id;
-                fib_heap_ul_insert(prio_queue, distance[temp], temp);
+            new_dist = dict_ul_d_get_direct(distance, fh_node->value)
+                       + current_rel->weight;
+            if (dict_ul_d_get_direct(distance, temp) > new_dist) {
+                dict_ul_d_insert(distance, temp, new_dist);
+                dict_ul_ul_insert(parents, temp, current_rel->id);
+                fib_heap_ul_insert(prio_queue, new_dist, temp);
             }
         }
         free(fh_node);

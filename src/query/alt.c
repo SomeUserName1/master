@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/heap_file.h"
+#include "access/node.h"
+#include "data-struct/htable.h"
 #include "query/a-star.h"
 #include "query/degree.h"
 #include "query/dijkstra.h"
@@ -43,7 +46,7 @@ void
 alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
-               double**      landmark_dists,
+               dict_ul_d**   landmark_dists,
                const char*   log_path)
 {
     if (!hf || !landmark_dists || !log_path) {
@@ -61,14 +64,14 @@ alt_preprocess(heap_file*    hf,
         // Assign the distances gathered by using dijkstras and discard the rest
         // of the sssp result (pred edges and the struct itself.
         landmark_dists[i] = result->distances;
-        free(result->pred_edges);
+        dict_ul_ul_destroy(result->pred_edges);
         free(result);
     }
 }
 
 path*
 alt(heap_file*    hf,
-    double**      landmark_dists,
+    dict_ul_d**   landmark_dists,
     unsigned long num_landmarks,
     unsigned long source_node_id,
     unsigned long target_node_id,
@@ -80,19 +83,18 @@ alt(heap_file*    hf,
         exit(EXIT_FAILURE);
     }
 
-    double* heuristic = calloc(hf->n_nodes, sizeof(*heuristic));
-    if (!heuristic) {
-        printf("alt: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
-    }
+    dict_ul_d*       heuristic = d_ul_d_create();
+    array_list_node* nodes     = get_nodes(hf);
 
     double temp_dist;
     for (size_t i = 0; i < num_landmarks; ++i) {
-        for (size_t j = 0; j < hf->n_nodes; ++j) {
-            temp_dist = fabs(landmark_dists[i][j]
-                             - landmark_dists[i][target_node_id]);
-            if (temp_dist < heuristic[j]) {
-                heuristic[j] = temp_dist;
+        for (size_t j = 0; j < array_list_node_size(nodes); ++j) {
+            temp_dist = fabs(
+                  dict_ul_d_get_direct(landmark_dists[i],
+                                       array_list_node_get(nodes, j)->id)
+                  - dict_ul_d_get_direct(landmark_dists[i], target_node_id));
+            if (temp_dist < dict_ul_d_get_direct(heuristic, j)) {
+                dict_ul_d_insert(heuristic, j, temp_dist);
             }
         }
     }
@@ -100,6 +102,6 @@ alt(heap_file*    hf,
     path* result = a_star(
           hf, heuristic, source_node_id, target_node_id, direction, log_path);
 
-    free(heuristic);
+    dict_ul_d_destroy(heuristic);
     return result;
 }
