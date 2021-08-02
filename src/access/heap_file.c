@@ -1,14 +1,15 @@
 #include "access/heap_file.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/header_page.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
-#include "header_page.h"
 #include "page.h"
 #include "page_cache.h"
 #include "physical_database.h"
@@ -20,9 +21,9 @@
     ((ON_DISK_REL_SIZE / SLOT_SIZE) + (ON_DISK_REL_SIZE % SLOT_SIZE != 0))
 
 heap_file*
-heap_file_create(page_cache* pc)
+heap_file_create(page_cache* pc, const char* log_path)
 {
-    if (!pc) {
+    if (!pc || !log_path) {
         printf("heap file - create: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
@@ -40,6 +41,15 @@ heap_file_create(page_cache* pc)
     hf->n_rels                    = array_list_relationship_size(rels);
     array_list_relationship_destroy(rels);
 
+    FILE* log_file = fopen(log_path, "w+");
+
+    if (log_file == NULL) {
+        printf("heap file - create: Failed to open log file, %d\n", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    hf->log_file = log_file;
+
     return hf;
 }
 
@@ -50,7 +60,7 @@ heap_file_destroy(heap_file* hf)
         printf("heap_file - destroy: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
-
+    fclose(hf->log_file);
     free(hf);
 }
 
@@ -80,7 +90,6 @@ next_free_slots(heap_file* hf, file_type ft)
 
     page* prev_free_page_header =
           pin_page(hf->cache, prev_allocd_page_header_id, hft);
-
     unsigned short byte_offset = prev_allocd_slots_byte % PAGE_SIZE;
 
     unsigned char nxt_bits        = prev_free_page_header->data[byte_offset];
@@ -125,7 +134,7 @@ next_free_slots(heap_file* hf, file_type ft)
                                n_slots,
                                &write_mask);
 
-                    unpin_page(hf->cache, prev_allocd_page_header_id, hft);
+                    unpin_page(hf->cache, cur_page_id, hft);
 
                     return ft == node_file ? hf->last_alloc_node_slot
                                            : hf->last_alloc_rel_slot;
@@ -289,9 +298,13 @@ create_relationship(heap_file*    hf,
     if (from_node->first_relationship == UNINITIALIZED_LONG) {
         relationship_set_first_source(rel);
         from_node->first_relationship = rel->id;
-    } else {
+        update_node(hf, from_node);
+    }
+
+    if (to_node->first_relationship == UNINITIALIZED_LONG) {
         relationship_set_first_target(rel);
         to_node->first_relationship = rel->id;
+        update_node(hf, to_node);
     }
 
     update_relationship(hf, rel);
@@ -349,6 +362,8 @@ read_node(heap_file* hf, unsigned long node_id)
 
     unpin_page(hf->cache, page_id, node_file);
 
+    fprintf(hf->log_file, "Read Node %lu\n", node_id);
+
     return node;
 }
 
@@ -369,6 +384,8 @@ read_relationship(heap_file* hf, unsigned long rel_id)
 
     unpin_page(hf->cache, page_id, relationship_file);
 
+    fprintf(hf->log_file, "Read Rel %lu\n", rel_id);
+
     return rel;
 }
 
@@ -386,6 +403,8 @@ update_node(heap_file* hf, node_t* node_to_write)
     node_write(node_to_write, node_page);
 
     unpin_page(hf->cache, page_id, relationship_file);
+
+    fprintf(hf->log_file, "Update Node %lu\n", node_to_write->id);
 }
 
 void
@@ -408,6 +427,8 @@ update_relationship(heap_file* hf, relationship_t* rel_to_write)
     node_write(node, node_page);
 
     unpin_page(hf->cache, page_id, relationship_file);
+
+    fprintf(hf->log_file, "Update Rel %lu\n", rel_to_write->id);
 }
 
 void
@@ -434,11 +455,7 @@ delete_node(heap_file* hf, unsigned long node_id)
         }
     }
 
-    node     = new_node();
-    node->id = node_id;
-    memset(node->label, 0, MAX_STR_LEN);
-
-    update_node(hf, node);
+    fprintf(hf->log_file, "Delete Node %lu\n", node_id);
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -532,10 +549,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
         update_relationship(hf, rel);
     }
 
-    rel     = new_relationship();
-    rel->id = rel_id;
-
-    update_relationship(hf, rel);
+    fprintf(hf->log_file, "Delete Rel %lu\n", rel_id);
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((rel_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -736,6 +750,11 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     memcpy(buf, fst_page->data, PAGE_SIZE);
     memcpy(fst_page->data, snd_page->data, PAGE_SIZE);
     memcpy(snd_page->data, buf, PAGE_SIZE);
+    fprintf(hf->log_file,
+            "Swap %s pages %lu %lu\n",
+            ft == node_file ? "node" : "rel",
+            fst,
+            snd);
 
     write_bits(hf->cache,
                fst_header,
@@ -982,4 +1001,3 @@ contains_relationship_from_to(heap_file*    hf,
 
     return NULL;
 }
-

@@ -14,6 +14,7 @@ typedef struct
     phy_database* pdb;
     size_t        total_pinned;
     size_t        total_unpinned;
+    FILE*         log_file;
     llist_ul*     free_frames;
     bitmap*       pinned;
     queue_ul*     recently_referenced;
@@ -22,7 +23,7 @@ typedef struct
 } page_cache;
 
 page_cache*
-page_cache_create(phy_database* pdb);
+page_cache_create(phy_database* pdb, const char* log_path);
 
 void
 page_cache_destroy(page_cache* pc);

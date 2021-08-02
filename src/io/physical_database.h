@@ -19,6 +19,19 @@ typedef enum
           invalid
 } file_type;
 
+char** FILE_STR = {
+#ifdef ADJ_LIST
+    "header",
+    "record",
+#else
+    "node header",
+    "node record",
+    "relationship header",
+    "relationship record",
+#endif
+    "invalid"
+};
+
 typedef struct
 {
 #ifdef ADJ_LIST
@@ -28,6 +41,7 @@ typedef struct
     disk_file* files[4];
     size_t remaining_header_bits[2];
 #endif
+    FILE* log_file;
 } phy_database;
 
 phy_database*

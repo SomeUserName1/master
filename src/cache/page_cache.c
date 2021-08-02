@@ -1,5 +1,6 @@
 #include "page_cache.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -17,7 +18,7 @@
 #define SWAP_MAX_NUM_PINNED_PAGES (6)
 
 page_cache*
-page_cache_create(phy_database* pdb)
+page_cache_create(phy_database* pdb, const char* log_path)
 {
     if (!pdb) {
         printf("page cache - create: Invalid Arguments!\n");
@@ -54,6 +55,14 @@ page_cache_create(phy_database* pdb)
         llist_ul_append(pc->free_frames, i);
     }
 
+    FILE* log_file = fopen(log_path, "w+");
+
+    if (!log_file) {
+        printf("heap file - create: Failed to open log file, %d\n", errno);
+        exit(EXIT_FAILURE);
+    }
+    pc->log_file = log_file;
+
     return pc;
 }
 
@@ -76,6 +85,8 @@ page_cache_destroy(page_cache* pc)
     for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
         page_destroy(pc->cache[i]);
     }
+
+    fclose(pc->log_file);
 
     free(pc);
 }
@@ -131,6 +142,19 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
 
     pc->total_pinned++;
 
+    fprintf(pc->log_file,
+            "Pin %s page %lu\n",
+#ifdef ADJLIST
+            ft == record_file = "record"
+            : "header",
+#else
+            ft == node_header           ? "node header"
+            : ft == node_file           ? "node record"
+            : ft == relationship_header ? "relationship header"
+                                        : "relationship record",
+#endif
+              page_no);
+
     return pinned_page;
 }
 
@@ -166,6 +190,8 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
     queue_ul_push(pc->recently_referenced, frame_no);
 
     pc->total_unpinned++;
+
+    fprintf(pc->log_file, "Unpin %s page %lu\n", FILE_STRING[ft], page_no);
 }
 
 size_t
@@ -187,6 +213,8 @@ evict_page(page_cache* pc)
                 flush_page(pc, evict);
             }
 
+            fprintf(pc->log_file, "Evicted %lu\n", pc->cache[evict]->page_no);
+
             /* Remove freed frame from the recently referenced queue */
             queue_ul_remove(pc->recently_referenced, i);
             /* Remove reference of page from lookup table */
@@ -205,12 +233,14 @@ evict_page(page_cache* pc)
             }
         }
     }
+
     if (evicted == 0) {
         printf("page cache - evict: could not find a page to evict, as all "
                "pages "
                "are pinned!\n");
         exit(EXIT_FAILURE);
     }
+
     return evict;
 }
 
@@ -231,6 +261,8 @@ flush_page(page_cache* pc, size_t frame_no)
 
         pc->cache[frame_no]->dirty = false;
     }
+
+    fprintf(pc->log_file, "Flushed %lu\n", pc->cache[frame_no]->page_no);
 }
 
 void
@@ -242,4 +274,3 @@ flush_all_pages(page_cache* pc)
         }
     }
 }
-

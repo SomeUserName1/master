@@ -24,9 +24,10 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
 #define CACHE_SIZE    (2UL << 30) /* 2 GiB */
 #define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
 
-/* The implemented LRU-K evicts 1 + CACHE_N_PAGES / EVICT_LRU_DIV pages
+/* The implemented LRU-K evicts 1 + CACHE_N_PAGES * EVICT_LRU_SHARE pages
  * per call to evict. For example with a cache size of 1k pages, 11 pages
  * would be evicted per call */
-#define EVICT_LRU_K (1)
+#define EVICT_LRU_K_SHARE (0.001)
+#define EVICT_LRU_K       ((size_t)(1 + (size_t)(CACHE_N_PAGES * EVICT_LRU_K_SHARE)))
 
 #endif

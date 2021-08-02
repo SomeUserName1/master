@@ -4,14 +4,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/db98dfa832514fecb1829fd2aab68728)](https://www.codacy.com/gh/SomeUserName1/master/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SomeUserName1/master&amp;utm_campaign=Badge_Grade)  [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SomeUserName1/master.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SomeUserName1/master/context:cpp) [![codecov](https://codecov.io/gh/SomeUserName1/master/branch/main/graph/badge.svg?token=EHBWYZ8HYP)](https://codecov.io/gh/SomeUserName1/master)  
 
-## Timeline  
-<p style="text-align: center;"><font size="20"><progress id="time" value="3" max="62"></progress></font></p>
-
-- 31st July: Generic Data structures, Caching, Disk-based IO, Code Comments  
-- Early Spetember: G-Store data format converter, Adaptive method
-- 1st October: Paper
-
-
 ## Documentation 
 
 <p style="text-align: center;"><font size="20"><progress id="write" value="2" max="4">Documentation</progress></font></p>
@@ -30,13 +22,15 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [x] Disk-based IO
   - [x] Cache
   - [x] Heap file
-  - [ ] (WIP) Queries - use dicts instead of arrays!
-  - [ ] layout
+  - [x] Queries - use dicts instead of arrays!
+  - [x] Weights for snap importer
   - [ ] logging
-  - [ ] Weights for snap importer
+  - [ ] tests
        => Milestone 1  
-  - [ ] Dynamic Reorganization Impl.
+  - [ ] layout
+  - [ ] Data transformer (to adj list)
   - [ ] Gorder integration
+  - [ ] Dynamic Reorganization Impl.
         => Milestone 2
 
 #### Brainstorm
@@ -53,6 +47,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare IOs of query on data set order
   
 ### Future Work
+  - [ ] Iterator for get nodes and get relationships
   - [ ] Transaction/Intermediate Buffer
   - [ ] System Catalog (n\_slots from first 4 bytes of header and n\_nodes, n\_rels for now)
   - [ ] bulk ops
@@ -92,12 +87,12 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 
 
-## Meeting XY
+## Meeting 5 
 - Leave louvain aside for now 
 - Probably need in-memory graph, adjust in\_memory\_file
 - Logging of 
     + algos => nodes & rels on algo level
-    + CRUD => NODES/REL on system level
+    + CRUD => nodes & rels on system level
     + pages => un/pin in page cache
     + IOs => read/write page on disk files; 
 - Intermediate/Transaction memory => Just malloc for now
@@ -106,3 +101,5 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Write data transformer from index free incidence list to adjacency list
 - Layout afterwards when method is impl.
 
+## Meeting 6
+- Q: How to log header pages on heap file level? at all? page-wise (same as pin/unpin), byte-wise? slot-wise?

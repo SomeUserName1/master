@@ -261,6 +261,12 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
                db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf(db->log_file,
+                "Read %s: %lu bytes from offset %lu",
+                FILE_STR[ft - 1],
+                sizeof(unsigned long),
+                1)
     }
 
     memcpy(&bits, file_bits, sizeof(unsigned long));
@@ -276,6 +282,9 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
                db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+
+        fprintf(db->log_file, "Read ")
     }
 }
 

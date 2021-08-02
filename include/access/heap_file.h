@@ -12,10 +12,11 @@ typedef struct
     unsigned long n_rels;
     unsigned long last_alloc_node_slot;
     unsigned long last_alloc_rel_slot;
+    FILE*         log_file;
 } heap_file;
 
 heap_file*
-heap_file_create(page_cache* pc);
+heap_file_create(page_cache* pc, const char* log_path);
 
 void
 heap_file_destroy(heap_file* hf);

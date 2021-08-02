@@ -1,4 +1,4 @@
-#include "access/in_memory_file.h"
+#include "access/in_memory_graph.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,25 +7,26 @@
 #include "access/relationship.h"
 #include "constants.h"
 
-in_memory_file_t*
-create_in_memory_file()
+in_memory_graph*
+in_memory_graph_create(void)
 {
-    in_memory_file_t* file = (in_memory_file_t*)malloc(sizeof(*file));
+    in_memory_graph* file = (in_memory_graph*)malloc(sizeof(*file));
 
     if (file == NULL) {
+        printf("in memory graph - create: Failed to alloc memory!\n");
         exit(EXIT_FAILURE);
     }
 
-    file->cache_nodes     = d_ul_node_create();
-    file->cache_rels      = d_ul_rel_create();
-    file->node_id_counter = 0;
-    file->rel_id_counter  = 0;
+    file->cache_nodes = d_ul_node_create();
+    file->cache_rels  = d_ul_rel_create();
+    file->n_nodes     = 0;
+    file->n_rels      = 0;
 
     return file;
 }
 
 void
-in_memory_file_destroy(in_memory_file_t* db)
+in_memory_file_destroy(in_memory_graph* db)
 {
     dict_ul_node_destroy(db->cache_nodes);
     dict_ul_rel_destroy(db->cache_rels);
@@ -33,7 +34,7 @@ in_memory_file_destroy(in_memory_file_t* db)
 }
 
 unsigned long
-in_memory_create_node(in_memory_file_t* db)
+in_memory_create_node(in_memory_graph* db)
 {
     if (!db) {
         printf("in_memory - create node: Invalid arguments!\n");
@@ -41,18 +42,15 @@ in_memory_create_node(in_memory_file_t* db)
     }
 
     node_t* node = new_node();
-    node->id     = db->node_id_counter++;
+    node->id     = db->n_nodes++;
 
-    if (dict_ul_node_insert(db->cache_nodes, node->id, node) < 0) {
-        printf("%s", "Inserting the new node failed\n");
-        exit(EXIT_FAILURE);
-    }
+    dict_ul_node_insert(db->cache_nodes, node->id, node);
 
     return node->id;
 }
 
 node_t*
-in_memory_get_node(in_memory_file_t* db, unsigned long id)
+in_memory_get_node(in_memory_graph* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
         printf("in_memory: get_node: in memory file is NULL or invalid node "
@@ -64,7 +62,7 @@ in_memory_get_node(in_memory_file_t* db, unsigned long id)
 }
 
 array_list_node*
-in_memory_get_nodes(in_memory_file_t* db)
+in_memory_get_nodes(in_memory_graph* db)
 {
     if (!db) {
         printf("in_memory - get_nodes: in memory file is NULL!\n");
@@ -84,7 +82,7 @@ in_memory_get_nodes(in_memory_file_t* db)
 }
 
 relationship_t*
-in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
+in_memory_get_relationship(in_memory_graph* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
         printf("in_memory - get_relationship: in memory file is NULL or "
@@ -96,7 +94,7 @@ in_memory_get_relationship(in_memory_file_t* db, unsigned long id)
 }
 
 array_list_relationship*
-in_memory_get_relationships(in_memory_file_t* db)
+in_memory_get_relationships(in_memory_graph* db)
 {
     if (!db) {
         printf("in_memory - get_relationships: Invalid arguments!\n");
@@ -116,18 +114,18 @@ in_memory_get_relationships(in_memory_file_t* db)
 }
 
 unsigned long
-in_memory_create_relationship(in_memory_file_t* db,
-                              unsigned long     node_from,
-                              unsigned long     node_to)
+in_memory_create_relationship(in_memory_graph* db,
+                              unsigned long    node_from,
+                              unsigned long    node_to)
 {
     return in_memory_create_relationship_weighted(db, node_from, node_to, 1.0F);
 }
 
 unsigned long
-in_memory_create_relationship_weighted(in_memory_file_t* db,
-                                       unsigned long     node_from,
-                                       unsigned long     node_to,
-                                       double            weight)
+in_memory_create_relationship_weighted(in_memory_graph* db,
+                                       unsigned long    node_from,
+                                       unsigned long    node_to,
+                                       double           weight)
 {
     if (!db || node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG
         || weight == UNINITIALIZED_WEIGHT) {
@@ -163,7 +161,7 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
     relationship_t* rel = new_relationship();
     rel->source_node    = node_from;
     rel->target_node    = node_to;
-    rel->id             = db->rel_id_counter++;
+    rel->id             = db->n_rels++;
     rel->flags          = 1;
     rel->weight         = weight;
 
@@ -257,10 +255,10 @@ in_memory_create_relationship_weighted(in_memory_file_t* db,
 }
 
 unsigned long
-in_memory_next_relationship_id(in_memory_file_t* db,
-                               unsigned long     node_id,
-                               relationship_t*   rel,
-                               direction_t       direction)
+in_memory_next_relationship_id(in_memory_graph* db,
+                               unsigned long    node_id,
+                               relationship_t*  rel,
+                               direction_t      direction)
 {
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
         printf("in_memory - next_relationship: Arguments must be not NULL!\n");
@@ -288,9 +286,9 @@ in_memory_next_relationship_id(in_memory_file_t* db,
 }
 
 array_list_relationship*
-in_memory_expand(in_memory_file_t* db,
-                 unsigned long     node_id,
-                 direction_t       direction)
+in_memory_expand(in_memory_graph* db,
+                 unsigned long    node_id,
+                 direction_t      direction)
 {
     if (!db) {
         printf("in_memory - expand: Arguments must be not NULL!\n");
@@ -340,10 +338,10 @@ in_memory_expand(in_memory_file_t* db,
 }
 
 relationship_t*
-in_memory_contains_relationship_from_to(in_memory_file_t* db,
-                                        unsigned long     node_from,
-                                        unsigned long     node_to,
-                                        direction_t       direction)
+in_memory_contains_relationship_from_to(in_memory_graph* db,
+                                        unsigned long    node_from,
+                                        unsigned long    node_to,
+                                        direction_t      direction)
 {
     if (!db) {
         printf("in_memory - contains relationship: Invalid Arguments!\n");
