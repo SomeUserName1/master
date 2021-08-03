@@ -16,9 +16,9 @@ float
 get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file);
 
 size_t
-get_min_degree(heap_file* hf, direction_t direction);
+get_min_degree(heap_file* hf, direction_t direction, FILE* log_file);
 
 size_t
-get_max_degree(heap_file* hf, direction_t direction);
+get_max_degree(heap_file* hf, direction_t direction, FILE* log_file);
 
 #endif

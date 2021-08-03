@@ -198,8 +198,7 @@ phy_database_validate_header(phy_database* db, file_type ft)
                db->files[ft]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
-    }
-    /* convert them to an unsigned long */
+    } /* convert them to an unsigned long */
     memcpy(&size, buf, sizeof(unsigned long));
 
     /* caluclate the number of slots in the record file */
@@ -261,12 +260,6 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
                db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
-    } else {
-        fprintf(db->log_file,
-                "Read %s: %lu bytes from offset %lu",
-                FILE_STR[ft - 1],
-                sizeof(unsigned long),
-                1)
     }
 
     memcpy(&bits, file_bits, sizeof(unsigned long));
@@ -282,9 +275,6 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
                db->files[ft - 2]->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
-    } else {
-
-        fprintf(db->log_file, "Read ")
     }
 }
 

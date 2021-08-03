@@ -361,8 +361,9 @@ read_node(heap_file* hf, unsigned long node_id)
     node_read(node, node_page);
 
     unpin_page(hf->cache, page_id, node_file);
-
-    fprintf(hf->log_file, "Read Node %lu\n", node_id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "Read_Node %lu\n", node_id);
+#endif
 
     return node;
 }
@@ -384,7 +385,9 @@ read_relationship(heap_file* hf, unsigned long rel_id)
 
     unpin_page(hf->cache, page_id, relationship_file);
 
-    fprintf(hf->log_file, "Read Rel %lu\n", rel_id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "read_rel %lu\n", rel_id);
+#endif
 
     return rel;
 }
@@ -404,7 +407,9 @@ update_node(heap_file* hf, node_t* node_to_write)
 
     unpin_page(hf->cache, page_id, relationship_file);
 
-    fprintf(hf->log_file, "Update Node %lu\n", node_to_write->id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "update_node %lu\n", node_to_write->id);
+#endif
 }
 
 void
@@ -428,7 +433,9 @@ update_relationship(heap_file* hf, relationship_t* rel_to_write)
 
     unpin_page(hf->cache, page_id, relationship_file);
 
-    fprintf(hf->log_file, "Update Rel %lu\n", rel_to_write->id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "update_rel %lu\n", rel_to_write->id);
+#endif
 }
 
 void
@@ -455,7 +462,9 @@ delete_node(heap_file* hf, unsigned long node_id)
         }
     }
 
-    fprintf(hf->log_file, "Delete Node %lu\n", node_id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "delete_node %lu\n", node_id);
+#endif
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -549,7 +558,9 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
         update_relationship(hf, rel);
     }
 
-    fprintf(hf->log_file, "Delete Rel %lu\n", rel_id);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "delete_rel %lu\n", rel_id);
+#endif
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((rel_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -750,11 +761,14 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     memcpy(buf, fst_page->data, PAGE_SIZE);
     memcpy(fst_page->data, snd_page->data, PAGE_SIZE);
     memcpy(snd_page->data, buf, PAGE_SIZE);
+
+#ifdef VERBOSE
     fprintf(hf->log_file,
-            "Swap %s pages %lu %lu\n",
+            "swap_%s_pages %lu\nSwap_%s_pages %lu\n",
             ft == node_file ? "node" : "rel",
             fst,
             snd);
+#endif
 
     write_bits(hf->cache,
                fst_header,

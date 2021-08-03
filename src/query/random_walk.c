@@ -12,7 +12,8 @@ path*
 random_walk(heap_file*    hf,
             unsigned long node_id,
             size_t        num_steps,
-            direction_t   direction)
+            direction_t   direction,
+            FILE*         log_file)
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
         printf("DB is NULL or node id uninitialized");
@@ -26,6 +27,11 @@ random_walk(heap_file*    hf,
 
     for (size_t i = 0; i < num_steps; ++i) {
         cur_rels = expand(hf, current_node, direction);
+
+#ifdef VERBOSE
+        fprintf(log_file, "random_walk N %lu\n", current_node);
+#endif
+
         if (array_list_relationship_size(cur_rels) == 0) {
             array_list_relationship_destroy(cur_rels);
             break;
@@ -33,6 +39,9 @@ random_walk(heap_file*    hf,
 
         rel = array_list_relationship_get(
               cur_rels, rand() % array_list_relationship_size(cur_rels));
+#ifdef VERBOSE
+        fprintf(log_file, "random_walk R %lu\n", rel->id);
+#endif
 
         array_list_ul_append(visited_rels, rel->id);
         distance += rel->weight;

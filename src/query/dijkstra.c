@@ -15,7 +15,7 @@ sssp_result*
 dijkstra(heap_file*    hf,
          unsigned long source_node_id,
          direction_t   direction,
-         const char*   log_path)
+         FILE*         log_file)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         printf("dijkstra: Invalid Arguemnts!\n");
@@ -26,15 +26,6 @@ dijkstra(heap_file*    hf,
     dict_ul_d*  distance = d_ul_d_create();
 
     fib_heap_ul* prio_queue = fib_heap_ul_create();
-    FILE*        log_file   = fopen(log_path, "w+");
-
-    if (log_file == NULL) {
-        dict_ul_ul_destroy(parents);
-        dict_ul_d_destroy(distance);
-        fib_heap_ul_destroy(prio_queue);
-        printf("dijkstra: Failed to open log file, %d\n", errno);
-        exit(EXIT_FAILURE);
-    }
 
     array_list_relationship* current_rels;
     relationship_t*          current_rel;
@@ -48,13 +39,17 @@ dijkstra(heap_file*    hf,
         fh_node      = fib_heap_ul_extract_min(prio_queue);
         current_rels = expand(hf, fh_node->value, direction);
 
-        fprintf(log_file, "%s %lu\n", "N", fh_node->value);
+#ifdef VERBOSE
+        fprintf(log_file, "dijkstra %s %lu\n", "N", fh_node->value);
+#endif
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);
              ++i) {
             current_rel = array_list_relationship_get(current_rels, i);
 
-            fprintf(log_file, "%s %lu\n", "R", current_rel->id);
+#ifdef VERBOSE
+            fprintf(log_file, "dijkstra %s %lu\n", "R", current_rel->id);
+#endif
 
             temp = fh_node->value == current_rel->source_node
                          ? current_rel->target_node
@@ -72,7 +67,6 @@ dijkstra(heap_file*    hf,
         array_list_relationship_destroy(current_rels);
     }
     fib_heap_ul_destroy(prio_queue);
-    fclose(log_file);
 
     return create_sssp_result(source_node_id, distance, parents);
 }

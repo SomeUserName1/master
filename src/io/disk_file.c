@@ -35,7 +35,6 @@ disk_file_create(char* file_name)
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-
     df->f_buf = calloc(PAGE_SIZE << 3, sizeof(char));
 
     if (!df->f_buf) {
@@ -84,6 +83,7 @@ disk_file_destroy(disk_file* df)
 
     if (fclose(df->file) != 0) {
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
+    } else {
     }
 
     free(df->f_buf);
@@ -105,18 +105,24 @@ disk_file_delete(disk_file* df)
     if (remove(df->file_name) != 0) {
         printf("disk file - delete: Error removing file: %s\n",
                strerror(errno));
+    } else {
     }
+
     free(df->f_buf);
 }
 
 void
-read_page(disk_file* df, size_t page_no, unsigned char* buf)
+read_page(disk_file* df, size_t page_no, unsigned char* buf, FILE* log_file)
 {
-    read_pages(df, page_no, page_no, buf);
+    read_pages(df, page_no, page_no, buf, log_file);
 }
 
 void
-read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
+read_pages(disk_file*     df,
+           size_t         fst_page,
+           size_t         lst_page,
+           unsigned char* buf,
+           FILE*          log_file)
 {
     if (!df || !buf) {
         printf("disk file - read pages: Invalid Arguments!\n");
@@ -125,11 +131,14 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
 
     if (fst_page > MAX_PAGE_NO || lst_page > MAX_PAGE_NO
         || fst_page > df->num_pages || lst_page > df->num_pages) {
-        printf("disk file - read pages: One of the page numbers you specified "
+        printf("disk file - read pages: One of the page numbers you "
+               "specified "
                "(%lu or %lu) are "
                "too large!\n "
-               "The current size of the database is %lu pages and %li bytes.\n"
-               "The size limit of the database is currently %li PiB, that is "
+               "The current size of the database is %lu pages and %li "
+               "bytes.\n"
+               "The size limit of the database is currently %li PiB, that "
+               "is "
                "the maximal page number is %li",
                fst_page,
                lst_page,
@@ -141,7 +150,8 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
     }
 
     if (fst_page > lst_page) {
-        printf("disk file - read pages: The number of the last page to be read "
+        printf("disk file - read pages: The number of the last page to be "
+               "read "
                "needs to be larger than the number of the first page to be "
                "read!\n");
         exit(EXIT_FAILURE);
@@ -159,28 +169,34 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
     }
     if (fread(buf, PAGE_SIZE, num_pages_read, df->file)
         != PAGE_SIZE * num_pages_read) {
-        printf("disk file - read pages: Failed to read the pages from %lu to "
+        printf("disk file - read pages: Failed to read the pages from %lu "
+               "to "
                "%lu from file %s: %s\n",
                fst_page,
                lst_page,
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf(
+              log_file, "read_page %s %lu", df->file_name, fst_page, lst_page);
     }
+
     df->read_count++;
 }
 
 void
-write_page(disk_file* df, size_t page_no, unsigned char* data)
+write_page(disk_file* df, size_t page_no, unsigned char* data, FILE* log_file)
 {
-    write_pages(df, page_no, page_no, data);
+    write_pages(df, page_no, page_no, data, log_file);
 }
 
 void
 write_pages(disk_file*     df,
             size_t         fst_page,
             size_t         lst_page,
-            unsigned char* data)
+            unsigned char* data,
+            FILE*          log_file)
 {
     if (!df || !data) {
         printf("disk file - write page: Invalid Arguments!\n");
@@ -188,10 +204,12 @@ write_pages(disk_file*     df,
     }
 
     if (fst_page > MAX_PAGE_NO || lst_page > MAX_PAGE_NO) {
-        printf("disk file - write page: One of the page numbers you specified "
+        printf("disk file - write page: One of the page numbers you "
+               "specified "
                "(%lu or %lu) are "
                "too large!\n "
-               "The size limit of the database is currently %li PiB, that is "
+               "The size limit of the database is currently %li PiB, that "
+               "is "
                "the maximal page number is %li",
                fst_page,
                lst_page,
@@ -201,17 +219,18 @@ write_pages(disk_file*     df,
     }
 
     if (fst_page > lst_page) {
-        printf(
-              "disk file - write pages: The number of the last page to be read "
-              "needs to be larger than the number of the first page to be "
-              "read!\n");
+        printf("disk file - write pages: The number of the last page to be "
+               "read "
+               "needs to be larger than the number of the first page to be "
+               "read!\n");
         exit(EXIT_FAILURE);
     }
 
     if (lst_page + 1 > df->num_pages) {
-        // +1 as the page indexes start at 0 while the number of pages starts
-        // counting at 1
-        printf("disk file - write: File not large enough! You need to allocate "
+        // +1 as the page indexes start at 0 while the number of pages
+        // starts counting at 1
+        printf("disk file - write: File not large enough! You need to "
+               "allocate "
                "more pages using the respective function of the physical "
                "database.\n");
         exit(EXIT_FAILURE);
@@ -227,17 +246,24 @@ write_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-
     if (fwrite(data, PAGE_SIZE, num_pages_write, df->file)
         != PAGE_SIZE * num_pages_write) {
-        printf("disk file - write pages: Failed to write the pages from %lu to "
+        printf("disk file - write pages: Failed to write the pages from "
+               "%lu to "
                "%lu from file %s: %s\n",
                fst_page,
                lst_page,
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf(log_file,
+                "write_pages %s %lu %lu",
+                df->file_name,
+                fst_page,
+                lst_page);
     }
+
     df->write_count++;
 }
 
@@ -264,7 +290,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
     }
 
     if (df->num_pages + by_num_pages >= MAX_PAGE_NO) {
-        printf("disk file - grow: Cannot grow database by %lu pages! Exceeds "
+        printf("disk file - grow: Cannot grow database by %lu pages! "
+               "Exceeds "
                "max database size "
                "of %li PiB!\n",
                by_num_pages,
@@ -275,6 +302,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
     if (fseek(df->file, 0, SEEK_END) == -1) {
         printf("disk file - grow: failed to fseek with errno %d\n", errno);
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     char* data = calloc(1, PAGE_SIZE);
@@ -290,6 +319,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     free(data);
@@ -301,6 +332,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     df->num_pages = df->file_size / PAGE_SIZE;
@@ -321,7 +354,8 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     }
 
     if (df->num_pages - by_num_pages >= 0) {
-        printf("disk file - shrink: Cannot shrink database by %lu pages! The "
+        printf("disk file - shrink: Cannot shrink database by %lu pages! "
+               "The "
                "database would have "
                "less than 0 pages!\n",
                by_num_pages);
@@ -331,7 +365,8 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     int fd = fileno(df->file);
 
     if (fd == -1) {
-        printf("disk file - shrink: Failed to get file descriptor from stream "
+        printf("disk file - shrink: Failed to get file descriptor from "
+               "stream "
                "of file %s: %s\n",
                df->file_name,
                strerror(errno));
@@ -344,11 +379,15 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     if (fseek(df->file, 0, SEEK_END) == -1) {
         printf("disk file - grow: failed to fseek with errno %d\n", errno);
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     df->file_size = ftell(df->file);
@@ -358,6 +397,8 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+    } else {
+        fprintf();
     }
 
     df->num_pages = df->file_size / PAGE_SIZE;

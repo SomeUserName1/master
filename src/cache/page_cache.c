@@ -142,19 +142,17 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
 
     pc->total_pinned++;
 
+#ifdef VERBOSE
     fprintf(pc->log_file,
-            "Pin %s page %lu\n",
+            "Pin %s %lu\n",
 #ifdef ADJLIST
             ft == record_file = "record"
             : "header",
 #else
-            ft == node_header           ? "node header"
-            : ft == node_file           ? "node record"
-            : ft == relationship_header ? "relationship header"
-                                        : "relationship record",
+            FILE_STRING[ft],
 #endif
               page_no);
-
+#endif
     return pinned_page;
 }
 
@@ -191,7 +189,9 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
 
     pc->total_unpinned++;
 
-    fprintf(pc->log_file, "Unpin %s page %lu\n", FILE_STRING[ft], page_no);
+#ifdef VERBOSE
+    fprintf(pc->log_file, "Unpin %s %lu\n", FILE_STRING[ft], page_no);
+#endif
 }
 
 size_t
@@ -212,9 +212,9 @@ evict_page(page_cache* pc)
             if (pc->cache[evict]->dirty) {
                 flush_page(pc, evict);
             }
-
-            fprintf(pc->log_file, "Evicted %lu\n", pc->cache[evict]->page_no);
-
+#ifdef VERBOSE
+            fprintf(pc->log_file, "evict %lu\n", pc->cache[evict]->page_no);
+#endif
             /* Remove freed frame from the recently referenced queue */
             queue_ul_remove(pc->recently_referenced, i);
             /* Remove reference of page from lookup table */
@@ -262,7 +262,9 @@ flush_page(page_cache* pc, size_t frame_no)
         pc->cache[frame_no]->dirty = false;
     }
 
+#ifdef VERBSE
     fprintf(pc->log_file, "Flushed %lu\n", pc->cache[frame_no]->page_no);
+#endif
 }
 
 void

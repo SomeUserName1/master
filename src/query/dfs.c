@@ -15,7 +15,7 @@ traversal_result*
 dfs(heap_file*    hf,
     unsigned long source_node_id,
     direction_t   direction,
-    const char*   log_path)
+    FILE*         log_file)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         printf("dfs: Invalid Arguments!\n");
@@ -26,15 +26,6 @@ dfs(heap_file*    hf,
     dict_ul_ul* dfs     = d_ul_ul_create();
 
     stack_ul* node_stack = st_ul_create();
-    FILE*     log_file   = fopen(log_path, "w+");
-
-    if (log_file == NULL) {
-        dict_ul_ul_destroy(parents);
-        dict_ul_ul_destroy(dfs);
-        stack_ul_destroy(node_stack);
-        printf("bfs: Failed to open log file, %d\n", errno);
-        exit(EXIT_FAILURE);
-    }
 
     array_list_relationship* current_rels = NULL;
     relationship_t*          current_rel  = NULL;
@@ -48,12 +39,19 @@ dfs(heap_file*    hf,
     while (stack_size > 0) {
         node_id      = stack_ul_pop(node_stack);
         current_rels = expand(hf, node_id, direction);
-        fprintf(log_file, "%s %lu\n", "N", node_id);
+
+#ifdef VERBOSE
+        fprintf(log_file, "dfs %s %lu\n", "N", node_id);
+#endif
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);
              ++i) {
             current_rel = array_list_relationship_get(current_rels, i);
-            fprintf(log_file, "%s %lu\n", "R", current_rel->id);
+
+#ifdef VERBOSE
+            fprintf(log_file, "dfs %s %lu\n", "R", current_rel->id);
+#endif
+
             temp = node_id == current_rel->source_node
                          ? current_rel->target_node
                          : current_rel->source_node;
@@ -69,7 +67,6 @@ dfs(heap_file*    hf,
         array_list_relationship_destroy(current_rels);
     }
     stack_ul_destroy(node_stack);
-    fclose(log_file);
 
     return create_traversal_result(source_node_id, dfs, parents);
 }

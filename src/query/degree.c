@@ -18,20 +18,26 @@ get_degree(heap_file*    hf,
         printf("get_degree: Invaliud Arguments!\n");
         exit(EXIT_FAILURE);
     }
+
+#ifdef VERBOSE
     if (log_file) {
-        fprintf(log_file, "%s %lu\n", "N ", node_id);
+        fprintf(log_file, "get_degree %s %lu\n", "N ", node_id);
     }
+#endif
 
     array_list_relationship* rels   = expand(hf, node_id, direction);
     size_t                   degree = array_list_relationship_size(rels);
 
     if (log_file) {
+#ifdef VERBOSE
         for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+
             fprintf(log_file,
-                    "%s %lu\n",
+                    "get_degree %s %lu\n",
                     "R ",
                     array_list_relationship_get(rels, i)->id);
         }
+#endif
     }
 
     array_list_relationship_destroy(rels);
@@ -58,14 +64,16 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
         total_degree += array_list_relationship_size(rels);
 
         if (log_file) {
-            fprintf(log_file, "%s %lu\n", "N ", i);
+#ifdef VERBOSE
+            fprintf(log_file, "get_avg_degree %s %lu\n", "N ", i);
 
             for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
                 fprintf(log_file,
-                        "%s %lu\n",
+                        "get_avg_degree %s %lu\n",
                         "R ",
                         array_list_relationship_get(rels, i)->id);
             }
+#endif
         }
         array_list_relationship_destroy(rels);
     }
@@ -74,7 +82,7 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
 }
 
 size_t
-get_min_degree(heap_file* hf, direction_t direction)
+get_min_degree(heap_file* hf, direction_t direction, FILE* log_file)
 {
     if (!hf) {
         printf("degree - get min degree: Invalid Arguments!\n");
@@ -84,15 +92,15 @@ get_min_degree(heap_file* hf, direction_t direction)
     array_list_node* nodes      = get_nodes(hf);
     size_t           num_nodes  = array_list_node_size(nodes);
     size_t           min_degree = SIZE_MAX;
-
-    array_list_relationship* rels;
+    size_t           degree;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
-        if (array_list_relationship_size(rels) < min_degree) {
-            min_degree = array_list_relationship_size(rels);
+        degree = get_degree(
+              hf, array_list_node_get(nodes, i)->id, direction, log_file);
+
+        if (degree < min_degree) {
+            min_degree = degree;
         }
-        array_list_relationship_destroy(rels);
     }
     array_list_node_destroy(nodes);
 
@@ -100,7 +108,7 @@ get_min_degree(heap_file* hf, direction_t direction)
 }
 
 size_t
-get_max_degree(heap_file* hf, direction_t direction)
+get_max_degree(heap_file* hf, direction_t direction, FILE* log_file)
 {
     if (!hf) {
         printf("degree - get max degree: Invalid Arguments!\n");
@@ -110,15 +118,15 @@ get_max_degree(heap_file* hf, direction_t direction)
     array_list_node* nodes      = get_nodes(hf);
     size_t           num_nodes  = array_list_node_size(nodes);
     size_t           max_degree = 0;
-
-    array_list_relationship* rels;
+    size_t           degree;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
-        if (array_list_relationship_size(rels) > max_degree) {
-            max_degree = array_list_relationship_size(rels);
+        degree = get_degree(
+              hf, array_list_node_get(nodes, i)->id, direction, log_file);
+
+        if (degree > max_degree) {
+            max_degree = degree;
         }
-        array_list_relationship_destroy(rels);
     }
 
     array_list_node_destroy(nodes);

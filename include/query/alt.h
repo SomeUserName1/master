@@ -10,7 +10,7 @@ alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
                dict_ul_d**   landmark_dists,
-               const char*   log_path);
+               FILE*         log_file);
 
 path*
 alt(heap_file*    hf,
@@ -19,6 +19,6 @@ alt(heap_file*    hf,
     unsigned long source_node_id,
     unsigned long target_node_id,
     direction_t   direction,
-    const char*   log_path);
+    FILE*         log_file);
 
 #endif

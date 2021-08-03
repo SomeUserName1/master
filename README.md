@@ -47,10 +47,10 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Compare IOs of query on data set order
   
 ### Future Work
-  - [ ] Iterator for get nodes and get relationships
   - [ ] Transaction/Intermediate Buffer
   - [ ] System Catalog (n\_slots from first 4 bytes of header and n\_nodes, n\_rels for now)
   - [ ] bulk ops
+  - [ ] Iterator for get nodes and get relationships
   - [ ] Hop labeling scheme: Use existing impl.
   - [ ] Alternative record layouts (nodes + adj list in same file)
   - [ ] thread-safe data structures
@@ -102,4 +102,8 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Layout afterwards when method is impl.
 
 ## Meeting 6
-- Q: How to log header pages on heap file level? at all? page-wise (same as pin/unpin), byte-wise? slot-wise?
+- Q: How to log header pages on heap file level? at all? page-wise (same as pin/unpin), byte-wise? slot-wise?  
+  A: Are handled by pin/unpin, read/write page; nothing to gather here
+- Log on read/write page level not on stdio ops/calls level
+- Use #ifdef VERBOSE macros arround macros
+- Logging: Pages might not fit on OS page, Sequential access might be broken into parts, ...

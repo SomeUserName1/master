@@ -128,7 +128,7 @@ construct_path(heap_file*    hf,
         parent_id = dict_ul_ul_get_direct(parents, node_id);
         array_list_ul_append(edges_reverse, parent_id);
         rel = read_relationship(hf, parent_id);
-        fprintf(log_file, "%s %lu\n", "R", rel->id);
+        fprintf(log_file, "construct_path %s %lu\n", "R", rel->id);
 
         node_id =
               rel->target_node == node_id ? rel->source_node : rel->target_node;
@@ -144,7 +144,6 @@ construct_path(heap_file*    hf,
     }
     array_list_ul_destroy(edges_reverse);
     dict_ul_ul_destroy(parents);
-    fclose(log_file);
 
     return create_path(source_node_id, target_node_id, distance, edges);
 }

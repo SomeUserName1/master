@@ -9,6 +9,6 @@ sssp_result*
 dijkstra(heap_file*    hf,
          unsigned long source_node_id,
          direction_t   direction,
-         const char*   log_path);
+         FILE*         log_file);
 
 #endif
