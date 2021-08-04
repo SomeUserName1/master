@@ -166,7 +166,7 @@ phy_database_validate_empty_header(phy_database* db, file_type ft)
         }
     } else {
         /* if the header file is empty, write a page of zeros. */
-        disk_file_grow(db->files[ft], 1);
+        disk_file_grow(db->files[ft], 1, db->log_file);
     }
     /* Mark all bits but the first 8 bytes (carrying the size of the bitmap) as
      * unsused */
@@ -227,7 +227,7 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
         exit(EXIT_FAILURE);
     }
 
-    disk_file_grow(db->files[ft], num_pages);
+    disk_file_grow(db->files[ft], num_pages, db->log_file);
 
     size_t neccessary_bits = num_pages * (PAGE_SIZE / SLOT_SIZE);
 
@@ -239,7 +239,7 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
         size_t additional_pages = (additional_bytes / PAGE_SIZE)
                                   + (additional_bytes % PAGE_SIZE != 0);
 
-        disk_file_grow(db->files[ft - 1], additional_pages);
+        disk_file_grow(db->files[ft - 1], additional_pages, db->log_file);
 
         db->remaining_header_bits[ft] +=
               (additional_pages * PAGE_SIZE * CHAR_BIT - additional_bits);

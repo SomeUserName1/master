@@ -10,7 +10,14 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 - [x] SRS
 - [x] SDD
-- [ ] Code Comments
+- Code Comments
+    - [ ] data-struct
+    - [ ] io
+    - [ ] cache
+    - [ ] access
+    - [ ] query
+    - [ ] layout
+    - [ ] test
 - [ ] Dev Manual
 
 
@@ -24,7 +31,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [x] Heap file
   - [x] Queries - use dicts instead of arrays!
   - [x] Weights for snap importer
-  - [ ] logging
+  - [x] logging
   - [ ] tests
        => Milestone 1  
   - [ ] layout
@@ -49,10 +56,10 @@ Dynamic record locality optimizing storage scheme for graph databases.
 ### Future Work
   - [ ] Transaction/Intermediate Buffer
   - [ ] System Catalog (n\_slots from first 4 bytes of header and n\_nodes, n\_rels for now)
-  - [ ] bulk ops
   - [ ] Iterator for get nodes and get relationships
-  - [ ] Hop labeling scheme: Use existing impl.
+  - [ ] bulk ops
   - [ ] Alternative record layouts (nodes + adj list in same file)
+  - [ ] Hop labeling scheme: Use existing impl.
   - [ ] thread-safe data structures
   - [ ] Transactions
   - [ ] Distributed
@@ -68,7 +75,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
 	
 - Deliverables: Test bed for method
 	+ Disk-based
-	+ G-Store format converter
+	+ Data converter
 	+ Schema (?)
 	+ Evaluation: Run n% of queries, reorganize, run remaining 1-n%
 	
@@ -84,8 +91,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - labels stored within the nodes & rel struct
 - Algorithms: The ones that are implemented + hop labeling
 - Out of memory during transaction (e.g. BFS on live journal): Assume everything fits in memory
-
-
 
 ## Meeting 5 
 - Leave louvain aside for now 
@@ -106,4 +111,4 @@ Dynamic record locality optimizing storage scheme for graph databases.
   A: Are handled by pin/unpin, read/write page; nothing to gather here
 - Log on read/write page level not on stdio ops/calls level
 - Use #ifdef VERBOSE macros arround macros
-- Logging: Pages might not fit on OS page, Sequential access might be broken into parts, ...
+- Logging: Pages might not fit on OS page, Sequential access might be broken into parts, ... => more IOs on the OS level penalize runtime

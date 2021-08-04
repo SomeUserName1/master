@@ -178,8 +178,13 @@ read_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        fprintf(
-              log_file, "read_page %s %lu", df->file_name, fst_page, lst_page);
+#ifdef VERBOSE
+        fprintf(log_file,
+                "read_page %s %lu %lu",
+                df->file_name,
+                fst_page,
+                lst_page);
+#endif
     }
 
     df->read_count++;
@@ -257,18 +262,20 @@ write_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     } else {
+#ifdef VERBOSE
         fprintf(log_file,
                 "write_pages %s %lu %lu",
                 df->file_name,
                 fst_page,
                 lst_page);
+#endif
     }
 
     df->write_count++;
 }
 
 void
-clear_page(disk_file* df, size_t page_no)
+clear_page(disk_file* df, size_t page_no, FILE* log_file)
 {
     unsigned char* data = calloc(1, PAGE_SIZE);
 
@@ -277,12 +284,12 @@ clear_page(disk_file* df, size_t page_no)
         exit(EXIT_FAILURE);
     }
 
-    write_page(df, page_no, data);
+    write_page(df, page_no, data, log_file);
     free(data);
 }
 
 void
-disk_file_grow(disk_file* df, size_t by_num_pages)
+disk_file_grow(disk_file* df, size_t by_num_pages, FILE* log_file)
 {
     if (!df) {
         printf("disk file - grow: invalid Arguments!\n");
@@ -302,8 +309,6 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
     if (fseek(df->file, 0, SEEK_END) == -1) {
         printf("disk file - grow: failed to fseek with errno %d\n", errno);
         exit(EXIT_FAILURE);
-    } else {
-        fprintf();
     }
 
     char* data = calloc(1, PAGE_SIZE);
@@ -320,7 +325,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
                strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        fprintf();
+#ifdef VERBOSE
+        fprintf(log_file, "grow_file %s %lu", df->file_name, by_num_pages);
+#endif
     }
 
     free(data);
@@ -332,10 +339,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
-    } else {
-        fprintf();
     }
-
     df->num_pages = df->file_size / PAGE_SIZE;
 }
 
@@ -346,7 +350,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
  * If these are not empty, the records on these pages will be lost!
  */
 void
-disk_file_shrink(disk_file* df, size_t by_num_pages)
+disk_file_shrink(disk_file* df, size_t by_num_pages, FILE* log_file)
 {
     if (!df || by_num_pages > MAX_PAGE_NO) {
         printf("disk file - shrink: invalid Arguments!\n");
@@ -380,14 +384,14 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
                strerror(errno));
         exit(EXIT_FAILURE);
     } else {
-        fprintf();
+#ifdef VERBOSE
+        fprintf(log_file, "shrink_file %s %lu", df->file_name, by_num_pages);
+#endif
     }
 
     if (fseek(df->file, 0, SEEK_END) == -1) {
         printf("disk file - grow: failed to fseek with errno %d\n", errno);
         exit(EXIT_FAILURE);
-    } else {
-        fprintf();
     }
 
     df->file_size = ftell(df->file);
@@ -397,8 +401,6 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
-    } else {
-        fprintf();
     }
 
     df->num_pages = df->file_size / PAGE_SIZE;
