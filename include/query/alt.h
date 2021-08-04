@@ -9,8 +9,12 @@ void
 alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
-               dict_ul_d**   landmark_dists,
-               FILE*         log_file);
+               dict_ul_d**   landmark_dists
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
 
 path*
 alt(heap_file*    hf,
@@ -18,7 +22,11 @@ alt(heap_file*    hf,
     unsigned long num_landmarks,
     unsigned long source_node_id,
     unsigned long target_node_id,
-    direction_t   direction,
-    FILE*         log_file);
+    direction_t   direction
+#ifdef VERBOSE
+    ,
+    FILE* log_file
+#endif
+);
 
 #endif

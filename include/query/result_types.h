@@ -61,8 +61,12 @@ construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
                dict_ul_ul*   parents,
-               double        distance,
-               FILE*         log_file);
+               double        distance
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
 
 array_list_ul*
 path_extract_vertices(path* p, heap_file* hf);

@@ -28,6 +28,6 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
  * per call to evict. For example with a cache size of 1k pages, 11 pages
  * would be evicted per call */
 #define EVICT_LRU_K_SHARE (0.001)
-#define EVICT_LRU_K       ((size_t)(1 + (size_t)(CACHE_N_PAGES * EVICT_LRU_K_SHARE)))
+#define EVICT_LRU_K       ((1 + (size_t)((size_t)CACHE_N_PAGES * EVICT_LRU_K_SHARE)))
 
 #endif

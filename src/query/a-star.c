@@ -17,8 +17,12 @@ a_star(heap_file*    hf,
        dict_ul_d*    heuristic,
        unsigned long source_node_id,
        unsigned long target_node_id,
-       direction_t   direction,
-       FILE*         log_file)
+       direction_t   direction
+#ifdef VERBOSE
+       ,
+       FILE* log_file
+#endif
+)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG
         || target_node_id == UNINITIALIZED_LONG) {
@@ -51,8 +55,12 @@ a_star(heap_file*    hf,
                                   source_node_id,
                                   target_node_id,
                                   parents,
-                                  new_dist,
-                                  log_file);
+                                  new_dist
+#ifdef VERBOSE
+                                  ,
+                                  log_file
+#endif
+            );
         }
 
         current_rels = expand(hf, fh_node->value, direction);

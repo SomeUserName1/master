@@ -14,8 +14,12 @@
 traversal_result*
 bfs(heap_file*    hf,
     unsigned long source_node_id,
-    direction_t   direction,
-    FILE*         log_file)
+    direction_t   direction
+#ifdef VERBOSE
+    ,
+    FILE* log_file
+#endif
+)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         printf("bfs: Invalid Arguments\n");

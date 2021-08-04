@@ -18,7 +18,12 @@
 #define HEADER_FILE_POSTFIX_LEN (strlen(".idx"))
 
 phy_database*
-phy_database_create(char* db_name)
+phy_database_create(char* db_name
+#ifdef VERBOSE
+                    ,
+                    const char* log_file_name
+#endif
+)
 {
     if (!db_name) {
         printf("physical database - create: Invalid arguments!\n");
@@ -26,6 +31,22 @@ phy_database_create(char* db_name)
     }
 
     phy_database* phy_db = calloc(1, sizeof(phy_database));
+
+    if (!phy_db) {
+        printf("physical database: failed to allocate memory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+#ifdef VERBOSE
+    phy_db->log_file = fopen(log_file_name, "a+");
+
+    if (!phy_db->log_file) {
+        printf("physical database - create: failed to fopen %s: %s\n",
+               log_file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+#endif
 
 #ifdef ADJ_LIST
     char* header_name =
@@ -35,7 +56,12 @@ phy_database_create(char* db_name)
 
     strncat(rels_header_name, ".idx", HEADER_POSTFIX_LEN);
 
-    phy_db->files[header_file] = disk_file_create(header_name);
+    phy_db->files[header_file] = disk_file_create(header_name
+#ifdef VERBOSE
+                                                  ,
+                                                  log_file
+#endif
+    );
 
     /* Create or open Record files */
     // +1 as strlen does not count \0
@@ -46,7 +72,12 @@ phy_database_create(char* db_name)
 
     strncat(rels_file_name, ".db", RECORD_FILE_POSTFIX_LEN);
 
-    phy_db->files[record_file] = disk_file_create(record_file_name);
+    phy_db->files[record_file] = disk_file_create(record_file_name
+#ifdef VERBOSE
+                                                  ,
+                                                  log_file
+#endif
+    );
 
 #else
     /* Create or open header files for the record files */
@@ -78,8 +109,18 @@ phy_database_create(char* db_name)
     strncat(nodes_file_name, "_nodes.db", NODE_FILE_POSTFIX_LEN);
     strncat(rels_file_name, "_relationships.db", RELS_FILE_POSTFIX_LEN);
 
-    phy_db->files[node_file]         = disk_file_create(nodes_file_name);
-    phy_db->files[relationship_file] = disk_file_create(rels_file_name);
+    phy_db->files[node_file]         = disk_file_create(nodes_file_name
+#ifdef VERBOSE
+                                                ,
+                                                log_file
+#endif
+    );
+    phy_db->files[relationship_file] = disk_file_create(rels_file_name
+#ifdef VERBOSE
+                                                        ,
+                                                        log_file
+#endif
+    );
 #endif
 
     for (file_type ft = 0; ft < invalid; ft += 2) {
@@ -98,6 +139,7 @@ phy_database_create(char* db_name)
 
     return phy_db;
 }
+
 void
 phy_database_close(phy_database* db)
 {
@@ -110,6 +152,13 @@ phy_database_close(phy_database* db)
         free(db->files[ft]->file_name);
         disk_file_destroy(db->files[ft]);
     }
+
+#ifdef VERBOSE
+    if (fclose(db->log_file) != 0) {
+        printf("disk file - destroy: Error closing file: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+#endif
 
     free(db);
 }
@@ -127,6 +176,13 @@ phy_database_delete(phy_database* db)
         free(db->files[ft]->file_name);
         free(db->files[ft]);
     }
+
+#ifdef VERBOSE
+    if (fclose(db->log_file) != 0) {
+        printf("disk file - destroy: Error closing file: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+#endif
 
     free(db);
 }
@@ -166,7 +222,7 @@ phy_database_validate_empty_header(phy_database* db, file_type ft)
         }
     } else {
         /* if the header file is empty, write a page of zeros. */
-        disk_file_grow(db->files[ft], 1, db->log_file);
+        disk_file_grow(db->files[ft], 1);
     }
     /* Mark all bits but the first 8 bytes (carrying the size of the bitmap) as
      * unsused */
@@ -227,7 +283,7 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
         exit(EXIT_FAILURE);
     }
 
-    disk_file_grow(db->files[ft], num_pages, db->log_file);
+    disk_file_grow(db->files[ft], num_pages);
 
     size_t neccessary_bits = num_pages * (PAGE_SIZE / SLOT_SIZE);
 
@@ -239,7 +295,7 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
         size_t additional_pages = (additional_bytes / PAGE_SIZE)
                                   + (additional_bytes % PAGE_SIZE != 0);
 
-        disk_file_grow(db->files[ft - 1], additional_pages, db->log_file);
+        disk_file_grow(db->files[ft - 1], additional_pages);
 
         db->remaining_header_bits[ft] +=
               (additional_pages * PAGE_SIZE * CHAR_BIT - additional_bits);

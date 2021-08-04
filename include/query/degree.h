@@ -9,16 +9,38 @@
 size_t
 get_degree(heap_file*    hf,
            unsigned long node_id,
-           direction_t   direction,
-           FILE*         log_file);
+           direction_t   direction
+#ifdef VERBOSE
+           ,
+           FILE* log_file
+#endif
+);
 
 float
-get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file);
+get_avg_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
 
 size_t
-get_min_degree(heap_file* hf, direction_t direction, FILE* log_file);
+get_min_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
 
 size_t
-get_max_degree(heap_file* hf, direction_t direction, FILE* log_file);
+get_max_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
 
 #endif

@@ -15,18 +15,30 @@
 
 unsigned long
 alt_chose_avg_deg_rand_landmark(heap_file*  hf,
-                                direction_t direction,
-                                FILE*       log_file)
+                                direction_t direction
+#ifdef VERBOSE
+                                ,
+                                FILE* log_file
+#endif
+)
 {
     if (!hf) {
         printf("ALT - chose landmarks: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    array_list_node* nodes      = get_nodes(hf);
-    double           avg_degree = get_avg_degree(hf, direction, log_file);
-    double           degree     = 0;
-    unsigned long    landmark_id;
+    array_list_node* nodes = get_nodes(hf);
+
+    double avg_degree = get_avg_degree(hf,
+                                       direction
+#ifdef VERBOSE
+                                       ,
+                                       log_file
+#endif
+    );
+
+    double        degree = 0;
+    unsigned long landmark_id;
 
     do {
         landmark_id = array_list_node_get(nodes, rand() % hf->n_nodes)->id;
@@ -36,7 +48,14 @@ alt_chose_avg_deg_rand_landmark(heap_file*  hf,
               log_file, "alt_chose_avg_deg_rand_landmark N %lu\n", landmark_id);
 #endif
 
-        degree = (double)get_degree(hf, landmark_id, direction, log_file);
+        degree = (double)get_degree(hf,
+                                    landmark_id,
+                                    direction
+#ifdef VERBOSE
+                                    ,
+                                    log_file
+#endif
+        );
     } while (degree < avg_degree);
 
     return landmark_id;
@@ -46,8 +65,12 @@ void
 alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
-               dict_ul_d**   landmark_dists,
-               FILE*         log_file)
+               dict_ul_d**   landmark_dists
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+)
 {
     if (!hf || !landmark_dists) {
         printf("ALT - preprocess: Invalid arguments!\n");
@@ -58,8 +81,21 @@ alt_preprocess(heap_file*    hf,
     sssp_result*  result;
 
     for (size_t i = 0; i < num_landmarks; ++i) {
-        landmarks[i] = alt_chose_avg_deg_rand_landmark(hf, d, log_file);
-        result       = dijkstra(hf, landmarks[i], d, log_file);
+        landmarks[i] = alt_chose_avg_deg_rand_landmark(hf,
+                                                       d
+#ifdef VERBOSE
+                                                       ,
+                                                       log_file
+#endif
+        );
+        result = dijkstra(hf,
+                          landmarks[i],
+                          d
+#ifdef VERBOSE
+                          ,
+                          log_file
+#endif
+        );
 
         // Assign the distances gathered by using dijkstras and discard the rest
         // of the sssp result (pred edges and the struct itself.
@@ -75,8 +111,12 @@ alt(heap_file*    hf,
     unsigned long num_landmarks,
     unsigned long source_node_id,
     unsigned long target_node_id,
-    direction_t   direction,
-    FILE*         log_file)
+    direction_t   direction
+#ifdef VERBOSE
+    ,
+    FILE* log_file
+#endif
+)
 {
     if (!hf || !landmark_dists) {
         printf("ALT: Invalid arguments!\n");
@@ -103,8 +143,16 @@ alt(heap_file*    hf,
         }
     }
 
-    path* result = a_star(
-          hf, heuristic, source_node_id, target_node_id, direction, log_file);
+    path* result = a_star(hf,
+                          heuristic,
+                          source_node_id,
+                          target_node_id,
+                          direction
+#ifdef VERBOSE
+                          ,
+                          log_file
+#endif
+    );
 
     dict_ul_d_destroy(heuristic);
     return result;

@@ -5,7 +5,7 @@
 
 #include "access/relationship.h"
 
-// FIXME Major rework: Need in memory graphs for louvain
+// FIXME Major rework
 
 louvain_graph_t*
 louvain_graph_init(heap_file* hf)

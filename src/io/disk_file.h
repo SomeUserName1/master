@@ -12,10 +12,18 @@ typedef struct
     size_t read_count;
     size_t write_count;
     char*  f_buf;
+#ifdef VERBOSE
+    FILE* log_file;
+#endif
 } disk_file;
 
 disk_file*
-disk_file_create(char* file_name);
+disk_file_create(char* file_name
+#ifdef VERBOSE
+                 ,
+                 FILE* log_file
+#endif
+);
 
 void
 disk_file_destroy(disk_file* df);
@@ -24,32 +32,27 @@ void
 disk_file_delete(disk_file* df);
 
 void
-read_page(disk_file* df, size_t page_no, unsigned char* buf, FILE* log_file);
+read_page(disk_file* df, size_t page_no, unsigned char* buf);
 
 void
-read_pages(disk_file*     df,
-           size_t         fst_page,
-           size_t         lst_page,
-           unsigned char* buf,
-           FILE*          log_file);
+read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf);
 
 void
-write_page(disk_file* df, size_t page_no, unsigned char* data, FILE* log_file);
+write_page(disk_file* df, size_t page_no, unsigned char* data);
 
 void
 write_pages(disk_file*     df,
             size_t         fst_page,
             size_t         lst_page,
-            unsigned char* data,
-            FILE*          log_file);
+            unsigned char* data);
 
 void
-clear_page(disk_file* df, size_t page_no, FILE* log_file);
+clear_page(disk_file* df, size_t page_no);
 
 void
-disk_file_grow(disk_file* df, size_t by_num_pages, FILE* log_file);
+disk_file_grow(disk_file* df, size_t by_num_pages);
 
 void
-disk_file_shrink(disk_file* df, size_t by_num_pages, FILE* log_file);
+disk_file_shrink(disk_file* df, size_t by_num_pages);
 
 #endif

@@ -23,7 +23,12 @@ typedef struct
 } page_cache;
 
 page_cache*
-page_cache_create(phy_database* pdb, const char* log_path);
+page_cache_create(phy_database* pdb
+#ifdef VERBOSE
+                  ,
+                  const char* log_path
+#endif
+);
 
 void
 page_cache_destroy(page_cache* pc);

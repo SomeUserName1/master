@@ -117,8 +117,12 @@ construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
                dict_ul_ul*   parents,
-               double        distance,
-               FILE*         log_file)
+               double        distance
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+)
 {
     unsigned long   node_id       = target_node_id;
     array_list_ul*  edges_reverse = al_ul_create();
@@ -128,7 +132,10 @@ construct_path(heap_file*    hf,
         parent_id = dict_ul_ul_get_direct(parents, node_id);
         array_list_ul_append(edges_reverse, parent_id);
         rel = read_relationship(hf, parent_id);
+
+#ifdef VERBOSE
         fprintf(log_file, "construct_path %s %lu\n", "R", rel->id);
+#endif
 
         node_id =
               rel->target_node == node_id ? rel->source_node : rel->target_node;

@@ -19,7 +19,7 @@ typedef enum
           invalid
 } file_type;
 
-char** FILE_STR = {
+const char* FILE_STR[] = {
 #ifdef ADJ_LIST
     "header",
     "record",
@@ -41,11 +41,18 @@ typedef struct
     disk_file* files[4];
     size_t remaining_header_bits[2];
 #endif
+#ifdef VERBOSE
     FILE* log_file;
+#endif
 } phy_database;
 
 phy_database*
-phy_database_create(char* db_name);
+phy_database_create(char* db_name
+#ifdef VERBOSE
+                    ,
+                    const char* log_file
+#endif
+);
 
 void
 phy_database_delete(phy_database* db);

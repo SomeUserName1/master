@@ -18,7 +18,12 @@
 #define SWAP_MAX_NUM_PINNED_PAGES (6)
 
 page_cache*
-page_cache_create(phy_database* pdb, const char* log_path)
+page_cache_create(phy_database* pdb
+#ifdef VERBOSE
+                  ,
+                  const char* log_path
+#endif
+)
 {
     if (!pdb) {
         printf("page cache - create: Invalid Arguments!\n");
@@ -55,6 +60,7 @@ page_cache_create(phy_database* pdb, const char* log_path)
         llist_ul_append(pc->free_frames, i);
     }
 
+#ifdef VERBOSE
     FILE* log_file = fopen(log_path, "w+");
 
     if (!log_file) {
@@ -62,6 +68,7 @@ page_cache_create(phy_database* pdb, const char* log_path)
         exit(EXIT_FAILURE);
     }
     pc->log_file = log_file;
+#endif
 
     return pc;
 }
@@ -86,7 +93,12 @@ page_cache_destroy(page_cache* pc)
         page_destroy(pc->cache[i]);
     }
 
-    fclose(pc->log_file);
+#ifdef VERBOSE
+    if (fclose(pc->log_file) != 0) {
+        printf("page cache - destroy: Error closing file: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+#endif
 
     free(pc);
 }

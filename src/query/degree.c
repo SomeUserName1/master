@@ -11,8 +11,12 @@
 size_t
 get_degree(heap_file*    hf,
            unsigned long node_id,
-           direction_t   direction,
-           FILE*         log_file)
+           direction_t   direction
+#ifdef VERBOSE
+           ,
+           FILE* log_file
+#endif
+)
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
         printf("get_degree: Invaliud Arguments!\n");
@@ -28,8 +32,8 @@ get_degree(heap_file*    hf,
     array_list_relationship* rels   = expand(hf, node_id, direction);
     size_t                   degree = array_list_relationship_size(rels);
 
-    if (log_file) {
 #ifdef VERBOSE
+    if (log_file) {
         for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
 
             fprintf(log_file,
@@ -37,8 +41,8 @@ get_degree(heap_file*    hf,
                     "R ",
                     array_list_relationship_get(rels, i)->id);
         }
-#endif
     }
+#endif
 
     array_list_relationship_destroy(rels);
 
@@ -46,7 +50,13 @@ get_degree(heap_file*    hf,
 }
 
 float
-get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
+get_avg_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+)
 {
     if (!hf) {
         printf("get_degree: Invaliud Arguments!\n");
@@ -63,8 +73,8 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
         rels = expand(hf, array_list_node_get(nodes, i)->id, direction);
         total_degree += array_list_relationship_size(rels);
 
-        if (log_file) {
 #ifdef VERBOSE
+        if (log_file) {
             fprintf(log_file, "get_avg_degree %s %lu\n", "N ", i);
 
             for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
@@ -73,8 +83,8 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
                         "R ",
                         array_list_relationship_get(rels, i)->id);
             }
-#endif
         }
+#endif
         array_list_relationship_destroy(rels);
     }
 
@@ -82,7 +92,13 @@ get_avg_degree(heap_file* hf, direction_t direction, FILE* log_file)
 }
 
 size_t
-get_min_degree(heap_file* hf, direction_t direction, FILE* log_file)
+get_min_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+)
 {
     if (!hf) {
         printf("degree - get min degree: Invalid Arguments!\n");
@@ -95,8 +111,14 @@ get_min_degree(heap_file* hf, direction_t direction, FILE* log_file)
     size_t           degree;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        degree = get_degree(
-              hf, array_list_node_get(nodes, i)->id, direction, log_file);
+        degree = get_degree(hf,
+                            array_list_node_get(nodes, i)->id,
+                            direction
+#ifdef VERBOSE
+                            ,
+                            log_file
+#endif
+        );
 
         if (degree < min_degree) {
             min_degree = degree;
@@ -108,7 +130,13 @@ get_min_degree(heap_file* hf, direction_t direction, FILE* log_file)
 }
 
 size_t
-get_max_degree(heap_file* hf, direction_t direction, FILE* log_file)
+get_max_degree(heap_file*  hf,
+               direction_t direction
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+)
 {
     if (!hf) {
         printf("degree - get max degree: Invalid Arguments!\n");
@@ -121,8 +149,14 @@ get_max_degree(heap_file* hf, direction_t direction, FILE* log_file)
     size_t           degree;
 
     for (size_t i = 0; i < num_nodes; ++i) {
-        degree = get_degree(
-              hf, array_list_node_get(nodes, i)->id, direction, log_file);
+        degree = get_degree(hf,
+                            array_list_node_get(nodes, i)->id,
+                            direction
+#ifdef VERBOSE
+                            ,
+                            log_file
+#endif
+        );
 
         if (degree > max_degree) {
             max_degree = degree;

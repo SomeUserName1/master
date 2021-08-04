@@ -11,7 +11,11 @@ path*
 random_walk(heap_file*    hf,
             unsigned long node_id,
             size_t        num_steps,
-            direction_t   direction,
-            FILE*         log_file);
+            direction_t   direction
+#ifdef VERBOSE
+            ,
+            FILE* log_file
+#endif
+);
 
 #endif

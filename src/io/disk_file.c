@@ -12,7 +12,11 @@
 #define PiB_OFFSET 50
 
 disk_file*
-disk_file_create(char* file_name)
+disk_file_create(char* file_name
+#ifdef VERBOSE
+                       FILE* log_file
+#endif
+)
 {
     if (!file_name) {
         printf("disk file - create: Invalid arguments!\n");
@@ -70,6 +74,15 @@ disk_file_create(char* file_name)
     df->read_count  = 0;
     df->write_count = 0;
 
+#ifdef VERBOSE
+    if (!log_file) {
+        printf("disk file - create: No log file was provided!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    df->log_file = log_file;
+#endif
+
     return df;
 }
 
@@ -83,10 +96,10 @@ disk_file_destroy(disk_file* df)
 
     if (fclose(df->file) != 0) {
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
-    } else {
     }
 
     free(df->f_buf);
+
     free(df);
 }
 
@@ -112,17 +125,13 @@ disk_file_delete(disk_file* df)
 }
 
 void
-read_page(disk_file* df, size_t page_no, unsigned char* buf, FILE* log_file)
+read_page(disk_file* df, size_t page_no, unsigned char* buf)
 {
-    read_pages(df, page_no, page_no, buf, log_file);
+    read_pages(df, page_no, page_no, buf);
 }
 
 void
-read_pages(disk_file*     df,
-           size_t         fst_page,
-           size_t         lst_page,
-           unsigned char* buf,
-           FILE*          log_file)
+read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
 {
     if (!df || !buf) {
         printf("disk file - read pages: Invalid Arguments!\n");
@@ -179,7 +188,7 @@ read_pages(disk_file*     df,
         exit(EXIT_FAILURE);
     } else {
 #ifdef VERBOSE
-        fprintf(log_file,
+        fprintf(df->log_file,
                 "read_page %s %lu %lu",
                 df->file_name,
                 fst_page,
@@ -191,17 +200,16 @@ read_pages(disk_file*     df,
 }
 
 void
-write_page(disk_file* df, size_t page_no, unsigned char* data, FILE* log_file)
+write_page(disk_file* df, size_t page_no, unsigned char* data)
 {
-    write_pages(df, page_no, page_no, data, log_file);
+    write_pages(df, page_no, page_no, data);
 }
 
 void
 write_pages(disk_file*     df,
             size_t         fst_page,
             size_t         lst_page,
-            unsigned char* data,
-            FILE*          log_file)
+            unsigned char* data)
 {
     if (!df || !data) {
         printf("disk file - write page: Invalid Arguments!\n");
@@ -263,7 +271,7 @@ write_pages(disk_file*     df,
         exit(EXIT_FAILURE);
     } else {
 #ifdef VERBOSE
-        fprintf(log_file,
+        fprintf(df->log_file,
                 "write_pages %s %lu %lu",
                 df->file_name,
                 fst_page,
@@ -275,7 +283,7 @@ write_pages(disk_file*     df,
 }
 
 void
-clear_page(disk_file* df, size_t page_no, FILE* log_file)
+clear_page(disk_file* df, size_t page_no)
 {
     unsigned char* data = calloc(1, PAGE_SIZE);
 
@@ -284,12 +292,12 @@ clear_page(disk_file* df, size_t page_no, FILE* log_file)
         exit(EXIT_FAILURE);
     }
 
-    write_page(df, page_no, data, log_file);
+    write_page(df, page_no, data);
     free(data);
 }
 
 void
-disk_file_grow(disk_file* df, size_t by_num_pages, FILE* log_file)
+disk_file_grow(disk_file* df, size_t by_num_pages)
 {
     if (!df) {
         printf("disk file - grow: invalid Arguments!\n");
@@ -326,7 +334,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages, FILE* log_file)
         exit(EXIT_FAILURE);
     } else {
 #ifdef VERBOSE
-        fprintf(log_file, "grow_file %s %lu", df->file_name, by_num_pages);
+        fprintf(df->log_file, "grow_file %s %lu", df->file_name, by_num_pages);
 #endif
     }
 
@@ -350,7 +358,7 @@ disk_file_grow(disk_file* df, size_t by_num_pages, FILE* log_file)
  * If these are not empty, the records on these pages will be lost!
  */
 void
-disk_file_shrink(disk_file* df, size_t by_num_pages, FILE* log_file)
+disk_file_shrink(disk_file* df, size_t by_num_pages)
 {
     if (!df || by_num_pages > MAX_PAGE_NO) {
         printf("disk file - shrink: invalid Arguments!\n");
@@ -385,7 +393,8 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, FILE* log_file)
         exit(EXIT_FAILURE);
     } else {
 #ifdef VERBOSE
-        fprintf(log_file, "shrink_file %s %lu", df->file_name, by_num_pages);
+        fprintf(
+              df->log_file, "shrink_file %s %lu", df->file_name, by_num_pages);
 #endif
     }
 
