@@ -40,6 +40,10 @@ Dynamic record locality optimizing storage scheme for graph databases.
   - [ ] Dynamic Reorganization Impl.
         => Milestone 2
 
+#### TODO
+- exclude layout from compilation for now
+- fixup in memory graph test
+
 #### Brainstorm
   - Access-History Graph
   - Dynamic: Extend Gorder's loss function to take HAG into account
