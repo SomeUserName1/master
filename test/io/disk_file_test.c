@@ -87,7 +87,7 @@ test_disk_file_destroy(void)
 
     disk_file_destroy(df);
 
-    if (remove(df->file_name) != 0) {
+    if (remove(file_name) != 0) {
         printf("test_disk_file_creat: error removing file: %s",
                strerror(errno));
         exit(EXIT_FAILURE);
@@ -165,7 +165,7 @@ test_disk_file_grow(void)
     memset(data, '1', PAGE_SIZE);
 
     rewind(df->file);
-    if (fread(data, PAGE_SIZE, 1, df->file) != PAGE_SIZE) {
+    if (fread(data, PAGE_SIZE, 1, df->file) != 1) {
         printf("test write disk file: Failed to read the page %lu from file "
                "%s: %s\n",
                0L,
@@ -219,6 +219,9 @@ test_disk_file_shrink(void)
     assert(df->num_pages == NUM_TEST_PAGES - 2);
     assert(df->file_size == (NUM_TEST_PAGES - 2) * PAGE_SIZE);
 
+    assert(fseek(df->file, 0, SEEK_END) == 0);
+    assert(ftell(df->file) == (NUM_TEST_PAGES - 2) * PAGE_SIZE);
+
     disk_file_delete(df);
 }
 
@@ -251,7 +254,9 @@ test_write_page(void)
     assert(df->num_pages == 1);
     assert(df->file_size == PAGE_SIZE);
 
+    printf("offset %lu\n", ftell(df->file));
     write_page(df, 0, data);
+    printf("offset %lu\n", ftell(df->file));
 
     assert(df->write_count == 2);
     assert(df->num_pages == 1);
@@ -260,7 +265,8 @@ test_write_page(void)
     memset(data, '0', PAGE_SIZE);
 
     rewind(df->file);
-    if (fread(data, PAGE_SIZE, 1, df->file) != PAGE_SIZE) {
+
+    if (fread(data, PAGE_SIZE, 1, df->file) != 1) {
         printf("test write disk file: Failed to read the page %lu from file "
                "%s: %s\n",
                0L,
@@ -270,6 +276,7 @@ test_write_page(void)
     }
 
     for (size_t i = 0; i < PAGE_SIZE; ++i) {
+        printf("%u\n", data[i]);
         assert(data[i] == 1);
     }
 

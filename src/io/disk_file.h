@@ -25,6 +25,14 @@ disk_file_create(char* file_name
 #endif
 );
 
+disk_file*
+disk_file_open(char* file_name
+#ifdef VERBOSE
+               ,
+               FILE* log_file
+#endif
+);
+
 void
 disk_file_destroy(disk_file* df);
 

@@ -14,7 +14,45 @@
 disk_file*
 disk_file_create(char* file_name
 #ifdef VERBOSE
-                       FILE* log_file
+                 ,
+                 FILE* log_file
+#endif
+)
+{
+    if (!file_name) {
+        printf("disk file - create: Invalid arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* new_file = fopen(file_name, "wb");
+
+    if (!new_file) {
+        printf("disk file - create: Failed to create file %s: %s!\n",
+               file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    if (fclose(new_file) != 0) {
+        printf(
+              "disk file - create: Failed to close newly created file %s: %s\n",
+              file_name,
+              strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    return disk_file_open(file_name
+#ifdef VERBOSE
+                          ,
+                          log_file
+#endif
+    );
+}
+
+disk_file*
+disk_file_open(char* file_name
+#ifdef VERBOSE
+                     FILE* log_file
 #endif
 )
 {
@@ -31,7 +69,7 @@ disk_file_create(char* file_name
     }
 
     df->file_name = file_name;
-    df->file      = fopen(file_name, "ab+");
+    df->file      = fopen(file_name, "rb+");
 
     if (df->file == NULL) {
         printf("disk file - create: failed to fopen %s: %s\n",
@@ -147,17 +185,21 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
         exit(EXIT_FAILURE);
     }
 
-    char* data = calloc(1, PAGE_SIZE);
+    char* data = calloc(by_num_pages, PAGE_SIZE);
 
     if (!data) {
         printf("disk page - grow: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
     }
 
-    if (fwrite(data, PAGE_SIZE, by_num_pages, df->file)
-        != PAGE_SIZE * by_num_pages) {
-        printf("disk file - grow pages: Failed to grow file %s: %s\n",
+    size_t res;
+    if ((res = fwrite(data, PAGE_SIZE, by_num_pages, df->file)
+               != by_num_pages)) {
+        printf("disk file - grow pages: Failed to grow file %s wrote %lu "
+               "objects instead of %lu: %s\n",
                df->file_name,
+               res,
+               by_num_pages,
                strerror(errno));
         exit(EXIT_FAILURE);
     } else {
@@ -196,12 +238,17 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
         exit(EXIT_FAILURE);
     }
 
-    if (df->num_pages - by_num_pages >= 0) {
+    if (df->num_pages - by_num_pages <= 0) {
         printf("disk file - shrink: Cannot shrink database by %lu pages! "
                "The "
                "database would have "
                "less than 0 pages!\n",
                by_num_pages);
+        exit(EXIT_FAILURE);
+    }
+
+    if (fflush(df->file) != 0) {
+        printf("disk file - flush: flushing failed: %s!\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -216,8 +263,7 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     }
 
     long shrink_by_bytes = PAGE_SIZE * by_num_pages;
-
-    if (ftruncate(fd, df->file_size - shrink_by_bytes) == -1) {
+    if (ftruncate(fd, df->file_size - shrink_by_bytes) != 0) {
         printf("disk file - shrink: Failed to truncate the file %s: %s\n",
                df->file_name,
                strerror(errno));
@@ -308,8 +354,11 @@ write_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-    if (fwrite(data, PAGE_SIZE, num_pages_write, df->file)
-        != PAGE_SIZE * num_pages_write) {
+
+    printf(
+          "offset before write: %lu, should be %lu\n", ftell(df->file), offset);
+
+    if (fwrite(data, PAGE_SIZE, num_pages_write, df->file) != num_pages_write) {
         printf("disk file - write pages: Failed to write the pages from "
                "%lu to "
                "%lu from file %s: %s\n",
@@ -383,8 +432,7 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-    if (fread(buf, PAGE_SIZE, num_pages_read, df->file)
-        != PAGE_SIZE * num_pages_read) {
+    if (fread(buf, PAGE_SIZE, num_pages_read, df->file) != num_pages_read) {
         printf("disk file - read pages: Failed to read the pages from %lu "
                "to "
                "%lu from file %s: %s\n",
