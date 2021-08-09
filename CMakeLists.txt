@@ -56,12 +56,6 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 
      message("-- Using Clang-Tidy")
-
-    set(CMAKE_C_INCLUDE_WHAT_YOU_USE include-what-you-use)
-    set(LINK_WHAT_YOU_USE)
-
-    message("-- Using Include-What-You-Use")
-    set(CMAKE_C_CPPCHECK "cppcheck")
 endif()
 
 # Subdirectories to consider

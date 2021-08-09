@@ -38,24 +38,43 @@ relationship_read(relationship_t* record, page* read_from_page)
     record->target_node =
           read_ulong(read_from_page, first_slot + sizeof(unsigned long));
 
-    record->prev_rel_source =
-          read_ulong(read_from_page, first_slot + 2 * sizeof(unsigned long));
+    record->prev_rel_source = read_ulong(read_from_page,
+                                         first_slot + sizeof(unsigned long)
+                                               + sizeof(unsigned long));
     record->next_rel_source =
-          read_ulong(read_from_page, first_slot + 3 * sizeof(unsigned long));
+          read_ulong(read_from_page,
+                     first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long));
+
     record->prev_rel_source =
-          read_ulong(read_from_page, first_slot + 4 * sizeof(unsigned long));
+          read_ulong(read_from_page,
+                     first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long) + sizeof(unsigned long));
+
     record->next_rel_target =
-          read_ulong(read_from_page, first_slot + 5 * sizeof(unsigned long));
+          read_ulong(read_from_page,
+                     first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long));
 
     record->weight =
-          read_double(read_from_page, first_slot + 6 * sizeof(unsigned long));
+          read_double(read_from_page,
+                      first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                            + sizeof(unsigned long) + sizeof(unsigned long)
+                            + sizeof(unsigned long) + sizeof(unsigned long));
+
     record->flags =
           read_uchar(read_from_page,
-                     first_slot + 6 * sizeof(unsigned long) + sizeof(double));
+                     first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(double));
 
     read_string(read_from_page,
-                first_slot + 6 * sizeof(unsigned long) + sizeof(double)
-                      + sizeof(unsigned char),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(double) + sizeof(unsigned char),
                 record->label);
 }
 
@@ -75,28 +94,41 @@ relationship_write(relationship_t* record, page* write_to_page)
                 record->target_node);
 
     write_ulong(write_to_page,
-                first_slot + 2 * sizeof(unsigned long),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long),
                 record->prev_rel_source);
     write_ulong(write_to_page,
-                first_slot + 3 * sizeof(unsigned long),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long),
                 record->next_rel_source);
     write_ulong(write_to_page,
-                first_slot + 4 * sizeof(unsigned long),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long),
                 record->prev_rel_source);
+
     write_ulong(write_to_page,
-                first_slot + 5 * sizeof(unsigned long),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long),
                 record->next_rel_target);
 
     write_double(write_to_page,
-                 first_slot + 6 * sizeof(unsigned long),
+                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                       + sizeof(unsigned long) + sizeof(unsigned long)
+                       + sizeof(unsigned long) + sizeof(unsigned long),
                  record->weight);
+
     write_uchar(write_to_page,
-                first_slot + 6 * sizeof(unsigned long) + sizeof(double),
+                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(unsigned long) + sizeof(unsigned long)
+                      + sizeof(double),
                 record->flags);
 
     write_string(write_to_page,
-                 first_slot + 6 * sizeof(unsigned long) + sizeof(double)
-                       + sizeof(unsigned char),
+                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
+                       + sizeof(unsigned long) + sizeof(unsigned long)
+                       + sizeof(unsigned long) + sizeof(unsigned long)
+                       + sizeof(double) + sizeof(unsigned char),
                  record->label);
 }
 

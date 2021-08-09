@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "access/in_memory_file.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "query/snap_importer.h"
@@ -668,35 +667,6 @@ test_dict_ul_rel_it(void)
     dict_ul_rel_destroy(dict);
 }
 
-void
-test_dict_ul_rel_iter_large(void)
-{
-    in_memory_file_t* db = create_in_memory_file();
-    dict_ul_ul_destroy(
-          import_from_txt(db, "/home/someusername/workspace_local/dblp.txt"));
-
-    assert(db->node_id_counter == DBLP_NO_NODES);
-    assert(db->rel_id_counter == DBLP_NO_RELS);
-
-    dict_ul_rel_iterator* it = dict_ul_rel_iterator_create(db->cache_rels);
-
-    unsigned long   key;
-    relationship_t* value = NULL;
-    unsigned long   counter;
-    for (size_t i = 0; i < DICT_ITER_REP; ++i) {
-        it->idx = 0;
-        counter = 0;
-        while (dict_ul_rel_iterator_next(it, &key, &value) > -1) {
-            counter++;
-        }
-        printf("counter: %lu, dblp rel %d\n", counter, DBLP_NO_RELS);
-        assert(counter == DBLP_NO_RELS);
-    }
-
-    dict_ul_rel_iterator_destroy(it);
-    in_memory_file_destroy(db);
-}
-
 int
 main(void)
 {
@@ -739,8 +709,6 @@ main(void)
     test_dict_ul_rel_contains();
     test_dict_ul_rel_destroy();
     test_dict_ul_rel_it();
-
-    test_dict_ul_rel_iter_large();
 
     printf("%s", "All tests for dict_ul successfull\n");
 }

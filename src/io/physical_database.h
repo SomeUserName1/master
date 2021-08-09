@@ -19,7 +19,7 @@ typedef enum
           invalid
 } file_type;
 
-const char* FILE_STR[] = {
+static const char* FILE_STR[] = {
 #ifdef ADJ_LIST
     "header",
     "record",

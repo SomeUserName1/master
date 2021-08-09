@@ -1,8 +1,11 @@
 #ifndef HEAP_FILE_H
 #define HEAP_FILE_H
 
+#include <stdio.h>
+
 #include "node.h"
 #include "page_cache.h"
+#include "physical_database.h"
 #include "relationship.h"
 
 typedef struct

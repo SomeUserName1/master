@@ -7,13 +7,12 @@
 #include "data-struct/cbs.h"
 #include "data-struct/htable.h"
 #include "data-struct/set.h"
-#include "query/in_memory_operators.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 unsigned long*
-remap_node_ids(in_memory_file_t* db, const unsigned long* partition)
+remap_node_ids(heap_file* hf, const unsigned long* partition)
 {
     if (!db || !partition || db->node_id_counter < 1) {
         printf("remap node ids: Invalid Arguments!\n");

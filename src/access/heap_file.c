@@ -2,9 +2,10 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "access/header_page.h"
 #include "access/node.h"
@@ -742,7 +743,6 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
         }
     }
 
-    id = UNINITIALIZED_LONG;
     for (size_t i = 0; i < SLOTS_PER_PAGE; i += n_slots) {
         if (compare_bits(snd_header_bits, slot_used_mask, i)) {
             id    = snd * SLOTS_PER_PAGE + i;

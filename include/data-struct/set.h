@@ -149,7 +149,7 @@
             printf("set - bucket_idx: Invalid Argument!\n");                   \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
-        return s->num_buckets > 0                                              \
+        return s->num_buckets > 0 /* NOLINTNEXTLINE */                         \
                      ? (s->hash_fn(elem, s->seed) % s->num_buckets)            \
                      : s->hash_fn(elem, s->seed);                              \
     }

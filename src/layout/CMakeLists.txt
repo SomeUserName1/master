@@ -1,2 +1,3 @@
-add_library(layout  reorganize_nodes.c reorganize_relationships.c random_layout.c)
+add_library(layout  random_layout.c)
+#reorganize_nodes.c reorganize_relationships.c )
 target_link_libraries(layout  PRIVATE query access data-struct)

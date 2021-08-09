@@ -385,7 +385,6 @@ test_array_list_node_size(void)
     assert(list->len == array_list_node_size(list));
     assert(1 == array_list_node_size(list));
 
-    free(value);
     array_list_node_destroy(list);
 }
 
@@ -407,8 +406,6 @@ test_array_list_node_append(void)
 
     assert(node_equals(list->elements[1], val1));
 
-    free(val);
-    free(val1);
     array_list_node_destroy(list);
 }
 
@@ -431,8 +428,6 @@ test_array_list_node_insert(void)
     assert(2 == array_list_node_size(list));
     assert(node_equals(list->elements[0], val1));
 
-    free(val);
-    free(val1);
     array_list_node_destroy(list);
 }
 
@@ -458,8 +453,6 @@ test_array_list_node_remove(void)
     array_list_node_remove(list, 0);
     assert(0 == array_list_node_size(list));
 
-    free(val);
-    free(val1);
     array_list_node_destroy(list);
 }
 
@@ -485,8 +478,6 @@ test_array_list_node_remove_elem(void)
     array_list_node_remove_elem(list, val);
     assert(0 == array_list_node_size(list));
 
-    free(val);
-    free(val1);
     array_list_node_destroy(list);
 }
 
@@ -515,8 +506,6 @@ test_array_list_node_index_of(void)
 
     assert(-1 == array_list_node_index_of(list, another, &index));
 
-    free(val);
-    free(val1);
     free(another);
     array_list_node_destroy(list);
 }
@@ -538,8 +527,6 @@ test_array_list_node_contains(void)
     assert(array_list_node_contains(list, val));
     assert(!array_list_node_contains(list, another));
 
-    free(val);
-    free(val1);
     free(another);
     array_list_node_destroy(list);
 }
@@ -559,8 +546,6 @@ test_array_list_node_get(void)
     assert(node_equals(val1, array_list_node_get(list, 0)));
     assert(node_equals(val, array_list_node_get(list, 1)));
 
-    free(val);
-    free(val1);
     array_list_node_destroy(list);
 }
 
@@ -588,7 +573,6 @@ test_array_list_node_destroy(void)
         n     = new_node();
         n->id = i;
         array_list_node_append(lst, n);
-        free(n);
     }
 
     array_list_node_destroy(lst);
@@ -619,7 +603,6 @@ test_array_list_relationship_size(void)
     assert(list->len == array_list_relationship_size(list));
     assert(1 == array_list_relationship_size(list));
 
-    free(value);
     array_list_relationship_destroy(list);
 }
 
@@ -647,8 +630,6 @@ test_array_list_relationship_append(void)
     assert(2 == array_list_relationship_size(list));
     assert(relationship_equals(list->elements[1], val1));
 
-    free(val);
-    free(val1);
     array_list_relationship_destroy(list);
 }
 
@@ -671,8 +652,6 @@ test_array_list_relationship_insert(void)
     assert(2 == array_list_relationship_size(list));
     assert(relationship_equals(list->elements[0], val1));
 
-    free(val);
-    free(val1);
     array_list_relationship_destroy(list);
 }
 
@@ -698,8 +677,6 @@ test_array_list_relationship_remove(void)
     array_list_relationship_remove(list, 0);
     assert(0 == array_list_relationship_size(list));
 
-    free(val);
-    free(val1);
     array_list_relationship_destroy(list);
 }
 
@@ -725,8 +702,6 @@ test_array_list_relationship_remove_elem(void)
     array_list_relationship_remove_elem(list, val);
     assert(0 == array_list_relationship_size(list));
 
-    free(val);
-    free(val1);
     array_list_relationship_destroy(list);
 }
 
@@ -751,8 +726,6 @@ test_array_list_relationship_index_of(void)
 
     assert(-1 == array_list_relationship_index_of(list, another, &index));
 
-    free(val);
-    free(val1);
     free(another);
     array_list_relationship_destroy(list);
 }
@@ -774,8 +747,6 @@ test_array_list_relationship_contains(void)
     assert(array_list_relationship_contains(list, val));
     assert(!array_list_relationship_contains(list, another));
 
-    free(val);
-    free(val1);
     free(another);
     array_list_relationship_destroy(list);
 }
@@ -795,8 +766,6 @@ test_array_list_relationship_get(void)
     assert(relationship_equals(val1, array_list_relationship_get(list, 0)));
     assert(relationship_equals(val, array_list_relationship_get(list, 1)));
 
-    free(val);
-    free(val1);
     array_list_relationship_destroy(list);
 }
 
@@ -824,7 +793,6 @@ test_array_list_relationship_destroy(void)
         n     = new_relationship();
         n->id = i;
         array_list_relationship_append(lst, n);
-        free(n);
     }
 
     array_list_relationship_destroy(lst);

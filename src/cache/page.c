@@ -1,12 +1,10 @@
 #include "page.h"
 
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "constants.h"
-#include "page_cache.h"
 
 page*
 page_create(size_t page_no, unsigned char* data)

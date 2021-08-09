@@ -1,9 +1,12 @@
 #ifndef RANDOM_LAYOUT_H
 #define RANDOM_LAYOUT_H
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 
-unsigned long*
-random_partition(in_memory_file_t* db);
+dict_ul_ul*
+identity_partition(heap_file* hf);
+
+dict_ul_ul*
+random_partition(heap_file* hf);
 
 #endif

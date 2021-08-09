@@ -214,8 +214,9 @@
             printf("htable - bucket_idx: Invalid Argument!\n");                \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
-        return ht->num_buckets > 0                                             \
+        return ht->num_buckets > 0 /* NOLINTNEXTLINE */                        \
                      ? (ht->hash_fn(key, ht->seed) % ht->num_buckets)          \
+                                                                               \
                      : ht->hash_fn(key, ht->seed);                             \
     }
 

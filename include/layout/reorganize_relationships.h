@@ -1,12 +1,12 @@
 #ifndef REORGANIZE_RELATIONSHIPS_H
 #define REORGANIZE_RELATIONSHIPS_H
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 
 unsigned long*
-remap_rel_ids(in_memory_file_t* db);
+remap_rel_ids(heap_file* hf);
 
 void
-sort_incidence_list(in_memory_file_t* db);
+sort_incidence_list(heap_file* hf);
 
 #endif

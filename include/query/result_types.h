@@ -1,10 +1,9 @@
 #ifndef RESULT_TYPES_H
 #define RESULT_TYPES_H
 
-#include <stdio.h>
-
 #include "access/heap_file.h"
 #include "data-struct/array_list.h"
+#include "data-struct/htable.h"
 
 typedef struct traversal_result
 {
