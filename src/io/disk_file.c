@@ -160,6 +160,7 @@ disk_file_delete(disk_file* df)
     }
 
     free(df->f_buf);
+    free(df);
 }
 
 void
@@ -276,14 +277,14 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     }
 
     if (fseek(df->file, 0, SEEK_END) == -1) {
-        printf("disk file - grow: failed to fseek with errno %d\n", errno);
+        printf("disk file - shrink: failed to fseek with errno %d\n", errno);
         exit(EXIT_FAILURE);
     }
 
     df->file_size = ftell(df->file);
 
     if (df->file_size == -1) {
-        printf("disk file - grow: failed to ftell file %s: %s\n",
+        printf("disk file - shrink: failed to ftell file %s: %s\n",
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
@@ -346,7 +347,7 @@ write_pages(disk_file*     df,
 
     long offset = (long)(PAGE_SIZE * fst_page);
 
-    size_t num_pages_write = 1 + ((lst_page - fst_page) / PAGE_SIZE);
+    size_t num_pages_write = 1 + (lst_page - fst_page);
 
     if (fseek(df->file, offset, SEEK_SET) == -1) {
         printf("disk file - write page: failed to fseek %s: %s\n",
@@ -354,9 +355,6 @@ write_pages(disk_file*     df,
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-
-    printf(
-          "offset before write: %lu, should be %lu\n", ftell(df->file), offset);
 
     if (fwrite(data, PAGE_SIZE, num_pages_write, df->file) != num_pages_write) {
         printf("disk file - write pages: Failed to write the pages from "
@@ -424,7 +422,7 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
 
     long offset = (long)(PAGE_SIZE * fst_page);
 
-    size_t num_pages_read = 1 + ((lst_page - fst_page) / PAGE_SIZE);
+    size_t num_pages_read = 1 + (lst_page - fst_page);
 
     if (fseek(df->file, offset, SEEK_SET) == -1) {
         printf("disk file - read pages: failed to fseek %s: %s\n",

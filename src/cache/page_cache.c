@@ -155,15 +155,7 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
     pc->total_pinned++;
 
 #ifdef VERBOSE
-    fprintf(pc->log_file,
-            "Pin %s %lu\n",
-#ifdef ADJLIST
-            ft == record_file = "record"
-            : "header",
-#else
-            FILE_STRING[ft],
-#endif
-              page_no);
+    fprintf(pc->log_file, "Pin %s %lu\n", ft, page_no);
 #endif
     return pinned_page;
 }
@@ -202,7 +194,7 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
     pc->total_unpinned++;
 
 #ifdef VERBOSE
-    fprintf(pc->log_file, "Unpin %s %lu\n", FILE_STRING[ft], page_no);
+    fprintf(pc->log_file, "Unpin %s %lu\n", ft, page_no);
 #endif
 }
 

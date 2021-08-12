@@ -21,6 +21,8 @@
 #define NUM_SLOTS_PER_REL                                                      \
     ((ON_DISK_REL_SIZE / SLOT_SIZE) + (ON_DISK_REL_SIZE % SLOT_SIZE != 0))
 
+// FIXME! use read/write bits
+
 heap_file*
 heap_file_create(page_cache* pc, const char* log_path)
 {

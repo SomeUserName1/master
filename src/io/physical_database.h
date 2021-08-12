@@ -19,19 +19,6 @@ typedef enum
           invalid
 } file_type;
 
-static const char* FILE_STR[] = {
-#ifdef ADJ_LIST
-    "header",
-    "record",
-#else
-    "node header",
-    "node record",
-    "relationship header",
-    "relationship record",
-#endif
-    "invalid"
-};
-
 typedef struct
 {
 #ifdef ADJ_LIST
@@ -51,6 +38,14 @@ phy_database_create(char* db_name
 #ifdef VERBOSE
                     ,
                     const char* log_file
+#endif
+);
+
+phy_database*
+phy_database_open(char* db_name
+#ifdef VERBOSE
+                  ,
+                  const char* log_file
 #endif
 );
 

@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,11 +18,14 @@
 #define RELS_HEADER_POSTFIX_LEN (strlen("_relationships.idx"))
 #define HEADER_FILE_POSTFIX_LEN (strlen(".idx"))
 
-phy_database*
-phy_database_create(char* db_name
+// FIXME! Use read_page and write_page instead of fread/fwrite!
+
+static phy_database*
+phy_database_create_internal(char* db_name,
+                             bool  open
 #ifdef VERBOSE
-                    ,
-                    const char* log_file_name
+                             ,
+                             const char* log_file_name
 #endif
 )
 {
@@ -56,12 +60,21 @@ phy_database_create(char* db_name
 
     strncat(rels_header_name, ".idx", HEADER_POSTFIX_LEN);
 
-    phy_db->files[header_file] = disk_file_create(header_name
+    if (!open) {
+        phy_db->files[header_file] = disk_file_create(header_name
 #ifdef VERBOSE
-                                                  ,
-                                                  log_file
+                                                      ,
+                                                      log_file
 #endif
-    );
+        );
+    } else {
+        phy_db->files[header_file] = disk_file_open(header_name
+#ifdef VERBOSE
+                                                    ,
+                                                    log_file
+#endif
+        );
+    }
 
     /* Create or open Record files */
     // +1 as strlen does not count \0
@@ -72,12 +85,21 @@ phy_database_create(char* db_name
 
     strncat(rels_file_name, ".db", RECORD_FILE_POSTFIX_LEN);
 
-    phy_db->files[record_file] = disk_file_create(record_file_name
+    if (!open) {
+        phy_db->files[record_file] = disk_file_create(record_file_name
 #ifdef VERBOSE
-                                                  ,
-                                                  log_file
+                                                      ,
+                                                      log_file
 #endif
-    );
+        );
+    } else {
+        phy_db->files[record_file] = disk_file_open(record_file_name
+#ifdef VERBOSE
+                                                    ,
+                                                    log_file
+#endif
+        );
+    }
 
 #else
     /* Create or open header files for the record files */
@@ -93,8 +115,33 @@ phy_database_create(char* db_name
     strncat(nodes_header_name, "_nodes.idx", NODE_HEADER_POSTFIX_LEN);
     strncat(rels_header_name, "_relationships.idx", RELS_HEADER_POSTFIX_LEN);
 
-    phy_db->files[node_header]         = disk_file_create(nodes_header_name);
-    phy_db->files[relationship_header] = disk_file_create(rels_header_name);
+    if (!open) {
+        phy_db->files[node_header]         = disk_file_create(nodes_header_name
+#ifdef VERBOSE
+                                                      ,
+                                                      log_file
+#endif
+        );
+        phy_db->files[relationship_header] = disk_file_create(rels_header_name
+#ifdef VERBOSE
+                                                              ,
+                                                              log_file
+#endif
+        );
+    } else {
+        phy_db->files[node_header]         = disk_file_open(nodes_header_name
+#ifdef VERBOSE
+                                                    ,
+                                                    log_file
+#endif
+        );
+        phy_db->files[relationship_header] = disk_file_open(rels_header_name
+#ifdef VERBOSE
+                                                            ,
+                                                            log_file
+#endif
+        );
+    }
 
     /* Create or open Record files */
     // +1 as strlen does not count \0
@@ -109,18 +156,33 @@ phy_database_create(char* db_name
     strncat(nodes_file_name, "_nodes.db", NODE_FILE_POSTFIX_LEN);
     strncat(rels_file_name, "_relationships.db", RELS_FILE_POSTFIX_LEN);
 
-    phy_db->files[node_file]         = disk_file_create(nodes_file_name
+    if (!open) {
+        phy_db->files[node_file]         = disk_file_create(nodes_file_name
 #ifdef VERBOSE
-                                                ,
-                                                log_file
+                                                    ,
+                                                    log_file
 #endif
-    );
-    phy_db->files[relationship_file] = disk_file_create(rels_file_name
+        );
+        phy_db->files[relationship_file] = disk_file_create(rels_file_name
 #ifdef VERBOSE
-                                                        ,
-                                                        log_file
+                                                            ,
+                                                            log_file
 #endif
-    );
+        );
+    } else {
+        phy_db->files[node_file]         = disk_file_open(nodes_file_name
+#ifdef VERBOSE
+                                                  ,
+                                                  log_file
+#endif
+        );
+        phy_db->files[relationship_file] = disk_file_open(rels_file_name
+#ifdef VERBOSE
+                                                          ,
+                                                          log_file
+#endif
+        );
+    }
 #endif
 
     for (file_type ft = 0; ft < invalid; ft += 2) {
@@ -138,6 +200,40 @@ phy_database_create(char* db_name
     }
 
     return phy_db;
+}
+
+phy_database*
+phy_database_open(char* db_name
+#ifdef VERBOSE
+                  ,
+                  const char* log_file_name
+#endif
+)
+{
+    return phy_database_create_internal(db_name,
+                                        true
+#ifdef VERBOSE
+                                        ,
+                                        log_file_name
+#endif
+    );
+}
+
+phy_database*
+phy_database_create(char* db_name
+#ifdef VERBOSE
+                    ,
+                    const char* log_file_name
+#endif
+)
+{
+    return phy_database_create_internal(db_name,
+                                        false
+#ifdef VERBOSE
+                                        ,
+                                        log_file_name
+#endif
+    );
 }
 
 void

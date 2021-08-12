@@ -103,6 +103,51 @@ test_disk_file_destroy(void)
 }
 
 void
+test_disk_file_open(void)
+{
+    char* file_name = "test_file";
+#ifdef VERBOSE
+    FILE* log_file = fopen("test_log", "a+");
+    if (!log_file) {
+        printf("test disk file: failed to open test log file %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+#endif
+    disk_file* df = disk_file_create(file_name
+#ifdef VERBOSE
+                                     ,
+                                     log_file
+#endif
+    );
+
+    assert(df);
+
+    unsigned char* data =
+          malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
+
+    memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
+
+    disk_file_grow(df, NUM_TEST_PAGES);
+
+    write_pages(df, 0, NUM_TEST_PAGES - 1, data);
+
+    disk_file_destroy(df);
+
+    df = disk_file_open(file_name);
+
+    memset(data, 0, NUM_TEST_PAGES * PAGE_SIZE);
+
+    read_pages(df, 0, NUM_TEST_PAGES - 1, data);
+
+    for (size_t i = 0; i < NUM_TEST_PAGES * PAGE_SIZE - 1; ++i) {
+        assert(data[i] == 1);
+    }
+
+    disk_file_delete(df);
+}
+
+void
 test_disk_file_delete(void)
 {
     char* file_name = "test_file";
@@ -246,7 +291,7 @@ test_write_page(void)
 
     unsigned char* data = malloc(PAGE_SIZE * sizeof(unsigned char));
 
-    memset(data, '1', PAGE_SIZE);
+    memset(data, 1, PAGE_SIZE);
 
     disk_file_grow(df, 1);
 
@@ -254,15 +299,13 @@ test_write_page(void)
     assert(df->num_pages == 1);
     assert(df->file_size == PAGE_SIZE);
 
-    printf("offset %lu\n", ftell(df->file));
     write_page(df, 0, data);
-    printf("offset %lu\n", ftell(df->file));
 
     assert(df->write_count == 2);
     assert(df->num_pages == 1);
     assert(df->file_size == PAGE_SIZE);
 
-    memset(data, '0', PAGE_SIZE);
+    memset(data, 0, PAGE_SIZE);
 
     rewind(df->file);
 
@@ -276,7 +319,6 @@ test_write_page(void)
     }
 
     for (size_t i = 0; i < PAGE_SIZE; ++i) {
-        printf("%u\n", data[i]);
         assert(data[i] == 1);
     }
 
@@ -306,7 +348,7 @@ test_write_pages(void)
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
-    memset(data, '1', NUM_TEST_PAGES * PAGE_SIZE);
+    memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
     disk_file_grow(df, NUM_TEST_PAGES);
 
@@ -320,10 +362,10 @@ test_write_pages(void)
     assert(df->num_pages == NUM_TEST_PAGES);
     assert(df->file_size == NUM_TEST_PAGES * PAGE_SIZE);
 
-    memset(data, '0', NUM_TEST_PAGES * PAGE_SIZE);
+    memset(data, 0, NUM_TEST_PAGES * PAGE_SIZE);
 
     rewind(df->file);
-    if (fread(data, PAGE_SIZE, NUM_TEST_PAGES, df->file) != PAGE_SIZE) {
+    if (fread(data, PAGE_SIZE, NUM_TEST_PAGES, df->file) != NUM_TEST_PAGES) {
         printf("test write disk file: Failed to read the page %lu from file "
                "%s: %s\n",
                0L,
@@ -361,13 +403,13 @@ test_read_page(void)
 
     unsigned char* data = malloc(PAGE_SIZE * sizeof(unsigned char));
 
-    memset(data, '1', PAGE_SIZE);
+    memset(data, 1, PAGE_SIZE);
 
     disk_file_grow(df, 1);
 
     write_page(df, 0, data);
 
-    memset(data, '0', PAGE_SIZE);
+    memset(data, 0, PAGE_SIZE);
 
     read_page(df, 0, data);
 
@@ -403,13 +445,13 @@ test_read_pages(void)
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
-    memset(data, '1', NUM_TEST_PAGES * PAGE_SIZE);
+    memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
     disk_file_grow(df, NUM_TEST_PAGES);
 
     write_pages(df, 0, NUM_TEST_PAGES - 1, data);
 
-    memset(data, '0', PAGE_SIZE);
+    memset(data, 0, PAGE_SIZE);
 
     read_pages(df, 0, NUM_TEST_PAGES - 1, data);
 
@@ -445,11 +487,13 @@ test_clear_page(void)
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
-    memset(data, '1', NUM_TEST_PAGES * PAGE_SIZE);
+    memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
+
+    disk_file_grow(df, NUM_TEST_PAGES);
 
     write_pages(df, 0, NUM_TEST_PAGES - 1, data);
 
-    memset(data, '0', PAGE_SIZE);
+    memset(data, 0, PAGE_SIZE);
 
     read_pages(df, 0, NUM_TEST_PAGES - 1, data);
 
@@ -461,11 +505,9 @@ test_clear_page(void)
 
     clear_page(df, 1);
 
-    memset(data, '9', PAGE_SIZE);
+    memset(data, 3, PAGE_SIZE);
 
     read_pages(df, 0, NUM_TEST_PAGES - 1, data);
-
-    clear_page(df, 1);
 
     for (size_t i = 0; i < NUM_TEST_PAGES * PAGE_SIZE; ++i) {
         if (i / PAGE_SIZE == 1) {
@@ -475,7 +517,7 @@ test_clear_page(void)
         }
     }
 
-    assert(df->write_count == 2);
+    assert(df->write_count == 3);
 
     disk_file_delete(df);
     free(data);

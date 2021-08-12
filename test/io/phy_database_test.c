@@ -1,10 +1,36 @@
 #include "physical_database.h"
 
 #include <assert.h>
+#include <limits.h>
+
+#include "constants.h"
 
 void
 test_phy_database_create(void)
-{}
+{
+    char* db_name = "test";
+
+#ifdef VERBOSE
+    char* log_file_name = "test_log";
+#endif
+
+    phy_database* pdb = phy_database_create(db_name
+#ifdef VERBOSE
+                                            ,
+                                            log_file_name
+#endif
+    );
+
+    assert(pdb);
+    for (size_t i = 0; i < invalid; ++i) {
+        assert(pdb->files[i]);
+    }
+
+    for (size_t i = 0; i < 2; ++i) {
+        assert(pdb->remaining_header_bits[i]
+               == (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT);
+    }
+}
 
 void
 test_phy_database_delete(void)
