@@ -1,6 +1,7 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "disk_file.h"
@@ -55,10 +56,10 @@ phy_database_delete(phy_database* db);
 void
 phy_database_close(phy_database* db);
 
-void
+bool
 phy_database_validate_empty_header(phy_database* db, file_type ft);
 
-void
+bool
 phy_database_validate_header(phy_database* db, file_type ft);
 
 void
@@ -67,4 +68,6 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages);
 void
 deallocate_pages(phy_database* db, file_type ft);
 
+void
+physical_database_defragment(phy_database* pdb);
 #endif

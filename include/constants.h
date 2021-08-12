@@ -13,7 +13,7 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
  * characters in a string to be stored to disk. */
 #define PAGE_SIZE (4UL << 10) /* 4 KiB */
 #define MAX_PAGE_NO                                                            \
-    (LONG_MAX / PAGE_SIZE) /* Approx 2 Peta or 2 << 50 pages; Overall Maximum  \
+    (LONG_MAX / PAGE_SIZE) /* Approx 1 << 32 - 1 pages; Overall Maximum        \
                               size of the database in bytes is 8 EiB */
 #define MAX_STR_LEN (31)
 
