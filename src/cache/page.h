@@ -16,13 +16,10 @@ typedef struct
 } page;
 
 page*
-page_create(size_t page_no, unsigned char* data);
+page_create(unsigned char* data);
 
 void
 page_destroy(page* p);
-
-bool
-page_equals(const page* fst, const page* snd);
 
 unsigned long
 read_ulong(page* p, size_t offset);

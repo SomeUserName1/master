@@ -56,7 +56,7 @@ page_cache_create(phy_database* pdb
     }
 
     for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
-        pc->cache[i] = page_create(ULONG_MAX, data + (PAGE_SIZE * i));
+        pc->cache[i] = page_create(data + (PAGE_SIZE * i));
         llist_ul_append(pc->free_frames, i);
     }
 

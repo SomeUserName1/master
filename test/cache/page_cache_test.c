@@ -1,7 +1,37 @@
 #include "page_cache.h"
 
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "physical_database.h"
+
 void
-test_page_cache_create(void);
+test_page_cache_create(void)
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_cache";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+    assert(pc);
+    assert(pc->cache);
+    // TODO continue here
+}
 
 void
 test_page_cache_destroy(void)
