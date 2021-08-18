@@ -103,18 +103,6 @@ page_cache_destroy(page_cache* pc)
     free(pc);
 }
 
-unsigned long
-new_page(page_cache* pc, file_type ft)
-{
-    if (!ft || (ft != node_file && ft != relationship_file)) {
-        printf("page cache - pin page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    allocate_pages(pc->pdb, ft, 1);
-    return pc->pdb->files[ft]->num_pages - 1;
-}
-
 page*
 pin_page(page_cache* pc, size_t page_no, file_type ft)
 {
@@ -185,11 +173,7 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
         clear_bit(pc->pinned, frame_no);
     }
 
-    if (queue_ul_contains(pc->recently_referenced, frame_no)) {
-        queue_ul_remove_elem(pc->recently_referenced, frame_no);
-    }
-
-    queue_ul_push(pc->recently_referenced, frame_no);
+    queue_ul_move_back(pc->recently_referenced, frame_no);
 
     pc->total_unpinned++;
 
@@ -227,7 +211,7 @@ evict_page(page_cache* pc)
             /* Add the frame to the free frames list */
             llist_ul_append(pc->free_frames, i);
 
-            pc->cache[evict]->page_no = UNINITIALIZED_LONG;
+            pc->cache[evict]->page_no = ULONG_MAX;
             pc->cache[evict]->ft      = invalid;
 
             evicted++;
@@ -280,3 +264,16 @@ flush_all_pages(page_cache* pc)
         }
     }
 }
+
+page*
+new_page(page_cache* pc, file_type ft)
+{
+    if (!ft || (ft != node_file && ft != relationship_file)) {
+        printf("page cache - pin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    allocate_pages(pc->pdb, ft, 1);
+    return pin_page(pc, pc->pdb->files[ft]->num_pages - 1, ft);
+}
+

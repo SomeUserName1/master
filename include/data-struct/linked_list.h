@@ -30,7 +30,8 @@
 
 #define QUEUE_DECL(typename, T)                                                \
     LINKED_LIST_DECL_BASE(typename, T)                                         \
-    T typename##_pop(typename* ll);
+    T typename##_pop(typename* ll);                                            \
+    void typename##_move_back(typename* ll, T elem);
 
 #define LINKED_LIST_IMPL_BASE(typename, T)                                     \
     LINKED_LIST_CREATE(typename)                                               \
@@ -387,6 +388,22 @@
         typename##_remove_internal(ll, 0, false);                              \
                                                                                \
         return result;                                                         \
+    }
+
+#define QUEUE_MOVE_BACK(typename, T)                                           \
+    void typename##_move_back(typename* ll, T elem)                            \
+    {                                                                          \
+        if (!ll) {                                                             \
+            printf("Queue - move back: Invalid arguments!\n");                 \
+            exit(EXIT_FAILURE);                                                \
+        }                                                                      \
+                                                                               \
+        size_t index;                                                          \
+        if (typename##_index_of(ll, elem, &index) == 0) {                      \
+            typename##_remove_internal(ll, index, false);                      \
+        }                                                                      \
+                                                                               \
+        typename##_append(ll, elem);                                           \
     }
 
 #define STACK_POP(typename, T)                                                 \
