@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
+#include "constants.h"
 #include "data-struct/bitmap.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
@@ -12,16 +13,16 @@
 typedef struct
 {
     phy_database* pdb;
-    size_t        total_pinned;
-    size_t        total_unpinned;
+    size_t        num_pins;
+    size_t        num_unpins;
 #ifdef VERBOSE
     FILE* log_file;
 #endif
     llist_ul*   free_frames;
     bitmap*     pinned;
     queue_ul*   recently_referenced;
-    dict_ul_ul* page_map[4]; /* Page M is stored in frame N */
-    page*       cache[];     /* Frame N contains page M */
+    dict_ul_ul* page_map[4];          /* Page M is stored in frame N */
+    page*       cache[CACHE_N_PAGES]; /* Frame N contains page M */
 } page_cache;
 
 page_cache*

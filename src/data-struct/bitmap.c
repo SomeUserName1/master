@@ -24,7 +24,7 @@ bitmap_destroy(bitmap* b)
 void
 set_bit(bitmap* b, unsigned long n)
 {
-    if (n >= b->n_bits - 1) {
+    if (n >= b->n_bits) {
         printf("bitmap - set bit: Out of Range. tried to set bit %zu, bitmap "
                "size %zu",
                n,
@@ -38,7 +38,7 @@ set_bit(bitmap* b, unsigned long n)
 void
 clear_bit(bitmap* b, unsigned long n)
 {
-    if (n >= b->n_bits - 1) {
+    if (n >= b->n_bits) {
         printf("bitmap - clear bit: Out of Range. tried to clear bit %zu, "
                "bitmap "
                "size %zu",
@@ -52,7 +52,7 @@ clear_bit(bitmap* b, unsigned long n)
 unsigned char
 get_bit(const bitmap* b, unsigned long n)
 {
-    if (n >= b->n_bits - 1) {
+    if (n >= b->n_bits) {
         printf("bitmap - get bit: Out of Range. tried to get bit %zu, bitmap "
                "size %zu",
                n,

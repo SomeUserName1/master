@@ -38,8 +38,8 @@ page_cache_create(phy_database* pdb
     }
 
     pc->pdb                 = pdb;
-    pc->total_pinned        = 0;
-    pc->total_unpinned      = 0;
+    pc->num_pins            = 0;
+    pc->num_unpins          = 0;
     pc->free_frames         = ll_ul_create();
     pc->pinned              = bitmap_create(CACHE_N_PAGES);
     pc->recently_referenced = q_ul_create();
@@ -81,13 +81,15 @@ page_cache_destroy(page_cache* pc)
         exit(EXIT_FAILURE);
     }
 
-    free(pc->pinned);
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
+    bitmap_destroy(pc->pinned);
 
     for (size_t i = 0; i < invalid; ++i) {
         dict_ul_ul_destroy(pc->page_map[i]);
     }
+
+    free(pc->cache[0]->data);
 
     for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
         page_destroy(pc->cache[i]);
@@ -140,7 +142,7 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
 
     set_bit(pc->pinned, frame_no);
 
-    pc->total_pinned++;
+    pc->num_pins++;
 
 #ifdef VERBOSE
     fprintf(pc->log_file, "Pin %s %lu\n", ft, page_no);
@@ -175,7 +177,7 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
 
     queue_ul_move_back(pc->recently_referenced, frame_no);
 
-    pc->total_unpinned++;
+    pc->num_unpins++;
 
 #ifdef VERBOSE
     fprintf(pc->log_file, "Unpin %s %lu\n", ft, page_no);
@@ -190,36 +192,44 @@ evict_page(page_cache* pc)
         exit(EXIT_FAILURE);
     }
 
-    size_t evict;
+    size_t evict_index[EVICT_LRU_K];
+    size_t candidate;
     size_t evicted = 0;
     for (size_t i = 0; i < queue_ul_size(pc->recently_referenced); ++i) {
-        evict = queue_ul_get(pc->recently_referenced, i);
-        if (get_bit(pc->pinned, evict) == 0) {
+        candidate = queue_ul_get(pc->recently_referenced, i);
+
+        if (get_bit(pc->pinned, candidate) == 0) {
 
             /* If the page is dirty flush it */
-            if (pc->cache[evict]->dirty) {
-                flush_page(pc, evict);
+            if (pc->cache[candidate]->dirty) {
+                flush_page(pc, candidate);
             }
 #ifdef VERBOSE
-            fprintf(pc->log_file, "evict %lu\n", pc->cache[evict]->page_no);
+            fprintf(pc->log_file, "evict %lu\n", pc->cache[candidate]->page_no);
 #endif
-            /* Remove freed frame from the recently referenced queue */
-            queue_ul_remove(pc->recently_referenced, i);
             /* Remove reference of page from lookup table */
-            dict_ul_ul_remove(pc->page_map[pc->cache[evict]->ft],
-                              pc->cache[evict]->page_no);
+            dict_ul_ul_remove(pc->page_map[pc->cache[candidate]->ft],
+                              pc->cache[candidate]->page_no);
             /* Add the frame to the free frames list */
             llist_ul_append(pc->free_frames, i);
 
-            pc->cache[evict]->page_no = ULONG_MAX;
-            pc->cache[evict]->ft      = invalid;
+            pc->cache[candidate]->page_no = ULONG_MAX;
+            pc->cache[candidate]->ft      = invalid;
 
+            evict_index[evicted] = i;
             evicted++;
 
             if (evicted >= EVICT_LRU_K) {
                 break;
             }
         }
+    }
+
+    for (size_t i = 0; i < evicted; ++i) {
+        /* Remove freed frame from the recently referenced queue */
+        /* From back to front to avoid that the indexes change when removing an
+         * element */
+        queue_ul_remove(pc->recently_referenced, evict_index[evicted - 1 - i]);
     }
 
     if (evicted == 0) {
@@ -229,7 +239,7 @@ evict_page(page_cache* pc)
         exit(EXIT_FAILURE);
     }
 
-    return evict;
+    return candidate;
 }
 
 void
@@ -245,7 +255,6 @@ flush_page(page_cache* pc, size_t frame_no)
         disk_file* df = pc->pdb->files[pc->cache[frame_no]->ft];
 
         write_page(df, pc->cache[frame_no]->page_no, pc->cache[frame_no]->data);
-        df->write_count++;
 
         pc->cache[frame_no]->dirty = false;
     }

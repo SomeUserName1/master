@@ -373,7 +373,6 @@
                                                                                \
         size_t idx = typename##_bucket_idx(ht, key);                           \
         if (!ht->buckets[idx].is_used) {                                       \
-            printf("key %lu, buck key %lu\n", key, ht->buckets[idx].key);      \
             return -1;                                                         \
         }                                                                      \
                                                                                \

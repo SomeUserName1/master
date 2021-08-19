@@ -162,7 +162,7 @@ next_free_slots(heap_file* hf, file_type ft)
 
     } while (cur_slot != start_slot);
 
-    return new_page(hf->cache, ft) * SLOTS_PER_PAGE
+    return new_page(hf->cache, ft)->page_no * SLOTS_PER_PAGE
            - (sizeof(unsigned long) * CHAR_BIT);
 }
 

@@ -1,5 +1,6 @@
 #include "data-struct/bitmap.h"
 #include "data-struct/htable.h"
+#include "disk_file.h"
 #include "page.h"
 #include "page_cache.h"
 
@@ -39,8 +40,8 @@ test_page_cache_create(void)
     );
     assert(pc);
     assert(pc->pdb == pdb);
-    assert(pc->total_pinned == 0);
-    assert(pc->total_unpinned == 0);
+    assert(pc->num_pins == 0);
+    assert(pc->num_unpins == 0);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES);
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
         assert(get_bit(pc->pinned, i) == 0);
@@ -66,8 +67,14 @@ test_page_cache_create(void)
     bitmap_destroy(pc->pinned);
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
+    free(pc->cache[0]->data);
+    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+        page_destroy(pc->cache[i]);
+    }
     free(pc);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - create successful!\n");
 }
 
 void
@@ -97,6 +104,8 @@ test_page_cache_destroy(void)
 
     assert(pdb);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - destroy successful!\n");
 }
 
 void
@@ -130,8 +139,11 @@ test_new_page(void)
     assert(n_page->ft == node_file);
     assert(n_page->pin_count == 1);
 
+    n_page->pin_count = 0;
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - new page successful!\n");
 }
 
 void
@@ -164,10 +176,10 @@ test_pin_page(void)
 
     size_t frame_no_1 = dict_ul_ul_get_direct(pc->page_map[node_file], 0);
     size_t frame_no_2 =
-          dict_ul_ul_get_direct(pc->page_map[node_file], NUM_TEST_PAGES - 2);
+          dict_ul_ul_get_direct(pc->page_map[node_file], NUM_TEST_PAGES - 1);
 
-    assert(pc->total_pinned == 2);
-    assert(pc->total_unpinned == 0);
+    assert(pc->num_pins == 2);
+    assert(pc->num_unpins == 0);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
     assert(queue_ul_size(pc->recently_referenced) == 0);
 
@@ -182,7 +194,7 @@ test_pin_page(void)
     assert(test_page_2);
     assert(pc->cache[frame_no_2] == test_page_2);
     assert(get_bit(pc->pinned, frame_no_2));
-    assert(test_page_1->page_no == NUM_TEST_PAGES - 1);
+    assert(test_page_2->page_no == NUM_TEST_PAGES - 1);
     assert(test_page_2->dirty == false);
     assert(test_page_2->ft == node_file);
     assert(test_page_2->pin_count == 1);
@@ -191,18 +203,24 @@ test_pin_page(void)
     assert(test_page_3);
     assert(test_page_3 == test_page_1);
     assert(test_page_3->pin_count == 2);
-    assert(pc->total_pinned == 3);
-    assert(llist_ul_size(pc->free_frames) == NUM_TEST_PAGES - 2);
+    assert(pc->num_pins == 3);
+    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
 
     page* test_page_4 = pin_page(pc, 0, node_file);
     assert(test_page_4);
     assert(test_page_4 == test_page_1);
     assert(test_page_4->pin_count == 3);
-    assert(pc->total_pinned == 4);
-    assert(llist_ul_size(pc->free_frames) == NUM_TEST_PAGES - 2);
+    assert(pc->num_pins == 4);
+    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
 
+    test_page_1->pin_count = 0;
+    test_page_2->pin_count = 0;
+    test_page_3->pin_count = 0;
+    test_page_4->pin_count = 0;
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - pin page successful!\n");
 }
 
 void
@@ -235,8 +253,8 @@ test_unpin_page(void)
 
     size_t frame_no_1 = dict_ul_ul_get_direct(pc->page_map[node_file], 0);
 
-    assert(pc->total_pinned == 2);
-    assert(pc->total_unpinned == 0);
+    assert(pc->num_pins == 2);
+    assert(pc->num_unpins == 0);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
     assert(queue_ul_size(pc->recently_referenced) == 0);
     assert(test_page_1);
@@ -246,19 +264,19 @@ test_unpin_page(void)
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
     assert(test_page_1->ft == node_file);
-    assert(test_page_1->pin_count == 1);
+    assert(test_page_1->pin_count == 2);
 
     unpin_page(pc, 0, node_file);
 
     assert(test_page_1->pin_count == 1);
-    assert(pc->total_unpinned == 1);
-    assert(pc->total_pinned == 2);
+    assert(pc->num_unpins == 1);
+    assert(pc->num_pins == 2);
     assert(queue_ul_size(pc->recently_referenced) == 1);
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
     assert(get_bit(pc->pinned, frame_no_1) == 1);
 
     unpin_page(pc, 0, node_file);
-    assert(pc->total_unpinned == 2);
+    assert(pc->num_unpins == 2);
     assert(test_page_1->pin_count == 0);
     assert(queue_ul_size(pc->recently_referenced) == 1);
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
@@ -266,6 +284,8 @@ test_unpin_page(void)
 
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - unpin page successful!\n");
 }
 
 void
@@ -293,9 +313,8 @@ test_evict_page(void)
 
     allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
 
-    page* p;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        p = pin_page(pc, i, node_file);
+        pin_page(pc, i, node_file);
     }
 
     assert(llist_ul_size(pc->free_frames) == 0);
@@ -323,17 +342,117 @@ test_evict_page(void)
         assert(!queue_ul_contains(pc->recently_referenced, frame_nos[i]));
     }
 
+    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+        pc->cache[i]->pin_count = 0;
+        pc->cache[i]->dirty     = false;
+    }
+
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("Test Page Cache - evict successful!\n");
 }
 
 void
 test_flush_page(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_cache";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+
+    page* p = pin_page(pc, 0, node_file);
+    write_ulong(p, 0, 1);
+
+    unsigned long writes_before = pdb->files[node_file]->write_count;
+
+    flush_page(pc, dict_ul_ul_get_direct(pc->page_map[node_file], 0));
+
+    assert(writes_before + 1 == pdb->files[node_file]->write_count);
+
+    unsigned char buf[PAGE_SIZE];
+    read_page(pdb->files[node_file], 0, buf);
+    unsigned long content;
+    memcpy(&content, buf, sizeof(unsigned long));
+
+    assert(content == 1);
+    assert(!p->dirty);
+
+    unpin_page(pc, 0, node_file);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
+    printf("Test Page Cache - flush successful!\n");
+}
 
 void
 test_flush_all_pages(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_cache";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES);
+
+    page* p;
+    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+        p = pin_page(pc, i, node_file);
+        write_ulong(p, 0, 1);
+    }
+
+    flush_all_pages(pc);
+
+    printf("finished flushing\n");
+
+    unsigned char buf[PAGE_SIZE];
+    unsigned long content;
+    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+        read_page(pdb->files[node_file], i, buf);
+        content = 0;
+        memcpy(&content, buf, sizeof(unsigned long));
+        assert(content == 1);
+        pc->cache[i]->pin_count = 0;
+        pc->cache[i]->dirty     = false;
+    }
+
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
+    printf("Test Page Cache - flush all successful!\n");
+}
 
 int
 main(void)

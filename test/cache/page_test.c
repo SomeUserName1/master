@@ -47,6 +47,7 @@ test_page_destroy(void)
     page* p = page_create(data);
 
     page_destroy(p);
+    free(data);
     // Checks memory leaks
 
     printf("page test - destroy: Successful!\n");
@@ -74,7 +75,7 @@ test_read_ulong(void)
     assert(check_second == result);
 
     page_destroy(p);
-
+    free(data);
     printf("page test - read ulong: Successful!\n");
 }
 
@@ -98,8 +99,9 @@ test_write_ulong(void)
     assert(check_second == TEST_BYTE);
     assert(check_third == ULONG_MAX);
 
+    p->dirty = false;
     page_destroy(p);
-
+    free(data);
     printf("page test - write ulong: Successful!\n");
 }
 
@@ -120,7 +122,7 @@ test_read_uchar(void)
     assert(check_second == TEST_BYTE);
 
     page_destroy(p);
-
+    free(data);
     printf("page test - read uchar: Successful!\n");
 }
 
@@ -144,8 +146,9 @@ test_write_uchar(void)
     assert(check_second == TEST_BYTE);
     assert(check_third == UCHAR_MAX);
 
+    p->dirty = false;
     page_destroy(p);
-
+    free(data);
     printf("page test - write uchar: Successful!\n");
 }
 
@@ -169,7 +172,7 @@ test_read_double(void)
     assert(check_second == (double)TEST_NUMBER);
 
     page_destroy(p);
-
+    free(data);
     printf("page test - read double: Successful!\n");
 }
 
@@ -195,8 +198,9 @@ test_write_double(void)
     assert(check_third == D_MIN);
     assert(check_fourth == D_MAX);
 
+    p->dirty = false;
     page_destroy(p);
-
+    free(data);
     printf("page test - write double: Successful!\n");
 }
 
@@ -225,7 +229,7 @@ test_read_string(void)
     assert(check_second[MAX_STR_LEN - 1] == '\0');
 
     page_destroy(p);
-
+    free(data);
     printf("page test - read string: Successful!\n");
 }
 
@@ -266,8 +270,9 @@ test_write_string(void)
     assert(check_second[MAX_STR_LEN - 1] == '\0');
     assert(check_third[MAX_STR_LEN - 1] == '\0');
 
+    p->dirty = false;
     page_destroy(p);
-
+    free(data);
     printf("page test - write string: Successful!\n");
 }
 
@@ -281,7 +286,7 @@ test_page_pretty_print(void)
     page_pretty_print(p);
 
     page_destroy(p);
-
+    free(data);
     printf("page test - pretty print: Successful!\n");
 }
 

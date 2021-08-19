@@ -43,7 +43,6 @@ page_destroy(page* p)
         exit(EXIT_FAILURE);
     }
 
-    free(p->data);
     free(p);
 }
 
@@ -70,6 +69,8 @@ write_ulong(page* p, size_t offset, unsigned long value)
     }
 
     memcpy(p->data + offset, &value, sizeof(unsigned long));
+
+    p->dirty = true;
 }
 
 unsigned char
@@ -92,6 +93,8 @@ write_uchar(page* p, size_t offset, unsigned char value)
     }
 
     p->data[offset] = value;
+
+    p->dirty = true;
 }
 
 double
@@ -117,6 +120,8 @@ write_double(page* p, size_t offset, double value)
     }
 
     memcpy(p->data + offset, &value, sizeof(double));
+
+    p->dirty = true;
 }
 
 void
@@ -140,6 +145,8 @@ write_string(page* p, size_t offset, char* value)
     }
 
     memcpy(p->data + offset, value, MAX_STR_LEN * sizeof(char));
+
+    p->dirty = true;
 }
 
 void

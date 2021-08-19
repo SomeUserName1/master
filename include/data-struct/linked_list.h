@@ -57,7 +57,8 @@
 
 #define QUEUE_IMPL(typename, T)                                                \
     LINKED_LIST_IMPL_BASE(typename, T)                                         \
-    QUEUE_POP(typename, T)
+    QUEUE_POP(typename, T)                                                     \
+    QUEUE_MOVE_BACK(typename, T)
 
 #define LINKED_LIST_CBS_TYPEDEF(typename, T)                                   \
     typedef bool (*typename##_eq)(const T a, const T b);                       \
@@ -334,7 +335,7 @@
 #define LINKED_LIST_INDEX_OF(typename, T)                                      \
     int typename##_index_of(typename* ll, T elem, size_t* idx)                 \
     {                                                                          \
-        if (!ll || !idx || ll->len == 0) {                                     \
+        if (!ll || !idx) {                                                     \
             printf("linked list - index of: invalid arguments!\n");            \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
