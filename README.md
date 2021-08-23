@@ -22,27 +22,28 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 
 ## Implementation
-<p style="text-align: center;"><font size="20"><progress id="file" value="4" max="10">Implementation</progress></font></p>  
+<p style="text-align: center;"><font size="20"><progress id="file" value="8" max="10">Implementation</progress></font></p>  
 
   - [x] Fixup Includes
   - [x] Marko-based genereic data structures
   - [x] Disk-based IO
   - [x] Cache
   - [x] Heap file
-  - [x] Queries - use dicts instead of arrays!
+  - [x] Queries 
   - [x] Weights for snap importer
   - [x] logging
-  - [ ] tests
+  - tests
+    - [x] data structures
+    - [x] io
+    - [x] cache
+    - [ ] Access (WIP)  
+    - [ ] Queries  
        => Milestone 1  
-  - [ ] layout
+  - [ ] layout (Impl + tests)
   - [ ] Data transformer (to adj list)
   - [ ] Gorder integration
   - [ ] Dynamic Reorganization Impl.
         => Milestone 2
-
-#### TODO
-- exclude layout from compilation for now
-- fixup in memory graph test
 
 #### Brainstorm
   - Access-History Graph

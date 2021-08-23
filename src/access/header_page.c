@@ -42,7 +42,8 @@ compare_bits(const unsigned char* ar,
 void
 shift_bit_array(unsigned char* ar, size_t size, long n_bits)
 {
-    if (!ar || (unsigned int)labs(n_bits) > size) {
+    if (!ar || (unsigned int)labs(n_bits) > size || labs(n_bits) > CHAR_BIT
+        || n_bits > CHAR_BIT) {
         printf("page - shift bit array: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -55,7 +56,7 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
     if (n_bits > 0) {
         carry_mask = UCHAR_MAX >> (CHAR_BIT - n_bits);
     } else {
-        carry_mask = UCHAR_MAX << (CHAR_BIT - labs(n_bits));
+        carry_mask = UCHAR_MAX << (CHAR_BIT - (labs(n_bits)));
     }
 
     unsigned char carry = 0;
@@ -119,24 +120,17 @@ concat_bit_arrays(unsigned char* first,
                     n_bits_fst,
                     (long)(result_size * CHAR_BIT - n_bits_fst - n_bits_snd));
 
-    // FIXME cont here!
-    for (size_t i = 0; i < result_size; ++i) {
-        printf("first[i] %u\n", first[i]);
-    }
-
+    /* If the point of concatenation is not byte-aligned, mask the last byte of
+     * the first array and the first byte of the second array and concatenate
+     * them. using an or */
     if (n_bits_fst % CHAR_BIT != 0) {
-        first[first_size - 1] = first[first_size - 1] | second[0];
-    }
-
-    for (size_t i = 0; i < result_size; ++i) {
-        printf("first[i] %u\n", first[i]);
+        first[first_size - 1] =
+              (first[first_size - 1] & (UCHAR_MAX << n_bits_snd))
+              | (second[0] & (UCHAR_MAX >> n_bits_snd));
     }
 
     for (size_t i = 0; i < result_size - first_size; ++i) {
-        first[first_size - 1 + i] = second[i];
-    }
-    for (size_t i = 0; i < result_size; ++i) {
-        printf("first[i] %u\n", first[i]);
+        first[first_size + i] = second[i];
     }
 
     free(second);
@@ -157,23 +151,22 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
         exit(EXIT_FAILURE);
     }
 
-    size_t second_size =
-          size - (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0);
-
     size_t first_size =
           (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0);
 
+    size_t second_size =
+          (size / CHAR_BIT) - first_size + (split_at_bit % CHAR_BIT != 0);
+
     unsigned char* second = calloc(second_size, sizeof(unsigned char));
 
-    memcpy(second,
-           ar + (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0),
-           second_size);
-    second[0] =
-          second[0] | (UCHAR_MAX >> (CHAR_BIT - (split_at_bit % CHAR_BIT)));
+    memcpy(second, ar + (split_at_bit / CHAR_BIT), second_size);
 
-    shift_bit_array(ar, size, -((long)split_at_bit % CHAR_BIT));
+    second[0] = second[0] & (UCHAR_MAX >> (split_at_bit % CHAR_BIT));
+
+    shift_bit_array(ar, size, (long)(split_at_bit % CHAR_BIT));
 
     unsigned char* new_ar = realloc(ar, first_size * sizeof(unsigned char));
+
     if (!ar) {
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
@@ -207,15 +200,13 @@ read_bits(page_cache*    pc,
     size_t         n_bits_split_read;
     size_t n_bytes_result = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
 
-    size_t n_bytes_read =
-          bit_offset_in_byte + n_bits < n_bytes_result * CHAR_BIT
-                ? n_bytes_result
-                : n_bytes_result + 1;
+    size_t n_bytes_read = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
+                          + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
 
-    if (byte_offset_in_page + n_bytes_read % PAGE_SIZE < byte_offset_in_page) {
+    if (byte_offset_in_page + n_bytes_read > PAGE_SIZE) {
         size_t bits_to_page_boundary =
               (PAGE_SIZE - byte_offset_in_page) * CHAR_BIT
-              - (bit_offset_in_byte + 1);
+              - (bit_offset_in_byte);
         n_bits_split_read = n_bits - bits_to_page_boundary;
 
         page* next_page = pin_page(pc, p->page_no + 1, p->ft);
@@ -224,8 +215,9 @@ read_bits(page_cache*    pc,
 
         unpin_page(pc, p->page_no + 1, p->ft);
 
-        n_bits       = bits_to_page_boundary;
-        n_bytes_read = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
+        n_bits         = bits_to_page_boundary;
+        n_bytes_result = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
+        n_bytes_read   = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
                        + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
         split_read = true;
     }
@@ -244,40 +236,34 @@ read_bits(page_cache*    pc,
     unsigned char carry_mask = UCHAR_MAX >> (CHAR_BIT - shift);
     unsigned char carry;
     unsigned char next_carry;
-    size_t        j = 0;
 
     // Zero the first bit_offset_in_byte bits
-    result[j] =
+    result[0] =
           p->data[byte_offset_in_page] & (UCHAR_MAX >> bit_offset_in_byte);
 
     // set the carry and shift the first byte
-    carry = result[j] & carry_mask;
-
-    // The first byte needs to be considered iff the amount of
-    // bytes the result has and that needs to be read from the page is the same.
-    //
-    // Otherwise the first byte does not contain bits of interest anymore.
-    //
-    // e.g. We want to read 7 bit with an offset of 2:
-    //
-    // [__XX XXXX] [X___ ____] will be shifted 16 - (7 + 2) = 7 places
-    // first byte: [____ ____], carry: [__XX XXXX], result [_XXX XXXX]
-    //
-    if (n_bytes_read == n_bytes_result) {
-        result[j] = result[j] >> shift;
-        ++j;
-    }
+    carry = result[0] & carry_mask;
 
     for (size_t i = 1; i < n_bytes_read; ++i) {
-        next_carry    = p->data[byte_offset_in_page + i] & carry_mask;
-        result[i + j] = (carry << (CHAR_BIT - shift))
-                        | (p->data[byte_offset_in_page + i] >> shift);
+        next_carry = p->data[byte_offset_in_page + i] & carry_mask;
+        result[i]  = (carry << (CHAR_BIT - shift))
+                    | (p->data[byte_offset_in_page + i] >> shift);
         carry = next_carry;
     }
 
-    return split_read ? concat_bit_arrays(
-                 result, second_part, n_bits, n_bits_split_read)
-                      : result;
+    /* If a split read has been performed, concatenate the results.
+     * The size of the arrays is converted to be byte aligned (as all neccessary
+     * shifts have been done already) and back to bits then
+     */
+
+    return split_read
+                 ? concat_bit_arrays(result,
+                                     second_part,
+                                     n_bytes_result * CHAR_BIT,
+                                     ((n_bits_split_read / CHAR_BIT)
+                                      + (n_bits_split_read % CHAR_BIT != 0))
+                                           * CHAR_BIT)
+                 : result;
 }
 
 void
@@ -298,22 +284,23 @@ write_bits(page_cache*    pc,
     size_t n_bytes_write = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
                            + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
 
-    if (byte_offset_in_page + n_bytes_write % PAGE_SIZE < byte_offset_in_page) {
+    unsigned char n_bytes_data = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
+
+    if (byte_offset_in_page + n_bytes_write > PAGE_SIZE) {
         size_t bits_to_page_boundary =
               (PAGE_SIZE - byte_offset_in_page) * CHAR_BIT
-              - (bit_offset_in_byte + 1);
+              - (bit_offset_in_byte);
+        size_t n_bits_split_write = n_bits - bits_to_page_boundary;
 
-        unsigned char** split_data =
-              split_bit_array(data, n_bits, bits_to_page_boundary);
+        unsigned char** split_data = split_bit_array(
+              data, n_bytes_data * CHAR_BIT, n_bits_split_write);
 
         page* next_page = pin_page(pc, p->page_no + 1, p->ft);
 
-        write_bits(pc,
-                   next_page,
-                   0,
-                   0,
-                   n_bits - bits_to_page_boundary,
-                   split_data[1]);
+        printf(" input to recursive write %u writing %lu bits\n",
+               split_data[1][0],
+               n_bits_split_write);
+        write_bits(pc, next_page, 0, 0, n_bits_split_write, split_data[1]);
 
         unpin_page(pc, p->page_no + 1, p->ft);
 
@@ -321,11 +308,9 @@ write_bits(page_cache*    pc,
         n_bits        = bits_to_page_boundary;
         n_bytes_write = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
                         + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
-    }
+        n_bytes_data = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
 
-    if (n_bytes_write < 1) {
-        n_bytes_write = 1;
-        printf("page - write bits: Unreachable!\n");
+        free(split_data);
     }
 
     // Shift data by (CHAR_BIT - n_bits) - bit offset to left
@@ -337,7 +322,6 @@ write_bits(page_cache*    pc,
     // [XXXX XXXX] => [00XX XXXX] [XX00 0000]
 
     unsigned char* shifted_data;
-    unsigned char n_bytes_data = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
 
     if (n_bytes_data < n_bytes_write) {
         shifted_data = calloc(n_bytes_write, sizeof(unsigned char));
@@ -347,8 +331,13 @@ write_bits(page_cache*    pc,
     }
 
     shift_bit_array(shifted_data,
-                    n_bytes_write,
-                    (CHAR_BIT - (n_bits % CHAR_BIT)) - bit_offset_in_byte);
+                    n_bytes_write * CHAR_BIT,
+                    -(n_bytes_data * CHAR_BIT - n_bits) + bit_offset_in_byte);
+
+    if (n_bytes_write == 0) {
+        printf("Unreachable\n");
+        exit(EXIT_FAILURE);
+    }
 
     // Write the data to the page buffer using a mask
     // Current page b.    mask      shifted input   resulting page byte
@@ -377,4 +366,5 @@ write_bits(page_cache*    pc,
     if (data != shifted_data) {
         free(shifted_data);
     }
+    free(data);
 }

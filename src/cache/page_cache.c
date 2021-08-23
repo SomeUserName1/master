@@ -81,6 +81,8 @@ page_cache_destroy(page_cache* pc)
         exit(EXIT_FAILURE);
     }
 
+    flush_all_pages(pc);
+
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
     bitmap_destroy(pc->pinned);
@@ -250,6 +252,11 @@ flush_page(page_cache* pc, size_t frame_no)
         exit(EXIT_FAILURE);
     }
 
+    if (pc->cache[frame_no]->pin_count > 0) {
+        printf("page cache - flush page: Page is pinned!\n");
+        exit(EXIT_FAILURE);
+    }
+
     if (pc->cache[frame_no]->dirty) {
 
         disk_file* df = pc->pdb->files[pc->cache[frame_no]->ft];
@@ -268,9 +275,7 @@ void
 flush_all_pages(page_cache* pc)
 {
     for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
-        if (pc->cache[i]->dirty) {
-            flush_page(pc, pc->cache[i]->page_no);
-        }
+        flush_page(pc, i);
     }
 }
 

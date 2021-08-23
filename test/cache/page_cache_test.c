@@ -380,6 +380,7 @@ test_flush_page(void)
 
     page* p = pin_page(pc, 0, node_file);
     write_ulong(p, 0, 1);
+    unpin_page(pc, 0, node_file);
 
     unsigned long writes_before = pdb->files[node_file]->write_count;
 
@@ -395,7 +396,6 @@ test_flush_page(void)
     assert(content == 1);
     assert(!p->dirty);
 
-    unpin_page(pc, 0, node_file);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
@@ -431,6 +431,7 @@ test_flush_all_pages(void)
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
         p = pin_page(pc, i, node_file);
         write_ulong(p, 0, 1);
+        pc->cache[i]->pin_count = 0;
     }
 
     flush_all_pages(pc);
@@ -444,8 +445,6 @@ test_flush_all_pages(void)
         content = 0;
         memcpy(&content, buf, sizeof(unsigned long));
         assert(content == 1);
-        pc->cache[i]->pin_count = 0;
-        pc->cache[i]->dirty     = false;
     }
 
     page_cache_destroy(pc);

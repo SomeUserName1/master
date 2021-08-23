@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "constants.h"
+#include "page_cache.h"
 #include "physical_database.h"
 
 page*
@@ -38,7 +39,7 @@ page_destroy(page* p)
         exit(EXIT_FAILURE);
     }
 
-    if (p->dirty || p->pin_count != 0) {
+    if (p->pin_count != 0 || p->dirty) {
         printf("page - destroy: page is dirty or pinned!\n");
         exit(EXIT_FAILURE);
     }
