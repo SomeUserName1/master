@@ -12,22 +12,28 @@ bool
 compare_bits(const unsigned char* ar,
              size_t               size,
              unsigned char        mask,
-             unsigned char        mask_len,
              size_t               offset)
 {
-    if (!ar || offset > size || mask_len > CHAR_BIT) {
+    if (!ar || offset + CHAR_BIT > size + (CHAR_BIT - (size % CHAR_BIT))) {
         printf("header page - compare bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     unsigned char start_byte = offset / CHAR_BIT;
-    unsigned char upper_mask = mask >> (CHAR_BIT - offset);
-    unsigned char lower_mask = mask << (CHAR_BIT - offset);
+    unsigned char bit_offset = offset % CHAR_BIT;
 
-    return (ar[start_byte] & upper_mask) + (ar[start_byte + 1] & lower_mask)
-                       == mask
-                 ? true
-                 : false;
+    unsigned char result = 0;
+    if (bit_offset == 0) {
+        result = ar[start_byte] & mask;
+    } else {
+        unsigned char upper_mask = (unsigned char)(mask >> bit_offset);
+        unsigned char lower_mask =
+              (unsigned char)(mask << (CHAR_BIT - bit_offset));
+        result =
+              (ar[start_byte] & upper_mask) + (ar[start_byte + 1] & lower_mask);
+    }
+
+    return result == mask ? true : false;
 }
 
 /**
@@ -36,7 +42,7 @@ compare_bits(const unsigned char* ar,
 void
 shift_bit_array(unsigned char* ar, size_t size, long n_bits)
 {
-    if (!ar || (unsigned int)labs(n_bits * CHAR_BIT) > size) {
+    if (!ar || (unsigned int)labs(n_bits) > size) {
         printf("page - shift bit array: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -49,23 +55,30 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
     if (n_bits > 0) {
         carry_mask = UCHAR_MAX >> (CHAR_BIT - n_bits);
     } else {
-
-        carry_mask = UCHAR_MAX << (CHAR_BIT + n_bits);
+        carry_mask = UCHAR_MAX << (CHAR_BIT - labs(n_bits));
     }
 
     unsigned char carry = 0;
     unsigned char next_carry;
+    size_t        n_bytes = size / CHAR_BIT + (size % CHAR_BIT != 0);
 
-    for (size_t i = 0; i < size; ++i) {
-        next_carry = ar[i] & carry_mask;
+    if (n_bits > 0) {
+        for (size_t i = 0; i < n_bytes; ++i) {
+            next_carry = ar[i] & carry_mask;
 
-        if (n_bits > 0) {
             ar[i] = (carry << (CHAR_BIT - n_bits)) | (ar[i] >> n_bits);
-        } else {
-            ar[i] = (carry >> (CHAR_BIT - n_bits)) | (ar[i] << n_bits);
-        }
 
-        carry = next_carry;
+            carry = next_carry;
+        }
+    } else {
+        for (long i = (long)n_bytes - 1; i >= 0; --i) {
+            next_carry = (unsigned char)(ar[i] & carry_mask);
+
+            ar[i] = (carry >> (CHAR_BIT - labs(n_bits)))
+                    | (ar[i] << labs(n_bits));
+
+            carry = next_carry;
+        }
     }
 }
 
@@ -76,17 +89,17 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
 unsigned char*
 concat_bit_arrays(unsigned char* first,
                   unsigned char* second,
-                  size_t         n_bist_fst,
+                  size_t         n_bits_fst,
                   size_t         n_bits_snd)
 {
-    if (!first || !second || n_bist_fst > LONG_MAX || n_bits_snd > LONG_MAX) {
+    if (!first || !second || n_bits_fst > LONG_MAX || n_bits_snd > LONG_MAX) {
         printf("page - concat bit arrays: Invalid Arguemnts!\n");
         exit(EXIT_FAILURE);
     }
-    size_t result_size = ((n_bist_fst + n_bits_snd) / CHAR_BIT)
-                         + ((n_bist_fst + n_bits_snd) % CHAR_BIT != 0);
+    size_t result_size = ((n_bits_fst + n_bits_snd) / CHAR_BIT)
+                         + ((n_bits_fst + n_bits_snd) % CHAR_BIT != 0);
 
-    size_t first_size = (n_bist_fst / CHAR_BIT) + (n_bist_fst % CHAR_BIT != 0);
+    size_t first_size = (n_bits_fst / CHAR_BIT) + (n_bits_fst % CHAR_BIT != 0);
 
     first = realloc(first, result_size * sizeof(unsigned char));
 
@@ -102,10 +115,28 @@ concat_bit_arrays(unsigned char* first,
 
     // [XXXX XXXX] concat [0000 00YY] => [0000 00XX] [XXXX XXYY]
 
-    shift_bit_array(first, n_bist_fst, (long)n_bits_snd);
+    shift_bit_array(first,
+                    n_bits_fst,
+                    (long)(result_size * CHAR_BIT - n_bits_fst - n_bits_snd));
+
+    // FIXME cont here!
+    for (size_t i = 0; i < result_size; ++i) {
+        printf("first[i] %u\n", first[i]);
+    }
+
+    if (n_bits_fst % CHAR_BIT != 0) {
+        first[first_size - 1] = first[first_size - 1] | second[0];
+    }
 
     for (size_t i = 0; i < result_size; ++i) {
-        first[i] = first[i] | second[i];
+        printf("first[i] %u\n", first[i]);
+    }
+
+    for (size_t i = 0; i < result_size - first_size; ++i) {
+        first[first_size - 1 + i] = second[i];
+    }
+    for (size_t i = 0; i < result_size; ++i) {
+        printf("first[i] %u\n", first[i]);
     }
 
     free(second);

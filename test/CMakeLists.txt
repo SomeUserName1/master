@@ -1,6 +1,6 @@
 add_subdirectory(data-struct)
 add_subdirectory(io)
 add_subdirectory(cache)
-# add_subdirectory(access)
+add_subdirectory(access)
 # add_subdirectory(query)
 # add_subdirectory(layout)

@@ -7,7 +7,10 @@
 #include "page_cache.h"
 
 bool
-compare_bits(unsigned char* ar, unsigned char mask, size_t offset);
+compare_bits(const unsigned char* ar,
+             size_t               size,
+             unsigned char        mask,
+             size_t               offset);
 
 void
 shift_bit_array(unsigned char* ar, size_t size, long n_bits);

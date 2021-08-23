@@ -733,7 +733,7 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     unsigned long id    = UNINITIALIZED_LONG;
     unsigned long to_id = UNINITIALIZED_LONG;
     for (size_t i = 0; i < SLOTS_PER_PAGE; i += n_slots) {
-        if (compare_bits(fst_header_bits, slot_used_mask, i)) {
+        if (compare_bits(fst_header_bits, SLOTS_PER_PAGE, slot_used_mask, i)) {
             id    = fst * SLOTS_PER_PAGE + i;
             to_id = snd * SLOTS_PER_PAGE + i;
 
@@ -746,7 +746,7 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     }
 
     for (size_t i = 0; i < SLOTS_PER_PAGE; i += n_slots) {
-        if (compare_bits(snd_header_bits, slot_used_mask, i)) {
+        if (compare_bits(snd_header_bits, SLOTS_PER_PAGE, slot_used_mask, i)) {
             id    = snd * SLOTS_PER_PAGE + i;
             to_id = fst * SLOTS_PER_PAGE + i;
 
@@ -835,7 +835,7 @@ get_nodes(heap_file* hf)
 
         // If the slot is used, load the node and append it to the resulting
         // array list
-        if (compare_bits(slot_used, slot_used_mask, i)) {
+        if (compare_bits(slot_used, NUM_SLOTS_PER_NODE, slot_used_mask, i)) {
             node = read_node(hf, i);
             array_list_node_append(result, node);
         }
@@ -885,7 +885,7 @@ get_relationships(heap_file* hf)
         slot_used  = read_bits(
               hf->cache, header, byte_pos_h, i % CHAR_BIT, NUM_SLOTS_PER_REL);
 
-        if (compare_bits(slot_used, slot_used_mask, i)) {
+        if (compare_bits(slot_used, NUM_SLOTS_PER_REL, slot_used_mask, i)) {
 
             rel = read_relationship(hf, i);
             array_list_relationship_append(result, rel);

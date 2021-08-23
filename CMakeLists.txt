@@ -52,7 +52,7 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_C_CLANG_TIDY
          clang-tidy;
             -header-filter=.*;
-            -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-readability-function-cognitive-complexity,-bugprone-macro-parentheses)
+            -checks=-*,bugprone-*,clang-analyzer-*,linuxkernel-*,misc*,performance-inefficient-*,readability-*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-readability-function-cognitive-complexity,-bugprone-macro-parentheses,-misc-no-recursion)
 
 
      message("-- Using Clang-Tidy")
