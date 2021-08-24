@@ -50,7 +50,7 @@ page_destroy(page* p)
 unsigned long
 read_ulong(page* p, size_t offset)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(unsigned long)) {
+    if (!p || offset > PAGE_SIZE - sizeof(unsigned long) || p->pin_count < 1) {
         printf("page - read ulong: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -64,7 +64,7 @@ read_ulong(page* p, size_t offset)
 void
 write_ulong(page* p, size_t offset, unsigned long value)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(unsigned long)) {
+    if (!p || offset > PAGE_SIZE - sizeof(unsigned long) || p->pin_count < 1) {
         printf("page - write ulong: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -77,7 +77,7 @@ write_ulong(page* p, size_t offset, unsigned long value)
 unsigned char
 read_uchar(page* p, size_t offset)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(unsigned char)) {
+    if (!p || offset > PAGE_SIZE - sizeof(unsigned char) || p->pin_count < 1) {
         printf("page - read uchar: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -88,7 +88,7 @@ read_uchar(page* p, size_t offset)
 void
 write_uchar(page* p, size_t offset, unsigned char value)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(unsigned char)) {
+    if (!p || offset > PAGE_SIZE - sizeof(unsigned char) || p->pin_count < 1) {
         printf("page - write uchar: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -101,7 +101,7 @@ write_uchar(page* p, size_t offset, unsigned char value)
 double
 read_double(page* p, size_t offset)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(double)) {
+    if (!p || offset > PAGE_SIZE - sizeof(double) || p->pin_count < 1) {
         printf("page - read double: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -115,7 +115,7 @@ read_double(page* p, size_t offset)
 void
 write_double(page* p, size_t offset, double value)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(double)) {
+    if (!p || offset > PAGE_SIZE - sizeof(double) || p->pin_count < 1) {
         printf("page - write double: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -128,7 +128,8 @@ write_double(page* p, size_t offset, double value)
 void
 read_string(page* p, size_t offset, char* buf)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN) {
+    if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN
+        || p->pin_count < 1) {
         printf("page - read string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -140,7 +141,7 @@ void
 write_string(page* p, size_t offset, char* value)
 {
     if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN
-        || value[MAX_STR_LEN - 1] != '\0') {
+        || value[MAX_STR_LEN - 1] != '\0' || p->pin_count < 1) {
         printf("page - write string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -153,7 +154,7 @@ write_string(page* p, size_t offset, char* value)
 void
 page_pretty_print(const page* p)
 {
-    if (!p) {
+    if (!p || p->pin_count < 1) {
         printf("page - write string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }

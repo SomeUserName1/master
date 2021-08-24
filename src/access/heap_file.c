@@ -24,9 +24,18 @@
 // FIXME! use read/write bits
 
 heap_file*
-heap_file_create(page_cache* pc, const char* log_path)
+heap_file_create(page_cache* pc
+#ifdef VERBOSE
+                 ,
+                 const char* log_path
+#endif
+)
 {
-    if (!pc || !log_path) {
+    if (!pc
+#ifdef VERBOSE
+        || !log_path
+#endif
+    ) {
         printf("heap file - create: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
@@ -44,6 +53,7 @@ heap_file_create(page_cache* pc, const char* log_path)
     hf->n_rels                    = array_list_relationship_size(rels);
     array_list_relationship_destroy(rels);
 
+#ifdef VERBOSE
     FILE* log_file = fopen(log_path, "w+");
 
     if (log_file == NULL) {
@@ -52,6 +62,7 @@ heap_file_create(page_cache* pc, const char* log_path)
     }
 
     hf->log_file = log_file;
+#endif
 
     return hf;
 }
@@ -63,7 +74,11 @@ heap_file_destroy(heap_file* hf)
         printf("heap_file - destroy: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
+
+#ifdef VERBOSE
     fclose(hf->log_file);
+#endif
+
     free(hf);
 }
 

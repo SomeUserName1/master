@@ -15,11 +15,18 @@ typedef struct
     unsigned long n_rels;
     unsigned long last_alloc_node_slot;
     unsigned long last_alloc_rel_slot;
-    FILE*         log_file;
+#ifdef VERBOSE
+    FILE* log_file;
+#endif
 } heap_file;
 
 heap_file*
-heap_file_create(page_cache* pc, const char* log_path);
+heap_file_create(page_cache* pc
+#ifdef VERBOSE
+                 ,
+                 const char* log_path
+#endif
+);
 
 void
 heap_file_destroy(heap_file* hf);

@@ -17,6 +17,7 @@ new_relationship()
     relationship_t* rel = malloc(sizeof(*rel));
 
     if (!rel) {
+        printf("relationship - new: Failed to allocate Memory!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -46,7 +47,7 @@ relationship_read(relationship_t* record, page* read_from_page)
                      first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(unsigned long));
 
-    record->prev_rel_source =
+    record->prev_rel_target =
           read_ulong(read_from_page,
                      first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(unsigned long) + sizeof(unsigned long));
@@ -100,10 +101,11 @@ relationship_write(relationship_t* record, page* write_to_page)
                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                       + sizeof(unsigned long),
                 record->next_rel_source);
+
     write_ulong(write_to_page,
                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                       + sizeof(unsigned long) + sizeof(unsigned long),
-                record->prev_rel_source);
+                record->prev_rel_target);
 
     write_ulong(write_to_page,
                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
@@ -135,6 +137,11 @@ relationship_write(relationship_t* record, page* write_to_page)
 inline void
 relationship_clear(relationship_t* record)
 {
+    if (!record) {
+        printf("relationship - copy: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     record->id              = UNINITIALIZED_LONG;
     record->flags           = UNINITIALIZED_BYTE;
     record->source_node     = UNINITIALIZED_LONG;
@@ -150,10 +157,16 @@ relationship_clear(relationship_t* record)
 inline relationship_t*
 relationship_copy(const relationship_t* original)
 {
+    if (!original) {
+        printf("relationship - copy: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     relationship_t* copy = malloc(sizeof(*copy));
 
-    if (copy == NULL) {
-        return NULL;
+    if (!copy) {
+        printf("relationship - copy: Failed to allocate Memory!\n");
+        exit(EXIT_FAILURE);
     }
 
     copy->id              = original->id;
@@ -165,6 +178,7 @@ relationship_copy(const relationship_t* original)
     copy->prev_rel_target = original->prev_rel_target;
     copy->next_rel_target = original->next_rel_target;
     copy->weight          = original->weight;
+    memcpy(copy->label, original->label, MAX_STR_LEN);
 
     return copy;
 }
@@ -172,13 +186,19 @@ relationship_copy(const relationship_t* original)
 inline bool
 relationship_equals(const relationship_t* first, const relationship_t* second)
 {
+    if (!first || !second) {
+        printf("relationship - equals: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     return ((first->id == second->id) && (first->flags == second->flags)
             && (first->source_node == second->source_node)
             && (first->target_node == second->target_node)
             && (first->prev_rel_source == second->prev_rel_source)
             && (first->next_rel_source == second->next_rel_source)
             && (first->prev_rel_target == second->prev_rel_target)
-            && (first->weight == second->weight));
+            && (first->weight == second->weight)
+            && memcmp(first->label, second->label, MAX_STR_LEN) == 0);
 }
 
 void
@@ -186,6 +206,11 @@ relationship_to_string(const relationship_t* record,
                        char*                 buffer,
                        size_t                buffer_size)
 {
+    if (!record || !buffer) {
+        printf("relationship - to string: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     int length = snprintf(NULL,
                           0,
                           "Relationship ID: %#lX\n"
@@ -196,7 +221,8 @@ relationship_to_string(const relationship_t* record,
                           "Source node's next relationship: %#lX\n"
                           "Target node's previous relationship: %#lX\n"
                           "Target node's next relationship: %#lX\n"
-                          "First Property: %.1f\n",
+                          "Weight: %.1f\n"
+                          "Label %s\n",
                           record->id,
                           record->flags,
                           record->source_node,
@@ -205,7 +231,8 @@ relationship_to_string(const relationship_t* record,
                           record->next_rel_source,
                           record->prev_rel_target,
                           record->next_rel_target,
-                          record->weight);
+                          record->weight,
+                          record->label);
 
     if (length < 0 || (size_t)length > buffer_size) {
         printf("Wrote relationship string representation to a buffer that was "
@@ -226,7 +253,8 @@ relationship_to_string(const relationship_t* record,
                           "Source node's next relationship: %#lX\n"
                           "Target node's previous relationship: %#lX\n"
                           "Target node's next relationship: %#lX\n"
-                          "First Property: %.1f\n",
+                          "First Property: %.1f\n"
+                          "Label %s\n",
                           record->id,
                           record->flags,
                           record->source_node,
@@ -235,7 +263,8 @@ relationship_to_string(const relationship_t* record,
                           record->next_rel_source,
                           record->prev_rel_target,
                           record->next_rel_target,
-                          record->weight);
+                          record->weight,
+                          record->label);
 
     if (result < 0) {
         printf("relationship - to string: Failed to write to buffer!\n");
@@ -246,6 +275,11 @@ relationship_to_string(const relationship_t* record,
 void
 relationship_pretty_print(const relationship_t* record)
 {
+    if (!record) {
+        printf("relationship - pretty print: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     printf("Relationship ID: %#lX\n"
            "Flags: %#hhX\n"
            "Source Node: %#lX\n"
@@ -254,7 +288,9 @@ relationship_pretty_print(const relationship_t* record)
            "Source node's next relationship: %#lX\n"
            "Target node's previous relationship: %#lX\n"
            "Target node's next relationship: %#lX\n"
-           "Weight: %.1f\n",
+           "Weight: %.1f\n"
+           "Label %s\n",
+
            record->id,
            record->flags,
            record->source_node,
@@ -263,13 +299,15 @@ relationship_pretty_print(const relationship_t* record)
            record->next_rel_source,
            record->prev_rel_target,
            record->next_rel_target,
-           record->weight);
+           record->weight,
+           record->label);
 }
 
 inline void
 relationship_set_first_source(relationship_t* rel)
 {
     if (!rel) {
+        printf("relationship - set first source: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -284,6 +322,7 @@ inline void
 relationship_set_first_target(relationship_t* rel)
 {
     if (!rel) {
+        printf("relationship - set first target: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -297,6 +336,11 @@ relationship_set_first_target(relationship_t* rel)
 inline void
 rel_free(relationship_t* rel)
 {
+    if (!rel) {
+        printf("relationship - set first target: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
     free(rel);
 }
 
@@ -335,4 +379,3 @@ ll_rel_create(void)
 {
     return linked_list_relationship_create(ll_rel_cbs);
 }
-

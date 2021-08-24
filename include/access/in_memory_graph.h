@@ -1,5 +1,5 @@
-#ifndef IN_MEMORY_FILE_H
-#define IN_MEMORY_FILE_H
+#ifndef IN_MEMORY_GRAPH_H
+#define IN_MEMORY_GRAPH_H
 
 #include "access/node.h"
 #include "access/relationship.h"
@@ -19,17 +19,19 @@ void
 in_memory_graph_destroy(in_memory_graph* db);
 
 unsigned long
-in_memory_create_node(in_memory_graph* db);
+in_memory_create_node(in_memory_graph* db, char* label);
 
 unsigned long
 in_memory_create_relationship(in_memory_graph* db,
                               unsigned long    node_from,
-                              unsigned long    node_to);
+                              unsigned long    node_to,
+                              char*            label);
 unsigned long
 in_memory_create_relationship_weighted(in_memory_graph* db,
                                        unsigned long    node_from,
                                        unsigned long    node_to,
-                                       double           weight);
+                                       double           weight,
+                                       char*            label);
 
 node_t*
 in_memory_get_node(in_memory_graph* db, unsigned long id);

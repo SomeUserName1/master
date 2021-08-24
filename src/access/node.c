@@ -23,10 +23,21 @@ new_node()
     return node;
 }
 
+inline void
+node_free(node_t* node)
+{
+    if (!node) {
+        printf("node - free: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    free(node);
+}
+
 void
 node_read(node_t* record, page* read_from_page)
 {
-    if (!record || !read_from_page) {
+    if (!record || !read_from_page || read_from_page->pin_count < 1) {
         printf("node - node read: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -41,7 +52,7 @@ node_read(node_t* record, page* read_from_page)
 void
 node_write(node_t* record, page* write_to_page)
 {
-    if (!record || !write_to_page) {
+    if (!record || !write_to_page || write_to_page->pin_count < 1) {
         printf("node - node write: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -57,6 +68,7 @@ inline void
 node_clear(node_t* record)
 {
     if (!record) {
+        printf("node - clear: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
 
@@ -69,18 +81,20 @@ inline node_t*
 node_copy(const node_t* original)
 {
     if (!original) {
+        printf("node - copy: Invalid Arguments\n");
         exit(EXIT_FAILURE);
     }
 
     node_t* copy = malloc(sizeof(*copy));
 
     if (!copy) {
+        printf("node - copy: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
     }
 
     copy->id                 = original->id;
     copy->first_relationship = original->first_relationship;
-    strncpy(copy->label, original->label, MAX_STR_LEN);
+    memcpy(copy->label, original->label, MAX_STR_LEN);
 
     return copy;
 }
@@ -89,22 +103,28 @@ inline bool
 node_equals(const node_t* first, const node_t* second)
 {
     if (!first || !second) {
-        return false;
+        printf("node - equals: Invalid Arguments\n");
+        exit(EXIT_FAILURE);
     }
 
     return ((first->id == second->id)
             && (first->first_relationship == second->first_relationship)
-            && strncmp(first->label, second->label, MAX_STR_LEN) == 0);
+            && memcmp(first->label, second->label, MAX_STR_LEN) == 0);
 }
 
 void
 node_to_string(const node_t* record, char* buffer, size_t buffer_size)
 {
+    if (!record || !buffer) {
+        printf("node - to_string: Invalid Arguments\n");
+        exit(EXIT_FAILURE);
+    }
+
     int length = snprintf(NULL,
                           0,
                           "Node ID: %#lX\n"
                           "First Relationship: %#lX\n"
-                          "Degree: %s\n",
+                          "Label: %s\n",
                           record->id,
                           record->first_relationship,
                           record->label);
@@ -133,8 +153,9 @@ void
 node_pretty_print(const node_t* record)
 {
     if (!record) {
-        printf("NULL pointer argument in pretty print node!\n");
-        return;
+        printf("node - pretty print: NULL pointer argument in pretty print "
+               "node!\n");
+        exit(EXIT_FAILURE);
     }
     printf("Node ID: %#lX\n"
            "First Relationship: %#lX\n"
@@ -142,12 +163,6 @@ node_pretty_print(const node_t* record)
            record->id,
            record->first_relationship,
            record->label);
-}
-
-inline void
-node_free(node_t* node)
-{
-    free(node);
 }
 
 ARRAY_LIST_IMPL(array_list_node, node_t*);

@@ -26,7 +26,7 @@ in_memory_graph_create(void)
 }
 
 void
-in_memory_file_destroy(in_memory_graph* db)
+in_memory_graph_destroy(in_memory_graph* db)
 {
     dict_ul_node_destroy(db->cache_nodes);
     dict_ul_rel_destroy(db->cache_rels);
@@ -34,15 +34,16 @@ in_memory_file_destroy(in_memory_graph* db)
 }
 
 unsigned long
-in_memory_create_node(in_memory_graph* db)
+in_memory_create_node(in_memory_graph* db, char* label)
 {
-    if (!db) {
+    if (!db || !label) {
         printf("in_memory - create node: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     node_t* node = new_node();
     node->id     = db->n_nodes++;
+    strncpy(node->label, label, MAX_STR_LEN);
 
     dict_ul_node_insert(db->cache_nodes, node->id, node);
 
@@ -116,19 +117,22 @@ in_memory_get_relationships(in_memory_graph* db)
 unsigned long
 in_memory_create_relationship(in_memory_graph* db,
                               unsigned long    node_from,
-                              unsigned long    node_to)
+                              unsigned long    node_to,
+                              char*            label)
 {
-    return in_memory_create_relationship_weighted(db, node_from, node_to, 1.0F);
+    return in_memory_create_relationship_weighted(
+          db, node_from, node_to, 1.0, label);
 }
 
 unsigned long
 in_memory_create_relationship_weighted(in_memory_graph* db,
                                        unsigned long    node_from,
                                        unsigned long    node_to,
-                                       double           weight)
+                                       double           weight,
+                                       char*            label)
 {
     if (!db || node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG
-        || weight == UNINITIALIZED_WEIGHT) {
+        || weight == UNINITIALIZED_WEIGHT || !label) {
         printf("create_relationship: in memory file is NULL or invalid nodes "
                "or weight passed as "
                "argument!\n");
@@ -164,6 +168,7 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
     rel->id             = db->n_rels++;
     rel->flags          = 1;
     rel->weight         = weight;
+    strncpy(rel->label, label, MAX_STR_LEN);
 
     // Find first and last relationship in source node's chain
     if (source_node->first_relationship == UNINITIALIZED_LONG) {

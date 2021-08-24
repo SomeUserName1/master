@@ -63,6 +63,7 @@ test_read_ulong(void)
     memset(data, UCHAR_MAX, sizeof(unsigned long));
     memset(data + sizeof(unsigned long), TEST_BYTE, sizeof(unsigned long));
 
+    p->pin_count               = 1;
     unsigned long check_first  = read_ulong(p, 0);
     unsigned long check_second = read_ulong(p, sizeof(unsigned long));
 
@@ -74,6 +75,7 @@ test_read_ulong(void)
     assert(check_first == ULONG_MAX);
     assert(check_second == result);
 
+    p->pin_count = 0;
     page_destroy(p);
     free(data);
     printf("page test - read ulong: Successful!\n");
@@ -86,6 +88,7 @@ test_write_ulong(void)
 
     page* p = page_create(data);
 
+    p->pin_count = 1;
     write_ulong(p, 0, TEST_NUMBER);
     write_ulong(p, sizeof(unsigned long), TEST_BYTE);
     write_ulong(p, PAGE_SIZE - sizeof(unsigned long), ULONG_MAX);
@@ -99,7 +102,8 @@ test_write_ulong(void)
     assert(check_second == TEST_BYTE);
     assert(check_third == ULONG_MAX);
 
-    p->dirty = false;
+    p->pin_count = 0;
+    p->dirty     = false;
     page_destroy(p);
     free(data);
     printf("page test - write ulong: Successful!\n");
@@ -115,12 +119,14 @@ test_read_uchar(void)
     memset(data, UCHAR_MAX, sizeof(unsigned char));
     memset(data + sizeof(unsigned char), TEST_BYTE, sizeof(unsigned char));
 
+    p->pin_count               = 1;
     unsigned char check_first  = read_uchar(p, 0);
     unsigned char check_second = read_uchar(p, sizeof(unsigned char));
 
     assert(check_first == UCHAR_MAX);
     assert(check_second == TEST_BYTE);
 
+    p->pin_count = 0;
     page_destroy(p);
     free(data);
     printf("page test - read uchar: Successful!\n");
@@ -133,6 +139,7 @@ test_write_uchar(void)
 
     page* p = page_create(data);
 
+    p->pin_count = 1;
     write_uchar(p, 0, TEST_NUMBER);
     write_uchar(p, sizeof(unsigned char), TEST_BYTE);
     write_uchar(p, PAGE_SIZE - sizeof(unsigned char), UCHAR_MAX);
@@ -146,7 +153,8 @@ test_write_uchar(void)
     assert(check_second == TEST_BYTE);
     assert(check_third == UCHAR_MAX);
 
-    p->dirty = false;
+    p->pin_count = 0;
+    p->dirty     = false;
     page_destroy(p);
     free(data);
     printf("page test - write uchar: Successful!\n");
@@ -165,12 +173,14 @@ test_read_double(void)
     data[2 * sizeof(double) - 2] = DOUBLE_42_SND_BYTE;
     data[2 * sizeof(double) - 1] = DOUBLE_42_FST_BYTE;
 
+    p->pin_count        = 1;
     double check_first  = read_double(p, 0);
     double check_second = read_double(p, sizeof(double));
 
     assert(check_first == minus_two);
     assert(check_second == (double)TEST_NUMBER);
 
+    p->pin_count = 0;
     page_destroy(p);
     free(data);
     printf("page test - read double: Successful!\n");
@@ -183,6 +193,7 @@ test_write_double(void)
 
     page* p = page_create(data);
 
+    p->pin_count = 1;
     write_double(p, 0, TEST_DOUBLE);
     write_double(p, sizeof(double), TEST_DOUBLE + 1);
     write_double(p, PAGE_SIZE - (2 * sizeof(double)), D_MIN);
@@ -198,7 +209,8 @@ test_write_double(void)
     assert(check_third == D_MIN);
     assert(check_fourth == D_MAX);
 
-    p->dirty = false;
+    p->pin_count = 0;
+    p->dirty     = false;
     page_destroy(p);
     free(data);
     printf("page test - write double: Successful!\n");
@@ -216,6 +228,7 @@ test_read_string(void)
     memset(data + MAX_STR_LEN, 'b', MAX_STR_LEN - 1);
     data[2 * MAX_STR_LEN - 1] = '\0';
 
+    p->pin_count = 1;
     char check_first[MAX_STR_LEN];
     read_string(p, 0, check_first);
     char check_second[MAX_STR_LEN];
@@ -228,6 +241,7 @@ test_read_string(void)
     assert(check_first[MAX_STR_LEN - 1] == '\0');
     assert(check_second[MAX_STR_LEN - 1] == '\0');
 
+    p->pin_count = 0;
     page_destroy(p);
     free(data);
     printf("page test - read string: Successful!\n");
@@ -243,6 +257,7 @@ test_write_string(void)
     char write_first[MAX_STR_LEN];
     char write_snd[MAX_STR_LEN];
 
+    p->pin_count = 1;
     memset(write_first, 'a', MAX_STR_LEN - 1);
     write_first[MAX_STR_LEN - 1] = '\0';
     memset(write_snd, 'b', MAX_STR_LEN - 1);
@@ -270,7 +285,8 @@ test_write_string(void)
     assert(check_second[MAX_STR_LEN - 1] == '\0');
     assert(check_third[MAX_STR_LEN - 1] == '\0');
 
-    p->dirty = false;
+    p->pin_count = 0;
+    p->dirty     = false;
     page_destroy(p);
     free(data);
     printf("page test - write string: Successful!\n");
@@ -283,8 +299,10 @@ test_page_pretty_print(void)
 
     page* p = page_create(data);
 
+    p->pin_count = 1;
     page_pretty_print(p);
 
+    p->pin_count = 0;
     page_destroy(p);
     free(data);
     printf("page test - pretty print: Successful!\n");

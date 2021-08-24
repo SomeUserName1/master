@@ -117,3 +117,6 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Log on read/write page level not on stdio ops/calls level
 - Use #ifdef VERBOSE macros arround macros
 - Logging: Pages might not fit on OS page, Sequential access might be broken into parts, ... => more IOs on the OS level penalize runtime
+
+
+
