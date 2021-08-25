@@ -60,10 +60,10 @@ void
 delete_relationship(heap_file* hf, unsigned long rel_id);
 
 void
-move_node(heap_file* hf, unsigned long id, unsigned long to_id);
+prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id);
 
 void
-move_relationship(heap_file* hf, unsigned long id, unsigned long to_id);
+prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id);
 
 void
 swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft);

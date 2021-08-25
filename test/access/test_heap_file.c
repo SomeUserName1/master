@@ -8,6 +8,11 @@
 
 #include <assert.h>
 
+static const double test_weight_1 = 2.0;
+static const double test_weight_2 = 3.0;
+static const double test_weight_3 = 4.0;
+static const double test_weight_4 = 5.0;
+
 void
 test_heap_file_create(void)
 {
@@ -113,7 +118,7 @@ test_create_node(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 2);
+    allocate_pages(pdb, node_file, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -228,8 +233,131 @@ test_create_relationship(void)
     assert(rel->label[0] == '\0');
     free(rel);
 
-    // TODO Continue here: add more rels and check if the chaining works
-    // properly
+    page*   node_p = pin_page(pc, 0, node_file);
+    node_t* node_1 = new_node();
+    node_1->id     = n_1;
+    node_read(node_1, node_p);
+    assert(node_1->id == n_1);
+    assert(node_1->first_relationship == id);
+    node_t* node_2 = new_node();
+    node_2->id     = n_2;
+    node_read(node_2, node_p);
+    assert(node_2->id == n_2);
+    assert(node_2->first_relationship == id);
+    free(node_1);
+    free(node_2);
+
+    unsigned long n_3  = create_node(hf, "\0");
+    unsigned long n_4  = create_node(hf, "\0");
+    unsigned long id_2 = create_relationship(hf, n_1, n_3, test_weight_1, "\0");
+    unsigned long id_3 = create_relationship(hf, n_1, n_4, test_weight_2, "\0");
+    unsigned long id_4 = create_relationship(hf, n_2, n_3, test_weight_3, "\0");
+    unsigned long id_5 = create_relationship(hf, n_2, n_4, test_weight_4, "\0");
+
+    assert(hf->n_nodes == 4);
+    assert(hf->n_rels == 5);
+    assert(hf->last_alloc_node_slot == 4 * NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_rel_slot == 5 * NUM_SLOTS_PER_REL);
+
+    rel     = new_relationship();
+    rel->id = id;
+    relationship_read(rel, p);
+    assert(rel->id == id);
+    assert(rel->source_node == n_1);
+    assert(rel->target_node == n_2);
+    assert(rel->prev_rel_source == id_3);
+    assert(rel->next_rel_source == id_2);
+    assert(rel->prev_rel_target == id_5);
+    assert(rel->next_rel_target == id_4);
+    assert(rel->flags == 3);
+    assert(rel->weight == 1.0);
+    assert(rel->label[0] == '\0');
+    free(rel);
+    node_1     = new_node();
+    node_1->id = n_1;
+    node_read(node_1, node_p);
+    assert(node_1->id == n_1);
+    assert(node_1->first_relationship == id);
+    node_2     = new_node();
+    node_2->id = n_2;
+    node_read(node_2, node_p);
+    assert(node_2->id == n_2);
+    assert(node_2->first_relationship == id);
+    free(node_1);
+    free(node_2);
+
+    rel     = new_relationship();
+    rel->id = id_2;
+    relationship_read(rel, p);
+    assert(rel->id == id_2);
+    assert(rel->source_node == n_1);
+    assert(rel->target_node == n_3);
+    assert(rel->prev_rel_source == id);
+    assert(rel->next_rel_source == id_3);
+    assert(rel->prev_rel_target == id_4);
+    assert(rel->next_rel_target == id_4);
+    assert(rel->flags == 2);
+    assert(rel->weight == test_weight_1);
+    assert(rel->label[0] == '\0');
+    free(rel);
+
+    rel     = new_relationship();
+    rel->id = id_3;
+    relationship_read(rel, p);
+    assert(rel->id == id_3);
+    assert(rel->source_node == n_1);
+    assert(rel->target_node == n_4);
+    assert(rel->prev_rel_source == id_2);
+    assert(rel->next_rel_source == id);
+    assert(rel->prev_rel_target == id_5);
+    assert(rel->next_rel_target == id_5);
+    assert(rel->flags == 2);
+    assert(rel->weight == test_weight_2);
+    assert(rel->label[0] == '\0');
+    free(rel);
+
+    node_t* node_3 = new_node();
+    node_3->id     = n_3;
+    node_read(node_3, node_p);
+    assert(node_3->id == n_3);
+    assert(node_3->first_relationship == id_2);
+    node_t* node_4 = new_node();
+    node_4->id     = n_4;
+    node_read(node_4, node_p);
+    assert(node_4->id == n_4);
+    assert(node_4->first_relationship == id_3);
+    free(node_3);
+    free(node_4);
+
+    rel     = new_relationship();
+    rel->id = id_4;
+    relationship_read(rel, p);
+    assert(rel->id == id_4);
+    assert(rel->source_node == n_2);
+    assert(rel->target_node == n_3);
+    assert(rel->prev_rel_source == id);
+    assert(rel->next_rel_source == id_5);
+    assert(rel->prev_rel_target == id_2);
+    assert(rel->next_rel_target == id_2);
+    assert(rel->flags == 0);
+    assert(rel->weight == test_weight_3);
+    assert(rel->label[0] == '\0');
+    free(rel);
+
+    rel     = new_relationship();
+    rel->id = id_5;
+    relationship_read(rel, p);
+    assert(rel->id == id_5);
+    assert(rel->source_node == n_2);
+    assert(rel->target_node == n_4);
+    assert(rel->prev_rel_source == id_5);
+    assert(rel->next_rel_source == id);
+    assert(rel->prev_rel_target == id_3);
+    assert(rel->next_rel_target == id_3);
+    assert(rel->flags == 0);
+    assert(rel->weight == test_weight_4);
+    assert(rel->label[0] == '\0');
+    free(rel);
 
     unpin_page(pc, 0, node_file);
 
@@ -240,19 +368,242 @@ test_create_relationship(void)
 
 void
 test_read_node(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 2);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long id = create_node(hf, "\0");
+
+    assert(id != UNINITIALIZED_LONG);
+    assert(id == 0);
+    assert(hf->n_nodes == 1);
+    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE);
+
+    node_t* node = read_node(hf, id);
+    assert(node->id == id);
+    assert(node->first_relationship == UNINITIALIZED_LONG);
+    assert(node->label[0] == '\0');
+    free(node);
+
+    unsigned long id_1 = create_node(hf, "\0");
+
+    assert(id_1 != UNINITIALIZED_LONG);
+    assert(id == 1);
+    assert(hf->n_nodes == 2);
+    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE);
+
+    node_t* node_1 = read_node(hf, id_1);
+    assert(node_1->id == id_1);
+    assert(node_1->first_relationship == UNINITIALIZED_LONG);
+    assert(node_1->label[0] == '\0');
+    free(node_1);
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_read_relationship(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, relationship_file, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long n_1 = create_node(hf, "\0");
+    unsigned long n_2 = create_node(hf, "\0");
+    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, "\0");
+
+    relationship_t* rel = read_relationship(hf, id);
+    assert(rel->id == id);
+    assert(rel->source_node == n_1);
+    assert(rel->target_node == n_2);
+    assert(rel->prev_rel_source == id);
+    assert(rel->next_rel_source == id);
+    assert(rel->prev_rel_target == id);
+    assert(rel->next_rel_target == id);
+    assert(rel->flags == 3);
+    assert(rel->weight == 1.0);
+    assert(rel->label[0] == '\0');
+    free(rel);
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_update_node(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 2);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long id = create_node(hf, "\0");
+
+    node_t* node = read_node(hf, id);
+    assert(node->id == id);
+    assert(node->first_relationship == UNINITIALIZED_LONG);
+    assert(node->label[0] == '\0');
+
+    node->first_relationship = 0;
+    strncpy(node->label, "abc", 4);
+    update_node(hf, node);
+
+    assert(node->first_relationship == 0);
+    assert(strcmp(node->label, "abc") == 0);
+    free(node);
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_update_relationship(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long n_1 = create_node(hf, "\0");
+    unsigned long n_2 = create_node(hf, "\0");
+    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, "\0");
+
+    relationship_t* rel  = read_relationship(hf, id);
+    rel->source_node     = 1;
+    rel->target_node     = 0;
+    rel->prev_rel_source = 2;
+    rel->next_rel_source = 3;
+    rel->prev_rel_target = 4;
+    rel->next_rel_target = 1;
+    strncpy(rel->label, "abc", 4);
+    update_relationship(hf, rel);
+
+    assert(rel->source_node == 1);
+    assert(rel->target_node == 0);
+    assert(rel->prev_rel_source == 2);
+    assert(rel->next_rel_source == 3);
+    assert(rel->prev_rel_target == 4);
+    assert(rel->next_rel_target == 1);
+
+    assert(strcmp(rel->label, "abc") == 0);
+    free(rel);
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_delete_node(void)

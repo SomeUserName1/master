@@ -599,7 +599,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
 }
 
 void
-move_node(heap_file* hf, unsigned long id, unsigned long to_id)
+prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id)
 {
     if (!hf || id == UNINITIALIZED_LONG) {
         printf("heap file - move node: Invalid Arguments!\n");
@@ -627,7 +627,7 @@ move_node(heap_file* hf, unsigned long id, unsigned long to_id)
 }
 
 void
-move_relationship(heap_file* hf, unsigned long id, unsigned long to_id)
+prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id)
 {
     if (!hf || id == UNINITIALIZED_LONG) {
         printf("heap file - move relationship: Invalid Arguments!\n");
@@ -747,9 +747,9 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
             to_id = snd * SLOTS_PER_PAGE + i;
 
             if (ft == node_file) {
-                move_node(hf, id, to_id);
+                prepare_move_node(hf, id, to_id);
             } else {
-                move_relationship(hf, id, to_id);
+                prepare_move_relationship(hf, id, to_id);
             }
         }
     }
@@ -760,10 +760,10 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
             to_id = fst * SLOTS_PER_PAGE + i;
 
             if (ft == node_file) {
-                move_node(hf, id, to_id);
+                prepare_move_node(hf, id, to_id);
 
             } else {
-                move_relationship(hf, id, to_id);
+                prepare_move_relationship(hf, id, to_id);
             }
         }
     }
