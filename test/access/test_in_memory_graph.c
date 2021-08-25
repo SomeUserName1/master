@@ -383,20 +383,20 @@ test_create_rel_chain(in_memory_graph* db, dict_ul_ul* map)
 void
 test_get_nodes(in_memory_graph* db)
 {
-    size_t           n_nodes_before = db->n_nodes;
-    array_list_node* nodes          = in_memory_get_nodes(db);
-    assert(array_list_node_size(nodes) == db->n_nodes);
-    array_list_node_destroy(nodes);
+    size_t          n_nodes_before = db->n_nodes;
+    inm_alist_node* nodes          = in_memory_get_nodes(db);
+    assert(inm_alist_node_size(nodes) == db->n_nodes);
+    inm_alist_node_destroy(nodes);
     assert(n_nodes_before == db->n_nodes);
 }
 
 void
 test_get_rels(in_memory_graph* db)
 {
-    size_t                   n_rels_before = db->n_rels;
-    array_list_relationship* rels          = in_memory_get_relationships(db);
-    assert(array_list_relationship_size(rels) == db->n_rels);
-    array_list_relationship_destroy(rels);
+    size_t                  n_rels_before = db->n_rels;
+    inm_alist_relationship* rels          = in_memory_get_relationships(db);
+    assert(inm_alist_relationship_size(rels) == db->n_rels);
+    inm_alist_relationship_destroy(rels);
     assert(n_rels_before == db->n_rels);
 }
 
@@ -445,31 +445,31 @@ test_in_memory_next_rel_none(void)
 void
 test_in_memory_expand(in_memory_graph* db)
 {
-    array_list_relationship* rels = in_memory_expand(db, 0, BOTH);
-    assert(array_list_relationship_size(rels) == 72);
+    inm_alist_relationship* rels = in_memory_expand(db, 0, BOTH);
+    assert(inm_alist_relationship_size(rels) == 72);
 
-    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
-        assert(array_list_relationship_get(rels, i)->id == rel_ids_n0[i]);
+    for (size_t i = 0; i < inm_alist_relationship_size(rels); ++i) {
+        assert(inm_alist_relationship_get(rels, i)->id == rel_ids_n0[i]);
     }
-    array_list_relationship_destroy(rels);
+    inm_alist_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, OUTGOING);
-    assert(array_list_relationship_size(rels) == 41);
+    assert(inm_alist_relationship_size(rels) == 41);
 
-    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
-        assert(array_list_relationship_get(rels, i)->id
+    for (size_t i = 0; i < inm_alist_relationship_size(rels); ++i) {
+        assert(inm_alist_relationship_get(rels, i)->id
                == rel_ids_n0[ids_n0_out[i]]);
     }
-    array_list_relationship_destroy(rels);
+    inm_alist_relationship_destroy(rels);
 
     rels = in_memory_expand(db, 0, INCOMING);
-    assert(array_list_relationship_size(rels) == 32);
+    assert(inm_alist_relationship_size(rels) == 32);
 
-    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
-        assert(array_list_relationship_get(rels, i)->id
+    for (size_t i = 0; i < inm_alist_relationship_size(rels); ++i) {
+        assert(inm_alist_relationship_get(rels, i)->id
                == rel_ids_n0[ids_n0_inc[i]]);
     }
-    array_list_relationship_destroy(rels);
+    inm_alist_relationship_destroy(rels);
 }
 
 void

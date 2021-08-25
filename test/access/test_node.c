@@ -151,7 +151,7 @@ test_node_write(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 1);
 
     node_t* node             = new_node();
     node->id                 = 1;
@@ -203,7 +203,7 @@ test_node_read(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 1);
 
     node_t* node             = new_node();
     node->id                 = 1;

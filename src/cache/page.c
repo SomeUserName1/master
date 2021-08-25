@@ -133,7 +133,6 @@ read_string(page* p, size_t offset, char* buf)
         printf("page - read string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
-
     memcpy(buf, p->data + offset, sizeof(char) * MAX_STR_LEN);
 }
 
@@ -146,7 +145,10 @@ write_string(page* p, size_t offset, char* value)
         exit(EXIT_FAILURE);
     }
 
-    memcpy(p->data + offset, value, MAX_STR_LEN * sizeof(char));
+    char buf[MAX_STR_LEN];
+    memset(buf, 0, MAX_STR_LEN);
+    strncpy(buf, value, MAX_STR_LEN * sizeof(char));
+    memcpy(p->data + offset, buf, MAX_STR_LEN);
 
     p->dirty = true;
 }

@@ -15,12 +15,6 @@
 #include "page_cache.h"
 #include "physical_database.h"
 
-#define NUM_SLOTS_PER_NODE                                                     \
-    ((ON_DISK_NODE_SIZE / SLOT_SIZE) + (ON_DISK_NODE_SIZE % SLOT_SIZE != 0))
-
-#define NUM_SLOTS_PER_REL                                                      \
-    ((ON_DISK_REL_SIZE / SLOT_SIZE) + (ON_DISK_REL_SIZE % SLOT_SIZE != 0))
-
 // FIXME! use read/write bits
 
 heap_file*

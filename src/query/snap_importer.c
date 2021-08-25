@@ -314,26 +314,24 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
             continue;
         }
 
-        for (int i = 0; i < import_fields; ++i) {
-
-            if (weighted && i == import_fields - 1) {
-                if (sscanf(buf, "%lf", &weight) != 1) {
-                    printf("%s\n",
-                           "snap importer - import from txt: Failed to read "
-                           "input\n");
-                    exit(EXIT_FAILURE);
-                }
-
-                continue;
-            }
-
-            if (sscanf(buf, "%lu", &from_to[i]) != 1) {
+        if (weighted) {
+            if (sscanf(buf, "%lu %lu %lf\n", &from_to[0], &from_to[1], &weight)
+                != 3) {
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
             }
+        } else {
+            if (sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]) != 2) {
+                printf("%s\n",
+                       "snap importer - import from txt: Failed to read "
+                       "input\n");
+                exit(EXIT_FAILURE);
+            }
+        }
 
+        for (int i = 0; i < import_fields; ++i) {
             if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
             } else {
@@ -399,26 +397,24 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
             continue;
         }
 
-        for (int i = 0; i < import_fields; ++i) {
-
-            if (weighted && i == import_fields - 1) {
-                if (sscanf(buf, "%lf", &weight) != 1) {
-                    printf("%s\n",
-                           "snap importer - import from txt: Failed to read "
-                           "input\n");
-                    exit(EXIT_FAILURE);
-                }
-
-                continue;
-            }
-
-            if (sscanf(buf, "%lu", &from_to[i]) != 1) {
+        if (weighted) {
+            if (sscanf(buf, "%lu %lu %lf\n", &from_to[0], &from_to[1], &weight)
+                != 3) {
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
             }
+        } else {
+            if (sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]) != 2) {
+                printf("%s\n",
+                       "snap importer - import from txt: Failed to read "
+                       "input\n");
+                exit(EXIT_FAILURE);
+            }
+        }
 
+        for (int i = 0; i < import_fields; ++i) {
             if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
             } else {
@@ -442,6 +438,7 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
         } else {
             in_memory_create_relationship(g, from_to[0], from_to[1], "\0");
         }
+
         lines++;
     }
 

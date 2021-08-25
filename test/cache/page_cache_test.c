@@ -376,7 +376,7 @@ test_flush_page(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 1);
 
     page* p = pin_page(pc, 0, node_file);
     write_ulong(p, 0, 1);

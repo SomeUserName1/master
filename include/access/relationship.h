@@ -14,6 +14,9 @@
     (6 * sizeof(unsigned long) + sizeof(double) + sizeof(unsigned char)        \
      + MAX_STR_LEN * sizeof(char))
 
+#define NUM_SLOTS_PER_REL                                                      \
+    ((ON_DISK_REL_SIZE / SLOT_SIZE) + (ON_DISK_REL_SIZE % SLOT_SIZE != 0))
+
 #define FIRST_REL_SOURCE_FLAG (0x01)
 #define FIRST_REL_TARGET_FLAG (0x02)
 
@@ -133,6 +136,11 @@ ARRAY_LIST_DECL(array_list_relationship, relationship_t*);
 
 array_list_relationship*
 al_rel_create(void);
+
+ARRAY_LIST_DECL(inm_alist_relationship, relationship_t*);
+
+inm_alist_relationship*
+inmal_rel_create(void);
 
 HTABLE_DECL(dict_ul_rel, unsigned long, relationship_t*)
 

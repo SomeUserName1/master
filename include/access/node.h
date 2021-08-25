@@ -11,6 +11,9 @@
 
 #define ON_DISK_NODE_SIZE (sizeof(unsigned long) + MAX_STR_LEN * sizeof(char))
 
+#define NUM_SLOTS_PER_NODE                                                     \
+    ((ON_DISK_NODE_SIZE / SLOT_SIZE) + (ON_DISK_NODE_SIZE % SLOT_SIZE != 0))
+
 /**
  * The struct that is stored on disk. The first byte is acutally ust a flag
  * but a byte is used to align the struct to be a aligned.
@@ -103,6 +106,11 @@ ARRAY_LIST_DECL(array_list_node, node_t*);
 
 array_list_node*
 al_node_create(void);
+
+ARRAY_LIST_DECL(inm_alist_node, node_t*);
+
+inm_alist_node*
+inmal_node_create(void);
 
 HTABLE_DECL(dict_ul_node, unsigned long, node_t*);
 

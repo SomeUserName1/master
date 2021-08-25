@@ -39,10 +39,10 @@ in_memory_get_node(in_memory_graph* db, unsigned long id);
 relationship_t*
 in_memory_get_relationship(in_memory_graph* db, unsigned long id);
 
-array_list_node*
+inm_alist_node*
 in_memory_get_nodes(in_memory_graph* db);
 
-array_list_relationship*
+inm_alist_relationship*
 in_memory_get_relationships(in_memory_graph* db);
 
 unsigned long
@@ -50,7 +50,7 @@ in_memory_next_relationship_id(in_memory_graph* db,
                                unsigned long    node_id,
                                relationship_t*  rel,
                                direction_t      direction);
-array_list_relationship*
+inm_alist_relationship*
 in_memory_expand(in_memory_graph* db,
                  unsigned long    node_id,
                  direction_t      direction);

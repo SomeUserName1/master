@@ -195,7 +195,7 @@ test_relationship_write(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 1);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
@@ -299,7 +299,7 @@ test_relationship_read(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 1);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;

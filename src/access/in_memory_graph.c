@@ -62,7 +62,7 @@ in_memory_get_node(in_memory_graph* db, unsigned long id)
     return dict_ul_node_get_direct(db->cache_nodes, id);
 }
 
-array_list_node*
+inm_alist_node*
 in_memory_get_nodes(in_memory_graph* db)
 {
     if (!db) {
@@ -70,13 +70,13 @@ in_memory_get_nodes(in_memory_graph* db)
         return NULL;
     }
 
-    array_list_node*       nodes = al_node_create();
+    inm_alist_node*        nodes = inmal_node_create();
     unsigned long          id    = UNINITIALIZED_LONG;
     node_t*                node  = NULL;
     dict_ul_node_iterator* it = dict_ul_node_iterator_create(db->cache_nodes);
 
     while (dict_ul_node_iterator_next(it, &id, &node) > -1) {
-        array_list_node_append(nodes, node);
+        inm_alist_node_append(nodes, node);
     }
     dict_ul_node_iterator_destroy(it);
     return nodes;
@@ -94,7 +94,7 @@ in_memory_get_relationship(in_memory_graph* db, unsigned long id)
     return dict_ul_rel_get_direct(db->cache_rels, id);
 }
 
-array_list_relationship*
+inm_alist_relationship*
 in_memory_get_relationships(in_memory_graph* db)
 {
     if (!db) {
@@ -102,13 +102,13 @@ in_memory_get_relationships(in_memory_graph* db)
         exit(EXIT_FAILURE);
     }
 
-    array_list_relationship* rels = al_rel_create();
-    unsigned long            id   = UNINITIALIZED_LONG;
-    relationship_t*          rel  = NULL;
-    dict_ul_rel_iterator*    it   = dict_ul_rel_iterator_create(db->cache_rels);
+    inm_alist_relationship* rels = inmal_rel_create();
+    unsigned long           id   = UNINITIALIZED_LONG;
+    relationship_t*         rel  = NULL;
+    dict_ul_rel_iterator*   it   = dict_ul_rel_iterator_create(db->cache_rels);
 
     while (dict_ul_rel_iterator_next(it, &id, &rel) > -1) {
-        array_list_relationship_append(rels, rel);
+        inm_alist_relationship_append(rels, rel);
     }
     dict_ul_rel_iterator_destroy(it);
     return rels;
@@ -290,7 +290,7 @@ in_memory_next_relationship_id(in_memory_graph* db,
     return UNINITIALIZED_LONG;
 }
 
-array_list_relationship*
+inm_alist_relationship*
 in_memory_expand(in_memory_graph* db,
                  unsigned long    node_id,
                  direction_t      direction)
@@ -300,7 +300,6 @@ in_memory_expand(in_memory_graph* db,
         exit(EXIT_FAILURE);
     }
 
-    printf("node_id %lu\n", node_id);
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
 
     if (!node || !db) {
@@ -308,14 +307,13 @@ in_memory_expand(in_memory_graph* db,
         exit(EXIT_FAILURE);
     }
 
-    array_list_relationship* result = al_rel_create();
-    unsigned long            rel_id = node->first_relationship;
+    inm_alist_relationship* result = inmal_rel_create();
+    unsigned long           rel_id = node->first_relationship;
 
     if (rel_id == UNINITIALIZED_LONG) {
         return result;
     }
 
-    printf("rel id start %lu\n", rel_id);
     relationship_t* rel = in_memory_get_relationship(db, rel_id);
     unsigned long   start_id;
 
@@ -323,16 +321,14 @@ in_memory_expand(in_memory_graph* db,
         || (rel->target_node == node_id && direction != OUTGOING)) {
         start_id = rel_id;
     } else {
-        rel_id = in_memory_next_relationship_id(db, node_id, rel, direction);
-        printf("rel id mid %lu\n", rel_id);
+        rel_id   = in_memory_next_relationship_id(db, node_id, rel, direction);
         start_id = rel_id;
     }
 
     while (rel_id != UNINITIALIZED_LONG) {
         rel = dict_ul_rel_get_direct(db->cache_rels, rel_id);
-        array_list_relationship_append(result, rel);
+        inm_alist_relationship_append(result, rel);
         rel_id = in_memory_next_relationship_id(db, node->id, rel, direction);
-        printf("rel id last %lu\n", rel_id);
 
         if (rel_id == start_id) {
             return result;

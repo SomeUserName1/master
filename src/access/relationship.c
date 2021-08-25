@@ -178,7 +178,7 @@ relationship_copy(const relationship_t* original)
     copy->prev_rel_target = original->prev_rel_target;
     copy->next_rel_target = original->next_rel_target;
     copy->weight          = original->weight;
-    memcpy(copy->label, original->label, MAX_STR_LEN);
+    strncpy(copy->label, original->label, MAX_STR_LEN);
 
     return copy;
 }
@@ -353,6 +353,17 @@ inline array_list_relationship*
 al_rel_create(void)
 {
     return array_list_relationship_create(list_rel_cbs);
+}
+
+ARRAY_LIST_IMPL(inm_alist_relationship, relationship_t*);
+inm_alist_relationship_cbs inm_alist_rel_cbs = { relationship_equals,
+                                                 NULL,
+                                                 NULL };
+
+inline inm_alist_relationship*
+inmal_rel_create(void)
+{
+    return inm_alist_relationship_create(inm_alist_rel_cbs);
 }
 
 HTABLE_IMPL(dict_ul_rel,

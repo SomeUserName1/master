@@ -134,7 +134,7 @@ test_read_bits(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 2);
 
     page* p = pin_page(pc, 0, node_file);
     write_uchar(p, 0, 1);
@@ -188,7 +188,7 @@ test_write_bits(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_file, 2);
     clear_page(pdb->files[node_file], 0);
 
     page* p = pin_page(pc, 0, node_file);

@@ -94,7 +94,7 @@ node_copy(const node_t* original)
 
     copy->id                 = original->id;
     copy->first_relationship = original->first_relationship;
-    memcpy(copy->label, original->label, MAX_STR_LEN);
+    strncpy(copy->label, original->label, MAX_STR_LEN);
 
     return copy;
 }
@@ -172,6 +172,15 @@ inline array_list_node*
 al_node_create(void)
 {
     return array_list_node_create(list_node_cbs);
+}
+
+ARRAY_LIST_IMPL(inm_alist_node, node_t*);
+static inm_alist_node_cbs inmal_node_cbs = { node_equals, NULL, NULL };
+
+inline inm_alist_node*
+inmal_node_create(void)
+{
+    return inm_alist_node_create(inmal_node_cbs);
 }
 
 HTABLE_IMPL(dict_ul_node,
