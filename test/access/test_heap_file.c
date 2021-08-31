@@ -101,6 +101,18 @@ test_heap_file_destroy(void)
 }
 
 void
+test_next_free_slots(void)
+{}
+
+void
+test_check_node_exists(void)
+{}
+
+void
+test_check_relationship_exists(void)
+{}
+
+void
 test_create_node(void)
 {
     char* file_name = "test";
@@ -607,11 +619,103 @@ test_update_relationship(void)
 
 void
 test_delete_node(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long n_1 = create_node(hf, "\0");
+    unsigned long n_2 = create_node(hf, "\0");
+
+    assert(check_node_exists(hf, n_1));
+    assert(check_node_exists(hf, n_2));
+    delete_node(hf, n_1);
+    assert(!check_node_exists(hf, n_1));
+    assert(check_node_exists(hf, n_2));
+
+    delete_node(hf, n_2);
+
+    assert(!check_node_exists(hf, n_2));
+    assert(!check_node_exists(hf, n_1));
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_delete_relationship(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long n_1 = create_node(hf, "\0");
+    unsigned long n_2 = create_node(hf, "\0");
+    unsigned long rel = create_relationship(hf, n_1, n_2, test_weight_1, "\0");
+
+    assert(check_relationship_exists(hf, n_1));
+    delete_relationship(hf, n_1);
+    assert(!check_relationship_exists(hf, n_1));
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 void
 test_move_node(void)
@@ -650,6 +754,9 @@ main(void)
 {
     test_heap_file_create();
     test_heap_file_destroy();
+    test_next_free_slots();
+    test_check_node_exists();
+    test_check_relationship_exists();
     test_create_node();
     test_create_relationship();
     test_read_node();

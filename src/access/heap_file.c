@@ -15,8 +15,6 @@
 #include "page_cache.h"
 #include "physical_database.h"
 
-// FIXME! use read/write bits
-
 heap_file*
 heap_file_create(page_cache* pc
 #ifdef VERBOSE
@@ -175,6 +173,172 @@ next_free_slots(heap_file* hf, file_type ft)
            - (sizeof(unsigned long) * CHAR_BIT);
 }
 
+bool
+check_node_exists(heap_file* hf, unsigned long id)
+{
+    size_t header_id = (id * NUM_SLOTS_PER_NODE + sizeof(unsigned long))
+                       / PAGE_SIZE * CHAR_BIT;
+    page* header = pin_page(hf->cache, header_id, node_header);
+
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
+
+    unsigned char* slot_used;
+    // for the first page we need to take the unsigned long at the start
+    // into account that stores the amount of slots
+    unsigned long byte_pos_h =
+          header_id == 0 ? (sizeof(unsigned long) + id / CHAR_BIT) % PAGE_SIZE
+                         : (id / CHAR_BIT) % PAGE_SIZE;
+
+    // Read the corresponding header bits for the slots
+    slot_used = read_bits(
+          hf->cache, header, byte_pos_h, id % CHAR_BIT, NUM_SLOTS_PER_NODE);
+
+    return compare_bits(slot_used, NUM_SLOTS_PER_NODE, slot_used_mask, 0);
+}
+
+bool
+check_relationship_exists(heap_file* hf, unsigned long id)
+{
+    size_t header_id = (id * NUM_SLOTS_PER_REL + sizeof(unsigned long))
+                       / PAGE_SIZE * CHAR_BIT;
+    page* header = pin_page(hf->cache, header_id, relationship_header);
+
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_REL);
+
+    unsigned char* slot_used;
+    // for the first page we need to take the unsigned long at the start
+    // into account that stores the amount of slots
+    unsigned long byte_pos_h =
+          header_id == 0 ? (sizeof(unsigned long) + id / CHAR_BIT) % PAGE_SIZE
+                         : (id / CHAR_BIT) % PAGE_SIZE;
+
+    // Read the corresponding header bits for the slots
+    slot_used = read_bits(
+          hf->cache, header, byte_pos_h, id % CHAR_BIT, NUM_SLOTS_PER_REL);
+
+    return compare_bits(slot_used, NUM_SLOTS_PER_REL, slot_used_mask, 0);
+}
+
+static node_t*
+read_node_internal(heap_file* hf, unsigned long node_id, bool check_exists)
+{
+    if (!hf || node_id == UNINITIALIZED_LONG) {
+        printf("heap file - read node internal: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (check_exists && !check_node_exists(hf, node_id)) {
+        printf("heap file - read node internal: Node does not exist!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long page_id   = node_id * ON_DISK_NODE_SIZE / PAGE_SIZE;
+    page*         node_page = pin_page(hf->cache, page_id, node_file);
+
+    node_t* node = new_node();
+    node->id     = node_id;
+    node_read(node, node_page);
+
+    unpin_page(hf->cache, page_id, node_file);
+#ifdef VERBOSE
+    fprintf(hf->log_file, "Read_Node %lu\n", node_id);
+#endif
+
+    return node;
+}
+
+static relationship_t*
+read_relationship_internal(heap_file*    hf,
+                           unsigned long rel_id,
+                           bool          check_exists)
+{
+    if (!hf || rel_id == UNINITIALIZED_LONG) {
+        printf("heap file - read relationship internal: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (check_exists && !check_relationship_exists(hf, rel_id)) {
+        printf("heap file - read relationship internal: Relationship does not "
+               "exist!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long page_id  = rel_id * ON_DISK_REL_SIZE / PAGE_SIZE;
+    page*         rel_page = pin_page(hf->cache, page_id, relationship_file);
+
+    relationship_t* rel = new_relationship();
+    rel->id             = rel_id;
+    relationship_read(rel, rel_page);
+
+    unpin_page(hf->cache, page_id, relationship_file);
+
+#ifdef VERBOSE
+    fprintf(hf->log_file, "read_rel %lu\n", rel_id);
+#endif
+
+    return rel;
+}
+
+static void
+update_node_internal(heap_file* hf, node_t* node_to_write, bool check_exists)
+{
+    if (!hf || !node_to_write || node_to_write->id == UNINITIALIZED_LONG) {
+        printf("heap file - update node: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (check_exists && !check_node_exists(hf, node_to_write->id)) {
+        printf("heap file - update node internal: Node does not exist!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long page_id   = node_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
+    page*         node_page = pin_page(hf->cache, page_id, node_file);
+
+    node_write(node_to_write, node_page);
+
+    unpin_page(hf->cache, page_id, relationship_file);
+
+#ifdef VERBOSE
+    fprintf(hf->log_file, "update_node %lu\n", node_to_write->id);
+#endif
+}
+
+static void
+update_relationship_internal(heap_file*      hf,
+                             relationship_t* rel_to_write,
+                             bool            check_exists)
+{
+    if (!hf || !rel_to_write || rel_to_write->id == UNINITIALIZED_LONG
+        || rel_to_write->source_node == UNINITIALIZED_LONG
+        || rel_to_write->target_node == UNINITIALIZED_LONG
+        || rel_to_write->weight == UNINITIALIZED_WEIGHT
+        || rel_to_write->flags == UNINITIALIZED_BYTE) {
+        printf("heap file - update node: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (check_exists && !check_relationship_exists(hf, rel_to_write->id)) {
+        printf(
+              "heap file - update relationship internal: Relationship does not "
+              "exist!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long page_id   = rel_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
+    page*         node_page = pin_page(hf->cache, page_id, node_file);
+
+    node_t* node = new_node();
+
+    node_write(node, node_page);
+
+    unpin_page(hf->cache, page_id, relationship_file);
+
+#ifdef VERBOSE
+    fprintf(hf->log_file, "update_rel %lu\n", rel_to_write->id);
+#endif
+}
+
 unsigned long
 create_node(heap_file* hf, char* label)
 {
@@ -190,7 +354,7 @@ create_node(heap_file* hf, char* label)
     node->id     = node_id;
     strncpy(node->label, label, MAX_STR_LEN);
 
-    update_node(hf, node);
+    update_node_internal(hf, node, false);
 
     free(node);
 
@@ -241,8 +405,8 @@ create_relationship(heap_file*    hf,
     rel->id             = rel_id;
     strncpy(rel->label, label, MAX_STR_LEN);
 
-    node_t* from_node = read_node(hf, from_node_id);
-    node_t* to_node   = read_node(hf, from_node_id);
+    node_t* from_node = read_node_internal(hf, from_node_id, true);
+    node_t* to_node   = read_node_internal(hf, from_node_id, true);
 
     relationship_t* first_rel_from;
     relationship_t* last_rel_from;
@@ -319,11 +483,11 @@ create_relationship(heap_file*    hf,
         update_node(hf, to_node);
     }
 
-    update_relationship(hf, rel);
-    update_relationship(hf, first_rel_from);
-    update_relationship(hf, last_rel_from);
-    update_relationship(hf, first_rel_to);
-    update_relationship(hf, last_rel_to);
+    update_relationship_internal(hf, rel, false);
+    update_relationship_internal(hf, first_rel_from, false);
+    update_relationship_internal(hf, last_rel_from, false);
+    update_relationship_internal(hf, first_rel_to, false);
+    update_relationship_internal(hf, last_rel_to, false);
 
     free(rel);
     free(first_rel_from);
@@ -360,94 +524,25 @@ create_relationship(heap_file*    hf,
 node_t*
 read_node(heap_file* hf, unsigned long node_id)
 {
-    if (!hf || node_id == UNINITIALIZED_LONG) {
-        printf("heap file - read node: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned long page_id   = node_id * ON_DISK_NODE_SIZE / PAGE_SIZE;
-    page*         node_page = pin_page(hf->cache, page_id, node_file);
-
-    node_t* node = new_node();
-    node->id     = node_id;
-    node_read(node, node_page);
-
-    unpin_page(hf->cache, page_id, node_file);
-#ifdef VERBOSE
-    fprintf(hf->log_file, "Read_Node %lu\n", node_id);
-#endif
-
-    return node;
+    return read_node_internal(hf, node_id, true);
 }
 
 relationship_t*
 read_relationship(heap_file* hf, unsigned long rel_id)
 {
-    if (!hf || rel_id == UNINITIALIZED_LONG) {
-        printf("heap file - read relationship: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned long page_id  = rel_id * ON_DISK_REL_SIZE / PAGE_SIZE;
-    page*         rel_page = pin_page(hf->cache, page_id, relationship_file);
-
-    relationship_t* rel = new_relationship();
-    rel->id             = rel_id;
-    relationship_read(rel, rel_page);
-
-    unpin_page(hf->cache, page_id, relationship_file);
-
-#ifdef VERBOSE
-    fprintf(hf->log_file, "read_rel %lu\n", rel_id);
-#endif
-
-    return rel;
+    return read_relationship_internal(hf, rel_id, true);
 }
 
 void
 update_node(heap_file* hf, node_t* node_to_write)
 {
-    if (!hf || !node_to_write || node_to_write->id == UNINITIALIZED_LONG) {
-        printf("heap file - update node: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned long page_id   = node_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
-    page*         node_page = pin_page(hf->cache, page_id, node_file);
-
-    node_write(node_to_write, node_page);
-
-    unpin_page(hf->cache, page_id, relationship_file);
-
-#ifdef VERBOSE
-    fprintf(hf->log_file, "update_node %lu\n", node_to_write->id);
-#endif
+    update_node_internal(hf, node_to_write, true);
 }
 
 void
 update_relationship(heap_file* hf, relationship_t* rel_to_write)
 {
-    if (!hf || !rel_to_write || rel_to_write->id == UNINITIALIZED_LONG
-        || rel_to_write->source_node == UNINITIALIZED_LONG
-        || rel_to_write->target_node == UNINITIALIZED_LONG
-        || rel_to_write->weight == UNINITIALIZED_WEIGHT
-        || rel_to_write->flags == UNINITIALIZED_BYTE) {
-        printf("heap file - update node: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    unsigned long page_id   = rel_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
-    page*         node_page = pin_page(hf->cache, page_id, node_file);
-
-    node_t* node = new_node();
-
-    node_write(node, node_page);
-
-    unpin_page(hf->cache, page_id, relationship_file);
-
-#ifdef VERBOSE
-    fprintf(hf->log_file, "update_rel %lu\n", rel_to_write->id);
-#endif
+    update_relationship_internal(hf, rel_to_write, true);
 }
 
 void
@@ -458,7 +553,7 @@ delete_node(heap_file* hf, unsigned long node_id)
         exit(EXIT_FAILURE);
     }
 
-    node_t* node = read_node(hf, node_id);
+    node_t* node = read_node_internal(hf, node_id, true);
 
     if (node->first_relationship != UNINITIALIZED_LONG) {
         relationship_t* rel = read_relationship(hf, node->first_relationship);
@@ -510,6 +605,8 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
         exit(EXIT_FAILURE);
     }
 
+    // FIXME check if node exists
+
     relationship_t* rel = read_relationship(hf, rel_id);
 
     // Adjust next pointer in source node's previous relation
@@ -551,7 +648,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
 
     node_t* node;
     if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
-        node                     = read_node(hf, rel->source_node);
+        node = read_node_internal(hf, rel->source_node, true);
         node->first_relationship = rel->next_rel_source;
         update_node(hf, node);
 
@@ -561,7 +658,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
     }
 
     if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
-        node                     = read_node(hf, rel->target_node);
+        node = read_node_internal(hf, rel->target_node, true);
         node->first_relationship = rel->next_rel_target;
         update_node(hf, node);
 
@@ -606,7 +703,7 @@ prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id)
         exit(EXIT_FAILURE);
     }
 
-    node_t* node = read_node(hf, id);
+    node_t* node = read_node_internal(hf, id, true);
 
     unsigned long   rel_id = node->first_relationship;
     relationship_t* rel;
@@ -678,13 +775,13 @@ prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id)
     // adjust the id in the nodes first relationship fields if neccessary
     node_t* node;
     if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
-        node                     = read_node(hf, rel->source_node);
+        node = read_node_internal(hf, rel->source_node, true);
         node->first_relationship = to_id;
-        update_node(hf, node);
+        update_node_internal(hf, node, true);
     }
 
     if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
-        node                     = read_node(hf, rel->target_node);
+        node = read_node_internal(hf, rel->target_node, true);
         node->first_relationship = to_id;
         update_node(hf, node);
     }
@@ -844,8 +941,8 @@ get_nodes(heap_file* hf)
 
         // If the slot is used, load the node and append it to the resulting
         // array list
-        if (compare_bits(slot_used, NUM_SLOTS_PER_NODE, slot_used_mask, i)) {
-            node = read_node(hf, i);
+        if (compare_bits(slot_used, NUM_SLOTS_PER_NODE, slot_used_mask, 0)) {
+            node = read_node_internal(hf, i, false);
             array_list_node_append(result, node);
         }
 
@@ -956,7 +1053,7 @@ expand(heap_file* hf, unsigned long node_id, direction_t direction)
         exit(EXIT_FAILURE);
     }
 
-    node_t* node = read_node(hf, node_id);
+    node_t* node = read_node_internal(hf, node_id, true);
 
     array_list_relationship* result = al_rel_create();
     unsigned long            rel_id = node->first_relationship;
@@ -1002,8 +1099,8 @@ contains_relationship_from_to(heap_file*    hf,
     }
 
     relationship_t* rel;
-    node_t*         source_node = read_node(hf, node_from);
-    node_t*         target_node = read_node(hf, node_to);
+    node_t*         source_node = read_node_internal(hf, node_from, true);
+    node_t*         target_node = read_node_internal(hf, node_to, true);
 
     if (source_node->first_relationship == UNINITIALIZED_LONG
         || target_node->first_relationship == UNINITIALIZED_LONG) {
