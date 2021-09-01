@@ -161,6 +161,10 @@ test_read_bits(void)
 
     bits = read_bits(pc, p, 0, 1, CHAR_BIT);
 
+    assert(bits[0] == 2);
+
+    free(bits);
+
     unpin_page(pc, 0, node_file);
     unpin_page(pc, 1, node_file);
     page_cache_destroy(pc);

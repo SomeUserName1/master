@@ -53,6 +53,10 @@ test_heap_file_create(void)
     assert(hf->last_alloc_rel_slot == 0);
     assert(hf->n_nodes == 0);
     assert(hf->n_rels == 0);
+    assert(hf->num_reads_nodes == 0);
+    assert(hf->num_updates_nodes == 0);
+    assert(hf->num_reads_rels == 0);
+    assert(hf->num_update_rels == 0);
 
     free(hf);
     page_cache_destroy(pc);
@@ -105,11 +109,7 @@ test_next_free_slots(void)
 {}
 
 void
-test_check_node_exists(void)
-{}
-
-void
-test_check_relationship_exists(void)
+test_check_record_exists(void)
 {}
 
 void
@@ -152,6 +152,7 @@ test_create_node(void)
     assert(id == 0);
     assert(hf->n_nodes == 1);
     assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE);
+    assert(hf->num_updates_nodes == 1);
 
     page*   p    = pin_page(pc, 0, node_file);
     node_t* node = new_node();
@@ -168,6 +169,7 @@ test_create_node(void)
     assert(id == 1);
     assert(hf->n_nodes == 2);
     assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE);
+    assert(hf->num_updates_nodes == 2);
 
     node_t* node_1 = new_node();
     node_1->id     = id_1;
@@ -654,16 +656,16 @@ test_delete_node(void)
     unsigned long n_1 = create_node(hf, "\0");
     unsigned long n_2 = create_node(hf, "\0");
 
-    assert(check_node_exists(hf, n_1));
-    assert(check_node_exists(hf, n_2));
+    assert(check_record_exists(hf, n_1, true));
+    assert(check_record_exists(hf, n_2, true));
     delete_node(hf, n_1);
-    assert(!check_node_exists(hf, n_1));
-    assert(check_node_exists(hf, n_2));
+    assert(!check_record_exists(hf, n_1, true));
+    assert(check_record_exists(hf, n_2, true));
 
     delete_node(hf, n_2);
 
-    assert(!check_node_exists(hf, n_2));
-    assert(!check_node_exists(hf, n_1));
+    assert(!check_record_exists(hf, n_2, true));
+    assert(!check_record_exists(hf, n_1, true));
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -708,9 +710,9 @@ test_delete_relationship(void)
     unsigned long n_2 = create_node(hf, "\0");
     unsigned long rel = create_relationship(hf, n_1, n_2, test_weight_1, "\0");
 
-    assert(check_relationship_exists(hf, n_1));
+    assert(check_record_exists(hf, n_1, false));
     delete_relationship(hf, n_1);
-    assert(!check_relationship_exists(hf, rel));
+    assert(!check_record_exists(hf, rel, false));
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -753,26 +755,45 @@ int
 main(void)
 {
     test_heap_file_create();
+    printf("finished test create heap file\n");
     test_heap_file_destroy();
+    printf("finished test destroy heap file\n");
     test_next_free_slots();
-    test_check_node_exists();
-    test_check_relationship_exists();
+    printf("finished test next free slot\n");
+    test_check_record_exists();
+    printf("finished test record exists\n");
     test_create_node();
+    printf("finished test create node\n");
     test_create_relationship();
+    printf("finished test create relationship\n");
     test_read_node();
+    printf("finished test read node\n");
     test_read_relationship();
+    printf("finished test read rel\n");
     test_update_node();
+    printf("finished test update_node\n");
     test_update_relationship();
+    printf("finished test update_relationship\n");
     test_delete_node();
+    printf("finished test delete_node\n");
     test_delete_relationship();
+    printf("finished test delete_relationship\n");
     test_prepare_move_node();
+    printf("finished test prepare_move_node\n");
     test_prepare_move_relationship();
+    printf("finished test prepare_move_relationship\n");
     test_swap_page();
+    printf("finished test swap_page\n");
     test_get_nodes();
+    printf("finished test get_nodes\n");
     test_get_relationships();
+    printf("finished test get_rels\n");
     test_next_relationship_id();
+    printf("finished test next rel id\n");
     test_expand();
+    printf("finished test expand\n");
     test_contains_relationship_from_to();
+    printf("finished test contains rel\n");
 
     return 0;
 }

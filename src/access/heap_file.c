@@ -36,6 +36,10 @@ heap_file_create(page_cache* pc
     hf->cache                = pc;
     hf->last_alloc_node_slot = 0;
     hf->last_alloc_rel_slot  = 0;
+    hf->num_reads_nodes      = 0;
+    hf->num_updates_nodes    = 0;
+    hf->num_reads_rels       = 0;
+    hf->num_update_rels      = 0;
 
     array_list_node* nodes = get_nodes(hf);
     hf->n_nodes            = array_list_node_size(nodes);
@@ -174,13 +178,21 @@ next_free_slots(heap_file* hf, file_type ft)
 }
 
 bool
-check_node_exists(heap_file* hf, unsigned long id)
+check_record_exists(heap_file* hf, unsigned long id, bool node)
 {
-    size_t header_id = (id * NUM_SLOTS_PER_NODE + sizeof(unsigned long))
-                       / PAGE_SIZE * CHAR_BIT;
-    page* header = pin_page(hf->cache, header_id, node_header);
+    if (!hf) {
+        printf("heap file - check record exists: Invalid arguments!\n");
+        exit(EXIT_FAILURE);
+    }
 
-    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
+    unsigned char slots = node ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
+    file_type     ft    = node ? node_header : relationship_header;
+
+    size_t header_id =
+          (id * slots + sizeof(unsigned long)) / PAGE_SIZE * CHAR_BIT;
+    page* header = pin_page(hf->cache, header_id, ft);
+
+    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - slots);
 
     unsigned char* slot_used;
     // for the first page we need to take the unsigned long at the start
@@ -190,33 +202,9 @@ check_node_exists(heap_file* hf, unsigned long id)
                          : (id / CHAR_BIT) % PAGE_SIZE;
 
     // Read the corresponding header bits for the slots
-    slot_used = read_bits(
-          hf->cache, header, byte_pos_h, id % CHAR_BIT, NUM_SLOTS_PER_NODE);
+    slot_used = read_bits(hf->cache, header, byte_pos_h, id % CHAR_BIT, slots);
 
-    return compare_bits(slot_used, NUM_SLOTS_PER_NODE, slot_used_mask, 0);
-}
-
-bool
-check_relationship_exists(heap_file* hf, unsigned long id)
-{
-    size_t header_id = (id * NUM_SLOTS_PER_REL + sizeof(unsigned long))
-                       / PAGE_SIZE * CHAR_BIT;
-    page* header = pin_page(hf->cache, header_id, relationship_header);
-
-    unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_REL);
-
-    unsigned char* slot_used;
-    // for the first page we need to take the unsigned long at the start
-    // into account that stores the amount of slots
-    unsigned long byte_pos_h =
-          header_id == 0 ? (sizeof(unsigned long) + id / CHAR_BIT) % PAGE_SIZE
-                         : (id / CHAR_BIT) % PAGE_SIZE;
-
-    // Read the corresponding header bits for the slots
-    slot_used = read_bits(
-          hf->cache, header, byte_pos_h, id % CHAR_BIT, NUM_SLOTS_PER_REL);
-
-    return compare_bits(slot_used, NUM_SLOTS_PER_REL, slot_used_mask, 0);
+    return compare_bits(slot_used, slots, slot_used_mask, 0);
 }
 
 static node_t*
@@ -227,7 +215,7 @@ read_node_internal(heap_file* hf, unsigned long node_id, bool check_exists)
         exit(EXIT_FAILURE);
     }
 
-    if (check_exists && !check_node_exists(hf, node_id)) {
+    if (check_exists && !check_record_exists(hf, node_id, true)) {
         printf("heap file - read node internal: Node does not exist!\n");
         exit(EXIT_FAILURE);
     }
@@ -259,7 +247,7 @@ read_relationship_internal(heap_file*    hf,
         exit(EXIT_FAILURE);
     }
 
-    if (check_exists && !check_relationship_exists(hf, rel_id)) {
+    if (check_exists && !check_record_exists(hf, rel_id, false)) {
         printf("heap file - read relationship internal: Relationship does not "
                "exist!\n");
         exit(EXIT_FAILURE);
@@ -291,7 +279,7 @@ update_node_internal(heap_file* hf, node_t* node_to_write, bool check_exists)
         exit(EXIT_FAILURE);
     }
 
-    if (check_exists && !check_node_exists(hf, node_to_write->id)) {
+    if (check_exists && !check_record_exists(hf, node_to_write->id, true)) {
         printf("heap file - update node internal: Node does not exist!\n");
         exit(EXIT_FAILURE);
     }
@@ -324,7 +312,7 @@ update_relationship_internal(heap_file*      hf,
         exit(EXIT_FAILURE);
     }
 
-    if (check_exists && !check_relationship_exists(hf, rel_to_write->id)) {
+    if (check_exists && !check_record_exists(hf, rel_to_write->id, false)) {
         printf(
               "heap file - update relationship internal: Relationship does not "
               "exist!\n");
@@ -938,14 +926,31 @@ get_nodes(heap_file* hf)
 
     unsigned char* slot_used;
     for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_NODE) {
+
+        // if a header page boundary is reached, unpin the current one and pin
+        // the next one
+        bit_pos_h =
+              first ? (sizeof(unsigned long) + i) * CHAR_BIT : i * CHAR_BIT;
+
+        if (bit_pos_h % (PAGE_SIZE * CHAR_BIT)
+            < (bit_pos_h - NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT)) {
+            first = false;
+            unpin_page(hf->cache, header_id, node_header);
+            ++header_id;
+            pin_page(hf->cache, header_id, node_header);
+        }
+
         // for the first page we need to take the unsigned long at the start
         // into account that stores the amount of slots
-        byte_pos_h = first ? (sizeof(unsigned long) + i / CHAR_BIT) % PAGE_SIZE
-                           : (i / CHAR_BIT) % PAGE_SIZE;
+        byte_pos_h =
+              first ? (sizeof(unsigned long) + i) % PAGE_SIZE : i % PAGE_SIZE;
 
         // Read the corresponding header bits for the slots
-        slot_used = read_bits(
-              hf->cache, header, byte_pos_h, i % CHAR_BIT, NUM_SLOTS_PER_NODE);
+        slot_used = read_bits(hf->cache,
+                              header,
+                              byte_pos_h,
+                              bit_pos_h % CHAR_BIT,
+                              NUM_SLOTS_PER_NODE);
 
         // If the slot is used, load the node and append it to the resulting
         // array list
@@ -955,17 +960,16 @@ get_nodes(heap_file* hf)
         }
 
         free(slot_used);
+    }
 
-        // if header page boundary is reached, unpin the current one and pin the
-        // next one
-        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
-        if (bit_pos_h % SLOTS_PER_PAGE
-            > (bit_pos_h + NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE) {
-            first = false;
-            unpin_page(hf->cache, header_id, node_header);
-            ++header_id;
-            pin_page(hf->cache, header_id, node_header);
-        }
+    printf("pos %lu, page bound %lu, n_slots %lu n_bytes  %lu \n",
+           bit_pos_h,
+           PAGE_SIZE * CHAR_BIT,
+           n_slots,
+           n_slots * SLOT_SIZE);
+
+    if (first) {
+        unpin_page(hf->cache, header_id, node_header);
     }
 
     return result;
@@ -993,7 +997,8 @@ get_relationships(heap_file* hf)
     unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_REL);
 
     unsigned char* slot_used;
-    for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_REL) {
+    for (size_t i = 0; i < n_slots * NUM_SLOTS_PER_REL;
+         i += NUM_SLOTS_PER_REL) {
         byte_pos_h = first ? (sizeof(unsigned long) + i / CHAR_BIT) % PAGE_SIZE
                            : (i / CHAR_BIT) % PAGE_SIZE;
         slot_used  = read_bits(
@@ -1009,14 +1014,20 @@ get_relationships(heap_file* hf)
 
         // if header page boundary is readed, unpin the current one and pin the
         // next one
-        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
-        if (bit_pos_h % SLOTS_PER_PAGE
-            > (bit_pos_h + NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE) {
+        bit_pos_h =
+              first ? sizeof(unsigned long) * CHAR_BIT + (i * NUM_SLOTS_PER_REL)
+                    : (i * NUM_SLOTS_PER_REL);
+
+        if ((bit_pos_h + NUM_SLOTS_PER_REL) > PAGE_SIZE) {
             first = false;
             unpin_page(hf->cache, header_id, node_header);
             ++header_id;
             pin_page(hf->cache, header_id, node_header);
         }
+    }
+
+    if (first) {
+        unpin_page(hf->cache, header_id, node_header);
     }
 
     return result;

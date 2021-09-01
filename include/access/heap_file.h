@@ -36,10 +36,7 @@ void
 heap_file_destroy(heap_file* hf);
 
 bool
-check_node_exists(heap_file* hf, unsigned long id);
-
-bool
-check_relationship_exists(heap_file* hf, unsigned long id);
+check_record_exists(heap_file* hf, unsigned long id, bool node);
 
 unsigned long
 create_node(heap_file* hf, char* label);

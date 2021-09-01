@@ -253,7 +253,9 @@ flush_page(page_cache* pc, size_t frame_no)
     }
 
     if (pc->cache[frame_no]->pin_count > 0) {
-        printf("page cache - flush page: Page is pinned!\n");
+        printf("page cache - flush page: Page %lu of file %u is pinned!\n",
+               pc->cache[frame_no]->page_no,
+               pc->cache[frame_no]->ft);
         exit(EXIT_FAILURE);
     }
 

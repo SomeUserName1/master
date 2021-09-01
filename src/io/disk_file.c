@@ -442,7 +442,7 @@ read_pages(disk_file* df, size_t fst_page, size_t lst_page, unsigned char* buf)
     } else {
 #ifdef VERBOSE
         fprintf(df->log_file,
-                "read_page %s %lu %lu",
+                "read_pages %s %lu %lu",
                 df->file_name,
                 fst_page,
                 lst_page);

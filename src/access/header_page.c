@@ -244,10 +244,26 @@ read_bits(page_cache*    pc,
     // set the carry and shift the first byte
     carry = result[0] & carry_mask;
 
+    // The first byte needs to be considered iff the amount of
+    // bytes the result has and that needs to be read from the page is the same.
+    //
+    // Otherwise the first byte does not contain bits of interest anymore.
+    //
+    // e.g. We want to read 7 bit with an offset of 2:
+    //
+    // [__XX XXXX] [X___ ____] will be shifted 16 - (7 + 2) = 7 places
+    // first byte: [____ ____], carry: [__XX XXXX], result [_XXX XXXX]
+    //
+    size_t j = 0;
+    if (n_bytes_read > n_bytes_result) {
+        result[0] = 0;
+        ++j;
+    }
+
     for (size_t i = 1; i < n_bytes_read; ++i) {
-        next_carry = p->data[byte_offset_in_page + i] & carry_mask;
-        result[i]  = (carry << (CHAR_BIT - shift))
-                    | (p->data[byte_offset_in_page + i] >> shift);
+        next_carry    = p->data[byte_offset_in_page + i] & carry_mask;
+        result[i - j] = (carry << (CHAR_BIT - shift))
+                        | (p->data[byte_offset_in_page + i] >> shift);
         carry = next_carry;
     }
 
@@ -297,9 +313,6 @@ write_bits(page_cache*    pc,
 
         page* next_page = pin_page(pc, p->page_no + 1, p->ft);
 
-        printf(" input to recursive write %u writing %lu bits\n",
-               split_data[1][0],
-               n_bits_split_write);
         write_bits(pc, next_page, 0, 0, n_bits_split_write, split_data[1]);
 
         unpin_page(pc, p->page_no + 1, p->ft);
