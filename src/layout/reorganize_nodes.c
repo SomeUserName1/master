@@ -14,14 +14,14 @@
 unsigned long*
 remap_node_ids(heap_file* hf, const unsigned long* partition)
 {
-    if (!db || !partition || db->node_id_counter < 1) {
+    if (!hf || !partition || hf->n_nodes < 1) {
         printf("remap node ids: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     set_ul* part_numbers = s_ul_create();
     // Count the number of partitions
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         set_ul_insert(part_numbers, partition[i]);
     }
 
@@ -56,8 +56,8 @@ remap_node_ids(heap_file* hf, const unsigned long* partition)
         nodes_per_partition[i] = al_ul_create();
     }
 
-    size_t idx = 0;
-    for (size_t i = 0; i < db->node_id_counter; ++i) {
+    size_t idx;
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         idx = dict_ul_ul_get_direct(part_to_idx, partition[i]);
         array_list_ul_append(nodes_per_partition[idx], i);
     }
@@ -65,10 +65,9 @@ remap_node_ids(heap_file* hf, const unsigned long* partition)
     printf("Created nodes per partition lists.\n");
 
     // assign id as position in the list + length of all lists up to now
-    unsigned long* new_node_ids =
-          calloc(db->node_id_counter, sizeof(unsigned long));
+    unsigned long* new_node_ids = calloc(hf->n_nodes, sizeof(unsigned long));
 
-    array_list_node* nodes = in_memory_get_nodes(db);
+    array_list_node* nodes = get_nodes(hf);
     node_t*          current;
     unsigned long    id_counter = 0;
 
@@ -93,13 +92,11 @@ remap_node_ids(heap_file* hf, const unsigned long* partition)
         dict_ul_node_insert(new_node_cache, current->id, node_copy(current));
     }
     array_list_node_destroy(nodes);
-    dict_ul_node_destroy(db->cache_nodes);
-    db->cache_nodes = new_node_cache;
 
     printf("Applied new node ID mapping to nodes.\n");
 
     // iterate over all relationships updating the ids of the nodes
-    array_list_relationship* rels = in_memory_get_relationships(db);
+    array_list_relationship* rels = get_relationships(hf);
     relationship_t*          rel;
     for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
         rel              = array_list_relationship_get(rels, i);

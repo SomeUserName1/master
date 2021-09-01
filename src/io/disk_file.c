@@ -157,7 +157,6 @@ disk_file_delete(disk_file* df)
         printf("disk file - delete: Error removing file %s: %s\n",
                df->file_name,
                strerror(errno));
-    } else {
     }
 
     free(df->f_buf);

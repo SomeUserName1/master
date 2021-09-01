@@ -118,7 +118,7 @@ next_free_slots(heap_file* hf, file_type ft)
     }
 
     do {
-        for (unsigned char i = CHAR_BIT; i >= 0; --i) {
+        for (char i = CHAR_BIT; i >= 0; --i) {
             if (((1 << i) & nxt_bits) == 0) {
                 if (consecutive_free_slots == 0) {
                     first_free_slot = i;
@@ -244,6 +244,8 @@ read_node_internal(heap_file* hf, unsigned long node_id, bool check_exists)
     fprintf(hf->log_file, "Read_Node %lu\n", node_id);
 #endif
 
+    hf->num_reads_nodes++;
+
     return node;
 }
 
@@ -276,6 +278,8 @@ read_relationship_internal(heap_file*    hf,
     fprintf(hf->log_file, "read_rel %lu\n", rel_id);
 #endif
 
+    hf->num_reads_rels++;
+
     return rel;
 }
 
@@ -302,6 +306,8 @@ update_node_internal(heap_file* hf, node_t* node_to_write, bool check_exists)
 #ifdef VERBOSE
     fprintf(hf->log_file, "update_node %lu\n", node_to_write->id);
 #endif
+
+    hf->num_updates_nodes++;
 }
 
 static void
@@ -337,6 +343,8 @@ update_relationship_internal(heap_file*      hf,
 #ifdef VERBOSE
     fprintf(hf->log_file, "update_rel %lu\n", rel_to_write->id);
 #endif
+
+    hf->num_update_rels++;
 }
 
 unsigned long
@@ -605,8 +613,6 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
         exit(EXIT_FAILURE);
     }
 
-    // FIXME check if node exists
-
     relationship_t* rel = read_relationship(hf, rel_id);
 
     // Adjust next pointer in source node's previous relation
@@ -836,8 +842,8 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
 
     unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - n_slots);
 
-    unsigned long id    = UNINITIALIZED_LONG;
-    unsigned long to_id = UNINITIALIZED_LONG;
+    unsigned long id;
+    unsigned long to_id;
     for (size_t i = 0; i < SLOTS_PER_PAGE; i += n_slots) {
         if (compare_bits(fst_header_bits, SLOTS_PER_PAGE, slot_used_mask, i)) {
             id    = fst * SLOTS_PER_PAGE + i;
@@ -871,10 +877,12 @@ swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
     memcpy(snd_page->data, buf, PAGE_SIZE);
 
 #ifdef VERBOSE
+    char* type = ft == node_file ? "node" : "rel";
     fprintf(hf->log_file,
             "swap_%s_pages %lu\nSwap_%s_pages %lu\n",
-            ft == node_file ? "node" : "rel",
+            type,
             fst,
+            type,
             snd);
 #endif
 

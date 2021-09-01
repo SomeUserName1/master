@@ -118,5 +118,15 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Use #ifdef VERBOSE macros arround macros
 - Logging: Pages might not fit on OS page, Sequential access might be broken into parts, ... => more IOs on the OS level penalize runtime
 
+## Meeting 7
+- Deliverable: Focus on C stuff, test propperly
+    - Tests
+    - Layout
+    - Traversal algos
+    - transformer to adjacency list
+- JavaDoc-like Comments for every struct and function
+- MIT License
+- Add Minibase-like copyright
+- Do analysis in Python
 
 

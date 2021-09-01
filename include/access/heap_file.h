@@ -15,6 +15,10 @@ typedef struct
     unsigned long n_rels;
     unsigned long last_alloc_node_slot;
     unsigned long last_alloc_rel_slot;
+    unsigned long num_reads_nodes;
+    unsigned long num_updates_nodes;
+    unsigned long num_reads_rels;
+    unsigned long num_update_rels;
 #ifdef VERBOSE
     FILE* log_file;
 #endif

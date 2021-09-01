@@ -710,7 +710,7 @@ test_delete_relationship(void)
 
     assert(check_relationship_exists(hf, n_1));
     delete_relationship(hf, n_1);
-    assert(!check_relationship_exists(hf, n_1));
+    assert(!check_relationship_exists(hf, rel));
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -718,11 +718,11 @@ test_delete_relationship(void)
 }
 
 void
-test_move_node(void)
+test_prepare_move_node(void)
 {}
 
 void
-test_move_relationship(void)
+test_prepare_move_relationship(void)
 {}
 
 void
@@ -765,8 +765,8 @@ main(void)
     test_update_relationship();
     test_delete_node();
     test_delete_relationship();
-    test_move_node();
-    test_move_relationship();
+    test_prepare_move_node();
+    test_prepare_move_relationship();
     test_swap_page();
     test_get_nodes();
     test_get_relationships();
