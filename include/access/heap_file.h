@@ -35,6 +35,9 @@ heap_file_create(page_cache* pc
 void
 heap_file_destroy(heap_file* hf);
 
+unsigned long
+next_free_slots(heap_file* hf, bool node);
+
 bool
 check_record_exists(heap_file* hf, unsigned long id, bool node);
 

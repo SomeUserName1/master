@@ -79,79 +79,63 @@ heap_file_destroy(heap_file* hf)
 }
 
 unsigned long
-next_free_slots(heap_file* hf, file_type ft)
+next_free_slots(heap_file* hf, bool node)
 {
-    if (!hf || (ft != node_file && ft != relationship_file)) {
-        printf("heap file - nex free slots: Invalid Arguments!\n");
+    if (!hf) {
+        printf("heap file - next free slots: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    file_type hft = ft == node_file ? node_header : relationship_header;
+    file_type ft = node ? node_ft : relationship_ft;
 
-    unsigned char n_slots =
-          ft == node_file ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
+    unsigned long n_slots = node ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
+    printf("n slots %lu, slots per node %lu, slots per rel %lu\n",
+           n_slots,
+           NUM_SLOTS_PER_NODE,
+           NUM_SLOTS_PER_REL);
 
-    unsigned long* prev_allocd_slots = ft == node_file
-                                             ? &(hf->last_alloc_node_slot)
-                                             : &(hf->last_alloc_rel_slot);
+    unsigned long* prev_allocd_slots =
+          node ? &(hf->last_alloc_node_slot) : &(hf->last_alloc_rel_slot);
 
-    unsigned long prev_allocd_slots_byte = sizeof(unsigned long)
-                                           + (*prev_allocd_slots / CHAR_BIT)
-                                           + (*prev_allocd_slots % CHAR_BIT);
+    unsigned long prev_allocd_slots_byte =
+          sizeof(unsigned long) + (*prev_allocd_slots / CHAR_BIT)
+          + ((*prev_allocd_slots % CHAR_BIT) != 0);
 
-    unsigned long prev_allocd_page_header_id =
-          prev_allocd_slots_byte / PAGE_SIZE;
+    unsigned long cur_page_id = prev_allocd_slots_byte / PAGE_SIZE;
 
-    page* prev_free_page_header =
-          pin_page(hf->cache, prev_allocd_page_header_id, hft);
-    unsigned short byte_offset = prev_allocd_slots_byte % PAGE_SIZE;
+    page* cur_page = pin_page(hf->cache, cur_page_id, header, ft);
 
-    unsigned char nxt_bits        = prev_free_page_header->data[byte_offset];
-    page*         cur_page        = prev_free_page_header;
-    unsigned long cur_page_id     = prev_allocd_page_header_id;
-    unsigned long cur_byte_offset = byte_offset;
+    unsigned short cur_byte_offset = prev_allocd_slots_byte % PAGE_SIZE;
+
+    unsigned char nxt_bits = cur_page->data[cur_byte_offset];
     unsigned long start_slot =
           *prev_allocd_slots - (*prev_allocd_slots % CHAR_BIT);
     unsigned long cur_slot               = start_slot;
     unsigned char consecutive_free_slots = 0;
     unsigned char first_free_slot;
-    unsigned char write_mask = 1;
-
-    for (size_t i = 1; i < n_slots; ++i) {
-        write_mask = (write_mask << 1) | (1 << i);
-    }
 
     do {
         for (char i = CHAR_BIT; i >= 0; --i) {
             if (((1 << i) & nxt_bits) == 0) {
                 if (consecutive_free_slots == 0) {
-                    first_free_slot = i;
+                    first_free_slot = CHAR_BIT - i;
                 } else if ((cur_slot + i - sizeof(unsigned long) * CHAR_BIT)
                                  % SLOTS_PER_PAGE
                            == 0) {
                     consecutive_free_slots = 0;
-                    first_free_slot        = i;
+                    first_free_slot        = CHAR_BIT - i;
                 }
 
                 consecutive_free_slots++;
 
                 if (consecutive_free_slots == n_slots) {
                     *prev_allocd_slots =
-                          (cur_page_id * PAGE_SIZE - sizeof(unsigned long))
-                                * CHAR_BIT
-                          + cur_byte_offset * CHAR_BIT + first_free_slot;
+                          cur_slot + first_free_slot
+                          - (sizeof(unsigned long) / SLOT_SIZE
+                             + ((sizeof(unsigned long) % SLOT_SIZE) != 0));
 
-                    write_bits(hf->cache,
-                               cur_page,
-                               cur_byte_offset,
-                               i,
-                               n_slots,
-                               &write_mask);
-
-                    unpin_page(hf->cache, cur_page_id, hft);
-
-                    return ft == node_file ? hf->last_alloc_node_slot
-                                           : hf->last_alloc_rel_slot;
+                    return node ? hf->last_alloc_node_slot
+                                : hf->last_alloc_rel_slot;
                 }
             } else {
                 consecutive_free_slots = 0;
@@ -160,9 +144,9 @@ next_free_slots(heap_file* hf, file_type ft)
 
         if (cur_byte_offset >= PAGE_SIZE) {
             cur_byte_offset = 0;
-            unpin_page(hf->cache, prev_allocd_page_header_id, hft);
+            unpin_page(hf->cache, cur_page_id, header, ft);
             cur_page_id++;
-            cur_page = pin_page(hf->cache, cur_page_id, hft);
+            cur_page = pin_page(hf->cache, cur_page_id, header, ft);
         } else {
             cur_byte_offset++;
         }
@@ -173,8 +157,11 @@ next_free_slots(heap_file* hf, file_type ft)
 
     } while (cur_slot != start_slot);
 
+    unpin_page(hf->cache, cur_page_id, header, ft);
+
     return new_page(hf->cache, ft)->page_no * SLOTS_PER_PAGE
-           - (sizeof(unsigned long) * CHAR_BIT);
+           - (sizeof(unsigned long) / SLOT_SIZE
+              + ((sizeof(unsigned long) % SLOT_SIZE) != 0));
 }
 
 bool
@@ -289,7 +276,7 @@ update_node_internal(heap_file* hf, node_t* node_to_write, bool check_exists)
 
     node_write(node_to_write, node_page);
 
-    unpin_page(hf->cache, page_id, relationship_file);
+    unpin_page(hf->cache, page_id, node_file);
 
 #ifdef VERBOSE
     fprintf(hf->log_file, "update_node %lu\n", node_to_write->id);
@@ -319,12 +306,12 @@ update_relationship_internal(heap_file*      hf,
         exit(EXIT_FAILURE);
     }
 
-    unsigned long page_id   = rel_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
-    page*         node_page = pin_page(hf->cache, page_id, node_file);
+    unsigned long page_id  = rel_to_write->id * ON_DISK_REL_SIZE / PAGE_SIZE;
+    page*         rel_page = pin_page(hf->cache, page_id, relationship_file);
 
-    node_t* node = new_node();
+    relationship_t* rel = new_relationship();
 
-    node_write(node, node_page);
+    relationship_write(rel, rel_page);
 
     unpin_page(hf->cache, page_id, relationship_file);
 
@@ -343,7 +330,7 @@ create_node(heap_file* hf, char* label)
         exit(EXIT_FAILURE);
     }
 
-    unsigned long node_slot = next_free_slots(hf, node_header);
+    unsigned long node_slot = next_free_slots(hf, true);
     unsigned long node_id   = node_slot / NUM_SLOTS_PER_NODE;
 
     node_t* node = new_node();
@@ -363,15 +350,16 @@ create_node(heap_file* hf, char* label)
     unsigned short byte_offset =
           (sizeof(unsigned long) + ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
           % PAGE_SIZE;
-    unsigned char bit_offset = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
-    unsigned char used_bits  = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
+    unsigned char  bit_offset = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
+    unsigned char* used_bits  = malloc(sizeof(unsigned char));
+    used_bits[0]              = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
 
     write_bits(hf->cache,
                header,
                byte_offset,
                bit_offset,
                NUM_SLOTS_PER_NODE,
-               &used_bits);
+               used_bits);
 
     unpin_page(hf->cache, header_id, node_header);
 
@@ -394,7 +382,7 @@ create_relationship(heap_file*    hf,
         exit(EXIT_FAILURE);
     }
 
-    unsigned long rel_slot = next_free_slots(hf, relationship_header);
+    unsigned long rel_slot = next_free_slots(hf, false);
     unsigned long rel_id   = rel_slot / NUM_SLOTS_PER_NODE;
 
     relationship_t* rel = new_relationship();
@@ -486,10 +474,24 @@ create_relationship(heap_file*    hf,
     update_relationship_internal(hf, last_rel_to, false);
 
     free(rel);
-    free(first_rel_from);
-    free(last_rel_from);
-    free(first_rel_to);
-    free(last_rel_to);
+
+    // When we have two relationships in the chain, the first and the last rel
+    // are the same
+    if (first_rel_from != last_rel_from) {
+        free(first_rel_from);
+    }
+    // When we have only the newly added relationship in the chain last = first
+    // = rel
+    if (last_rel_from != rel) {
+        free(last_rel_from);
+    }
+
+    if (first_rel_to != last_rel_to) {
+        free(first_rel_to);
+    }
+    if (last_rel_to != rel) {
+        free(last_rel_to);
+    }
 
     unsigned long header_id =
           (sizeof(unsigned long) + ((rel_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
@@ -500,15 +502,16 @@ create_relationship(heap_file*    hf,
     unsigned short byte_offset =
           (sizeof(unsigned long) + ((rel_id * NUM_SLOTS_PER_NODE) / CHAR_BIT))
           % PAGE_SIZE;
-    unsigned char bit_offset = (rel_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
-    unsigned char used_bits  = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
+    unsigned char  bit_offset = (rel_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
+    unsigned char* used_bits  = malloc(sizeof(unsigned char));
+    used_bits[0]              = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_NODE);
 
     write_bits(hf->cache,
                header,
                byte_offset,
                bit_offset,
                NUM_SLOTS_PER_REL,
-               &used_bits);
+               used_bits);
 
     unpin_page(hf->cache, header_id, node_header);
 
@@ -725,8 +728,8 @@ prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id)
         exit(EXIT_FAILURE);
     }
 
-    // Go through both incidence lists and check if the relationship to be moved
-    // appears there. if so, adjust the id
+    // Go through both incidence lists and check if the relationship to be
+    // moved appears there. if so, adjust the id
     relationship_t* rel = read_relationship(hf, id);
 
     // Adjust next pointer in source node's previous relation
@@ -927,10 +930,9 @@ get_nodes(heap_file* hf)
     unsigned char* slot_used;
     for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_NODE) {
 
-        // if a header page boundary is reached, unpin the current one and pin
-        // the next one
-        bit_pos_h =
-              first ? (sizeof(unsigned long) + i) * CHAR_BIT : i * CHAR_BIT;
+        // if a header page boundary is reached, unpin the current one and
+        // pin the next one
+        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
 
         if (bit_pos_h % (PAGE_SIZE * CHAR_BIT)
             < (bit_pos_h - NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT)) {
@@ -943,7 +945,8 @@ get_nodes(heap_file* hf)
         // for the first page we need to take the unsigned long at the start
         // into account that stores the amount of slots
         byte_pos_h =
-              first ? (sizeof(unsigned long) + i) % PAGE_SIZE : i % PAGE_SIZE;
+              first ? (sizeof(unsigned long) + (i / CHAR_BIT)) % PAGE_SIZE
+                    : (i / CHAR_BIT) % PAGE_SIZE;
 
         // Read the corresponding header bits for the slots
         slot_used = read_bits(hf->cache,
@@ -962,15 +965,7 @@ get_nodes(heap_file* hf)
         free(slot_used);
     }
 
-    printf("pos %lu, page bound %lu, n_slots %lu n_bytes  %lu \n",
-           bit_pos_h,
-           PAGE_SIZE * CHAR_BIT,
-           n_slots,
-           n_slots * SLOT_SIZE);
-
-    if (first) {
-        unpin_page(hf->cache, header_id, node_header);
-    }
+    unpin_page(hf->cache, header_id, node_header);
 
     return result;
 }
@@ -979,7 +974,8 @@ array_list_relationship*
 get_relationships(heap_file* hf)
 {
     if (!hf) {
-        printf("heap file operators - get relationships: Invalid Arguments!\n");
+        printf("heap file operators - get relationships: Invalid "
+               "Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -997,38 +993,40 @@ get_relationships(heap_file* hf)
     unsigned char slot_used_mask = UCHAR_MAX >> (CHAR_BIT - NUM_SLOTS_PER_REL);
 
     unsigned char* slot_used;
-    for (size_t i = 0; i < n_slots * NUM_SLOTS_PER_REL;
-         i += NUM_SLOTS_PER_REL) {
-        byte_pos_h = first ? (sizeof(unsigned long) + i / CHAR_BIT) % PAGE_SIZE
-                           : (i / CHAR_BIT) % PAGE_SIZE;
-        slot_used  = read_bits(
-              hf->cache, header, byte_pos_h, i % CHAR_BIT, NUM_SLOTS_PER_REL);
+    for (size_t i = 0; i < n_slots; i += NUM_SLOTS_PER_REL) {
 
-        if (compare_bits(slot_used, NUM_SLOTS_PER_REL, slot_used_mask, i)) {
+        // if header page boundary is readed, unpin the current one and pin
+        // the next one
 
-            rel = read_relationship(hf, i);
-            array_list_relationship_append(result, rel);
-        }
+        bit_pos_h = first ? sizeof(unsigned long) * CHAR_BIT + i : i;
 
-        free(slot_used);
-
-        // if header page boundary is readed, unpin the current one and pin the
-        // next one
-        bit_pos_h =
-              first ? sizeof(unsigned long) * CHAR_BIT + (i * NUM_SLOTS_PER_REL)
-                    : (i * NUM_SLOTS_PER_REL);
-
-        if ((bit_pos_h + NUM_SLOTS_PER_REL) > PAGE_SIZE) {
+        if (bit_pos_h % (PAGE_SIZE * CHAR_BIT)
+            < (bit_pos_h - NUM_SLOTS_PER_REL) % (PAGE_SIZE * CHAR_BIT)) {
             first = false;
             unpin_page(hf->cache, header_id, node_header);
             ++header_id;
             pin_page(hf->cache, header_id, node_header);
         }
+
+        byte_pos_h =
+              first ? (sizeof(unsigned long) + (i / CHAR_BIT)) % PAGE_SIZE
+                    : (i / CHAR_BIT) % PAGE_SIZE;
+
+        slot_used = read_bits(hf->cache,
+                              header,
+                              byte_pos_h,
+                              bit_pos_h % CHAR_BIT,
+                              NUM_SLOTS_PER_REL);
+
+        if (compare_bits(slot_used, NUM_SLOTS_PER_REL, slot_used_mask, 0)) {
+            rel = read_relationship(hf, i);
+            array_list_relationship_append(result, rel);
+        }
+
+        free(slot_used);
     }
 
-    if (first) {
-        unpin_page(hf->cache, header_id, node_header);
-    }
+    unpin_page(hf->cache, header_id, relationship_header);
 
     return result;
 }

@@ -9,24 +9,33 @@
 typedef enum
 {
 #ifdef ADJ_LIST
-    header_file,
-    record_file
+    singleton,
 #else
-    node_header,
-    node_file,
-    relationship_header,
-    relationship_file,
+    node_ft,
+    relationship_ft,
 #endif
-          invalid
+    invalid_ft
 } file_type;
+
+// file type and kind are used informally here.
+// No functional programming theory black magic
+typedef enum
+{
+    catalogue,
+    header,
+    records,
+    invalid
+} file_kind;
 
 typedef struct
 {
+    disk_file* catalogue;
 #ifdef ADJ_LIST
-    disk_file* files[2];
-    size_t     remaining_header_bits[1];
+    disk_file* header[1];
+    disk_file* records[1] size_t remaining_header_bits[1];
 #else
-    disk_file* files[4];
+    disk_file* header[2];
+    disk_file* records[2];
     size_t remaining_header_bits[2];
 #endif
 #ifdef VERBOSE

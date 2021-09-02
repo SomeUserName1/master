@@ -8,6 +8,7 @@
 
 typedef struct
 {
+    file_kind      fk;
     file_type      ft;
     size_t         page_no;
     unsigned int   pin_count;

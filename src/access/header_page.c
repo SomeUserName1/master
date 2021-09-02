@@ -209,11 +209,11 @@ read_bits(page_cache*    pc,
               - (bit_offset_in_byte);
         n_bits_split_read = n_bits - bits_to_page_boundary;
 
-        page* next_page = pin_page(pc, p->page_no + 1, p->ft);
+        page* next_page = pin_page(pc, p->page_no + 1, p->fk, p->ft);
 
         second_part = read_bits(pc, next_page, 0, 0, n_bits_split_read);
 
-        unpin_page(pc, p->page_no + 1, p->ft);
+        unpin_page(pc, p->page_no + 1, p->fk, p->ft);
 
         n_bits         = bits_to_page_boundary;
         n_bytes_result = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
@@ -311,11 +311,11 @@ write_bits(page_cache*    pc,
         unsigned char** split_data = split_bit_array(
               data, n_bytes_data * CHAR_BIT, n_bits_split_write);
 
-        page* next_page = pin_page(pc, p->page_no + 1, p->ft);
+        page* next_page = pin_page(pc, p->page_no + 1, p->fk, p->ft);
 
         write_bits(pc, next_page, 0, 0, n_bits_split_write, split_data[1]);
 
-        unpin_page(pc, p->page_no + 1, p->ft);
+        unpin_page(pc, p->page_no + 1, p->fk, p->ft);
 
         data          = split_data[0];
         n_bits        = bits_to_page_boundary;

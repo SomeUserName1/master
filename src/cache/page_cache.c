@@ -45,7 +45,14 @@ page_cache_create(phy_database* pdb
     pc->recently_referenced = q_ul_create();
 
     for (unsigned long i = 0; i < invalid; ++i) {
-        pc->page_map[i] = d_ul_ul_create();
+        if (i == catalogue) {
+            pc->page_map[i][0] = d_ul_ul_create();
+            continue;
+        }
+
+        for (unsigned long j = 0; j < invalid_ft; ++j) {
+            pc->page_map[i][j] = d_ul_ul_create();
+        }
     }
 
     unsigned char* data = calloc(CACHE_N_PAGES, PAGE_SIZE);
@@ -87,8 +94,15 @@ page_cache_destroy(page_cache* pc)
     queue_ul_destroy(pc->recently_referenced);
     bitmap_destroy(pc->pinned);
 
-    for (size_t i = 0; i < invalid; ++i) {
-        dict_ul_ul_destroy(pc->page_map[i]);
+    for (unsigned long i = 0; i < invalid; ++i) {
+        if (i == catalogue) {
+            dict_ul_ul_destroy(pc->page_map[i][0]);
+            continue;
+        }
+
+        for (unsigned long j = 0; j < invalid_ft; ++j) {
+            dict_ul_ul_destroy(pc->page_map[i][j]);
+        }
     }
 
     free(pc->cache[0]->data);
@@ -108,17 +122,17 @@ page_cache_destroy(page_cache* pc)
 }
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_type ft)
+pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
-    if (!pc || page_no > MAX_PAGE_NO) {
+    if (!pc || page_no > MAX_PAGE_NO || (fk == catalogue && ft != 0)) {
         printf("page cache - pin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     size_t frame_no;
     page*  pinned_page;
-    if (dict_ul_ul_contains(pc->page_map[ft], page_no)) {
-        frame_no    = dict_ul_ul_get_direct(pc->page_map[ft], page_no);
+    if (dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
+        frame_no    = dict_ul_ul_get_direct(pc->page_map[fk][ft], page_no);
         pinned_page = pc->cache[frame_no];
         pinned_page->pin_count++;
     } else {
@@ -130,16 +144,32 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
 
         pinned_page = pc->cache[frame_no];
 
+        pinned_page->fk        = fk;
         pinned_page->ft        = ft;
         pinned_page->page_no   = page_no;
         pinned_page->pin_count = 1;
         pinned_page->dirty     = false;
 
-        disk_file* df = pc->pdb->files[ft];
+        disk_file* df;
+        switch (fk) {
+            case catalogue: {
+                df = pc->pdb->catalogue;
+            };
+            case header: {
+                df = pc->pdb->header[ft];
+            };
+            case records: {
+                df = pc->pdb->records[ft];
+            };
+            case invalid: {
+                printf("page cache - pin page: Invalid kind of file!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
 
         read_page(df, page_no, pinned_page->data);
 
-        dict_ul_ul_insert(pc->page_map[ft], page_no, frame_no);
+        dict_ul_ul_insert(pc->page_map[fk][ft], page_no, frame_no);
     }
 
     set_bit(pc->pinned, frame_no);
@@ -147,21 +177,22 @@ pin_page(page_cache* pc, size_t page_no, file_type ft)
     pc->num_pins++;
 
 #ifdef VERBOSE
-    fprintf(pc->log_file, "Pin %s %lu\n", ft, page_no);
+    fprintf(pc->log_file, "Pin %lu %lu %lu\n", fk, ft, page_no);
 #endif
+
     return pinned_page;
 }
 
 void
-unpin_page(page_cache* pc, size_t page_no, file_type ft)
+unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
     if (!pc || page_no > MAX_PAGE_NO
-        || !dict_ul_ul_contains(pc->page_map[ft], page_no)) {
+        || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
         printf("page cache - unpin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[ft], page_no);
+    size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[fk][ft], page_no);
     page*  unpinned_page = pc->cache[frame_no];
 
     if (unpinned_page->pin_count == 0) {
@@ -182,7 +213,7 @@ unpin_page(page_cache* pc, size_t page_no, file_type ft)
     pc->num_unpins++;
 
 #ifdef VERBOSE
-    fprintf(pc->log_file, "Unpin %s %lu\n", ft, page_no);
+    fprintf(pc->log_file, "Unpin %lu %lu %lu\n", fk, ft, page_no);
 #endif
 }
 
@@ -196,27 +227,31 @@ evict_page(page_cache* pc)
 
     size_t evict_index[EVICT_LRU_K];
     size_t candidate;
+    page*  candidate_page;
     size_t evicted = 0;
     for (size_t i = 0; i < queue_ul_size(pc->recently_referenced); ++i) {
-        candidate = queue_ul_get(pc->recently_referenced, i);
+        candidate      = queue_ul_get(pc->recently_referenced, i);
+        candidate_page = pc->cache[candidate];
 
         if (get_bit(pc->pinned, candidate) == 0) {
 
             /* If the page is dirty flush it */
-            if (pc->cache[candidate]->dirty) {
+            if (candidate_page->dirty) {
                 flush_page(pc, candidate);
             }
 #ifdef VERBOSE
-            fprintf(pc->log_file, "evict %lu\n", pc->cache[candidate]->page_no);
+            fprintf(pc->log_file, "evict %lu\n", candidate_page->page_no);
 #endif
             /* Remove reference of page from lookup table */
-            dict_ul_ul_remove(pc->page_map[pc->cache[candidate]->ft],
-                              pc->cache[candidate]->page_no);
+            dict_ul_ul_remove(
+                  pc->page_map[candidate_page->fk][candidate_page->ft],
+                  candidate_page->page_no);
             /* Add the frame to the free frames list */
             llist_ul_append(pc->free_frames, i);
 
             pc->cache[candidate]->page_no = ULONG_MAX;
-            pc->cache[candidate]->ft      = invalid;
+            pc->cache[candidate]->fk      = invalid;
+            pc->cache[candidate]->ft      = invalid_ft;
 
             evict_index[evicted] = i;
             evicted++;
@@ -251,19 +286,35 @@ flush_page(page_cache* pc, size_t frame_no)
         printf("page cache - flush page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
+    page* candidate = pc->cache[frame_no];
 
-    if (pc->cache[frame_no]->pin_count > 0) {
+    if (candidate->pin_count > 0) {
         printf("page cache - flush page: Page %lu of file %u is pinned!\n",
-               pc->cache[frame_no]->page_no,
-               pc->cache[frame_no]->ft);
+               candidate->page_no,
+               candidate->ft);
         exit(EXIT_FAILURE);
     }
 
-    if (pc->cache[frame_no]->dirty) {
+    if (candidate->dirty) {
 
-        disk_file* df = pc->pdb->files[pc->cache[frame_no]->ft];
+        disk_file* df;
+        switch (candidate->fk) {
+            case catalogue: {
+                df = pc->pdb->catalogue;
+            };
+            case header: {
+                df = pc->pdb->header[candidate->ft];
+            };
+            case records: {
+                df = pc->pdb->records[candidate->ft];
+            };
+            case invalid: {
+                printf("page cache - pin page: Invalid kind of file!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
 
-        write_page(df, pc->cache[frame_no]->page_no, pc->cache[frame_no]->data);
+        write_page(df, candidate->page_no, candidate->data);
 
         pc->cache[frame_no]->dirty = false;
     }
@@ -284,12 +335,12 @@ flush_all_pages(page_cache* pc)
 page*
 new_page(page_cache* pc, file_type ft)
 {
-    if (!ft || (ft != node_file && ft != relationship_file)) {
+    if (!ft) {
         printf("page cache - pin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
     allocate_pages(pc->pdb, ft, 1);
-    return pin_page(pc, pc->pdb->files[ft]->num_pages - 1, ft);
+    return pin_page(pc, pc->pdb->records[ft]->num_pages - 1, records, ft);
 }
 

@@ -21,8 +21,11 @@ typedef struct
     llist_ul*   free_frames;
     bitmap*     pinned;
     queue_ul*   recently_referenced;
-    dict_ul_ul* page_map[4];          /* Page M is stored in frame N */
-    page*       cache[CACHE_N_PAGES]; /* Frame N contains page M */
+    dict_ul_ul* page_map[invalid]
+                        [invalid_ft]; /* Page M is stored in frame N. Invalid =
+                                         num file kinds, invalid_ft = num file
+                                         types. See physical_database.h*/
+    page* cache[CACHE_N_PAGES];       /* Frame N contains page M */
 } page_cache;
 
 page_cache*
@@ -37,10 +40,10 @@ void
 page_cache_destroy(page_cache* pc);
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_type ft);
+pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
 
 void
-unpin_page(page_cache* pc, size_t page_no, file_type ft);
+unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
 
 size_t
 evict_page(page_cache* pc);

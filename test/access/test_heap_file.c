@@ -106,7 +106,42 @@ test_heap_file_destroy(void)
 
 void
 test_next_free_slots(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_file, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long node_slot = next_free_slots(hf, true);
+    printf("slot %lu\n", node_slot);
+    assert(node_slot == 1);
+}
 
 void
 test_check_record_exists(void)
@@ -149,6 +184,7 @@ test_create_node(void)
     unsigned long id = create_node(hf, "\0");
 
     assert(id != UNINITIALIZED_LONG);
+    printf("nid %lu\n", id);
     assert(id == 0);
     assert(hf->n_nodes == 1);
     assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE);

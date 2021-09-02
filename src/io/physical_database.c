@@ -10,6 +10,8 @@
 #include "constants.h"
 #include "disk_file.h"
 
+#define CATALOGUE_POSTFIX_LEN (strlen(".info"))
+
 #define NODE_FILE_POSTFIX_LEN   (strlen("_nodes.db"))
 #define RELS_FILE_POSTFIX_LEN   (strlen("_relationships.db"))
 #define RECORD_FILE_POSTFIX_LEN (strlen(".db"))
@@ -17,8 +19,6 @@
 #define NODE_HEADER_POSTFIX_LEN (strlen("_nodes.idx"))
 #define RELS_HEADER_POSTFIX_LEN (strlen("_relationships.idx"))
 #define HEADER_FILE_POSTFIX_LEN (strlen(".idx"))
-
-static unsigned char ft_header[] = { node_header, node_header, 1, 1 };
 
 static phy_database*
 phy_database_create_internal(char* db_name,
@@ -52,26 +52,49 @@ phy_database_create_internal(char* db_name,
     }
 #endif
 
+    char* catalogue_name =
+          calloc(strlen(db_name) + CATALOGUE_POSTFIX_LEN + 1, sizeof(char));
+
+    strncpy(catalogue_name, db_name, strlen(db_name) + 1);
+
+    strncat(catalogue_name, ".info", CATALOGUE_POSTFIX_LEN);
+
+    if (!open) {
+        phy_db->catalogue = disk_file_create(catalogue_name
+#ifdef VERBOSE
+                                             ,
+                                             log_file
+#endif
+        );
+    } else {
+        phy_db->catalogue = disk_file_open(catalogue_name
+#ifdef VERBOSE
+                                           ,
+                                           log_file
+#endif
+        );
+    }
+
 #ifdef ADJ_LIST
     char* header_name =
           calloc(strlen(db_name) + HEADER_POSTFIX_LEN + 1, sizeof(char));
 
     strncpy(header_name, db_name, strlen(db_name) + 1);
 
-    strncat(rels_header_name, ".idx", HEADER_POSTFIX_LEN);
+    strncat(header_name, ".idx", HEADER_POSTFIX_LEN);
 
     if (!open) {
-        phy_db->files[header_file] = disk_file_create(header_name
+        phy_db->header[0] = disk_file_create(header_name
 #ifdef VERBOSE
-                                                      ,
-                                                      log_file
+                                             ,
+                                             log_file
 #endif
         );
     } else {
-        phy_db->files[header_file] = disk_file_open(header_name
+        phy_db->header[0] = disk_file_open(header_name
 #ifdef VERBOSE
-                                                    ,
-                                                    log_file
+                                           ,
+                                           log_file
 #endif
         );
     }
@@ -86,17 +109,17 @@ phy_database_create_internal(char* db_name,
     strncat(rels_file_name, ".db", RECORD_FILE_POSTFIX_LEN);
 
     if (!open) {
-        phy_db->files[record_file] = disk_file_create(record_file_name
+        phy_db->records[0] = disk_file_create(record_file_name
 #ifdef VERBOSE
-                                                      ,
-                                                      log_file
+                                              ,
+                                              log_file
 #endif
         );
     } else {
-        phy_db->files[record_file] = disk_file_open(record_file_name
+        phy_db->records[0] = disk_file_open(record_file_name
 #ifdef VERBOSE
-                                                    ,
-                                                    log_file
+                                            ,
+                                            log_file
 #endif
         );
     }
@@ -116,29 +139,29 @@ phy_database_create_internal(char* db_name,
     strncat(rels_header_name, "_relationships.idx", RELS_HEADER_POSTFIX_LEN);
 
     if (!open) {
-        phy_db->files[node_header]         = disk_file_create(nodes_header_name
+        phy_db->header[node_ft]         = disk_file_create(nodes_header_name
 #ifdef VERBOSE
-                                                      ,
-                                                      log_file
+                                                   ,
+                                                   log_file
 #endif
         );
-        phy_db->files[relationship_header] = disk_file_create(rels_header_name
+        phy_db->header[relationship_ft] = disk_file_create(rels_header_name
 #ifdef VERBOSE
-                                                              ,
-                                                              log_file
+                                                           ,
+                                                           log_file
 #endif
         );
     } else {
-        phy_db->files[node_header]         = disk_file_open(nodes_header_name
+        phy_db->header[node_ft]         = disk_file_open(nodes_header_name
 #ifdef VERBOSE
-                                                    ,
-                                                    log_file
+                                                 ,
+                                                 log_file
 #endif
         );
-        phy_db->files[relationship_header] = disk_file_open(rels_header_name
+        phy_db->header[relationship_ft] = disk_file_open(rels_header_name
 #ifdef VERBOSE
-                                                            ,
-                                                            log_file
+                                                         ,
+                                                         log_file
 #endif
         );
     }
@@ -157,26 +180,26 @@ phy_database_create_internal(char* db_name,
     strncat(rels_file_name, "_relationships.db", RELS_FILE_POSTFIX_LEN);
 
     if (!open) {
-        phy_db->files[node_file]         = disk_file_create(nodes_file_name
+        phy_db->records[node_ft]         = disk_file_create(nodes_file_name
 #ifdef VERBOSE
                                                     ,
                                                     log_file
 #endif
         );
-        phy_db->files[relationship_file] = disk_file_create(rels_file_name
+        phy_db->records[relationship_ft] = disk_file_create(rels_file_name
 #ifdef VERBOSE
                                                             ,
                                                             log_file
 #endif
         );
     } else {
-        phy_db->files[node_file]         = disk_file_open(nodes_file_name
+        phy_db->records[node_ft]         = disk_file_open(nodes_file_name
 #ifdef VERBOSE
                                                   ,
                                                   log_file
 #endif
         );
-        phy_db->files[relationship_file] = disk_file_open(rels_file_name
+        phy_db->records[relationship_ft] = disk_file_open(rels_file_name
 #ifdef VERBOSE
                                                           ,
                                                           log_file
@@ -186,13 +209,13 @@ phy_database_create_internal(char* db_name,
 #endif
 
     bool valid_header;
-    for (file_type ft = 0; ft < invalid; ft += 2) {
+    for (file_type ft = 0; ft < invalid; ++ft) {
         /* check if record file is empty. */
 
         /* If it is empty, write an empty page to the header file. Alternatively
          * check if the header is one page long and has zero entries. */
         /* The first 8 byte encode the number of used bits. */
-        if (!open || phy_db->files[ft + 1]->file_size == 0) {
+        if (!open || phy_db->records[ft]->file_size == 0) {
             valid_header = phy_database_validate_empty_header(phy_db, ft);
 
         } else {
@@ -252,11 +275,19 @@ phy_database_close(phy_database* db)
         exit(EXIT_FAILURE);
     }
 
-    char* fname;
+    char* catalogue_fname = db->catalogue->file_name;
+    disk_file_destroy(db->catalogue);
+    free(catalogue_fname);
+
+    char* header_fname;
+    char* record_fname;
     for (file_type ft = 0; ft < invalid; ++ft) {
-        fname = db->files[ft]->file_name;
-        disk_file_destroy(db->files[ft]);
-        free(fname);
+        header_fname = db->header[ft]->file_name;
+        record_fname = db->records[ft]->file_name;
+        disk_file_destroy(db->header[ft]);
+        disk_file_destroy(db->records[ft]);
+        free(header_fname);
+        free(record_fname);
     }
 
 #ifdef VERBOSE
@@ -277,11 +308,19 @@ phy_database_delete(phy_database* db)
         exit(EXIT_FAILURE);
     }
 
-    char* fname;
+    char* catalogue_fname = db->catalogue->file_name;
+    disk_file_destroy(db->catalogue);
+    free(catalogue_fname);
+
+    char* header_fname;
+    char* record_fname;
     for (file_type ft = 0; ft < invalid; ++ft) {
-        fname = db->files[ft]->file_name;
-        disk_file_delete(db->files[ft]);
-        free(fname);
+        header_fname = db->header[ft]->file_name;
+        record_fname = db->records[ft]->file_name;
+        disk_file_delete(db->header[ft]);
+        disk_file_delete(db->records[ft]);
+        free(header_fname);
+        free(record_fname);
     }
 
 #ifdef VERBOSE
@@ -298,33 +337,43 @@ phy_database_validate_empty_header(phy_database* db, file_type ft)
 {
 
     /* first check if the header is also empty */
-    if (db->files[ft]->file_size != 0) {
+    if (db->header[ft]->file_size != 0) {
         /* if not, validate that it has zero entries and is one page long. */
 
         unsigned char buf[PAGE_SIZE];
         unsigned long size;
 
-        read_page(db->files[ft], 0, buf);
+        read_page(db->catalogue, 0, buf);
         /* convert them to an unsigned long */
         memcpy(&size, buf, sizeof(unsigned long));
 
         /* if it has more than zero entries or is larger than a page,
          * the header is invalid */
-        if (size != 0 || db->files[ft]->file_size != PAGE_SIZE) {
-            printf("physical database - create: Non-empty header %s "
+        if (size != 0 || db->header[ft]->file_size != PAGE_SIZE) {
+            printf("physical database - create: Too large header %s "
                    "for empty record file %s!\n",
-                   db->files[ft]->file_name,
-                   db->files[ft + 1]->file_name);
+                   db->header[ft]->file_name,
+                   db->records[ft]->file_name);
             return false;
+        }
+
+        read_page(db->header[ft], 0, buf);
+
+        for (size_t i = 0; i < PAGE_SIZE; ++i) {
+            if (buf[i] != 0) {
+                printf("physical database - create: Non-empty header %s "
+                       "for empty record file %s!\n",
+                       db->header[ft]->file_name,
+                       db->records[ft]->file_name);
+                return false;
+            }
         }
     } else {
         /* if the header file is empty, write a page of zeros. */
-        disk_file_grow(db->files[ft], 1);
+        disk_file_grow(db->header[ft], 1);
     }
-    /* Mark all bits but the first 8 bytes (carrying the size of the bitmap) as
-     * unsused */
-    db->remaining_header_bits[ft_header[ft]] =
-          (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT;
+    /* Mark all bits as unsused */
+    db->remaining_header_bits[ft] = PAGE_SIZE * CHAR_BIT;
 
     return true;
 }
@@ -336,35 +385,34 @@ phy_database_validate_header(phy_database* db, file_type ft)
     unsigned long size;
 
     /* first check if the header is empty */
-    if (db->files[ft]->file_size == 0) {
+    if (db->header[ft]->file_size == 0) {
         printf("physical database - create: Empty header %s for "
                "non-empty record file %s!\n",
-               db->files[ft]->file_name,
-               db->files[ft + 1]->file_name);
+               db->header[ft]->file_name,
+               db->records[ft]->file_name);
         return false;
     }
 
-    read_page(db->files[ft], 0, buf);
+    read_page(db->catalogue, 0, buf);
     /* convert them to an unsigned long */
     memcpy(&size, buf, sizeof(unsigned long));
 
     /* caluclate the number of slots in the record file */
-    size_t n_slots = (db->files[ft + 1]->file_size / SLOT_SIZE);
+    size_t n_slots = (db->records[ft]->file_size / SLOT_SIZE);
 
     /* check if the number of slots and the size of the header match */
     if (size != n_slots) {
         printf(
               "physical database - validate header: Missmatch in the number of "
               "slots and entries between header %s: %zu and record %s: %zu!\n",
-              db->files[ft]->file_name,
+              db->header[ft]->file_name,
               size,
-              db->files[ft + 1]->file_name,
+              db->records[ft]->file_name,
               n_slots);
         return false;
     }
 
-    db->remaining_header_bits[ft_header[ft]] =
-          (db->files[ft]->file_size - sizeof(unsigned long)) * CHAR_BIT - size;
+    db->remaining_header_bits[ft] = db->header[ft]->file_size * CHAR_BIT - size;
     return true;
 }
 
@@ -375,46 +423,46 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
 #ifdef ADJ_LIST
         ft != record_file
 #else
-        (ft != node_file && ft != relationship_file)
+        (ft != node_ft && ft != relationship_ft)
 #endif
     ) {
         printf("physical database - allocate: Invalid arguments!\n");
         exit(EXIT_FAILURE);
     }
 
-    disk_file_grow(db->files[ft], num_pages);
+    disk_file_grow(db->records[ft], num_pages);
 
     size_t neccessary_bits = num_pages * (PAGE_SIZE / SLOT_SIZE);
 
-    if (db->remaining_header_bits[ft_header[ft]] < neccessary_bits) {
+    if (db->remaining_header_bits[ft] < neccessary_bits) {
         size_t additional_bits =
-              neccessary_bits - db->remaining_header_bits[ft_header[ft]];
+              neccessary_bits - db->remaining_header_bits[ft];
         size_t additional_bytes =
               (additional_bits / CHAR_BIT) + (additional_bits % CHAR_BIT != 0);
         size_t additional_pages = (additional_bytes / PAGE_SIZE)
                                   + (additional_bytes % PAGE_SIZE != 0);
 
-        disk_file_grow(db->files[ft - 1], additional_pages);
+        disk_file_grow(db->header[ft], additional_pages);
 
-        db->remaining_header_bits[ft_header[ft]] =
+        db->remaining_header_bits[ft] =
               (additional_pages * PAGE_SIZE * CHAR_BIT - additional_bits);
     } else {
-        db->remaining_header_bits[ft_header[ft]] -= neccessary_bits;
+        db->remaining_header_bits[ft] -= neccessary_bits;
     }
 
-    /* Write the size back to disk */
+    /* Write the size back to the catalogue */
 
-    unsigned char fst_header_page[PAGE_SIZE];
+    unsigned char catalogue[PAGE_SIZE];
     size_t        bits;
 
-    read_page(db->files[ft - 1], 0, fst_header_page);
+    read_page(db->catalogue, 0, catalogue);
 
-    memcpy(&bits, fst_header_page, sizeof(unsigned long));
+    memcpy(&bits, catalogue, sizeof(unsigned long));
 
     bits += neccessary_bits;
 
-    memcpy(fst_header_page, &bits, sizeof(unsigned long));
-    write_page(db->files[ft - 1], 0, fst_header_page);
+    memcpy(catalogue, &bits, sizeof(unsigned long));
+    write_page(db->catalogue, 0, catalogue);
 }
 
 void
