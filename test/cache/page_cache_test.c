@@ -14,8 +14,6 @@
 #include "data-struct/linked_list.h"
 #include "physical_database.h"
 
-static const size_t NUM_TEST_PAGES = 42;
-
 void
 test_page_cache_create(void)
 {
@@ -48,9 +46,15 @@ test_page_cache_create(void)
     }
     assert(queue_ul_size(pc->recently_referenced) == 0);
 
-    for (size_t i = 0; i < invalid; ++i) {
-        assert(dict_ul_ul_size(pc->page_map[i]) == 0);
-        dict_ul_ul_destroy(pc->page_map[i]);
+    assert(dict_ul_ul_size(pc->page_map[catalogue][0]) == 0);
+    dict_ul_ul_destroy(pc->page_map[catalogue][0]);
+
+    for (file_kind i = header; i < invalid; ++i) {
+        for (file_type j = node_ft; j < invalid_ft; ++j) {
+            printf("i %u, j %u\n", i, j);
+            assert(dict_ul_ul_size(pc->page_map[i][j]) == 0);
+            dict_ul_ul_destroy(pc->page_map[i][j]);
+        }
     }
 
     assert(pc->cache);
@@ -131,12 +135,13 @@ test_new_page(void)
 #endif
     );
 
-    page* n_page = new_page(pc, node_file);
+    page* n_page = new_page(pc, node_ft);
 
     assert(n_page);
-    assert(n_page->page_no == pc->pdb->files[node_file]->num_pages - 1);
+    assert(n_page->page_no == pc->pdb->records[node_ft]->num_pages - 1);
     assert(n_page->dirty == false);
-    assert(n_page->ft == node_file);
+    assert(n_page->ft == node_ft);
+    assert(n_page->fk == records);
     assert(n_page->pin_count == 1);
 
     n_page->pin_count = 0;
@@ -169,14 +174,15 @@ test_pin_page(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, NUM_TEST_PAGES);
+    allocate_pages(pc->pdb, node_ft, 3);
 
-    page* test_page_1 = pin_page(pc, 0, node_file);
-    page* test_page_2 = pin_page(pc, NUM_TEST_PAGES - 1, node_file);
+    page* test_page_1 = pin_page(pc, 0, records, node_ft);
+    page* test_page_2 = pin_page(pc, 2, records, node_ft);
 
-    size_t frame_no_1 = dict_ul_ul_get_direct(pc->page_map[node_file], 0);
+    size_t frame_no_1 =
+          dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0);
     size_t frame_no_2 =
-          dict_ul_ul_get_direct(pc->page_map[node_file], NUM_TEST_PAGES - 1);
+          dict_ul_ul_get_direct(pc->page_map[records][node_ft], 2);
 
     assert(pc->num_pins == 2);
     assert(pc->num_unpins == 0);
@@ -188,25 +194,29 @@ test_pin_page(void)
     assert(get_bit(pc->pinned, frame_no_1));
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
-    assert(test_page_1->ft == node_file);
+    assert(test_page_1->ft == node_ft);
+    assert(test_page_1->fk == records);
     assert(test_page_1->pin_count == 1);
 
     assert(test_page_2);
     assert(pc->cache[frame_no_2] == test_page_2);
     assert(get_bit(pc->pinned, frame_no_2));
-    assert(test_page_2->page_no == NUM_TEST_PAGES - 1);
+    assert(test_page_2->page_no == 2);
     assert(test_page_2->dirty == false);
-    assert(test_page_2->ft == node_file);
+    assert(test_page_2->ft == node_ft);
+    assert(test_page_2->fk == records);
     assert(test_page_2->pin_count == 1);
 
-    page* test_page_3 = pin_page(pc, 0, node_file);
+    page* test_page_3 = pin_page(pc, 0, records, node_ft);
     assert(test_page_3);
     assert(test_page_3 == test_page_1);
     assert(test_page_3->pin_count == 2);
+    assert(test_page_3->ft == node_ft);
+    assert(test_page_3->fk == records);
     assert(pc->num_pins == 3);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
 
-    page* test_page_4 = pin_page(pc, 0, node_file);
+    page* test_page_4 = pin_page(pc, 0, records, node_ft);
     assert(test_page_4);
     assert(test_page_4 == test_page_1);
     assert(test_page_4->pin_count == 3);
@@ -246,12 +256,13 @@ test_unpin_page(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, NUM_TEST_PAGES);
+    allocate_pages(pc->pdb, node_ft, 1);
 
-    page* test_page_1 = pin_page(pc, 0, node_file);
-    page* test_page_2 = pin_page(pc, 0, node_file);
+    page* test_page_1 = pin_page(pc, 0, records, node_ft);
+    page* test_page_2 = pin_page(pc, 0, records, node_ft);
 
-    size_t frame_no_1 = dict_ul_ul_get_direct(pc->page_map[node_file], 0);
+    size_t frame_no_1 =
+          dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0);
 
     assert(pc->num_pins == 2);
     assert(pc->num_unpins == 0);
@@ -263,10 +274,11 @@ test_unpin_page(void)
     assert(get_bit(pc->pinned, frame_no_1));
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
-    assert(test_page_1->ft == node_file);
+    assert(test_page_1->ft == node_ft);
+    assert(test_page_1->fk == records);
     assert(test_page_1->pin_count == 2);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     assert(test_page_1->pin_count == 1);
     assert(pc->num_unpins == 1);
@@ -275,7 +287,7 @@ test_unpin_page(void)
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
     assert(get_bit(pc->pinned, frame_no_1) == 1);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
     assert(pc->num_unpins == 2);
     assert(test_page_1->pin_count == 0);
     assert(queue_ul_size(pc->recently_referenced) == 1);
@@ -311,34 +323,34 @@ test_evict_page(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES + 1);
 
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        pin_page(pc, i, node_file);
+        pin_page(pc, i, records, node_ft);
     }
 
     assert(llist_ul_size(pc->free_frames) == 0);
 
     size_t frame_nos[EVICT_LRU_K];
     for (size_t i = 0; i < EVICT_LRU_K; ++i) {
-        frame_nos[i] = dict_ul_ul_get_direct(pc->page_map[node_file], i);
-        unpin_page(pc, i, node_file);
+        frame_nos[i] = dict_ul_ul_get_direct(pc->page_map[records][node_ft], i);
+        unpin_page(pc, i, records, node_ft);
     }
 
     assert(llist_ul_size(pc->free_frames) == 0);
 
-    size_t reads_before = pdb->files[node_file]->read_count;
-    pin_page(pc, 0, node_file);
-    assert(reads_before == pdb->files[node_file]->read_count);
+    size_t reads_before = pdb->records[node_ft]->read_count;
+    pin_page(pc, 0, records, node_ft);
+    assert(reads_before == pdb->records[node_ft]->read_count);
     assert(llist_ul_size(pc->free_frames) == 0);
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     evict_page(pc);
 
     assert(llist_ul_size(pc->free_frames) == EVICT_LRU_K);
 
     for (size_t i = 0; i < EVICT_LRU_K; ++i) {
-        assert(!dict_ul_ul_contains(pc->page_map[node_file], i));
+        assert(!dict_ul_ul_contains(pc->page_map[records][node_ft], i));
         assert(!queue_ul_contains(pc->recently_referenced, frame_nos[i]));
     }
 
@@ -376,20 +388,20 @@ test_flush_page(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 1);
+    allocate_pages(pc->pdb, node_ft, 1);
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, records, node_ft);
     write_ulong(p, 0, 1);
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
-    unsigned long writes_before = pdb->files[node_file]->write_count;
+    unsigned long writes_before = pdb->records[node_ft]->write_count;
 
-    flush_page(pc, dict_ul_ul_get_direct(pc->page_map[node_file], 0));
+    flush_page(pc, dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0));
 
-    assert(writes_before + 1 == pdb->files[node_file]->write_count);
+    assert(writes_before + 1 == pdb->records[node_ft]->write_count);
 
     unsigned char buf[PAGE_SIZE];
-    read_page(pdb->files[node_file], 0, buf);
+    read_page(pdb->records[node_ft], 0, buf);
     unsigned long content;
     memcpy(&content, buf, sizeof(unsigned long));
 
@@ -425,11 +437,11 @@ test_flush_all_pages(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, CACHE_N_PAGES);
+    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES);
 
     page* p;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        p = pin_page(pc, i, node_file);
+        p = pin_page(pc, i, records, node_ft);
         write_ulong(p, 0, 1);
         pc->cache[i]->pin_count = 0;
     }
@@ -441,7 +453,7 @@ test_flush_all_pages(void)
     unsigned char buf[PAGE_SIZE];
     unsigned long content;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        read_page(pdb->files[node_file], i, buf);
+        read_page(pdb->records[node_ft], i, buf);
         content = 0;
         memcpy(&content, buf, sizeof(unsigned long));
         assert(content == 1);

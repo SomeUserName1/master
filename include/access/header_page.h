@@ -37,14 +37,14 @@ read_bits(page_cache*    pc,
           page*          p,
           unsigned short byte_offset_in_page,
           unsigned char  bit_offset_in_byte,
-          unsigned short n_bits);
+          unsigned long  n_bits);
 
 void
 write_bits(page_cache*    pc,
            page*          p,
            unsigned short byte_offset_in_page,
            unsigned char  bit_offset_in_byte,
-           unsigned short n_bits,
+           unsigned long  n_bits,
            unsigned char* data);
 
 #endif

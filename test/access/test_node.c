@@ -151,7 +151,7 @@ test_node_write(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 1);
+    allocate_pages(pc->pdb, node_ft, 1);
 
     node_t* node             = new_node();
     node->id                 = 1;
@@ -159,7 +159,7 @@ test_node_write(void)
     memset(node->label, 1, MAX_STR_LEN - 1);
     node->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, records, node_ft);
     node_write(node, p);
 
     unsigned long fst_rel = read_ulong(p, node->id * ON_DISK_NODE_SIZE);
@@ -168,7 +168,7 @@ test_node_write(void)
     char label[MAX_STR_LEN];
     read_string(p, node->id * ON_DISK_NODE_SIZE + sizeof(unsigned long), label);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(label[i] == node->label[i]);
@@ -203,7 +203,7 @@ test_node_read(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 1);
+    allocate_pages(pc->pdb, node_ft, 1);
 
     node_t* node             = new_node();
     node->id                 = 1;
@@ -211,14 +211,14 @@ test_node_read(void)
     memset(node->label, 1, MAX_STR_LEN - 1);
     node->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, records, node_ft);
     node_write(node, p);
 
     node_t* n_node = new_node();
     n_node->id     = 1;
     node_read(n_node, p);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     assert(node_equals(n_node, node));
 

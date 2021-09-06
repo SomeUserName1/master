@@ -1,5 +1,6 @@
 #include "access/heap_file.h"
 
+#include "access/header_page.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
@@ -7,11 +8,15 @@
 #include "physical_database.h"
 
 #include <assert.h>
+#include <limits.h>
 
-static const double test_weight_1 = 2.0;
-static const double test_weight_2 = 3.0;
-static const double test_weight_3 = 4.0;
-static const double test_weight_4 = 5.0;
+static const double        test_weight_1  = 2.0;
+static const double        test_weight_2  = 3.0;
+static const double        test_weight_3  = 4.0;
+static const double        test_weight_4  = 5.0;
+static const unsigned char next_slot_test = 6;
+static const unsigned long num_pages_for_two_header_p =
+      1 + PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE;
 
 void
 test_heap_file_create(void)
@@ -31,7 +36,7 @@ test_heap_file_create(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 2);
+    allocate_pages(pdb, node_ft, 2);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -81,7 +86,7 @@ test_heap_file_destroy(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 2);
+    allocate_pages(pdb, node_ft, 2);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -122,7 +127,7 @@ test_next_free_slots(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -139,13 +144,106 @@ test_next_free_slots(void)
     );
 
     unsigned long node_slot = next_free_slots(hf, true);
-    printf("slot %lu\n", node_slot);
-    assert(node_slot == 1);
+    assert(node_slot == 0);
+    assert(hf->last_alloc_node_slot == 0);
+
+    unsigned char* write_mask = malloc(sizeof(unsigned char));
+    write_mask[0]             = UCHAR_MAX;
+    page* p                   = pin_page(pc, 0, header, node_ft);
+    write_bits(pc, p, 0, 0, 3, write_mask);
+
+    node_slot = next_free_slots(hf, true);
+    assert(node_slot == NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == 0);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, 3, 3, write_mask);
+
+    node_slot = next_free_slots(hf, true);
+    assert(node_slot == 2 * NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == 1);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, next_slot_test, 3, write_mask);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = 1;
+    write_bits(pc, p, 1, 3, 1, write_mask);
+
+    node_slot = next_free_slots(hf, true);
+    assert(node_slot == 4 * NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == 1);
+
+    memset(p->data, UCHAR_MAX, PAGE_SIZE);
+
+    allocate_pages(pdb, node_ft, num_pages_for_two_header_p);
+    node_slot = next_free_slots(hf, true);
+
+    assert(hf->last_alloc_node_slot == PAGE_SIZE);
+    assert(node_slot == 32768);
+
+    page* p2 = pin_page(pc, 1, header, node_ft);
+    memset(p2->data, UCHAR_MAX, PAGE_SIZE);
+
+    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 1);
+
+    node_slot = next_free_slots(hf, true);
+
+    assert(hf->last_alloc_node_slot == 2 * PAGE_SIZE);
+    /* as we havent allocated sufficient record pages to
+                             actually be able to fill the second header page we
+       get a node slot of 132 pages * 256 slots per page */
+
+    assert(node_slot == 33280);
+    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
+
+    unpin_page(pc, 1, header, node_ft);
+    unpin_page(pc, 0, header, node_ft);
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
 }
 
 void
 test_check_record_exists(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_ft, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long node_slot = next_free_slots(hf, true);
+
+    assert(check_record_exists(hf, node_slot / NUM_SLOTS_PER_NODE, true));
+}
 
 void
 test_create_node(void)
@@ -165,7 +263,7 @@ test_create_node(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -184,13 +282,12 @@ test_create_node(void)
     unsigned long id = create_node(hf, "\0");
 
     assert(id != UNINITIALIZED_LONG);
-    printf("nid %lu\n", id);
     assert(id == 0);
     assert(hf->n_nodes == 1);
-    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE / CHAR_BIT);
     assert(hf->num_updates_nodes == 1);
 
-    page*   p    = pin_page(pc, 0, node_file);
+    page*   p    = pin_page(pc, 0, records, node_ft);
     node_t* node = new_node();
     node->id     = id;
     node_read(node, p);
@@ -204,7 +301,7 @@ test_create_node(void)
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id == 1);
     assert(hf->n_nodes == 2);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
     assert(hf->num_updates_nodes == 2);
 
     node_t* node_1 = new_node();
@@ -214,7 +311,7 @@ test_create_node(void)
     assert(node_1->first_relationship == UNINITIALIZED_LONG);
     assert(node_1->label[0] == '\0');
     free(node_1);
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -239,8 +336,8 @@ test_create_relationship(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
-    allocate_pages(pdb, relationship_file, 1);
+    allocate_pages(pdb, node_ft, 1);
+    allocate_pages(pdb, relationship_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -264,10 +361,10 @@ test_create_relationship(void)
     assert(id == 0);
     assert(hf->n_nodes == 2);
     assert(hf->n_rels == 1);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE);
-    assert(hf->last_alloc_rel_slot == NUM_SLOTS_PER_REL);
+    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_rel_slot == NUM_SLOTS_PER_REL / CHAR_BIT);
 
-    page*           p   = pin_page(pc, 0, relationship_file);
+    page*           p   = pin_page(pc, 0, records, relationship_ft);
     relationship_t* rel = new_relationship();
     rel->id             = id;
     relationship_read(rel, p);
@@ -283,7 +380,7 @@ test_create_relationship(void)
     assert(rel->label[0] == '\0');
     free(rel);
 
-    page*   node_p = pin_page(pc, 0, node_file);
+    page*   node_p = pin_page(pc, 0, records, node_ft);
     node_t* node_1 = new_node();
     node_1->id     = n_1;
     node_read(node_1, node_p);
@@ -306,8 +403,8 @@ test_create_relationship(void)
 
     assert(hf->n_nodes == 4);
     assert(hf->n_rels == 5);
-    assert(hf->last_alloc_node_slot == 4 * NUM_SLOTS_PER_NODE);
-    assert(hf->last_alloc_rel_slot == 5 * NUM_SLOTS_PER_REL);
+    assert(hf->last_alloc_node_slot == 4 * NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_rel_slot == 5 * NUM_SLOTS_PER_REL / CHAR_BIT);
 
     rel     = new_relationship();
     rel->id = id;
@@ -409,7 +506,7 @@ test_create_relationship(void)
     assert(rel->label[0] == '\0');
     free(rel);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, node_ft);
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -434,7 +531,7 @@ test_read_node(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 2);
+    allocate_pages(pdb, node_ft, 2);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -455,7 +552,7 @@ test_read_node(void)
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
     assert(hf->n_nodes == 1);
-    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE / CHAR_BIT);
 
     node_t* node = read_node(hf, id);
     assert(node->id == id);
@@ -468,7 +565,7 @@ test_read_node(void)
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id == 1);
     assert(hf->n_nodes == 2);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE);
+    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
 
     node_t* node_1 = read_node(hf, id_1);
     assert(node_1->id == id_1);
@@ -499,8 +596,8 @@ test_read_relationship(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
-    allocate_pages(pdb, relationship_file, 1);
+    allocate_pages(pdb, node_ft, 1);
+    allocate_pages(pdb, relationship_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -556,7 +653,7 @@ test_update_node(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 2);
+    allocate_pages(pdb, node_ft, 2);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -610,7 +707,7 @@ test_update_relationship(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -673,7 +770,7 @@ test_delete_node(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE
@@ -726,7 +823,7 @@ test_delete_relationship(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
     page_cache* pc = page_cache_create(pdb
 #ifdef VERBOSE

@@ -1,4 +1,5 @@
 #include "access/header_page.h"
+#include "constants.h"
 #include "disk_file.h"
 #include "page.h"
 #include "page_cache.h"
@@ -8,6 +9,10 @@
 #include <limits.h>
 
 static const unsigned char test_number = 5;
+static const unsigned long num_pages_for_two_header_p =
+      1 + PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE;
+static const unsigned char test_case_shift = 7;
+static const unsigned char test_case_write = 6;
 
 void
 test_compare_bits(void)
@@ -23,6 +28,8 @@ test_compare_bits(void)
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8));
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 7));
     assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4));
+
+    printf("test header page - compare bits successful\n");
 }
 
 void
@@ -41,6 +48,14 @@ test_shift_bit_array(void)
 
     assert(test_2[0] == UCHAR_MAX - (1 << 6));
     assert(test_2[1] == (unsigned char)(UCHAR_MAX << 5));
+
+    unsigned char test_3[2] = { 0, test_case_shift };
+
+    shift_bit_array(test_3, 2 * CHAR_BIT, -((char)test_case_shift));
+    assert(test_3[0] == 3);
+    assert(test_3[1] == 128);
+
+    printf("test header page - shift bit array successful\n");
 }
 
 void
@@ -76,6 +91,8 @@ test_concat_bit_arrays(void)
     assert(result_0[1] == 241);
 
     free(result_0);
+
+    printf("test header page - concat bit array successful\n");
 }
 void
 test_split_bit_array(void)
@@ -109,6 +126,8 @@ test_split_bit_array(void)
     free(result[0]);
     free(result[1]);
     free(result);
+
+    printf("test header page - split bit array successful\n");
 }
 
 void
@@ -134,9 +153,9 @@ test_read_bits(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 2);
+    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p);
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, header, node_ft);
     write_uchar(p, 0, 1);
 
     unsigned char* bits = read_bits(pc, p, 0, CHAR_BIT - 1, 1);
@@ -151,7 +170,7 @@ test_read_bits(void)
     free(bits);
 
     write_uchar(p, PAGE_SIZE - 1, UCHAR_MAX);
-    page* next = pin_page(pc, 1, node_file);
+    page* next = pin_page(pc, 1, header, node_ft);
     write_uchar(next, 0, test_number);
     bits = read_bits(pc, p, PAGE_SIZE - 1, 2, 2 * CHAR_BIT - 2);
 
@@ -165,10 +184,12 @@ test_read_bits(void)
 
     free(bits);
 
-    unpin_page(pc, 0, node_file);
-    unpin_page(pc, 1, node_file);
+    unpin_page(pc, 0, header, node_ft);
+    unpin_page(pc, 1, header, node_ft);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("test header page - read bits successful\n");
 }
 
 void
@@ -194,33 +215,54 @@ test_write_bits(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 2);
-    clear_page(pdb->files[node_file], 0);
+    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p);
+    clear_page(pdb->header[node_ft], 0);
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, header, node_ft);
 
     unsigned char* data = malloc(sizeof(unsigned char));
     data[0]             = 1;
     write_bits(pc, p, 1, 1, 1, data);
 
     assert(p->data[1] == (1 << (CHAR_BIT - 2)));
-
     unsigned char* data_1 = calloc(2, sizeof(unsigned char));
-    data_1[0]             = UCHAR_MAX >> (CHAR_BIT / 2);
+    data_1[0]             = UCHAR_MAX;
     data_1[1]             = test_number;
     write_bits(
           pc, p, PAGE_SIZE - 1, CHAR_BIT / 2, CHAR_BIT + CHAR_BIT / 2, data_1);
 
-    page* np = pin_page(pc, 1, node_file);
+    page* np = pin_page(pc, 1, header, node_ft);
 
     assert(p->data[PAGE_SIZE - 1] == UCHAR_MAX >> (CHAR_BIT / 2));
     assert(np->data[0] == 5);
 
-    unpin_page(pc, 0, node_file);
-    unpin_page(pc, 1, node_file);
+    unsigned char* write_mask = calloc(2, sizeof(unsigned char));
+    write_bits(pc, p, 0, 0, 2 * CHAR_BIT, write_mask);
+
+    assert(p->data[0] == 0);
+    assert(p->data[1] == 0);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, 0, test_case_write, write_mask);
+
+    assert(p->data[0] == 252);
+    assert(p->data[1] == 0);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, test_case_write, 3, write_mask);
+
+    assert(p->data[0] == 255);
+    assert(p->data[1] == 128);
+
+    unpin_page(pc, 0, header, node_ft);
+    unpin_page(pc, 1, header, node_ft);
 
     page_cache_destroy(pc);
     phy_database_delete(pdb);
+
+    printf("test header page - write bits successful\n");
 }
 
 int

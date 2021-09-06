@@ -13,22 +13,23 @@ test_phy_database_validate_empty_header(void)
 {
     phy_database* db = calloc(1, sizeof(*db));
 
-    db->files[0] = disk_file_create("header_test");
-    db->files[1] = disk_file_create("record_test");
+    db->catalogue  = disk_file_create("catalogue_test");
+    db->header[0]  = disk_file_create("header_test");
+    db->records[0] = disk_file_create("record_test");
 
     assert(phy_database_validate_empty_header(db, 0));
 
     unsigned char data[PAGE_SIZE];
     memset(data, 1, PAGE_SIZE);
-    disk_file_grow(db->files[0], 1);
-    write_page(db->files[0], 0, data);
+    disk_file_grow(db->catalogue, 1);
+    write_page(db->catalogue, 0, data);
 
     assert(!phy_database_validate_empty_header(db, 0));
-    assert(db->remaining_header_bits[0]
-           == (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT);
+    assert(db->remaining_header_bits[0] == PAGE_SIZE * CHAR_BIT);
 
-    disk_file_delete(db->files[0]);
-    disk_file_delete(db->files[1]);
+    disk_file_delete(db->catalogue);
+    disk_file_delete(db->header[0]);
+    disk_file_delete(db->records[0]);
     free(db);
 
     printf("test phy db validate empty header successfull!\n");
@@ -39,26 +40,28 @@ test_phy_database_validate_header(void)
 {
     phy_database* db = calloc(1, sizeof(*db));
 
-    db->files[0] = disk_file_create("header_test");
-    db->files[1] = disk_file_create("record_test");
+    db->catalogue = disk_file_create("catalogue_test");
+    disk_file_grow(db->catalogue, 1);
+    db->header[0]  = disk_file_create("header_test");
+    db->records[0] = disk_file_create("record_test");
 
     unsigned char data[PAGE_SIZE];
     // Case 1: Empty header for non empty record file
-    disk_file_grow(db->files[1], 1);
+    disk_file_grow(db->records[0], 1);
     memset(data, 1, PAGE_SIZE);
-    write_page(db->files[1], 0, data);
+    write_page(db->records[0], 0, data);
     assert(!phy_database_validate_header(db, 0));
 
     // Case 2: smaller header than record file
-    disk_file_grow(db->files[0], 1);
+    disk_file_grow(db->header[0], 1);
     memset(data, 0, PAGE_SIZE);
     data[0] = 1;
-    write_page(db->files[0], 0, data);
+    write_page(db->catalogue, 0, data);
     assert(!phy_database_validate_header(db, 0));
 
     // case 3: larger header than record file
     data[3] = UCHAR_MAX;
-    write_page(db->files[0], 0, data);
+    write_page(db->catalogue, 0, data);
     assert(!phy_database_validate_header(db, 0));
 
     // case 4: matching header and record file
@@ -66,18 +69,18 @@ test_phy_database_validate_header(void)
     data[1] = 1;
     data[2] = 0;
     data[3] = 0;
-    write_page(db->files[0], 0, data);
+    write_page(db->catalogue, 0, data);
 
     assert(phy_database_validate_header(db, 0));
 
     unsigned long remaining_bits =
-          (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT
-          - (PAGE_SIZE / SLOT_SIZE);
+          PAGE_SIZE * CHAR_BIT - (PAGE_SIZE / SLOT_SIZE);
 
     assert(db->remaining_header_bits[0] == remaining_bits);
 
-    disk_file_delete(db->files[0]);
-    disk_file_delete(db->files[1]);
+    disk_file_delete(db->catalogue);
+    disk_file_delete(db->header[0]);
+    disk_file_delete(db->records[0]);
     free(db);
 
     printf("test phy db validate header successfull!\n");
@@ -100,13 +103,11 @@ test_phy_database_create(void)
     );
 
     assert(pdb);
-    for (size_t i = 0; i < invalid; ++i) {
-        assert(pdb->files[i]);
-    }
-
-    for (size_t i = 0; i < 2; ++i) {
-        assert(pdb->remaining_header_bits[i]
-               == (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT);
+    assert(pdb->catalogue);
+    for (file_type i = 0; i < invalid_ft; ++i) {
+        assert(pdb->header[i]);
+        assert(pdb->records[i]);
+        assert(pdb->remaining_header_bits[i] == PAGE_SIZE * CHAR_BIT);
     }
 
     phy_database_delete(pdb);
@@ -133,6 +134,7 @@ test_phy_database_delete(void)
 
     phy_database_delete(pdb);
 
+    assert(!fopen("test.info", "r"));
     assert(!fopen("test_nodes.db", "r"));
     assert(!fopen("test_relationships.db", "r"));
     assert(!fopen("test_nodes.idx", "r"));
@@ -143,6 +145,8 @@ test_phy_database_delete(void)
     assert(log);
     fclose("test_log");
 #endif
+
+    printf("test phy db delete successfull!\n");
 }
 
 void
@@ -165,20 +169,25 @@ test_phy_database_close(void)
 
     phy_database_close(pdb);
 
-    FILE* nodes   = fopen("test_nodes.db", "r");
-    FILE* rels    = fopen("test_relationships.db", "r");
-    FILE* nheader = fopen("test_nodes.idx", "r");
-    FILE* rheader = fopen("test_relationships.idx", "r");
+    FILE* catalogue = fopen("test.info", "r");
+    FILE* nodes     = fopen("test_nodes.db", "r");
+    FILE* rels      = fopen("test_relationships.db", "r");
+    FILE* nheader   = fopen("test_nodes.idx", "r");
+    FILE* rheader   = fopen("test_relationships.idx", "r");
 
+    assert(catalogue);
     assert(nodes);
     assert(rels);
     assert(nheader);
     assert(rheader);
 
+    remove("test.info");
     remove("test_nodes.db");
     remove("test_relationships.db");
     remove("test_nodes.idx");
     remove("test_relationships.idx");
+
+    printf("test phy db close successfull!\n");
 }
 
 void
@@ -197,41 +206,36 @@ test_allocate_pages(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, 1);
+    allocate_pages(pdb, node_ft, 1);
 
-    assert(pdb->files[node_file]->num_pages == 1);
-    assert(pdb->files[node_file]->file_size == PAGE_SIZE);
-    assert(pdb->files[node_header]->num_pages == 1);
-    assert(pdb->files[node_header]->file_size == PAGE_SIZE);
-    assert(pdb->remaining_header_bits[node_header]
-           == (PAGE_SIZE - sizeof(unsigned long)) * CHAR_BIT
-                    - PAGE_SIZE / SLOT_SIZE);
+    assert(pdb->records[node_ft]->num_pages == 1);
+    assert(pdb->records[node_ft]->file_size == PAGE_SIZE);
+    assert(pdb->header[node_ft]->num_pages == 1);
+    assert(pdb->header[node_ft]->file_size == PAGE_SIZE);
+    assert(pdb->remaining_header_bits[node_ft]
+           == PAGE_SIZE * CHAR_BIT - PAGE_SIZE / SLOT_SIZE);
 
     // PAGE_SIZE is here just to test sth. larger than 1
-    allocate_pages(pdb, node_file, PAGE_SIZE - 1);
+    allocate_pages(pdb, node_ft, PAGE_SIZE - 1);
 
-    assert(pdb->files[node_file]->num_pages == PAGE_SIZE);
-    assert(pdb->files[node_file]->file_size == PAGE_SIZE * PAGE_SIZE);
+    assert(pdb->records[node_ft]->num_pages == PAGE_SIZE);
+    assert(pdb->records[node_ft]->file_size == PAGE_SIZE * PAGE_SIZE);
     // Page size many pages * (256 bit for each page / 8 to get byte / Page size
     // to get pages )
-    assert(pdb->files[node_header]->num_pages
-           == 1 + (PAGE_SIZE / SLOT_SIZE) / 8);
+    assert(pdb->header[node_ft]->num_pages == (PAGE_SIZE / SLOT_SIZE) / 8);
 
-    assert(pdb->files[node_header]->file_size
-           == PAGE_SIZE * (1 + (PAGE_SIZE / SLOT_SIZE) / 8));
+    assert(pdb->header[node_ft]->file_size
+           == PAGE_SIZE * (PAGE_SIZE / SLOT_SIZE) / 8);
 
     unsigned long remaining_bits =
-          (PAGE_SIZE * (1 + (PAGE_SIZE / SLOT_SIZE) / CHAR_BIT)
-           - sizeof(unsigned long))
-                * CHAR_BIT
+          (PAGE_SIZE * (PAGE_SIZE / SLOT_SIZE) / CHAR_BIT) * CHAR_BIT
           - PAGE_SIZE * (PAGE_SIZE / SLOT_SIZE);
 
-    printf("real %lu check %lu\n",
-           pdb->remaining_header_bits[node_header],
-           remaining_bits);
-    assert(pdb->remaining_header_bits[node_header] == remaining_bits);
+    assert(pdb->remaining_header_bits[node_ft] == remaining_bits);
 
     phy_database_delete(pdb);
+
+    printf("test phy db allocate pages successfull!\n");
 }
 
 void
@@ -250,10 +254,10 @@ test_phy_database_open(void)
 #endif
     );
 
-    allocate_pages(pdb, node_file, PAGE_SIZE);
+    allocate_pages(pdb, node_ft, PAGE_SIZE);
     unsigned char data[PAGE_SIZE];
     memset(data, 1, PAGE_SIZE);
-    write_page(pdb->files[node_file], 0, data);
+    write_page(pdb->records[node_ft], 0, data);
 
     phy_database_close(pdb);
 
@@ -266,7 +270,7 @@ test_phy_database_open(void)
 #endif
     );
 
-    read_page(pdb->files[node_file], 0, data);
+    read_page(pdb->records[node_ft], 0, data);
 
     for (size_t i = 0; i < PAGE_SIZE; ++i) {
         assert(data[i] == 1);

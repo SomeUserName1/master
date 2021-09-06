@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "constants.h"
+#include "physical_database.h"
 
 #define TEST_BYTE               (1 << 5) // is 0010 0000
 #define TEST_NUMBER             (42)
@@ -32,6 +33,8 @@ test_page_create(void)
     assert(p->page_no == ULONG_MAX);
     assert(p->pin_count == 0);
     assert(p->dirty == false);
+    assert(p->ft == invalid_ft);
+    assert(p->fk == invalid);
 
     free(data);
     free(p);

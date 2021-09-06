@@ -66,6 +66,7 @@ phy_database_create_internal(char* db_name,
                                              log_file
 #endif
         );
+        disk_file_grow(phy_db->catalogue, 1);
     } else {
         phy_db->catalogue = disk_file_open(catalogue_name
 #ifdef VERBOSE
@@ -209,7 +210,7 @@ phy_database_create_internal(char* db_name,
 #endif
 
     bool valid_header;
-    for (file_type ft = 0; ft < invalid; ++ft) {
+    for (file_type ft = 0; ft < invalid_ft; ++ft) {
         /* check if record file is empty. */
 
         /* If it is empty, write an empty page to the header file. Alternatively
@@ -281,7 +282,7 @@ phy_database_close(phy_database* db)
 
     char* header_fname;
     char* record_fname;
-    for (file_type ft = 0; ft < invalid; ++ft) {
+    for (file_type ft = 0; ft < invalid_ft; ++ft) {
         header_fname = db->header[ft]->file_name;
         record_fname = db->records[ft]->file_name;
         disk_file_destroy(db->header[ft]);
@@ -309,12 +310,12 @@ phy_database_delete(phy_database* db)
     }
 
     char* catalogue_fname = db->catalogue->file_name;
-    disk_file_destroy(db->catalogue);
+    disk_file_delete(db->catalogue);
     free(catalogue_fname);
 
     char* header_fname;
     char* record_fname;
-    for (file_type ft = 0; ft < invalid; ++ft) {
+    for (file_type ft = 0; ft < invalid_ft; ++ft) {
         header_fname = db->header[ft]->file_name;
         record_fname = db->records[ft]->file_name;
         disk_file_delete(db->header[ft]);
@@ -345,7 +346,7 @@ phy_database_validate_empty_header(phy_database* db, file_type ft)
 
         read_page(db->catalogue, 0, buf);
         /* convert them to an unsigned long */
-        memcpy(&size, buf, sizeof(unsigned long));
+        memcpy(&size, buf + ft * sizeof(unsigned long), sizeof(unsigned long));
 
         /* if it has more than zero entries or is larger than a page,
          * the header is invalid */
@@ -395,7 +396,7 @@ phy_database_validate_header(phy_database* db, file_type ft)
 
     read_page(db->catalogue, 0, buf);
     /* convert them to an unsigned long */
-    memcpy(&size, buf, sizeof(unsigned long));
+    memcpy(&size, buf + ft * sizeof(unsigned long), sizeof(unsigned long));
 
     /* caluclate the number of slots in the record file */
     size_t n_slots = (db->records[ft]->file_size / SLOT_SIZE);
@@ -457,11 +458,13 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
 
     read_page(db->catalogue, 0, catalogue);
 
-    memcpy(&bits, catalogue, sizeof(unsigned long));
+    memcpy(
+          &bits, catalogue + ft * sizeof(unsigned long), sizeof(unsigned long));
 
     bits += neccessary_bits;
 
-    memcpy(catalogue, &bits, sizeof(unsigned long));
+    memcpy(
+          catalogue + ft * sizeof(unsigned long), &bits, sizeof(unsigned long));
     write_page(db->catalogue, 0, catalogue);
 }
 

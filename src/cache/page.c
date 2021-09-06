@@ -24,7 +24,8 @@ page_create(unsigned char* data)
         exit(EXIT_FAILURE);
     }
 
-    p->ft      = invalid;
+    p->fk      = invalid;
+    p->ft      = invalid_ft;
     p->page_no = ULONG_MAX;
     p->data    = data;
 
@@ -161,7 +162,9 @@ page_pretty_print(const page* p)
         exit(EXIT_FAILURE);
     }
 
-    printf("File Type: %d, Page No. %zu, pin count: %u, is dirty? %s\n",
+    printf("File Kind: %d, File Type: %d, Page No. %zu, pin count: %u, is "
+           "dirty? %s\n",
+           p->fk,
            p->ft,
            p->page_no,
            p->pin_count,

@@ -186,12 +186,12 @@ read_bits(page_cache*    pc,
           page*          p,
           unsigned short byte_offset_in_page,
           unsigned char  bit_offset_in_byte,
-          unsigned short n_bits)
+          unsigned long  n_bits)
 {
     if (!p || bit_offset_in_byte > CHAR_BIT - 1
         || byte_offset_in_page > PAGE_SIZE - 1
         || n_bits > PAGE_SIZE * CHAR_BIT - 1) {
-        printf("page - read bits: Invalid Arguments!\n");
+        printf("header page - read bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -287,13 +287,13 @@ write_bits(page_cache*    pc,
            page*          p,
            unsigned short byte_offset_in_page,
            unsigned char  bit_offset_in_byte,
-           unsigned short n_bits,
+           unsigned long  n_bits,
            unsigned char* data)
 {
     if (!p || bit_offset_in_byte > CHAR_BIT - 1
         || byte_offset_in_page > PAGE_SIZE - 1
         || n_bits > PAGE_SIZE * CHAR_BIT - 1 || n_bits < 1 || !data) {
-        printf("page - read bits: Invalid Arguments!\n");
+        printf("header page - write bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -326,7 +326,7 @@ write_bits(page_cache*    pc,
         free(split_data);
     }
 
-    // Shift data by (CHAR_BIT - n_bits) - bit offset to left
+    // Shift data by (n bytes * CHAR_BIT - n_bits) - bit offset to left
     // CHAR_BIT - n_bits give the leading zeros of the data array
     // - bit_offset gives how many zeros need to be removed
     // e.g. with 5 bits and 1 offset
@@ -336,16 +336,21 @@ write_bits(page_cache*    pc,
 
     unsigned char* shifted_data;
 
+    // n_bytes_data is always larger than n_bits obviously
+    data[0] = /* NOLINTNEXTLINE */
+          data[0] & UCHAR_MAX >> (n_bytes_data * CHAR_BIT - n_bits);
+
     if (n_bytes_data < n_bytes_write) {
         shifted_data = calloc(n_bytes_write, sizeof(unsigned char));
-        memcpy(shifted_data + 1, data, n_bytes_data);
+        memcpy(shifted_data, data, n_bytes_data);
     } else {
         shifted_data = data;
     }
 
     shift_bit_array(shifted_data,
                     n_bytes_write * CHAR_BIT,
-                    -(n_bytes_data * CHAR_BIT - n_bits) + bit_offset_in_byte);
+                    -(n_bytes_data * CHAR_BIT - (long)n_bits)
+                          + bit_offset_in_byte);
 
     if (n_bytes_write == 0) {
         printf("Unreachable\n");
@@ -367,9 +372,12 @@ write_bits(page_cache*    pc,
     // set the first bit_offset bits to preserve the data on the page
     mask[0] = mask[0] | UCHAR_MAX << (CHAR_BIT - bit_offset_in_byte);
 
-    // set the last 8 - offset - n_bits to preserve the data on the page
-    mask[n_bytes_write - 1] =
-          mask[n_bytes_write - 1] | UCHAR_MAX >> (n_bits % CHAR_BIT);
+    if (((n_bits + bit_offset_in_byte) % CHAR_BIT) != 0) {
+        // set the last 8 - n_bits to preserve the data on the page
+        mask[n_bytes_write - 1] =
+              mask[n_bytes_write - 1] /* NOLINTNEXTLINE */
+              | UCHAR_MAX >> ((n_bits % CHAR_BIT) + bit_offset_in_byte);
+    }
 
     for (size_t i = 0; i < n_bytes_write; ++i) {
         p->data[byte_offset_in_page + i] =

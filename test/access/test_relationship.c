@@ -195,7 +195,7 @@ test_relationship_write(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 1);
+    allocate_pages(pc->pdb, relationship_ft, 1);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
@@ -210,7 +210,7 @@ test_relationship_write(void)
     memset(relationship->label, 4, MAX_STR_LEN - 1);
     relationship->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, records, relationship_ft);
     relationship_write(relationship, p);
 
     unsigned long src = read_ulong(p, relationship->id * ON_DISK_REL_SIZE);
@@ -264,7 +264,7 @@ test_relationship_write(void)
                       + sizeof(double) + sizeof(unsigned char),
                 label);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, relationship_ft);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(label[i] == 4);
@@ -299,7 +299,7 @@ test_relationship_read(void)
 #endif
     );
 
-    allocate_pages(pc->pdb, node_file, 1);
+    allocate_pages(pc->pdb, relationship_ft, 1);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
@@ -314,14 +314,14 @@ test_relationship_read(void)
     memset(relationship->label, 4, MAX_STR_LEN - 1);
     relationship->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, node_file);
+    page* p = pin_page(pc, 0, records, relationship_ft);
     relationship_write(relationship, p);
 
     relationship_t* n_rel = new_relationship();
     n_rel->id             = 3;
     relationship_read(n_rel, p);
 
-    unpin_page(pc, 0, node_file);
+    unpin_page(pc, 0, records, relationship_ft);
 
     assert(relationship_equals(n_rel, relationship));
 

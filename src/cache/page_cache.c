@@ -44,13 +44,13 @@ page_cache_create(phy_database* pdb
     pc->pinned              = bitmap_create(CACHE_N_PAGES);
     pc->recently_referenced = q_ul_create();
 
-    for (unsigned long i = 0; i < invalid; ++i) {
+    for (file_kind i = 0; i < invalid; ++i) {
         if (i == catalogue) {
             pc->page_map[i][0] = d_ul_ul_create();
             continue;
         }
 
-        for (unsigned long j = 0; j < invalid_ft; ++j) {
+        for (file_type j = 0; j < invalid_ft; ++j) {
             pc->page_map[i][j] = d_ul_ul_create();
         }
     }
@@ -124,8 +124,33 @@ page_cache_destroy(page_cache* pc)
 page*
 pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
-    if (!pc || page_no > MAX_PAGE_NO || (fk == catalogue && ft != 0)) {
+    if (!pc || (fk == catalogue && ft != 0)) {
         printf("page cache - pin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t num_pages;
+    switch (fk) {
+        case catalogue: {
+            num_pages = pc->pdb->catalogue->num_pages;
+            break;
+        };
+        case header: {
+            num_pages = pc->pdb->header[ft]->num_pages;
+            break;
+        };
+        case records: {
+            num_pages = pc->pdb->records[ft]->num_pages;
+            break;
+        };
+        case invalid: {
+            printf("page cache - pin page: Invalid kind of file!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
+        printf("page cache - pin page: Page Number out of bounds!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -154,12 +179,15 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
         switch (fk) {
             case catalogue: {
                 df = pc->pdb->catalogue;
+                break;
             };
             case header: {
                 df = pc->pdb->header[ft];
+                break;
             };
             case records: {
                 df = pc->pdb->records[ft];
+                break;
             };
             case invalid: {
                 printf("page cache - pin page: Invalid kind of file!\n");
@@ -186,9 +214,33 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 void
 unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
-    if (!pc || page_no > MAX_PAGE_NO
-        || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
+    if (!pc || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
         printf("page cache - unpin page: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t num_pages;
+    switch (fk) {
+        case catalogue: {
+            num_pages = pc->pdb->catalogue->num_pages;
+            break;
+        };
+        case header: {
+            num_pages = pc->pdb->header[ft]->num_pages;
+            break;
+        };
+        case records: {
+            num_pages = pc->pdb->records[ft]->num_pages;
+            break;
+        };
+        case invalid: {
+            printf("page cache - pin page: Invalid kind of file!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
+        printf("page cache - pin page: Page Number out of bounds!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -301,12 +353,15 @@ flush_page(page_cache* pc, size_t frame_no)
         switch (candidate->fk) {
             case catalogue: {
                 df = pc->pdb->catalogue;
+                break;
             };
             case header: {
                 df = pc->pdb->header[candidate->ft];
+                break;
             };
             case records: {
                 df = pc->pdb->records[candidate->ft];
+                break;
             };
             case invalid: {
                 printf("page cache - pin page: Invalid kind of file!\n");
@@ -335,8 +390,8 @@ flush_all_pages(page_cache* pc)
 page*
 new_page(page_cache* pc, file_type ft)
 {
-    if (!ft) {
-        printf("page cache - pin page: Invalid Arguments!\n");
+    if (!pc) {
+        printf("page cache - new page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
