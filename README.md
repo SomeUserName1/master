@@ -38,12 +38,8 @@ Dynamic record locality optimizing storage scheme for graph databases.
     - [x] cache
     - [ ] Access (WIP)  
     - [ ] Queries  
-       => Milestone 1  
+    - [ ] Logging
   - [ ] layout (Impl + tests)
-  - [ ] Data transformer (to adj list)
-  - [ ] Gorder integration
-  - [ ] Dynamic Reorganization Impl.
-        => Milestone 2
 
 #### Brainstorm
   - Access-History Graph

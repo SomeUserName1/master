@@ -1,4 +1,4 @@
-#include "page.h"
+#include "access/header_page.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -6,15 +6,17 @@
 #include <string.h>
 
 #include "constants.h"
+#include "page.h"
 #include "page_cache.h"
 
 bool
 compare_bits(const unsigned char* ar,
              size_t               size,
              unsigned char        mask,
-             size_t               offset)
+             size_t               offset,
+             size_t               n_bits)
 {
-    if (!ar || offset + CHAR_BIT > size + (CHAR_BIT - (size % CHAR_BIT))) {
+    if (!ar || offset + n_bits > size) {
         printf("header page - compare bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
@@ -22,13 +24,36 @@ compare_bits(const unsigned char* ar,
     unsigned char start_byte = offset / CHAR_BIT;
     unsigned char bit_offset = offset % CHAR_BIT;
 
+    mask = mask & (UCHAR_MAX >> (CHAR_BIT - n_bits));
+
     unsigned char result = 0;
     if (bit_offset == 0) {
-        result = ar[start_byte] & mask;
+        shift_bit_array(
+              &mask, CHAR_BIT, -(long)(CHAR_BIT - n_bits) + bit_offset);
+
+        unsigned char data_mask =
+              (UCHAR_MAX << (CHAR_BIT - n_bits + bit_offset))
+              & (UCHAR_MAX >> bit_offset);
+
+        result = ar[start_byte] & data_mask;
+        printf("n_bits %lu mask %u, data_mask %u, data %u \n",
+               n_bits,
+               mask,
+               data_mask,
+               ar[start_byte]);
+
     } else {
-        unsigned char upper_mask = (unsigned char)(mask >> bit_offset);
-        unsigned char lower_mask =
-              (unsigned char)(mask << (CHAR_BIT - bit_offset));
+        unsigned char upper_mask = UCHAR_MAX >> bit_offset;
+        // FIXME continue here!
+        unsigned char lower_mask = UCHAR_MAX << (n_bits - bit_offset);
+
+        printf("upper mask %u lower mask %u\n", upper_mask, lower_mask);
+        printf("upper byte %u, lower byte %u, masked upper %u, masked lower "
+               "%u\n",
+               ar[start_byte],
+               ar[start_byte + 1],
+               (ar[start_byte] & upper_mask),
+               (ar[start_byte + 1] & lower_mask));
         result =
               (ar[start_byte] & upper_mask) + (ar[start_byte + 1] & lower_mask);
     }

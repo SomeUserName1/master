@@ -13,8 +13,8 @@ typedef struct
     page_cache*   cache;
     unsigned long n_nodes;
     unsigned long n_rels;
-    unsigned long last_alloc_node_slot;
-    unsigned long last_alloc_rel_slot;
+    unsigned long last_alloc_node_id;
+    unsigned long last_alloc_rel_id;
     unsigned long num_reads_nodes;
     unsigned long num_updates_nodes;
     unsigned long num_reads_rels;
@@ -35,7 +35,7 @@ heap_file_create(page_cache* pc
 void
 heap_file_destroy(heap_file* hf);
 
-unsigned long
+void
 next_free_slots(heap_file* hf, bool node);
 
 bool
@@ -68,15 +68,6 @@ delete_node(heap_file* hf, unsigned long node_id);
 
 void
 delete_relationship(heap_file* hf, unsigned long rel_id);
-
-void
-prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id);
-
-void
-prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id);
-
-void
-swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft);
 
 array_list_node*
 get_nodes(heap_file* hf);

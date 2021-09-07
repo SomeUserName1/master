@@ -20,14 +20,21 @@ test_compare_bits(void)
     const unsigned char test[1]   = { test_number };
     const unsigned char test_2[2] = { test_number, UCHAR_MAX };
 
-    assert(compare_bits(test, 1 * CHAR_BIT, 1 << 2, 0));
-    assert(compare_bits(test, 1 * CHAR_BIT, test_number, 0));
-    assert(!compare_bits(test, 1 * CHAR_BIT, 1 << 4, 0));
+    assert(compare_bits(test, 1 * CHAR_BIT, 1, 0, 6));
+    assert(!compare_bits(test, 1 * CHAR_BIT, 1 << 4, 0, 5));
+    assert(compare_bits(test, 1 * CHAR_BIT, test_number, 0, 8));
 
-    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX >> 4, 8));
-    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8));
-    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 7));
-    assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 4));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 8));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 7, 8));
+    assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4, 8));
+
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX >> 4, 8, 4));
+    assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX >> 4, 8, 5));
+    assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX >> 4, 7, 5));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 4));
+    assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4, 4));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, test_number, 4, 4));
 
     printf("test header page - compare bits successful\n");
 }

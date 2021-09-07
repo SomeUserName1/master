@@ -54,8 +54,8 @@ test_heap_file_create(void)
 
     assert(hf);
     assert(hf->cache == pc);
-    assert(hf->last_alloc_node_slot == 0);
-    assert(hf->last_alloc_rel_slot == 0);
+    assert(hf->last_alloc_node_id == 0);
+    assert(hf->last_alloc_rel_id == 0);
     assert(hf->n_nodes == 0);
     assert(hf->n_rels == 0);
     assert(hf->num_reads_nodes == 0);
@@ -110,103 +110,6 @@ test_heap_file_destroy(void)
 }
 
 void
-test_next_free_slots(void)
-{
-    char* file_name = "test";
-
-#ifdef VERBOSE
-    char* log_name_pdb   = "log_test_pdb";
-    char* log_name_cache = "log_test_pc";
-    char* log_name_file  = "log_test_hf";
-#endif
-
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-
-    allocate_pages(pdb, node_ft, 1);
-
-    page_cache* pc = page_cache_create(pdb
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
-
-    heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
-                                     ,
-                                     log_name_file
-#endif
-    );
-
-    unsigned long node_slot = next_free_slots(hf, true);
-    assert(node_slot == 0);
-    assert(hf->last_alloc_node_slot == 0);
-
-    unsigned char* write_mask = malloc(sizeof(unsigned char));
-    write_mask[0]             = UCHAR_MAX;
-    page* p                   = pin_page(pc, 0, header, node_ft);
-    write_bits(pc, p, 0, 0, 3, write_mask);
-
-    node_slot = next_free_slots(hf, true);
-    assert(node_slot == NUM_SLOTS_PER_NODE);
-    assert(hf->last_alloc_node_slot == 0);
-
-    write_mask    = malloc(sizeof(unsigned char));
-    write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, 3, 3, write_mask);
-
-    node_slot = next_free_slots(hf, true);
-    assert(node_slot == 2 * NUM_SLOTS_PER_NODE);
-    assert(hf->last_alloc_node_slot == 1);
-
-    write_mask    = malloc(sizeof(unsigned char));
-    write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, next_slot_test, 3, write_mask);
-
-    write_mask    = malloc(sizeof(unsigned char));
-    write_mask[0] = 1;
-    write_bits(pc, p, 1, 3, 1, write_mask);
-
-    node_slot = next_free_slots(hf, true);
-    assert(node_slot == 4 * NUM_SLOTS_PER_NODE);
-    assert(hf->last_alloc_node_slot == 1);
-
-    memset(p->data, UCHAR_MAX, PAGE_SIZE);
-
-    allocate_pages(pdb, node_ft, num_pages_for_two_header_p);
-    node_slot = next_free_slots(hf, true);
-
-    assert(hf->last_alloc_node_slot == PAGE_SIZE);
-    assert(node_slot == 32768);
-
-    page* p2 = pin_page(pc, 1, header, node_ft);
-    memset(p2->data, UCHAR_MAX, PAGE_SIZE);
-
-    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 1);
-
-    node_slot = next_free_slots(hf, true);
-
-    assert(hf->last_alloc_node_slot == 2 * PAGE_SIZE);
-    /* as we havent allocated sufficient record pages to
-                             actually be able to fill the second header page we
-       get a node slot of 132 pages * 256 slots per page */
-
-    assert(node_slot == 33280);
-    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
-
-    unpin_page(pc, 1, header, node_ft);
-    unpin_page(pc, 0, header, node_ft);
-    heap_file_destroy(hf);
-    page_cache_destroy(pc);
-    phy_database_delete(pdb);
-}
-
-void
 test_check_record_exists(void)
 {
     char* file_name = "test";
@@ -240,9 +143,115 @@ test_check_record_exists(void)
 #endif
     );
 
-    unsigned long node_slot = next_free_slots(hf, true);
+    unsigned char* write_mask = malloc(sizeof(unsigned char));
+    write_mask[0]             = UCHAR_MAX;
+    page* p                   = pin_page(pc, 0, header, node_ft);
+    write_bits(pc, p, 0, 0, 3, write_mask);
+    unpin_page(pc, 0, header, node_ft);
 
-    assert(check_record_exists(hf, node_slot / NUM_SLOTS_PER_NODE, true));
+    assert(check_record_exists(hf, 0, true));
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, 3, 3, write_mask);
+
+    assert(check_record_exists(hf, 0, true));
+    assert(check_record_exists(hf, 1, true));
+
+    unpin_page(pc, 0, header, node_ft);
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
+
+void
+test_next_free_slots(void)
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_ft, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    next_free_slots(hf, true);
+    assert(hf->last_alloc_node_id == 0);
+
+    unsigned char* write_mask = malloc(sizeof(unsigned char));
+    write_mask[0]             = UCHAR_MAX;
+    page* p                   = pin_page(pc, 0, header, node_ft);
+    write_bits(pc, p, 0, 0, 3, write_mask);
+
+    next_free_slots(hf, true);
+    printf("%lu\n", hf->last_alloc_node_id);
+    assert(hf->last_alloc_node_id == 1);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, 3, 3, write_mask);
+
+    next_free_slots(hf, true);
+    assert(hf->last_alloc_node_id == 2);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = UCHAR_MAX;
+    write_bits(pc, p, 0, next_slot_test, 3, write_mask);
+
+    write_mask    = malloc(sizeof(unsigned char));
+    write_mask[0] = 1;
+    write_bits(pc, p, 1, 3, 1, write_mask);
+
+    next_free_slots(hf, true);
+    assert(hf->last_alloc_node_id == 4);
+
+    memset(p->data, UCHAR_MAX, PAGE_SIZE);
+    allocate_pages(pdb, node_ft, num_pages_for_two_header_p);
+
+    next_free_slots(hf, true);
+    assert(hf->last_alloc_node_id == 86);
+
+    page* p2 = pin_page(pc, 1, header, node_ft);
+    memset(p2->data, UCHAR_MAX, PAGE_SIZE);
+
+    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 1);
+
+    next_free_slots(hf, true);
+
+    assert(hf->last_alloc_node_id == 11220);
+    /* as we havent allocated sufficient record pages to
+                             actually be able to fill the second header page we
+       get a node slot of 132 pages * 85 slots per page */
+    assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
+
+    unpin_page(pc, 1, header, node_ft);
+    unpin_page(pc, 0, header, node_ft);
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
 }
 
 void
@@ -284,7 +293,7 @@ test_create_node(void)
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
     assert(hf->n_nodes == 1);
-    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 0);
     assert(hf->num_updates_nodes == 1);
 
     page*   p    = pin_page(pc, 0, records, node_ft);
@@ -301,7 +310,7 @@ test_create_node(void)
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id == 1);
     assert(hf->n_nodes == 2);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 1);
     assert(hf->num_updates_nodes == 2);
 
     node_t* node_1 = new_node();
@@ -361,8 +370,8 @@ test_create_relationship(void)
     assert(id == 0);
     assert(hf->n_nodes == 2);
     assert(hf->n_rels == 1);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
-    assert(hf->last_alloc_rel_slot == NUM_SLOTS_PER_REL / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 1);
+    assert(hf->last_alloc_rel_id == 0);
 
     page*           p   = pin_page(pc, 0, records, relationship_ft);
     relationship_t* rel = new_relationship();
@@ -403,8 +412,8 @@ test_create_relationship(void)
 
     assert(hf->n_nodes == 4);
     assert(hf->n_rels == 5);
-    assert(hf->last_alloc_node_slot == 4 * NUM_SLOTS_PER_NODE / CHAR_BIT);
-    assert(hf->last_alloc_rel_slot == 5 * NUM_SLOTS_PER_REL / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 3);
+    assert(hf->last_alloc_rel_id == 4);
 
     rel     = new_relationship();
     rel->id = id;
@@ -552,7 +561,7 @@ test_read_node(void)
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
     assert(hf->n_nodes == 1);
-    assert(hf->last_alloc_node_slot == NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 0);
 
     node_t* node = read_node(hf, id);
     assert(node->id == id);
@@ -565,7 +574,7 @@ test_read_node(void)
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id == 1);
     assert(hf->n_nodes == 2);
-    assert(hf->last_alloc_node_slot == 2 * NUM_SLOTS_PER_NODE / CHAR_BIT);
+    assert(hf->last_alloc_node_id == 1);
 
     node_t* node_1 = read_node(hf, id_1);
     assert(node_1->id == id_1);
@@ -853,18 +862,6 @@ test_delete_relationship(void)
 }
 
 void
-test_prepare_move_node(void)
-{}
-
-void
-test_prepare_move_relationship(void)
-{}
-
-void
-test_swap_page(void)
-{}
-
-void
 test_get_nodes(void)
 {}
 
@@ -887,14 +884,14 @@ test_contains_relationship_from_to(void)
 int
 main(void)
 {
+    test_check_record_exists();
+    printf("finished test record exists\n");
     test_heap_file_create();
     printf("finished test create heap file\n");
     test_heap_file_destroy();
     printf("finished test destroy heap file\n");
     test_next_free_slots();
     printf("finished test next free slot\n");
-    test_check_record_exists();
-    printf("finished test record exists\n");
     test_create_node();
     printf("finished test create node\n");
     test_create_relationship();
@@ -911,11 +908,6 @@ main(void)
     printf("finished test delete_node\n");
     test_delete_relationship();
     printf("finished test delete_relationship\n");
-    test_prepare_move_node();
-    printf("finished test prepare_move_node\n");
-    test_prepare_move_relationship();
-    printf("finished test prepare_move_relationship\n");
-    test_swap_page();
     printf("finished test swap_page\n");
     test_get_nodes();
     printf("finished test get_nodes\n");

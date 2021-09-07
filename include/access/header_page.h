@@ -6,14 +6,15 @@
 #include "page.h"
 #include "page_cache.h"
 
+void
+shift_bit_array(unsigned char* ar, size_t size, long n_bits);
+
 bool
 compare_bits(const unsigned char* ar,
              size_t               size,
              unsigned char        mask,
-             size_t               offset);
-
-void
-shift_bit_array(unsigned char* ar, size_t size, long n_bits);
+             size_t               offset,
+             size_t               n_bits);
 
 /*
  * Concat the first bit array and the second both into the first one. The second
@@ -22,7 +23,7 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits);
 unsigned char*
 concat_bit_arrays(unsigned char* first,
                   unsigned char* second,
-                  size_t         n_bist_fst,
+                  size_t         n_bits_fst,
                   size_t         n_bits_snd);
 
 /*
