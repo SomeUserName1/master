@@ -16,8 +16,14 @@ compare_bits(const unsigned char* ar,
              size_t               offset,
              size_t               n_bits)
 {
-    if (!ar || offset + n_bits > size) {
-        printf("header page - compare bits: Invalid Arguments!\n");
+    if (!ar || offset + n_bits > size || n_bits > CHAR_BIT) {
+        printf("header page - compare bits: Invalid Arguments!, ar %p, size "
+               "%lu, mask %u, offset %lu, n_bits %lu\n",
+               ar,
+               size,
+               mask,
+               offset,
+               n_bits);
         exit(EXIT_FAILURE);
     }
 
@@ -27,35 +33,28 @@ compare_bits(const unsigned char* ar,
     mask = mask & (UCHAR_MAX >> (CHAR_BIT - n_bits));
 
     unsigned char result = 0;
-    if (bit_offset == 0) {
+    if (bit_offset == 0 || bit_offset + n_bits <= CHAR_BIT) {
         shift_bit_array(
               &mask, CHAR_BIT, -(long)(CHAR_BIT - n_bits) + bit_offset);
 
         unsigned char data_mask =
-              (UCHAR_MAX << (CHAR_BIT - n_bits + bit_offset))
+              (unsigned char)(UCHAR_MAX << (CHAR_BIT - (n_bits + bit_offset)))
               & (UCHAR_MAX >> bit_offset);
 
         result = ar[start_byte] & data_mask;
-        printf("n_bits %lu mask %u, data_mask %u, data %u \n",
-               n_bits,
-               mask,
-               data_mask,
-               ar[start_byte]);
-
     } else {
         unsigned char upper_mask = UCHAR_MAX >> bit_offset;
-        // FIXME continue here!
-        unsigned char lower_mask = UCHAR_MAX << (n_bits - bit_offset);
+        unsigned char lower_mask =
+              UCHAR_MAX << (CHAR_BIT - n_bits + CHAR_BIT - bit_offset);
 
-        printf("upper mask %u lower mask %u\n", upper_mask, lower_mask);
-        printf("upper byte %u, lower byte %u, masked upper %u, masked lower "
-               "%u\n",
-               ar[start_byte],
-               ar[start_byte + 1],
-               (ar[start_byte] & upper_mask),
-               (ar[start_byte + 1] & lower_mask));
-        result =
-              (ar[start_byte] & upper_mask) + (ar[start_byte + 1] & lower_mask);
+        unsigned char shift_result[2];
+        shift_result[0] = (ar[start_byte] & upper_mask);
+        shift_result[1] = (ar[start_byte + 1] & lower_mask);
+
+        shift_bit_array(
+              shift_result, 2 * CHAR_BIT, CHAR_BIT - bit_offset - n_bits);
+
+        result = shift_result[0];
     }
 
     return result == mask ? true : false;

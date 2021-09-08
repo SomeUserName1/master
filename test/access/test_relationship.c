@@ -200,7 +200,7 @@ test_relationship_write(void)
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
     relationship->source_node     = 1;
-    relationship->target_node     = 2;
+    relationship->target_node     = NUM;
     relationship->prev_rel_source = 1;
     relationship->next_rel_source = 2;
     relationship->prev_rel_target = 3;
@@ -218,7 +218,7 @@ test_relationship_write(void)
 
     unsigned long trgt = read_ulong(
           p, relationship->id * ON_DISK_REL_SIZE + sizeof(unsigned long));
-    assert(trgt == 2);
+    assert(trgt == NUM);
 
     unsigned long prv_src =
           read_ulong(p,
@@ -304,7 +304,7 @@ test_relationship_read(void)
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
     relationship->source_node     = 1;
-    relationship->target_node     = 2;
+    relationship->target_node     = NUM;
     relationship->prev_rel_source = 1;
     relationship->next_rel_source = 2;
     relationship->prev_rel_target = 3;
@@ -320,6 +320,7 @@ test_relationship_read(void)
     relationship_t* n_rel = new_relationship();
     n_rel->id             = 3;
     relationship_read(n_rel, p);
+    assert(n_rel->target_node == NUM);
 
     unpin_page(pc, 0, records, relationship_ft);
 

@@ -10,7 +10,7 @@
 
 static const unsigned char test_number = 5;
 static const unsigned long num_pages_for_two_header_p =
-      1 + PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE;
+      1 + PAGE_SIZE * CHAR_BIT;
 static const unsigned char test_case_shift = 7;
 static const unsigned char test_case_write = 6;
 
@@ -19,12 +19,15 @@ test_compare_bits(void)
 {
     const unsigned char test[1]   = { test_number };
     const unsigned char test_2[2] = { test_number, UCHAR_MAX };
+    const unsigned char test3[1]  = { 252 };
+    const unsigned char test4[2]  = { 255, 240 };
 
     assert(compare_bits(test, 1 * CHAR_BIT, 1, 0, 6));
     assert(!compare_bits(test, 1 * CHAR_BIT, 1 << 4, 0, 5));
     assert(compare_bits(test, 1 * CHAR_BIT, test_number, 0, 8));
 
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 4));
+    assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 13, 3));
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 8));
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 7, 8));
     assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4, 8));
@@ -35,6 +38,12 @@ test_compare_bits(void)
     assert(compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 8, 4));
     assert(!compare_bits(test_2, 2 * CHAR_BIT, UCHAR_MAX, 4, 4));
     assert(compare_bits(test_2, 2 * CHAR_BIT, test_number, 4, 4));
+    assert(compare_bits(test3, CHAR_BIT, UCHAR_MAX, 3, 3));
+    assert(compare_bits(test4, 2 * CHAR_BIT, UCHAR_MAX, 0, 3));
+    assert(compare_bits(test4, 2 * CHAR_BIT, UCHAR_MAX, 3, 3));
+    assert(compare_bits(test4, 2 * CHAR_BIT, UCHAR_MAX, 6, 3));
+    assert(compare_bits(test4, 2 * CHAR_BIT, UCHAR_MAX, 9, 3));
+    assert(!compare_bits(test4, 2 * CHAR_BIT, UCHAR_MAX, 12, 3));
 
     printf("test header page - compare bits successful\n");
 }

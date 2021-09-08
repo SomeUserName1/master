@@ -249,8 +249,10 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 
     if (unpinned_page->pin_count == 0) {
         printf("page cache - unpin page: Page %zu is not pinned (page count is "
-               "zero)!\n",
-               page_no);
+               "zero)! file kind %u, file type %u\n",
+               page_no,
+               fk,
+               ft);
         exit(EXIT_FAILURE);
     }
 
