@@ -1108,6 +1108,32 @@ test_rel_chain_small(void)
 #endif
     );
 
+    unsigned long n_5 = create_node(hf, "\0");
+    unsigned long n_6 = create_node(hf, "\0");
+
+    unsigned long r_9 = create_relationship(hf, n_5, n_5, 1.0, "\0");
+    unsigned long r_7 = create_relationship(hf, n_5, n_6, 1.0, "\0");
+    unsigned long r_8 = create_relationship(hf, n_6, n_5, 1.0, "\0");
+
+    relationship_t* r9 = read_relationship(hf, r_9);
+    relationship_t* r7 = read_relationship(hf, r_7);
+    relationship_t* r8 = read_relationship(hf, r_8);
+
+    assert(r9->next_rel_source == r_7);
+    assert(r9->prev_rel_source == r_8);
+    assert(r9->next_rel_target == r_7);
+    assert(r9->prev_rel_target == r_8);
+
+    assert(r7->next_rel_source == r_8);
+    assert(r7->prev_rel_source == r_9);
+    assert(r7->next_rel_target == r_8);
+    assert(r7->prev_rel_target == r_8);
+
+    assert(r8->next_rel_source == r_7);
+    assert(r8->prev_rel_source == r_7);
+    assert(r8->next_rel_target == r_9);
+    assert(r8->prev_rel_target == r_7);
+
     unsigned long n_1 = create_node(hf, "\0");
     unsigned long n_2 = create_node(hf, "\0");
     unsigned long n_3 = create_node(hf, "\0");
@@ -1116,38 +1142,47 @@ test_rel_chain_small(void)
     unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0");
     unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0");
     unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0");
+    unsigned long r_6 = create_relationship(hf, n_2, n_1, 1.0, "\0");
 
     relationship_t* r1 = read_relationship(hf, r_1);
     relationship_t* r2 = read_relationship(hf, r_2);
     relationship_t* r3 = read_relationship(hf, r_3);
     relationship_t* r5 = read_relationship(hf, r_5);
+    relationship_t* r6 = read_relationship(hf, r_6);
 
     assert(r1->next_rel_source == r_2);
-    assert(r1->prev_rel_source == r_5);
+    assert(r1->prev_rel_source == r_6);
     assert(r1->next_rel_target == r_2);
-    assert(r1->prev_rel_target == r_5);
+    assert(r1->prev_rel_target == r_6);
 
     assert(r2->next_rel_source == r_3);
     assert(r2->prev_rel_source == r_1);
-    assert(r2->next_rel_target == r_2);
-    assert(r2->prev_rel_target == r_2);
+    assert(r2->next_rel_target == r_6);
+    assert(r2->prev_rel_target == r_6);
 
     assert(r3->next_rel_source == r_5);
     assert(r3->prev_rel_source == r_2);
-    // FIXME continue here
-    printf("%lu %lu\n", r3->prev_rel_source, r3->prev_rel_target);
-    // assert(r3->next_rel_target == r_5);
-    // assert(r3->prev_rel_target == r_5);
+    assert(r3->next_rel_target == r_5);
+    assert(r3->prev_rel_target == r_5);
 
     assert(r5->next_rel_source == r_3);
     assert(r5->prev_rel_source == r_3);
-    assert(r5->next_rel_target == r_1);
+    assert(r5->next_rel_target == r_6);
     assert(r5->prev_rel_target == r_3);
+
+    assert(r6->next_rel_source == r_2);
+    assert(r6->prev_rel_source == r_2);
+    assert(r6->next_rel_target == r_1);
+    assert(r6->prev_rel_target == r_5);
 
     free(r1);
     free(r2);
     free(r3);
     free(r5);
+    free(r6);
+    free(r7);
+    free(r8);
+    free(r9);
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);
@@ -1314,7 +1349,103 @@ test_expand(void)
 
 void
 test_contains_relationship_from_to(void)
-{}
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_ft, 1);
+    allocate_pages(pdb, relationship_ft, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+
+    unsigned long              n_1    = create_node(hf, "\0");
+    unsigned long              n_2    = create_node(hf, "\0");
+    unsigned long              n_3    = create_node(hf, "\0");
+    static const unsigned long non_ex = 666;
+
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0");
+    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0");
+    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0");
+    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0");
+
+    relationship_t* r1  = contains_relationship_from_to(hf, n_1, n_1, BOTH);
+    relationship_t* r11 = contains_relationship_from_to(hf, n_1, n_1, INCOMING);
+    relationship_t* r12 = contains_relationship_from_to(hf, n_1, n_1, OUTGOING);
+
+    relationship_t* r2  = contains_relationship_from_to(hf, n_1, n_2, BOTH);
+    relationship_t* r21 = contains_relationship_from_to(hf, n_1, n_2, INCOMING);
+    relationship_t* r22 = contains_relationship_from_to(hf, n_1, n_2, OUTGOING);
+
+    relationship_t* r3  = contains_relationship_from_to(hf, n_1, n_3, BOTH);
+    relationship_t* r31 = contains_relationship_from_to(hf, n_1, n_3, INCOMING);
+    relationship_t* r32 = contains_relationship_from_to(hf, n_1, n_3, OUTGOING);
+
+    relationship_t* r5  = contains_relationship_from_to(hf, n_3, n_1, BOTH);
+    relationship_t* r51 = contains_relationship_from_to(hf, n_3, n_1, INCOMING);
+    relationship_t* r52 = contains_relationship_from_to(hf, n_3, n_1, OUTGOING);
+
+    relationship_t* r6  = contains_relationship_from_to(hf, non_ex, n_1, BOTH);
+    relationship_t* r61 = contains_relationship_from_to(hf, n_2, n_3, BOTH);
+
+    assert(r1->id == r_1);
+    assert(r11->id == r_1);
+    assert(r12->id == r_1);
+
+    assert(r2->id == r_2);
+    assert(r21 == NULL);
+    assert(r22->id == r_2);
+
+    assert(r3->id == r_3);
+    assert(r31->id == r_5);
+    assert(r32->id == r_3);
+
+    assert(r5->id == r_5 || r5->id == r_3);
+    assert(r51->id == r_3);
+    assert(r52->id == r_5);
+
+    assert(r6 == NULL);
+    assert(r61 == NULL);
+
+    free(r1);
+    free(r11);
+    free(r12);
+    free(r2);
+    free(r22);
+    free(r3);
+    free(r31);
+    free(r32);
+    free(r5);
+    free(r51);
+    free(r52);
+
+    heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+}
 
 int
 main(void)

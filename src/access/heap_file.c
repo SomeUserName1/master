@@ -383,9 +383,15 @@ create_relationship(heap_file*    hf,
                         ? first_rel_to->prev_rel_source
                         : first_rel_to->prev_rel_target;
 
-        last_rel_to = temp_id == to_node->first_relationship
-                            ? first_rel_to
-                            : read_relationship(hf, temp_id);
+        if (temp_id == first_rel_from->id) {
+            last_rel_to = first_rel_from;
+        } else if (temp_id == last_rel_from->id) {
+            last_rel_to = last_rel_from;
+        } else if (temp_id == to_node->first_relationship) {
+            last_rel_to = first_rel_to;
+        } else {
+            last_rel_to = read_relationship(hf, temp_id);
+        }
     }
 
     rel->prev_rel_source = last_rel_from->id;
@@ -804,7 +810,9 @@ next_relationship_id(heap_file*      hf,
         if (rel_id != start_rel_id
             && ((rel->source_node == node_id && direction != INCOMING)
                 || (rel->target_node == node_id && direction != OUTGOING))) {
-            return rel->id;
+            rel_id = rel->id;
+            free(rel);
+            return rel_id;
         }
         rel_id = node_id == rel->source_node ? rel->next_rel_source
                                              : rel->next_rel_target;
@@ -827,6 +835,7 @@ expand(heap_file* hf, unsigned long node_id, direction_t direction)
 
     array_list_relationship* result = al_rel_create();
     unsigned long            rel_id = node->first_relationship;
+    free(node);
 
     if (rel_id == UNINITIALIZED_LONG) {
         return result;
@@ -842,11 +851,12 @@ expand(heap_file* hf, unsigned long node_id, direction_t direction)
         rel_id   = next_relationship_id(hf, node_id, rel, direction);
         start_id = rel_id;
     }
+    free(rel);
 
     while (rel_id != UNINITIALIZED_LONG) {
         rel = read_relationship(hf, rel_id);
         array_list_relationship_append(result, rel);
-        rel_id = next_relationship_id(hf, node->id, rel, direction);
+        rel_id = next_relationship_id(hf, node_id, rel, direction);
 
         if (rel_id == start_id) {
             return result;
@@ -862,23 +872,33 @@ contains_relationship_from_to(heap_file*    hf,
                               unsigned long node_to,
                               direction_t   direction)
 {
-    if (!hf || node_from == UNINITIALIZED_LONG
-        || node_to == UNINITIALIZED_LONG) {
+    if (!hf || direction > BOTH) {
         printf("heap file - contains relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
     }
 
+    if (node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG
+        || !check_record_exists(hf, node_from, true)
+        || !check_record_exists(hf, node_to, true)) {
+        return NULL;
+    }
+
     relationship_t* rel;
-    node_t*         source_node = read_node_internal(hf, node_from, true);
-    node_t*         target_node = read_node_internal(hf, node_to, true);
+    node_t*         source_node = read_node_internal(hf, node_from, false);
+    node_t*         target_node = read_node_internal(hf, node_to, false);
 
     if (source_node->first_relationship == UNINITIALIZED_LONG
         || target_node->first_relationship == UNINITIALIZED_LONG) {
+        free(source_node);
+        free(target_node);
         return NULL;
     }
 
     unsigned long next_id  = source_node->first_relationship;
     unsigned long start_id = next_id;
+
+    free(source_node);
+    free(target_node);
 
     do {
         rel = read_relationship(hf, next_id);
@@ -888,7 +908,10 @@ contains_relationship_from_to(heap_file*    hf,
                 && rel->target_node == node_from)) {
             return rel;
         }
-        next_id = next_relationship_id(hf, source_node->id, rel, direction);
+
+        next_id = next_relationship_id(hf, node_from, rel, direction);
+
+        free(rel);
     } while (next_id != start_id && next_id != UNINITIALIZED_LONG);
 
     return NULL;

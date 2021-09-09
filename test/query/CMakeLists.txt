@@ -1,5 +1,5 @@
-add_executable(in-memory-operators-test  in_memory_operators_test.c)
-target_link_libraries(in-memory-operators-test  query)
+add_executable(snap-importer-test   snap_importer_test.c)
+target_link_libraries(snap-importer-test query)
 
 add_executable(degree-test  degree_test.c)
 target_link_libraries(degree-test query)
@@ -22,13 +22,6 @@ target_link_libraries(alt-test query)
 add_executable(random-walk-test  random_walk_test.c)
 target_link_libraries(random-walk-test query)
 
-add_executable(louvain-test  louvain_test.c)
-target_link_libraries(louvain-test query)
-
-add_executable(snap-importer-test   snap_importer_test.c)
-target_link_libraries(snap-importer-test query)
-
-add_test("In-Memory Operators Test" in-memory-operators-test)
 add_test("Import Test" snap-importer-test)
 add_test("Degree Test" degree-test)
 add_test("BFS Test" bfs-test)
@@ -37,4 +30,3 @@ add_test("Dijkstra's Test" dijkstra-test)
 add_test("A* Test" a-star-test)
 add_test("ALT Test" alt-test)
 add_test("Random Walk Test" random-walk-test)
-add_test("Louvain Test" louvain-test)

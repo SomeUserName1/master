@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "access/in_memory_file.h"
+#include "access/heap_file.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "data-struct/htable.h"
@@ -11,7 +11,7 @@
 #define DATASET_TEMP   ("/home/someusername/workspace_local/dataset.txt.gz")
 #define PATH_CELEGANS  ("/home/someusername/workspace_local/celegans.txt")
 #define PATH_EMAIL     ("/home/someusername/workspace_local/email_eu.txt")
-#define PATH_DBLP      ("/home/someusername/workspace_local/dblp.txt")
+#define PATH_DBLP      ("/home/someusername/workspace_local/hflp.txt")
 #define PATH_AMAZON    ("/home/someusername/workspace_local/amazon.txt")
 #define PATH_YOUTUBE   ("/home/someusername/workspace_local/youtube.txt")
 #define PATH_WIKIPEDIA ("/home/someusername/workspace_local/wikipeida.txt")
@@ -20,6 +20,51 @@
 #define PATH_ORKUT      ("/home/someusername/workspace_local/orkut.txt")
 #define PATH_FRIENDSTER ("/home/someusername/workspace_local/friendster.txt")
 
+heap_file*
+prepare(void)
+{
+    char* file_name = "test";
+
+#ifdef VERBOSE
+    char* log_name_pdb   = "log_test_pdb";
+    char* log_name_cache = "log_test_pc";
+    char* log_name_file  = "log_test_hf";
+#endif
+
+    phy_database* pdb = phy_database_create(file_name
+#ifdef VERBOSE
+                                            ,
+                                            log_name_pdb
+#endif
+    );
+
+    allocate_pages(pdb, node_ft, 1);
+    allocate_pages(pdb, relationship_ft, 1);
+
+    page_cache* pc = page_cache_create(pdb
+#ifdef VERBOSE
+                                       ,
+                                       log_name_cache
+#endif
+    );
+
+    heap_file* hf = heap_file_create(pc
+#ifdef VERBOSE
+                                     ,
+                                     log_name_file
+#endif
+    );
+    return hf;
+}
+
+void
+clean_up(heap_file* hf)
+{
+    phy_database_delete(hf->cache->pdb);
+    page_cache_destroy(hf->cache);
+    heap_file_destroy(hf);
+}
+
 void
 test_celegans(void)
 {
@@ -27,14 +72,14 @@ test_celegans(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_CELEGANS) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_CELEGANS);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_CELEGANS, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == C_ELEGANS_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == C_ELEGANS_NO_RELS);
+    assert(hf->n_nodes == C_ELEGANS_NO_NODES);
+    assert(hf->n_rels == C_ELEGANS_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -44,14 +89,14 @@ test_email(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_EMAIL) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_EMAIL);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_EMAIL, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == EMAIL_EU_CORE_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == EMAIL_EU_CORE_NO_RELS);
+    assert(hf->n_nodes == EMAIL_EU_CORE_NO_NODES);
+    assert(hf->n_rels == EMAIL_EU_CORE_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -61,14 +106,14 @@ test_dblp(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_DBLP) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_DBLP);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_DBLP, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == DBLP_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == DBLP_NO_RELS);
+    assert(hf->n_nodes == DBLP_NO_NODES);
+    assert(hf->n_rels == DBLP_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -78,14 +123,14 @@ test_amazon(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_AMAZON) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_AMAZON);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_AMAZON, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == AMAZON_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == AMAZON_NO_RELS);
+    assert(hf->n_nodes == AMAZON_NO_NODES);
+    assert(hf->n_rels == AMAZON_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -95,14 +140,14 @@ test_youtube(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_YOUTUBE) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_YOUTUBE);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_YOUTUBE, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == YOUTUBE_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == YOUTUBE_NO_RELS);
+    assert(hf->n_nodes == YOUTUBE_NO_NODES);
+    assert(hf->n_rels == YOUTUBE_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -112,14 +157,14 @@ test_wikipedia(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_WIKIPEDIA) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_WIKIPEDIA);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_WIKIPEDIA, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == WIKIPEDIA_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == WIKIPEDIA_NO_RELS);
+    assert(hf->n_nodes == WIKIPEDIA_NO_NODES);
+    assert(hf->n_rels == WIKIPEDIA_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -129,14 +174,14 @@ test_live_journal(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_LIVE_JOURNAL) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_LIVE_JOURNAL);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_LIVE_JOURNAL, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == LIVE_JOURNAL_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == LIVE_JOURNAL_NO_RELS);
+    assert(hf->n_nodes == LIVE_JOURNAL_NO_NODES);
+    assert(hf->n_rels == LIVE_JOURNAL_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -146,14 +191,14 @@ test_orkut(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_ORKUT) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_ORKUT);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_ORKUT, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == ORKUT_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == ORKUT_NO_RELS);
+    assert(hf->n_nodes == ORKUT_NO_NODES);
+    assert(hf->n_rels == ORKUT_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -163,14 +208,14 @@ test_friendster(void)
 
     assert(download_dataset(dataset, DATASET_TEMP) == 0);
     assert(uncompress_dataset(DATASET_TEMP, PATH_FRIENDSTER) == 0);
-    in_memory_file_t* db  = create_in_memory_file();
-    dict_ul_ul*       map = import_from_txt(db, PATH_FRIENDSTER);
+    heap_file*  hf  = prepare();
+    dict_ul_ul* map = import_from_txt(hf, PATH_FRIENDSTER, false);
 
-    assert(dict_ul_node_size(db->cache_nodes) == FRIENDSTER_NO_NODES);
-    assert(dict_ul_rel_size(db->cache_rels) == FRIENDSTER_NO_RELS);
+    assert(hf->n_nodes == FRIENDSTER_NO_NODES);
+    assert(hf->n_rels == FRIENDSTER_NO_RELS);
 
     dict_ul_ul_destroy(map);
-    in_memory_file_destroy(db);
+    clean_up(hf);
 }
 
 void
@@ -222,11 +267,11 @@ main(void)
     test_email();
     test_dblp();
     test_amazon();
-    // test_youtube();
-    // test_wikipedia();
-    // test_live_journal();
-    // test_orkut();
-    // test_friendster();
+    test_youtube();
+    test_wikipedia();
+    test_live_journal();
+    test_orkut();
+    test_friendster();
     test_get_url();
     test_get_no_nodes();
     test_get_no_rels();
