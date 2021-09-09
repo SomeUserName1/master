@@ -162,11 +162,15 @@ test_node_write(void)
     page* p = pin_page(pc, 0, records, node_ft);
     node_write(node, p);
 
-    unsigned long fst_rel = read_ulong(p, node->id * ON_DISK_NODE_SIZE);
+    unsigned long fst_rel =
+          read_ulong(p, node->id * NUM_SLOTS_PER_NODE * SLOT_SIZE);
     assert(fst_rel == node->first_relationship);
 
     char label[MAX_STR_LEN];
-    read_string(p, node->id * ON_DISK_NODE_SIZE + sizeof(unsigned long), label);
+    read_string(p,
+                node->id * NUM_SLOTS_PER_NODE * SLOT_SIZE
+                      + sizeof(unsigned long),
+                label);
 
     unpin_page(pc, 0, records, node_ft);
 

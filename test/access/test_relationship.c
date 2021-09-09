@@ -213,53 +213,57 @@ test_relationship_write(void)
     page* p = pin_page(pc, 0, records, relationship_ft);
     relationship_write(relationship, p);
 
-    unsigned long src = read_ulong(p, relationship->id * ON_DISK_REL_SIZE);
+    unsigned long src =
+          read_ulong(p, relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE);
     assert(src == 1);
 
-    unsigned long trgt = read_ulong(
-          p, relationship->id * ON_DISK_REL_SIZE + sizeof(unsigned long));
+    unsigned long trgt =
+          read_ulong(p,
+                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                           + sizeof(unsigned long));
     assert(trgt == NUM);
 
     unsigned long prv_src =
           read_ulong(p,
-                     relationship->id * ON_DISK_REL_SIZE + sizeof(unsigned long)
-                           + sizeof(unsigned long));
+                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                           + sizeof(unsigned long) + sizeof(unsigned long));
     assert(prv_src == 1);
 
     unsigned long nxt_src =
           read_ulong(p,
-                     relationship->id * ON_DISK_REL_SIZE + sizeof(unsigned long)
-                           + sizeof(unsigned long) + sizeof(unsigned long));
+                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                           + sizeof(unsigned long) + sizeof(unsigned long)
+                           + sizeof(unsigned long));
     assert(nxt_src == 2);
 
     unsigned long prv_trgt =
           read_ulong(p,
-                     relationship->id * ON_DISK_REL_SIZE + sizeof(unsigned long)
+                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
                            + sizeof(unsigned long) + sizeof(unsigned long)
-                           + sizeof(unsigned long));
+                           + sizeof(unsigned long) + sizeof(unsigned long));
     assert(prv_trgt == 3);
 
     unsigned long nxt_trgt =
           read_ulong(p,
-                     relationship->id * ON_DISK_REL_SIZE
+                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
                            + (NUM_ULONG_FIELDS - 1) * sizeof(unsigned long));
     assert(nxt_trgt == 1);
 
     double weight =
           read_double(p,
-                      relationship->id * ON_DISK_REL_SIZE
+                      relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
                             + NUM_ULONG_FIELDS * sizeof(unsigned long));
     assert(weight == TEST_DBL);
 
     unsigned char flags = read_uchar(
           p,
-          relationship->id * ON_DISK_REL_SIZE
+          relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
                 + NUM_ULONG_FIELDS * sizeof(unsigned long) + sizeof(double));
     assert(flags == 3);
 
     char label[MAX_STR_LEN];
     read_string(p,
-                relationship->id * ON_DISK_REL_SIZE
+                relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
                       + NUM_ULONG_FIELDS * sizeof(unsigned long)
                       + sizeof(double) + sizeof(unsigned char),
                 label);

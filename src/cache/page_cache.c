@@ -150,7 +150,11 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
     }
 
     if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
-        printf("page cache - pin page: Page Number out of bounds!\n");
+        printf("page cache - pin page: Page Number out of bounds! page no: "
+               "%lu, file kind %u, file type %u\n",
+               page_no,
+               fk,
+               ft);
         exit(EXIT_FAILURE);
     }
 

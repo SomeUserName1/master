@@ -261,9 +261,7 @@ update_relationship_internal(heap_file*      hf,
           rel_to_write->id * NUM_SLOTS_PER_REL / SLOTS_PER_PAGE;
     page* rel_page = pin_page(hf->cache, page_id, records, relationship_ft);
 
-    relationship_t* rel = new_relationship();
-
-    relationship_write(rel, rel_page);
+    relationship_write(rel_to_write, rel_page);
 
     unpin_page(hf->cache, page_id, records, relationship_ft);
 
@@ -299,7 +297,7 @@ create_node(heap_file* hf, char* label)
     page* header_page = pin_page(hf->cache, header_id, header, node_ft);
 
     unsigned short byte_offset =
-          (node_id * NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT);
+          ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT) % PAGE_SIZE;
 
     unsigned char  bit_offset = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
     unsigned char* used_bits  = malloc(sizeof(unsigned char));
@@ -343,8 +341,8 @@ create_relationship(heap_file*    hf,
     rel->flags          = 0;
     strncpy(rel->label, label, MAX_STR_LEN);
 
-    node_t* from_node = read_node_internal(hf, from_node_id, true);
-    node_t* to_node   = read_node_internal(hf, from_node_id, true);
+    node_t* from_node = read_node(hf, from_node_id);
+    node_t* to_node   = read_node(hf, to_node_id);
 
     relationship_t* first_rel_from;
     relationship_t* last_rel_from;
@@ -352,28 +350,42 @@ create_relationship(heap_file*    hf,
     relationship_t* last_rel_to;
     unsigned long   temp_id;
 
+    // Find first and last relationship in source node's chain
     if (from_node->first_relationship == UNINITIALIZED_LONG) {
-        first_rel_from = rel;
         last_rel_from  = rel;
+        first_rel_from = rel;
     } else {
         first_rel_from = read_relationship(hf, from_node->first_relationship);
-        temp_id        = from_node->id == first_rel_from->source_node
-                               ? first_rel_from->prev_rel_source
-                               : first_rel_from->prev_rel_target;
 
-        last_rel_from = read_relationship(hf, temp_id);
+        temp_id = from_node->id == first_rel_from->source_node
+                        ? first_rel_from->prev_rel_source
+                        : first_rel_from->prev_rel_target;
+
+        last_rel_from = temp_id == from_node->first_relationship
+                              ? first_rel_from
+                              : read_relationship(hf, temp_id);
     }
 
+    // Find first and last relationship in target node's chain
     if (to_node->first_relationship == UNINITIALIZED_LONG) {
-        first_rel_to = rel;
         last_rel_to  = rel;
+        first_rel_to = rel;
     } else {
-        first_rel_to = read_relationship(hf, to_node->first_relationship);
-        temp_id      = from_node->id == first_rel_to->source_node
-                             ? first_rel_to->prev_rel_source
-                             : first_rel_to->prev_rel_target;
+        if (to_node->first_relationship == first_rel_from->id) {
+            first_rel_to = first_rel_from;
+        } else if (to_node->first_relationship == last_rel_from->id) {
+            first_rel_to = last_rel_from;
+        } else {
+            first_rel_to = read_relationship(hf, to_node->first_relationship);
+        }
 
-        last_rel_to = read_relationship(hf, temp_id);
+        temp_id = to_node->id == first_rel_to->source_node
+                        ? first_rel_to->prev_rel_source
+                        : first_rel_to->prev_rel_target;
+
+        last_rel_to = temp_id == to_node->first_relationship
+                            ? first_rel_to
+                            : read_relationship(hf, temp_id);
     }
 
     rel->prev_rel_source = last_rel_from->id;
@@ -384,26 +396,30 @@ create_relationship(heap_file*    hf,
     // Adjust next pointer in source node's previous relation
     if (last_rel_from->source_node == from_node_id) {
         last_rel_from->next_rel_source = rel->id;
-    } else {
+    }
+    if (last_rel_from->target_node == from_node_id) {
         last_rel_from->next_rel_target = rel->id;
     }
     // Adjust next pointer in target node's previous relation
     if (last_rel_to->source_node == to_node_id) {
         last_rel_to->next_rel_source = rel->id;
-    } else {
+    }
+    if (last_rel_to->target_node == to_node_id) {
         last_rel_to->next_rel_target = rel->id;
     }
 
     // Adjust previous pointer in source node's next relation
     if (first_rel_from->source_node == from_node_id) {
         first_rel_from->prev_rel_source = rel->id;
-    } else {
+    }
+    if (first_rel_from->target_node == from_node_id) {
         first_rel_from->prev_rel_target = rel->id;
     }
     // Adjust previous pointer in target node's next relation
     if (first_rel_to->source_node == to_node_id) {
         first_rel_to->prev_rel_source = rel->id;
-    } else {
+    }
+    if (first_rel_to->target_node == to_node_id) {
         first_rel_to->prev_rel_target = rel->id;
     }
 
@@ -414,48 +430,50 @@ create_relationship(heap_file*    hf,
         from_node->first_relationship = rel->id;
         update_node(hf, from_node);
     }
+    free(from_node);
 
     if (to_node->first_relationship == UNINITIALIZED_LONG) {
         relationship_set_first_target(rel);
         to_node->first_relationship = rel->id;
         update_node(hf, to_node);
     }
+    free(to_node);
 
-    update_relationship_internal(hf, rel, false);
-    update_relationship_internal(hf, first_rel_from, false);
-    update_relationship_internal(hf, last_rel_from, false);
-    update_relationship_internal(hf, first_rel_to, false);
-    update_relationship_internal(hf, last_rel_to, false);
-
-    free(rel);
-
-    // When we have two relationships in the chain, the first and the last
-    // rel are the same
-    if (first_rel_from != last_rel_from) {
+    // in case one of the previous and next pointers of source and target are to
+    // the same relationship, we must only update and free them once!
+    if (first_rel_from != rel && first_rel_from != last_rel_from
+        && first_rel_from != first_rel_to && first_rel_from != last_rel_to) {
+        update_relationship_internal(hf, first_rel_from, false);
         free(first_rel_from);
     }
-    // When we have only the newly added relationship in the chain last =
-    // first = rel
-    if (last_rel_from != rel) {
+
+    if (last_rel_from != rel && last_rel_from != first_rel_to
+        && last_rel_from != last_rel_to) {
+        update_relationship_internal(hf, last_rel_from, false);
         free(last_rel_from);
     }
 
-    if (first_rel_to != last_rel_to) {
+    if (first_rel_to != rel && first_rel_to != last_rel_to) {
+        update_relationship_internal(hf, first_rel_to, false);
         free(first_rel_to);
     }
     if (last_rel_to != rel) {
+        update_relationship_internal(hf, last_rel_to, false);
         free(last_rel_to);
     }
 
+    update_relationship_internal(hf, rel, false);
+    free(rel);
+
     unsigned long header_id =
-          (rel_id * NUM_SLOTS_PER_NODE) / (PAGE_SIZE * CHAR_BIT);
+          (rel_id * NUM_SLOTS_PER_REL) / (PAGE_SIZE * CHAR_BIT);
 
     page* header_page = pin_page(hf->cache, header_id, header, relationship_ft);
 
     unsigned short byte_offset =
-          (rel_id * NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT);
+          ((rel_id * NUM_SLOTS_PER_REL) / CHAR_BIT) % PAGE_SIZE;
 
-    unsigned char  bit_offset = (rel_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
+    unsigned char  bit_offset = (rel_id * NUM_SLOTS_PER_REL) % CHAR_BIT;
     unsigned char* used_bits  = malloc(sizeof(unsigned char));
     used_bits[0]              = UCHAR_MAX;
 
@@ -520,6 +538,7 @@ delete_node(heap_file* hf, unsigned long node_id)
             delete_relationship(hf, rel->id);
         }
     }
+    free(node);
 
 #ifdef VERBOSE
     fprintf(hf->log_file, "delete_node %lu\n", node_id);
@@ -531,16 +550,17 @@ delete_node(heap_file* hf, unsigned long node_id)
     page* header_page = pin_page(hf->cache, header_id, header, node_ft);
 
     unsigned short byte_offset =
-          (node_id * NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT);
-    unsigned char bit_offset  = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
-    unsigned char unused_bits = 0;
+          ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT) % PAGE_SIZE;
+    unsigned char  bit_offset  = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
+    unsigned char* unused_bits = malloc(sizeof(unsigned char));
+    unused_bits[0]             = 0;
 
     write_bits(hf->cache,
                header_page,
                byte_offset,
                bit_offset,
                NUM_SLOTS_PER_NODE,
-               &unused_bits);
+               unused_bits);
 
     unpin_page(hf->cache, header_id, header, node_ft);
 
@@ -561,87 +581,147 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
 
     relationship_t* rel = read_relationship(hf, rel_id);
 
-    // Adjust next pointer in source node's previous relation
-    relationship_t* prev_rel_from = read_relationship(hf, rel->prev_rel_source);
-    if (prev_rel_from->source_node == rel->source_node) {
-        prev_rel_from->next_rel_source = rel->next_rel_source;
-    } else {
-        prev_rel_from->next_rel_target = rel->next_rel_source;
+    if (rel_id != rel->prev_rel_source) {
+        relationship_t* prev_rel_from =
+              read_relationship(hf, rel->prev_rel_source);
+
+        relationship_t* next_rel_from =
+              rel->next_rel_target == prev_rel_from->id
+                    ? prev_rel_from
+                    : read_relationship(hf, rel->next_rel_source);
+
+        relationship_t* prev_rel_to =
+              rel->prev_rel_target == prev_rel_from->id ? prev_rel_from
+              : rel->prev_rel_target == next_rel_from->id
+                    ? next_rel_from
+                    : read_relationship(hf, rel->prev_rel_target);
+
+        relationship_t* next_rel_to =
+              rel->next_rel_target == prev_rel_from->id   ? prev_rel_from
+              : rel->next_rel_target == next_rel_from->id ? next_rel_from
+              : rel->next_rel_target == prev_rel_to->id
+                    ? prev_rel_to
+                    : read_relationship(hf, rel->next_rel_target);
+
+        // Adjust next pointer in source node's previous relation
+        if (prev_rel_from->source_node == rel->source_node) {
+            prev_rel_from->next_rel_source = rel->next_rel_source;
+        }
+        if (prev_rel_from->target_node == rel->source_node) {
+            prev_rel_from->next_rel_target = rel->next_rel_source;
+        }
+
+        // Adjust previous pointer in source node's next relation
+        if (next_rel_from->source_node == rel->source_node) {
+            next_rel_from->prev_rel_source = rel->prev_rel_source;
+        }
+        if (next_rel_from->target_node == rel->source_node) {
+            next_rel_from->prev_rel_target = rel->prev_rel_source;
+        }
+
+        // Adjust next pointer in target node's previous relation
+        if (prev_rel_to->source_node == rel->target_node) {
+            prev_rel_to->next_rel_source = rel->next_rel_target;
+        }
+        if (prev_rel_to->target_node == rel->target_node) {
+            prev_rel_to->next_rel_target = rel->next_rel_target;
+        }
+
+        // Adjust previous pointer in target node's next relation
+        if (next_rel_to->source_node == rel->target_node) {
+            next_rel_to->prev_rel_source = rel->prev_rel_target;
+        }
+        if (next_rel_to->target_node == rel->target_node) {
+            next_rel_to->prev_rel_target = rel->prev_rel_target;
+        }
+
+        // in case one of the previous and next pointers of source and target
+        // are to the same relationship, we must only update and free them once!
+        if (next_rel_from != rel && next_rel_from != prev_rel_from
+            && next_rel_from != next_rel_to && next_rel_from != prev_rel_to) {
+            update_relationship_internal(hf, next_rel_from, false);
+            free(next_rel_from);
+        }
+
+        if (prev_rel_from != rel && prev_rel_from != next_rel_to
+            && prev_rel_from != prev_rel_to) {
+            update_relationship_internal(hf, prev_rel_from, false);
+            free(prev_rel_from);
+        }
+
+        if (next_rel_to != rel && next_rel_to != prev_rel_to) {
+            update_relationship_internal(hf, next_rel_to, false);
+            free(next_rel_to);
+        }
+        if (prev_rel_to != rel) {
+            update_relationship_internal(hf, prev_rel_to, false);
+            free(prev_rel_to);
+        }
     }
 
-    // Adjust next pointer in target node's previous relation
-    relationship_t* prev_rel_to = read_relationship(hf, rel->prev_rel_target);
-    if (prev_rel_to->source_node == rel->target_node) {
-        prev_rel_to->next_rel_source = rel->next_rel_target;
-    } else {
-        prev_rel_to->next_rel_target = rel->next_rel_target;
-    }
+    node_t*         node;
+    relationship_t* first_rel;
 
-    // Adjust previous pointer in source node's next relation
-    relationship_t* next_rel_from = read_relationship(hf, rel->next_rel_source);
-    if (next_rel_from->source_node == rel->source_node) {
-        next_rel_from->prev_rel_source = rel->prev_rel_source;
-    } else {
-        next_rel_from->prev_rel_target = rel->prev_rel_source;
-    }
-
-    // Adjust previous pointer in target node's next relation
-    relationship_t* next_rel_to = read_relationship(hf, rel->next_rel_target);
-    if (next_rel_to->source_node == rel->target_node) {
-        next_rel_to->prev_rel_source = rel->prev_rel_target;
-    } else {
-        next_rel_to->prev_rel_target = rel->prev_rel_target;
-    }
-
-    update_relationship(hf, prev_rel_from);
-    update_relationship(hf, prev_rel_to);
-    update_relationship(hf, next_rel_from);
-    update_relationship(hf, next_rel_to);
-
-    node_t* node;
     if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
         node = read_node_internal(hf, rel->source_node, true);
-        node->first_relationship = rel->next_rel_source;
+
+        if (rel->next_rel_source == rel->id) {
+            node->first_relationship = UNINITIALIZED_LONG;
+        } else {
+            node->first_relationship = rel->next_rel_source;
+            first_rel = read_relationship(hf, rel->next_rel_source);
+            relationship_set_first_source(first_rel);
+            update_relationship(hf, first_rel);
+            free(first_rel);
+        }
         update_node(hf, node);
 
-        rel = read_relationship(hf, rel->next_rel_source);
-        relationship_set_first_source(rel);
-        update_relationship(hf, rel);
+        free(node);
     }
 
     if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
         node = read_node_internal(hf, rel->target_node, true);
-        node->first_relationship = rel->next_rel_target;
-        update_node(hf, node);
 
-        rel = read_relationship(hf, rel->next_rel_target);
-        relationship_set_first_target(rel);
-        update_relationship(hf, rel);
+        if (rel->next_rel_target == rel->id) {
+            node->first_relationship = UNINITIALIZED_LONG;
+        } else {
+            node->first_relationship = rel->next_rel_target;
+            first_rel = read_relationship(hf, rel->next_rel_target);
+            relationship_set_first_target(first_rel);
+            update_relationship(hf, first_rel);
+            free(first_rel);
+        }
+
+        update_node(hf, node);
+        free(node);
     }
+
+    free(rel);
 
 #ifdef VERBOSE
     fprintf(hf->log_file, "delete_rel %lu\n", rel_id);
 #endif
 
     unsigned long header_id =
-          (rel_id * NUM_SLOTS_PER_NODE) / (PAGE_SIZE * CHAR_BIT);
+          (rel_id * NUM_SLOTS_PER_REL) / (PAGE_SIZE * CHAR_BIT);
 
     page* header_page = pin_page(hf->cache, header_id, header, relationship_ft);
 
     unsigned short byte_offset =
-          (rel_id * NUM_SLOTS_PER_NODE) % (PAGE_SIZE * CHAR_BIT);
+          ((rel_id * NUM_SLOTS_PER_REL) / CHAR_BIT) % PAGE_SIZE;
 
-    unsigned char bit_offset  = (rel_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
-    unsigned char unused_bits = 0;
+    unsigned char  bit_offset  = (rel_id * NUM_SLOTS_PER_REL) % CHAR_BIT;
+    unsigned char* unused_bits = malloc(sizeof(unsigned char));
+    unused_bits[0]             = 0;
 
     write_bits(hf->cache,
                header_page,
                byte_offset,
                bit_offset,
                NUM_SLOTS_PER_REL,
-               &unused_bits);
+               unused_bits);
 
-    unpin_page(hf->cache, header_id, header, node_ft);
+    unpin_page(hf->cache, header_id, header, relationship_ft);
 
     if (rel_id < hf->last_alloc_rel_id) {
         hf->last_alloc_rel_id = rel_id;
@@ -728,6 +808,7 @@ next_relationship_id(heap_file*      hf,
         }
         rel_id = node_id == rel->source_node ? rel->next_rel_source
                                              : rel->next_rel_target;
+        free(rel);
 
     } while (rel_id != start_rel_id);
 

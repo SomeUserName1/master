@@ -33,7 +33,8 @@ relationship_read(relationship_t* record, page* read_from_page)
         exit(EXIT_FAILURE);
     }
 
-    size_t first_slot = record->id * ON_DISK_REL_SIZE % PAGE_SIZE;
+    size_t first_slot =
+          (record->id * NUM_SLOTS_PER_REL * SLOT_SIZE) % PAGE_SIZE;
 
     record->source_node = read_ulong(read_from_page, first_slot);
     record->target_node =
@@ -87,7 +88,8 @@ relationship_write(relationship_t* record, page* write_to_page)
         exit(EXIT_FAILURE);
     }
 
-    size_t first_slot = record->id * ON_DISK_REL_SIZE % PAGE_SIZE;
+    size_t first_slot =
+          (record->id * NUM_SLOTS_PER_REL * SLOT_SIZE) % PAGE_SIZE;
 
     write_ulong(write_to_page, first_slot, record->source_node);
     write_ulong(write_to_page,
