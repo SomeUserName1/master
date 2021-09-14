@@ -1,3 +1,12 @@
+/*
+ * @(#)header_page.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/header_page.h"
 
 #include <limits.h>
@@ -17,6 +26,7 @@ compare_bits(const unsigned char* ar,
              size_t               n_bits)
 {
     if (!ar || offset + n_bits > size || n_bits > CHAR_BIT) {
+        // LCOV_EXCL_START
         printf("header page - compare bits: Invalid Arguments!, ar %p, size "
                "%lu, mask %u, offset %lu, n_bits %lu\n",
                ar,
@@ -25,9 +35,10 @@ compare_bits(const unsigned char* ar,
                offset,
                n_bits);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
-    unsigned char start_byte = offset / CHAR_BIT;
+    unsigned long start_byte = offset / CHAR_BIT;
     unsigned char bit_offset = offset % CHAR_BIT;
 
     mask = mask & (UCHAR_MAX >> (CHAR_BIT - n_bits));
@@ -57,7 +68,7 @@ compare_bits(const unsigned char* ar,
         result = shift_result[0];
     }
 
-    return result == mask ? true : false;
+    return result == mask;
 }
 
 /**
@@ -68,8 +79,10 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
 {
     if (!ar || (unsigned int)labs(n_bits) > size || labs(n_bits) > CHAR_BIT
         || n_bits > CHAR_BIT) {
+        // LCOV_EXCL_START
         printf("page - shift bit array: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (n_bits == 0) {
@@ -118,8 +131,10 @@ concat_bit_arrays(unsigned char* first,
                   size_t         n_bits_snd)
 {
     if (!first || !second || n_bits_fst > LONG_MAX || n_bits_snd > LONG_MAX) {
+        // LCOV_EXCL_START
         printf("page - concat bit arrays: Invalid Arguemnts!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     size_t result_size = ((n_bits_fst + n_bits_snd) / CHAR_BIT)
                          + ((n_bits_fst + n_bits_snd) % CHAR_BIT != 0);
@@ -129,9 +144,10 @@ concat_bit_arrays(unsigned char* first,
     first = realloc(first, result_size * sizeof(unsigned char));
 
     if (!first) {
-        free(first);
+        // LCOV_EXCL_START
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     for (size_t i = first_size; i < result_size; ++i) {
@@ -171,8 +187,10 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
 {
     if (!ar
         || (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0) > size) {
+        // LCOV_EXCL_START
         printf("page - split bit array: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t first_size =
@@ -192,8 +210,10 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
     unsigned char* new_ar = realloc(ar, first_size * sizeof(unsigned char));
 
     if (!ar) {
+        // LCOV_EXCL_START
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     } else {
         ar = new_ar;
     }
@@ -215,8 +235,10 @@ read_bits(page_cache*    pc,
     if (!p || bit_offset_in_byte > CHAR_BIT - 1
         || byte_offset_in_page > PAGE_SIZE - 1
         || n_bits > PAGE_SIZE * CHAR_BIT - 1) {
+        // LCOV_EXCL_START
         printf("header page - read bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     bool           split_read = false;
@@ -255,7 +277,7 @@ read_bits(page_cache*    pc,
     // e.g. if we want to read 6 bits with an offet of 0,
     // [XXXX XX__] gets [00XX XXXX]
 
-    unsigned char shift =
+    unsigned long shift =
           n_bytes_read * CHAR_BIT - (n_bits + bit_offset_in_byte);
     unsigned char carry_mask = UCHAR_MAX >> (CHAR_BIT - shift);
     unsigned char carry;
@@ -317,14 +339,16 @@ write_bits(page_cache*    pc,
     if (!p || bit_offset_in_byte > CHAR_BIT - 1
         || byte_offset_in_page > PAGE_SIZE - 1
         || n_bits > PAGE_SIZE * CHAR_BIT - 1 || n_bits < 1 || !data) {
+        // LCOV_EXCL_START
         printf("header page - write bits: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t n_bytes_write = ((bit_offset_in_byte + n_bits) / CHAR_BIT)
                            + ((bit_offset_in_byte + n_bits) % CHAR_BIT != 0);
 
-    unsigned char n_bytes_data = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
+    unsigned long n_bytes_data = (n_bits / CHAR_BIT) + (n_bits % CHAR_BIT != 0);
 
     if (byte_offset_in_page + n_bytes_write > PAGE_SIZE) {
         size_t bits_to_page_boundary =
@@ -373,12 +397,14 @@ write_bits(page_cache*    pc,
 
     shift_bit_array(shifted_data,
                     n_bytes_write * CHAR_BIT,
-                    -(n_bytes_data * CHAR_BIT - (long)n_bits)
+                    -(long)(n_bytes_data * CHAR_BIT - (long)n_bits)
                           + bit_offset_in_byte);
 
     if (n_bytes_write == 0) {
+        // LCOV_EXCL_START
         printf("Unreachable\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     // Write the data to the page buffer using a mask

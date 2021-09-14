@@ -1,3 +1,12 @@
+/*
+ * @(#)reorganize_records.c  1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "layout/reorganize_records.h"
 
 #include "access/node.h"
@@ -15,8 +24,10 @@ void
 prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id)
 {
     if (!hf || id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("heap file - move node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     node_t* node = read_node_internal(hf, id, true);
@@ -43,8 +54,10 @@ void
 prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id)
 {
     if (!hf || id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("heap file - move relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     // Go through both incidence lists and check if the relationship to be
@@ -107,8 +120,10 @@ void
 swap_record_page(heap_file* hf, size_t fst, size_t snd, file_type ft)
 {
     if (!hf || fst >= MAX_PAGE_NO || snd > MAX_PAGE_NO) {
+        // LCOV_EXCL_START
         printf("heap file - swap_pages: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t num_header_bits_fst = fst * SLOTS_PER_PAGE;
@@ -236,8 +251,10 @@ unsigned long*
 remap_node_ids(heap_file* hf, const unsigned long* partition)
 {
     if (!hf || !partition || hf->n_nodes < 1) {
+        // LCOV_EXCL_START
         printf("remap node ids: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     set_ul* part_numbers = s_ul_create();

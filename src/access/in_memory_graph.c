@@ -1,3 +1,12 @@
+/*
+ * @(#)in_memory_graph.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/in_memory_graph.h"
 
 #include <stdio.h>
@@ -13,8 +22,10 @@ in_memory_graph_create(void)
     in_memory_graph* file = (in_memory_graph*)malloc(sizeof(*file));
 
     if (file == NULL) {
+        // LCOV_EXCL_START
         printf("in memory graph - create: Failed to alloc memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     file->cache_nodes = d_ul_node_create();
@@ -37,8 +48,10 @@ unsigned long
 in_memory_create_node(in_memory_graph* db, char* label)
 {
     if (!db || !label) {
+        // LCOV_EXCL_START
         printf("in_memory - create node: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     node_t* node = new_node();
@@ -98,8 +111,10 @@ inm_alist_relationship*
 in_memory_get_relationships(in_memory_graph* db)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("in_memory - get_relationships: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     inm_alist_relationship* rels = inmal_rel_create();
@@ -133,6 +148,7 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
 {
     if (!db || node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG
         || weight == UNINITIALIZED_WEIGHT || !label) {
+        // LCOV_EXCL_START
         printf("create_relationship: in memory file is NULL or invalid nodes "
                "or weight passed as "
                "argument!\n");
@@ -143,6 +159,7 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
                node_to,
                weight);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     unsigned long   temp_id;
     relationship_t* last_rel_source  = NULL;
@@ -154,12 +171,14 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
 
     if (!(source_node = dict_ul_node_get_direct(db->cache_nodes, node_from))
         || !(target_node = dict_ul_node_get_direct(db->cache_nodes, node_to))) {
+        // LCOV_EXCL_START
         printf("%s: %lu, %lu\n",
                "One of the nodes which are refered to by the relationship"
                "to create does not exist:",
                node_from,
                node_to);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     relationship_t* rel = new_relationship();
@@ -266,8 +285,10 @@ in_memory_next_relationship_id(in_memory_graph* db,
                                direction_t      direction)
 {
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("in_memory - next_relationship: Arguments must be not NULL!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long start_rel_id = rel->id;
@@ -296,15 +317,19 @@ in_memory_expand(in_memory_graph* db,
                  direction_t      direction)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("in_memory - expand: Arguments must be not NULL!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     node_t* node = dict_ul_node_get_direct(db->cache_nodes, node_id);
 
     if (!node || !db) {
+        // LCOV_EXCL_START
         printf("in_memory - expand: Arguments must be not NULL!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     inm_alist_relationship* result = inmal_rel_create();
@@ -358,8 +383,10 @@ in_memory_contains_relationship_from_to(in_memory_graph* db,
     node_t* target_node = dict_ul_node_get_direct(db->cache_nodes, node_to);
 
     if (!source_node || !target_node) {
+        // LCOV_EXCL_START
         printf("in_memory - contains relationship: No such nodes!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (source_node->first_relationship == UNINITIALIZED_LONG

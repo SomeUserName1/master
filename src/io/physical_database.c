@@ -1,3 +1,12 @@
+/*
+ * @(#)physical_database.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "physical_database.h"
 
 #include <errno.h>
@@ -30,25 +39,31 @@ phy_database_create_internal(char* db_name,
 )
 {
     if (!db_name) {
+        // LCOV_EXCL_START
         printf("physical database - create: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     phy_database* phy_db = calloc(1, sizeof(phy_database));
 
     if (!phy_db) {
+        // LCOV_EXCL_START
         printf("physical database: failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
 #ifdef VERBOSE
     phy_db->log_file = fopen(log_file_name, "a+");
 
     if (!phy_db->log_file) {
+        // LCOV_EXCL_START
         printf("physical database - create: failed to fopen %s: %s\n",
                log_file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 #endif
 
@@ -225,9 +240,11 @@ phy_database_create_internal(char* db_name,
         }
 
         if (!valid_header) {
+            // LCOV_EXCL_START
             printf("physical database: failed to open database - Invalid "
                    "header!\n");
             exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
         }
     }
 
@@ -272,8 +289,10 @@ void
 phy_database_close(phy_database* db)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("physical database - close: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     char* catalogue_fname = db->catalogue->file_name;
@@ -293,8 +312,10 @@ phy_database_close(phy_database* db)
 
 #ifdef VERBOSE
     if (fclose(db->log_file) != 0) {
+        // LCOV_EXCL_START
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 #endif
 
@@ -305,8 +326,10 @@ void
 phy_database_delete(phy_database* db)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("physical database - delete: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     char* catalogue_fname = db->catalogue->file_name;
@@ -326,8 +349,10 @@ phy_database_delete(phy_database* db)
 
 #ifdef VERBOSE
     if (fclose(db->log_file) != 0) {
+        // LCOV_EXCL_START
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 #endif
     free(db);
@@ -427,8 +452,10 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
         (ft != node_ft && ft != relationship_ft)
 #endif
     ) {
+        // LCOV_EXCL_START
         printf("physical database - allocate: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     disk_file_grow(db->records[ft], num_pages);
@@ -468,6 +495,7 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages)
     write_page(db->catalogue, 0, catalogue);
 }
 
+// LCOV_EXCL_START
 void
 deallocate_pages(phy_database* db, file_type ft)
 {
@@ -487,3 +515,4 @@ physical_database_defragment(phy_database* pdb)
     printf("pyhsical database - defragment: Not Implemented! %p\n", pdb);
     exit(EXIT_FAILURE);
 }
+// LCOV_EXCL_STOP

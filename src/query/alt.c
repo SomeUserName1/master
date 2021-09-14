@@ -1,3 +1,12 @@
+/*
+ * @(#)alt.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/alt.h"
 
 #include <errno.h>
@@ -23,8 +32,10 @@ alt_chose_avg_deg_rand_landmark(heap_file*  hf,
 )
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("ALT - chose landmarks: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     array_list_node* nodes = get_nodes(hf);
@@ -73,8 +84,10 @@ alt_preprocess(heap_file*    hf,
 )
 {
     if (!hf || !landmark_dists) {
+        // LCOV_EXCL_START
         printf("ALT - preprocess: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long landmarks[num_landmarks];
@@ -119,8 +132,10 @@ alt(heap_file*    hf,
 )
 {
     if (!hf || !landmark_dists) {
+        // LCOV_EXCL_START
         printf("ALT: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_d*       heuristic = d_ul_d_create();

@@ -1,3 +1,12 @@
+/*
+ * @(#)random_layout.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "layout/random_layout.h"
 #include "access/node.h"
 #include "data-struct/htable.h"
@@ -9,8 +18,10 @@ dict_ul_ul*
 identity_partition(heap_file* hf)
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("trivial partitions - identity: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_ul* partition = d_ul_ul_create();
@@ -28,8 +39,10 @@ dict_ul_ul*
 random_partition(heap_file* hf)
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("trivial partitions - identity: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_ul*      partition = d_ul_ul_create();

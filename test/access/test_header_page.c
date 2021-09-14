@@ -1,3 +1,12 @@
+/*
+ * @(#)test_header_page.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/header_page.h"
 #include "constants.h"
 #include "disk_file.h"

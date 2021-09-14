@@ -1,4 +1,12 @@
-#include "data-struct/bitmap.h"
+/*
+ * @(#)page_cache_test.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "data-struct/htable.h"
 #include "disk_file.h"
 #include "page.h"
@@ -41,10 +49,6 @@ test_page_cache_create(void)
     assert(pc->num_pins == 0);
     assert(pc->num_unpins == 0);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES);
-    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        assert(get_bit(pc->pinned, i) == 0);
-    }
-    assert(queue_ul_size(pc->recently_referenced) == 0);
 
     assert(dict_ul_ul_size(pc->page_map[catalogue][0]) == 0);
     dict_ul_ul_destroy(pc->page_map[catalogue][0]);
@@ -68,7 +72,6 @@ test_page_cache_create(void)
     }
 #endif
 
-    bitmap_destroy(pc->pinned);
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
     free(pc->cache[0]->data);
@@ -191,7 +194,6 @@ test_pin_page(void)
 
     assert(test_page_1);
     assert(pc->cache[frame_no_1] == test_page_1);
-    assert(get_bit(pc->pinned, frame_no_1));
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
     assert(test_page_1->ft == node_ft);
@@ -200,7 +202,6 @@ test_pin_page(void)
 
     assert(test_page_2);
     assert(pc->cache[frame_no_2] == test_page_2);
-    assert(get_bit(pc->pinned, frame_no_2));
     assert(test_page_2->page_no == 2);
     assert(test_page_2->dirty == false);
     assert(test_page_2->ft == node_ft);
@@ -271,7 +272,6 @@ test_unpin_page(void)
     assert(test_page_1);
     assert(pc->cache[frame_no_1] == test_page_1);
     assert(test_page_1 == test_page_2);
-    assert(get_bit(pc->pinned, frame_no_1));
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
     assert(test_page_1->ft == node_ft);
@@ -285,14 +285,12 @@ test_unpin_page(void)
     assert(pc->num_pins == 2);
     assert(queue_ul_size(pc->recently_referenced) == 1);
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
-    assert(get_bit(pc->pinned, frame_no_1) == 1);
 
     unpin_page(pc, 0, records, node_ft);
     assert(pc->num_unpins == 2);
     assert(test_page_1->pin_count == 0);
     assert(queue_ul_size(pc->recently_referenced) == 1);
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
-    assert(get_bit(pc->pinned, frame_no_1) == 0);
 
     page_cache_destroy(pc);
     phy_database_delete(pdb);

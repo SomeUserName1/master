@@ -1,3 +1,12 @@
+/*
+ * @(#)snap_importer.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/snap_importer.h"
 
 #include <assert.h>
@@ -283,8 +292,10 @@ dict_ul_ul*
 import_from_txt(heap_file* hf, const char* path, bool weighted)
 {
     if (!hf || !path) {
+        // LCOV_EXCL_START
         printf("snap importer - import from txt: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     int import_fields = weighted ? 3 : 2;
@@ -300,14 +311,18 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
+        // LCOV_EXCL_START
         perror("snap importer - import from txt: Failed to open file to read "
                "from");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
+
+    hf->cache->bulk_import = true;
 
     while (fgets(buf, sizeof(buf), in_file)) {
         if (lines % STATUS_LINES == 0) {
-            printf("%s %lu\n", "Processed", lines);
+            printf("Processed %lu Relationships\n", lines);
         }
 
         if (*buf == '#') {
@@ -317,17 +332,21 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
         if (weighted) {
             if (sscanf(buf, "%lu %lu %lf\n", &from_to[0], &from_to[1], &weight)
                 != 3) {
+                // LCOV_EXCL_START
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         } else {
             if (sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]) != 2) {
+                // LCOV_EXCL_START
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         }
 
@@ -338,9 +357,11 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
                 label_len = snprintf(NULL, 0, "%lu", from_to[i]);
                 if (label_len
                     != snprintf(label, label_len + 1, "%lu", from_to[i])) {
+                    // LCOV_EXCL_START
                     printf("snap importer - import from txt: failed to write "
                            "id as label!\n");
                     exit(EXIT_FAILURE);
+                    // LCOV_EXCL_STOP
                 }
 
                 db_id = create_node(hf, label);
@@ -359,6 +380,8 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
 
     fclose(in_file);
 
+    hf->cache->bulk_import = false;
+
     return txt_to_db_id;
 }
 
@@ -366,8 +389,10 @@ dict_ul_ul*
 in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
 {
     if (!g || !path) {
+        // LCOV_EXCL_START
         printf("snap importer - import from txt: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     int import_fields = weighted ? 3 : 2;
@@ -383,9 +408,11 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
+        // LCOV_EXCL_START
         perror("snap importer - import from txt: Failed to open file to read "
                "from");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     while (fgets(buf, sizeof(buf), in_file)) {
@@ -400,17 +427,21 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
         if (weighted) {
             if (sscanf(buf, "%lu %lu %lf\n", &from_to[0], &from_to[1], &weight)
                 != 3) {
+                // LCOV_EXCL_START
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         } else {
             if (sscanf(buf, "%lu %lu\n", &from_to[0], &from_to[1]) != 2) {
+                // LCOV_EXCL_START
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         }
 
@@ -421,9 +452,11 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
                 label_len = snprintf(NULL, 0, "%lu", from_to[i]);
                 if (label_len
                     != snprintf(label, label_len + 1, "%lu", from_to[i])) {
+                    // LCOV_EXCL_START
                     printf("snap importer - import from txt: failed to write "
                            "id as label!\n");
                     exit(EXIT_FAILURE);
+                    // LCOV_EXCL_STOP
                 }
 
                 db_id = in_memory_create_node(g, label);

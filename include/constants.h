@@ -1,3 +1,12 @@
+/*
+ * @(#)constants.h   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
@@ -26,9 +35,9 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
 #define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
 
 /* The implemented LRU-K evicts 1 + CACHE_N_PAGES * EVICT_LRU_SHARE pages
- * per call to evict. For example with a cache size of 1k pages, 11 pages
+ * per call to evict. For example with a cache size of 1k pages, 101 pages
  * would be evicted per call */
-static const float EVICT_LRU_K_SHARE = 0.001F;
+static const float EVICT_LRU_K_SHARE = 0.1F;
 #define EVICT_LRU_K ((1 + (size_t)((size_t)CACHE_N_PAGES * EVICT_LRU_K_SHARE)))
 
 #endif

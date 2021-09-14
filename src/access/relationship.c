@@ -1,3 +1,12 @@
+/*
+ * @(#)relationship.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/relationship.h"
 
 #include <stdio.h>
@@ -17,8 +26,10 @@ new_relationship()
     relationship_t* rel = malloc(sizeof(*rel));
 
     if (!rel) {
+        // LCOV_EXCL_START
         printf("relationship - new: Failed to allocate Memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     relationship_clear(rel);
@@ -29,8 +40,10 @@ void
 relationship_read(relationship_t* record, page* read_from_page)
 {
     if (!record || !read_from_page) {
+        // LCOV_EXCL_START
         printf("relationship - read: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t first_slot =
@@ -84,8 +97,10 @@ void
 relationship_write(relationship_t* record, page* write_to_page)
 {
     if (!record || !write_to_page) {
+        // LCOV_EXCL_START
         printf("relationship - read: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t first_slot =
@@ -140,8 +155,10 @@ inline void
 relationship_clear(relationship_t* record)
 {
     if (!record) {
+        // LCOV_EXCL_START
         printf("relationship - copy: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     record->id              = UNINITIALIZED_LONG;
@@ -160,15 +177,19 @@ inline relationship_t*
 relationship_copy(const relationship_t* original)
 {
     if (!original) {
+        // LCOV_EXCL_START
         printf("relationship - copy: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     relationship_t* copy = malloc(sizeof(*copy));
 
     if (!copy) {
+        // LCOV_EXCL_START
         printf("relationship - copy: Failed to allocate Memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     copy->id              = original->id;
@@ -189,8 +210,10 @@ inline bool
 relationship_equals(const relationship_t* first, const relationship_t* second)
 {
     if (!first || !second) {
+        // LCOV_EXCL_START
         printf("relationship - equals: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     return ((first->id == second->id) && (first->flags == second->flags)
@@ -209,8 +232,10 @@ relationship_to_string(const relationship_t* record,
                        size_t                buffer_size)
 {
     if (!record || !buffer) {
+        // LCOV_EXCL_START
         printf("relationship - to string: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     int length = snprintf(NULL,
@@ -237,12 +262,14 @@ relationship_to_string(const relationship_t* record,
                           record->label);
 
     if (length < 0 || (size_t)length > buffer_size) {
+        // LCOV_EXCL_START
         printf("Wrote relationship string representation to a buffer that was "
                "too small!\n");
         printf("String length: %lu, Buffer size, %lu\n",
                (size_t)length,
                buffer_size);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     int result = snprintf(buffer,
@@ -269,8 +296,10 @@ relationship_to_string(const relationship_t* record,
                           record->label);
 
     if (result < 0) {
+        // LCOV_EXCL_START
         printf("relationship - to string: Failed to write to buffer!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -278,8 +307,10 @@ void
 relationship_pretty_print(const relationship_t* record)
 {
     if (!record) {
+        // LCOV_EXCL_START
         printf("relationship - pretty print: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     printf("Relationship ID: %#lX\n"
@@ -309,8 +340,10 @@ inline void
 relationship_set_first_source(relationship_t* rel)
 {
     if (!rel) {
+        // LCOV_EXCL_START
         printf("relationship - set first source: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (rel->flags == UNINITIALIZED_BYTE) {
@@ -324,8 +357,10 @@ inline void
 relationship_set_first_target(relationship_t* rel)
 {
     if (!rel) {
+        // LCOV_EXCL_START
         printf("relationship - set first target: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (rel->flags == UNINITIALIZED_BYTE) {
@@ -339,8 +374,10 @@ inline void
 rel_free(relationship_t* rel)
 {
     if (!rel) {
+        // LCOV_EXCL_START
         printf("relationship - set first target: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     free(rel);

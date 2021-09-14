@@ -1,3 +1,12 @@
+/*
+ * @(#)linked_list.h   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
@@ -395,15 +404,31 @@
     void typename##_move_back(typename* ll, T elem)                            \
     {                                                                          \
         if (!ll) {                                                             \
-            printf("Queue - move back: Invalid arguments!\n");                 \
+            printf("linked list - index of: invalid arguments!\n");            \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
-        size_t index;                                                          \
-        if (typename##_index_of(ll, elem, &index) == 0) {                      \
-            typename##_remove_internal(ll, index, false);                      \
+        typename##_node* cur = ll->tail;                                       \
+        for (size_t i = 0; i < ll->len; ++i) {                                 \
+            if (ll->cbs.lleq(cur->element, elem)) {                            \
+                if (i != ll->len - 1) {                                        \
+                    if (i == 0) {                                              \
+                        ll->tail = ll->head;                                   \
+                        ll->head = ll->head->next;                             \
+                    } else {                                                   \
+                        cur->next->prev = cur->prev;                           \
+                        cur->prev->next = cur->next;                           \
+                        cur->next       = ll->head;                            \
+                        cur->prev       = ll->tail;                            \
+                        ll->tail->next  = cur;                                 \
+                        ll->head->prev  = cur;                                 \
+                        ll->tail        = cur;                                 \
+                    }                                                          \
+                }                                                              \
+                return;                                                        \
+            }                                                                  \
+            cur = cur->prev;                                                   \
         }                                                                      \
-                                                                               \
         typename##_append(ll, elem);                                           \
     }
 

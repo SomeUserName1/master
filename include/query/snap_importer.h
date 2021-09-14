@@ -1,3 +1,12 @@
+/*
+ * @(#)snap_importer.h   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #ifndef SNAP_IMPORTER_H
 #define SNAP_IMPORTER_H
 
@@ -48,9 +57,6 @@
 #define LIVE_JOURNAL_NO_RELS  (34681189)
 #define ORKUT_NO_RELS         (117185083)
 #define FRIENDSTER_NO_RELS    (1806067135)
-
-/* Number of columns/values per row encoding a relationship in a text file */
-#define ENTRIES 2
 
 typedef enum dataset
 {

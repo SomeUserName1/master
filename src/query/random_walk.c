@@ -1,3 +1,12 @@
+/*
+ * @(#)random_walk.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/random_walk.h"
 
 #include <stdio.h>
@@ -20,7 +29,10 @@ random_walk(heap_file*    hf,
 )
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("DB is NULL or node id uninitialized");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     double                   distance     = 0.0;

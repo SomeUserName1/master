@@ -1,3 +1,12 @@
+/*
+ * @(#)result_types.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/result_types.h"
 
 #include <stdio.h>
@@ -14,13 +23,20 @@ create_traversal_result(unsigned long source_node,
                         dict_ul_ul*   parents)
 {
     if (!traversal_numbers || !parents) {
+        // LCOV_EXCL_START
+        printf("result types - create traversal result: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     traversal_result* result = malloc(sizeof(*result));
 
     if (!result) {
+        // LCOV_EXCL_START
+        printf("result types - create traversal result: Failed to allocate "
+               "memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     result->source            = source_node;
@@ -48,13 +64,20 @@ create_sssp_result(unsigned long source_node,
                    dict_ul_ul*   parents)
 {
     if (!distances || !parents) {
+        // LCOV_EXCL_START
+        printf("result types - create sssp result: Invalid Arguments\n\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     sssp_result* result = malloc(sizeof(*result));
 
     if (!result) {
+        // LCOV_EXCL_START
+        printf("result types - create sssp result: Failed to allocate "
+               "memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     result->source     = source_node;
@@ -83,14 +106,20 @@ create_path(unsigned long  source_node_id,
             array_list_ul* edges)
 {
     if (!edges || source_node_id == UNINITIALIZED_LONG) {
-        printf("Tried to create path with null pointer as argument\n");
+        // LCOV_EXCL_START
+        printf("result types - create path: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     path* result = malloc(sizeof(*result));
 
     if (!result) {
+        // LCOV_EXCL_START
+        printf("result types - create path: Failed to allocate "
+               "memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     result->source   = source_node_id;
@@ -105,6 +134,7 @@ void
 path_destroy(path* p)
 {
     if (!p) {
+        // LCOV_EXCL_LINE
         return;
     }
 
@@ -124,6 +154,14 @@ construct_path(heap_file*    hf,
 #endif
 )
 {
+    if (!hf || source_node_id == UNINITIALIZED_LONG
+        || target_node_id == UNINITIALIZED_LONG || !parents) {
+        // LCOV_EXCL_START
+        printf("result types - construct path: Invalid arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
     unsigned long   node_id       = target_node_id;
     array_list_ul*  edges_reverse = al_ul_create();
     relationship_t* rel;
@@ -158,6 +196,13 @@ construct_path(heap_file*    hf,
 array_list_ul*
 path_extract_vertices(path* p, heap_file* hf)
 {
+    if (!hf || !p) {
+        // LCOV_EXCL_START
+        printf("result types - path extract vertices: Invalid arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
     array_list_ul* nodes = al_ul_create();
 
     array_list_ul_append(nodes, p->source);

@@ -1,3 +1,12 @@
+/*
+ * @(#)page_cache.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "page_cache.h"
 
 #include <errno.h>
@@ -8,7 +17,6 @@
 #include <string.h>
 
 #include "constants.h"
-#include "data-struct/bitmap.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "disk_file.h"
@@ -26,22 +34,25 @@ page_cache_create(phy_database* pdb
 )
 {
     if (!pdb) {
+        // LCOV_EXCL_START
         printf("page cache - create: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     page_cache* pc = calloc(1, sizeof(page_cache));
 
     if (!pc) {
+        // LCOV_EXCL_START
         printf("page cache - create: Failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     pc->pdb                 = pdb;
     pc->num_pins            = 0;
     pc->num_unpins          = 0;
     pc->free_frames         = ll_ul_create();
-    pc->pinned              = bitmap_create(CACHE_N_PAGES);
     pc->recently_referenced = q_ul_create();
 
     for (file_kind i = 0; i < invalid; ++i) {
@@ -58,8 +69,10 @@ page_cache_create(phy_database* pdb
     unsigned char* data = calloc(CACHE_N_PAGES, PAGE_SIZE);
 
     if (!data) {
+        // LCOV_EXCL_START
         printf("page cache - create: failed to allocate memory!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
@@ -71,8 +84,10 @@ page_cache_create(phy_database* pdb
     FILE* log_file = fopen(log_path, "w+");
 
     if (!log_file) {
+        // LCOV_EXCL_START
         printf("heap file - create: Failed to open log file, %d\n", errno);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     pc->log_file = log_file;
 #endif
@@ -84,15 +99,16 @@ void
 page_cache_destroy(page_cache* pc)
 {
     if (!pc) {
+        // LCOV_EXCL_START
         printf("page_cache - destroy: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     flush_all_pages(pc);
 
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
-    bitmap_destroy(pc->pinned);
 
     for (unsigned long i = 0; i < invalid; ++i) {
         if (i == catalogue) {
@@ -113,8 +129,10 @@ page_cache_destroy(page_cache* pc)
 
 #ifdef VERBOSE
     if (fclose(pc->log_file) != 0) {
+        // LCOV_EXCL_START
         printf("page cache - destroy: Error closing file: %s", strerror(errno));
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 #endif
 
@@ -125,8 +143,10 @@ page*
 pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
     if (!pc || (fk == catalogue && ft != 0)) {
+        // LCOV_EXCL_START
         printf("page cache - pin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t num_pages;
@@ -144,18 +164,22 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
             break;
         };
         case invalid: {
+            // LCOV_EXCL_START
             printf("page cache - pin page: Invalid kind of file!\n");
             exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
         }
     }
 
     if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
+        // LCOV_EXCL_START
         printf("page cache - pin page: Page Number out of bounds! page no: "
                "%lu, file kind %u, file type %u\n",
                page_no,
                fk,
                ft);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t frame_no;
@@ -168,7 +192,11 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
         if (llist_ul_size(pc->free_frames) > 0) {
             frame_no = llist_ul_take(pc->free_frames, 0);
         } else {
-            frame_no = evict_page(pc);
+            if (pc->bulk_import) {
+                frame_no = bulk_evict(pc);
+            } else {
+                frame_no = evict_page(pc);
+            }
         }
 
         pinned_page = pc->cache[frame_no];
@@ -194,8 +222,10 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
                 break;
             };
             case invalid: {
+                // LCOV_EXCL_START
                 printf("page cache - pin page: Invalid kind of file!\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         }
 
@@ -203,8 +233,6 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 
         dict_ul_ul_insert(pc->page_map[fk][ft], page_no, frame_no);
     }
-
-    set_bit(pc->pinned, frame_no);
 
     pc->num_pins++;
 
@@ -219,8 +247,10 @@ void
 unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 {
     if (!pc || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
+        // LCOV_EXCL_START
         printf("page cache - unpin page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t num_pages;
@@ -238,35 +268,39 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
             break;
         };
         case invalid: {
+            // LCOV_EXCL_START
             printf("page cache - pin page: Invalid kind of file!\n");
             exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
         }
     }
 
     if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
+        // LCOV_EXCL_START
         printf("page cache - pin page: Page Number out of bounds!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[fk][ft], page_no);
     page*  unpinned_page = pc->cache[frame_no];
 
     if (unpinned_page->pin_count == 0) {
+        // LCOV_EXCL_START
         printf("page cache - unpin page: Page %zu is not pinned (page count is "
                "zero)! file kind %u, file type %u\n",
                page_no,
                fk,
                ft);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unpinned_page->pin_count--;
 
-    if (unpinned_page->pin_count == 0) {
-        clear_bit(pc->pinned, frame_no);
+    if (!pc->bulk_import) {
+        queue_ul_move_back(pc->recently_referenced, frame_no);
     }
-
-    queue_ul_move_back(pc->recently_referenced, frame_no);
 
     pc->num_unpins++;
 
@@ -279,8 +313,10 @@ size_t
 evict_page(page_cache* pc)
 {
     if (!pc) {
+        // LCOV_EXCL_START
         printf("page cache - evict page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     size_t evict_index[EVICT_LRU_K];
@@ -291,7 +327,7 @@ evict_page(page_cache* pc)
         candidate      = queue_ul_get(pc->recently_referenced, i);
         candidate_page = pc->cache[candidate];
 
-        if (get_bit(pc->pinned, candidate) == 0) {
+        if (candidate_page->pin_count == 0) {
 
             /* If the page is dirty flush it */
             if (candidate_page->dirty) {
@@ -328,29 +364,74 @@ evict_page(page_cache* pc)
     }
 
     if (evicted == 0) {
+        // LCOV_EXCL_START
         printf("page cache - evict: could not find a page to evict, as all "
                "pages "
                "are pinned!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     return candidate;
+}
+
+size_t
+bulk_evict(page_cache* pc)
+{
+    size_t evicted = 0;
+    size_t frame_no;
+    page*  c_page;
+    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+        c_page = pc->cache[i];
+        if (pc->cache[i]->pin_count == 0) {
+            flush_page(pc, i);
+
+            dict_ul_ul_remove(pc->page_map[c_page->fk][c_page->ft],
+                              c_page->page_no);
+
+            /* Add the frame to the free frames list */
+            llist_ul_append(pc->free_frames, i);
+
+            pc->cache[i]->page_no = ULONG_MAX;
+            pc->cache[i]->fk      = invalid;
+            pc->cache[i]->ft      = invalid_ft;
+
+            evicted++;
+            frame_no = i;
+        }
+    }
+
+    if (evicted == 0) {
+        // LCOV_EXCL_START
+        printf(
+              "page cache - bulk evict: could not find a page to evict, as all "
+              "pages "
+              "are pinned!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    return frame_no;
 }
 
 void
 flush_page(page_cache* pc, size_t frame_no)
 {
     if (!pc) {
+        // LCOV_EXCL_START
         printf("page cache - flush page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     page* candidate = pc->cache[frame_no];
 
     if (candidate->pin_count > 0) {
+        // LCOV_EXCL_START
         printf("page cache - flush page: Page %lu of file %u is pinned!\n",
                candidate->page_no,
                candidate->ft);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (candidate->dirty) {
@@ -370,8 +451,10 @@ flush_page(page_cache* pc, size_t frame_no)
                 break;
             };
             case invalid: {
+                // LCOV_EXCL_START
                 printf("page cache - pin page: Invalid kind of file!\n");
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
         }
 
@@ -397,8 +480,10 @@ page*
 new_page(page_cache* pc, file_type ft)
 {
     if (!pc) {
+        // LCOV_EXCL_START
         printf("page cache - new page: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     allocate_pages(pc->pdb, ft, 1);

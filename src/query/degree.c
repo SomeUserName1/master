@@ -1,3 +1,12 @@
+/*
+ * @(#)degree.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/degree.h"
 
 #include <stdint.h>
@@ -19,8 +28,10 @@ get_degree(heap_file*    hf,
 )
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("get_degree: Invaliud Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
 #ifdef VERBOSE
@@ -59,8 +70,10 @@ get_avg_degree(heap_file*  hf,
 )
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("get_degree: Invaliud Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     array_list_node* nodes        = get_nodes(hf);
@@ -101,8 +114,10 @@ get_min_degree(heap_file*  hf,
 )
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("degree - get min degree: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     array_list_node* nodes      = get_nodes(hf);
@@ -139,8 +154,10 @@ get_max_degree(heap_file*  hf,
 )
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("degree - get max degree: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     array_list_node* nodes      = get_nodes(hf);

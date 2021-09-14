@@ -1,3 +1,12 @@
+/*
+ * @(#)a-star.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/a-star.h"
 
 #include <errno.h>
@@ -24,7 +33,9 @@ a_star(heap_file*    hf,
 #endif
 )
 {
-    if (!hf || source_node_id == UNINITIALIZED_LONG
+    if (!hf
+        || source_node_id == UNINITIALIZED_LONG
+        // LCOV_EXCL_START
         || target_node_id == UNINITIALIZED_LONG) {
         printf("a-star: Invalid Arguments!\n");
         exit(EXIT_FAILURE);

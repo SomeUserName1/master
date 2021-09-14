@@ -1,3 +1,12 @@
+/*
+ * @(#)dfs.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "query/dfs.h"
 
 #include <errno.h>
@@ -22,8 +31,10 @@ dfs(heap_file*    hf,
 )
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("dfs: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_ul* parents = d_ul_ul_create();

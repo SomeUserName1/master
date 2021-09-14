@@ -1,10 +1,18 @@
+/*
+ * @(#)page_cache.h   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #ifndef PAGE_CACHE_H
 #define PAGE_CACHE_H
 
 #include <stddef.h>
 
 #include "constants.h"
-#include "data-struct/bitmap.h"
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "page.h"
@@ -15,11 +23,11 @@ typedef struct
     phy_database* pdb;
     size_t        num_pins;
     size_t        num_unpins;
+    bool          bulk_import;
 #ifdef VERBOSE
     FILE* log_file;
 #endif
     llist_ul*   free_frames;
-    bitmap*     pinned;
     queue_ul*   recently_referenced;
     dict_ul_ul* page_map[invalid]
                         [invalid_ft]; /* Page M is stored in frame N. Invalid =
@@ -47,6 +55,9 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
 
 size_t
 evict_page(page_cache* pc);
+
+size_t
+bulk_evict(page_cache* pc);
 
 void
 flush_page(page_cache* pc, size_t frame_no);

@@ -1,3 +1,12 @@
+/*
+ * @(#)heap_file.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/heap_file.h"
 
 #include <errno.h>
@@ -28,8 +37,10 @@ heap_file_create(page_cache* pc
         || !log_path
 #endif
     ) {
+        // LCOV_EXLC_START
         printf("heap file - create: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     heap_file* hf          = malloc(sizeof(heap_file));
@@ -53,8 +64,10 @@ heap_file_create(page_cache* pc
     FILE* log_file = fopen(log_path, "w+");
 
     if (log_file == NULL) {
+        // LCOV_EXLC_START
         printf("heap file - create: Failed to open log file, %d\n", errno);
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     hf->log_file = log_file;
@@ -67,8 +80,10 @@ void
 heap_file_destroy(heap_file* hf)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap_file - destroy: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
 #ifdef VERBOSE
@@ -82,8 +97,10 @@ bool
 check_record_exists(heap_file* hf, unsigned long id, bool node)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap file - check record exists: Invalid arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned char slots = node ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
@@ -113,8 +130,10 @@ void
 next_free_slots(heap_file* hf, bool node)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap file - next free slots: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     file_type     ft      = node ? node_ft : relationship_ft;
@@ -134,11 +153,12 @@ next_free_slots(heap_file* hf, bool node)
         }
 
         cur_id++;
-    } while (cur_id * n_slots / (PAGE_SIZE * CHAR_BIT)
-             < hf->cache->pdb->header[ft]->num_pages);
+    } while (cur_id * n_slots / SLOTS_PER_PAGE
+             < hf->cache->pdb->records[ft]->num_pages);
 
     page* np        = new_page(hf->cache, ft);
-    *prev_allocd_id = np->page_no * SLOTS_PER_PAGE / n_slots;
+    *prev_allocd_id = np->page_no * SLOTS_PER_PAGE / n_slots
+                      + (np->page_no * SLOTS_PER_PAGE / n_slots != 0);
     unpin_page(hf->cache, np->page_no, records, ft);
 }
 
@@ -146,13 +166,17 @@ static node_t*
 read_node_internal(heap_file* hf, unsigned long node_id, bool check_exists)
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXLC_START
         printf("heap file - read node internal: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (check_exists && !check_record_exists(hf, node_id, true)) {
+        // LCOV_EXLC_START
         printf("heap file - read node internal: Node does not exist!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long page_id   = node_id * NUM_SLOTS_PER_NODE / SLOTS_PER_PAGE;
@@ -178,16 +202,20 @@ read_relationship_internal(heap_file*    hf,
                            bool          check_exists)
 {
     if (!hf || rel_id == UNINITIALIZED_LONG) {
+        // LCOV_EXLC_START
         printf("heap file - read relationship internal: Invalid "
                "Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (check_exists && !check_record_exists(hf, rel_id, false)) {
+        // LCOV_EXLC_START
         printf("heap file - read relationship internal: Relationship does "
                "not "
                "exist!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long page_id = rel_id * NUM_SLOTS_PER_REL / SLOTS_PER_PAGE;
@@ -212,13 +240,17 @@ static void
 update_node_internal(heap_file* hf, node_t* node_to_write, bool check_exists)
 {
     if (!hf || !node_to_write || node_to_write->id == UNINITIALIZED_LONG) {
+        // LCOV_EXLC_START
         printf("heap file - update node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (check_exists && !check_record_exists(hf, node_to_write->id, true)) {
+        // LCOV_EXLC_START
         printf("heap file - update node internal: Node does not exist!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long page_id =
@@ -246,15 +278,19 @@ update_relationship_internal(heap_file*      hf,
         || rel_to_write->target_node == UNINITIALIZED_LONG
         || rel_to_write->weight == UNINITIALIZED_WEIGHT
         || rel_to_write->flags == UNINITIALIZED_BYTE) {
+        // LCOV_EXLC_START
         printf("heap file - update relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (check_exists && !check_record_exists(hf, rel_to_write->id, false)) {
+        // LCOV_EXLC_START
         printf("heap file - update relationship internal: Relationship "
                "does not "
                "exist!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long page_id =
@@ -276,8 +312,10 @@ unsigned long
 create_node(heap_file* hf, char* label)
 {
     if (!hf || !label) {
+        // LCOV_EXLC_START
         printf("heap file - create node: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     next_free_slots(hf, true);
@@ -296,7 +334,7 @@ create_node(heap_file* hf, char* label)
 
     page* header_page = pin_page(hf->cache, header_id, header, node_ft);
 
-    unsigned short byte_offset =
+    unsigned long byte_offset =
           ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT) % PAGE_SIZE;
 
     unsigned char  bit_offset = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
@@ -327,8 +365,10 @@ create_relationship(heap_file*    hf,
     if (!hf || from_node_id == UNINITIALIZED_LONG
         || to_node_id == UNINITIALIZED_LONG || weight == UNINITIALIZED_WEIGHT
         || !label) {
+        // LCOV_EXLC_START
         printf("heap file - create relationship: Invalid Arguments\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     next_free_slots(hf, false);
     unsigned long rel_id = hf->last_alloc_rel_id;
@@ -476,7 +516,7 @@ create_relationship(heap_file*    hf,
 
     page* header_page = pin_page(hf->cache, header_id, header, relationship_ft);
 
-    unsigned short byte_offset =
+    unsigned long byte_offset =
           ((rel_id * NUM_SLOTS_PER_REL) / CHAR_BIT) % PAGE_SIZE;
 
     unsigned char  bit_offset = (rel_id * NUM_SLOTS_PER_REL) % CHAR_BIT;
@@ -525,8 +565,10 @@ void
 delete_node(heap_file* hf, unsigned long node_id)
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
+        // LCOV_EXLC_START
         printf("heap file - delete node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     node_t* node = read_node_internal(hf, node_id, true);
@@ -555,7 +597,7 @@ delete_node(heap_file* hf, unsigned long node_id)
 
     page* header_page = pin_page(hf->cache, header_id, header, node_ft);
 
-    unsigned short byte_offset =
+    unsigned long byte_offset =
           ((node_id * NUM_SLOTS_PER_NODE) / CHAR_BIT) % PAGE_SIZE;
     unsigned char  bit_offset  = (node_id * NUM_SLOTS_PER_NODE) % CHAR_BIT;
     unsigned char* unused_bits = malloc(sizeof(unsigned char));
@@ -581,8 +623,10 @@ void
 delete_relationship(heap_file* hf, unsigned long rel_id)
 {
     if (!hf || rel_id == UNINITIALIZED_LONG) {
+        // LCOV_EXLC_START
         printf("heap file - delete relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     relationship_t* rel = read_relationship(hf, rel_id);
@@ -713,7 +757,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id)
 
     page* header_page = pin_page(hf->cache, header_id, header, relationship_ft);
 
-    unsigned short byte_offset =
+    unsigned long byte_offset =
           ((rel_id * NUM_SLOTS_PER_REL) / CHAR_BIT) % PAGE_SIZE;
 
     unsigned char  bit_offset  = (rel_id * NUM_SLOTS_PER_REL) % CHAR_BIT;
@@ -740,8 +784,10 @@ array_list_node*
 get_nodes(heap_file* hf)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap file operators - get nodes: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     page*         catalogue_page = pin_page(hf->cache, 0, catalogue, 0);
@@ -767,8 +813,10 @@ array_list_relationship*
 get_relationships(heap_file* hf)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap file - get relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     page*         catalogue_page = pin_page(hf->cache, 0, catalogue, 0);
@@ -796,8 +844,10 @@ next_relationship_id(heap_file*      hf,
                      direction_t     direction)
 {
     if (!hf || node_id == UNINITIALIZED_LONG || !rel) {
+        // LCOV_EXLC_START
         printf("heap_file - next relationship id: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     unsigned long start_rel_id = rel->id;
@@ -827,8 +877,10 @@ array_list_relationship*
 expand(heap_file* hf, unsigned long node_id, direction_t direction)
 {
     if (!hf) {
+        // LCOV_EXLC_START
         printf("heap file - expand: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     node_t* node = read_node_internal(hf, node_id, true);
@@ -873,8 +925,10 @@ contains_relationship_from_to(heap_file*    hf,
                               direction_t   direction)
 {
     if (!hf || direction > BOTH) {
+        // LCOV_EXLC_START
         printf("heap file - contains relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG

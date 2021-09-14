@@ -1,3 +1,12 @@
+/*
+ * @(#)test_heap_file.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "access/heap_file.h"
 
 #include "access/header_page.h"
@@ -243,8 +252,11 @@ test_next_free_slots(void)
 
     next_free_slots(hf, true);
     assert(hf->last_alloc_node_id
-           == (num_pages_for_two_header_p + 1) * SLOTS_PER_PAGE
-                    / NUM_SLOTS_PER_NODE);
+           == (pdb->records[node_ft]->num_pages - 1) * SLOTS_PER_PAGE
+                          / NUM_SLOTS_PER_NODE
+                    + (pdb->records[node_ft]->num_pages
+                             - 1 * SLOTS_PER_PAGE / NUM_SLOTS_PER_NODE
+                       != 0));
     assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
 
     unpin_page(pc, 1, header, node_ft);

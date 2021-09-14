@@ -1,6 +1,18 @@
+/*
+ * @(#)snap_importer_test.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
+#include "page_cache.h"
+#include "physical_database.h"
 #include "query/snap_importer.h"
 
 #include <assert.h>
+#include <gperftools/profiler.h>
 #include <string.h>
 
 #include "access/heap_file.h"
@@ -60,9 +72,12 @@ prepare(void)
 void
 clean_up(heap_file* hf)
 {
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
+    page_cache*   pc  = hf->cache;
+    phy_database* pdb = pc->pdb;
+
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
 }
 
 void
@@ -153,10 +168,10 @@ test_youtube(void)
 void
 test_wikipedia(void)
 {
-    dataset_t dataset = WIKIPEDIA;
+    //   dataset_t dataset = WIKIPEDIA;
 
-    assert(download_dataset(dataset, DATASET_TEMP) == 0);
-    assert(uncompress_dataset(DATASET_TEMP, PATH_WIKIPEDIA) == 0);
+    //   assert(download_dataset(dataset, DATASET_TEMP) == 0);
+    //   assert(uncompress_dataset(DATASET_TEMP, PATH_WIKIPEDIA) == 0);
     heap_file*  hf  = prepare();
     dict_ul_ul* map = import_from_txt(hf, PATH_WIKIPEDIA, false);
 
@@ -263,16 +278,28 @@ test_get_no_rels(void)
 int
 main(void)
 {
-    test_celegans();
-    test_email();
-    test_dblp();
-    test_amazon();
-    test_youtube();
+    //  test_celegans();
+    //  printf("Snap importer test: celegenas imported successfully\n");
+    //  test_email();
+    //  printf("Snap importer test: email eu imported successfully\n");
+    //  test_dblp();
+    //  printf("Snap importer test: dblp imported successfully\n");
+    //  test_amazon();
+    //  printf("Snap importer test: amazon imported successfully\n");
+    //  test_youtube();
+    //  printf("Snap importer test: youtube imported successfully\n");
     test_wikipedia();
+    printf("Snap importer test: wikipedia imported successfully\n");
     test_live_journal();
+    printf("Snap importer test: live journal imported successfully\n");
     test_orkut();
+    printf("Snap importer test: orkut imported successfully\n");
     test_friendster();
+    printf("Snap importer test: friendster imported successfully\n");
     test_get_url();
+    printf("Snap importer test: tested urls successfully\n");
     test_get_no_nodes();
+    printf("Snap importer test: tested get no nodes successfully\n");
     test_get_no_rels();
+    printf("Snap importer test: tested get no rels successfully\n");
 }

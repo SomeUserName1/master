@@ -1,8 +1,18 @@
+/*
+ * @(#)queue_ul_test.c   1.0   Sep 15, 2021
+ *
+ * Copyright (c) 2021- University of Konstanz.
+ *
+ * This software is the proprietary information of the above-mentioned
+ * institutions. Use is subject to license terms. Please refer to the included
+ * copyright notice.
+ */
 #include "data-struct/linked_list.h"
 
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MAGIC_TEST_VALUE (42777)
 #define ANOTHER_TV       (11)
@@ -197,6 +207,23 @@ test_queue_ul_destroy(void)
     queue_ul_destroy(lst);
 }
 
+void
+test_queue_ul_move_back(void)
+{
+    queue_ul* lst = q_ul_create();
+    for (size_t i = 0; i < MAGIC_TEST_VALUE; ++i) {
+        queue_ul_push(lst, i);
+    }
+    assert(queue_ul_size(lst) == MAGIC_TEST_VALUE);
+
+    for (size_t i = 0; i < ANOTHER_TV; ++i) {
+        queue_ul_move_back(lst, rand() % (MAGIC_TEST_VALUE));
+    }
+    assert(queue_ul_size(lst) == MAGIC_TEST_VALUE);
+
+    queue_ul_destroy(lst);
+}
+
 int
 main(void)
 {
@@ -211,4 +238,5 @@ main(void)
     test_queue_ul_get();
     test_queue_ul_pop();
     test_queue_ul_destroy();
+    test_queue_ul_move_back();
 }
