@@ -267,6 +267,29 @@ disk_file_grow(disk_file* df, size_t by_num_pages)
         // LCOV_EXCL_STOP
     }
 
+    int fd = fileno(df->file);
+
+    if (fd == -1) {
+        // LCOV_EXCL_START
+        printf("disk file - shrink: Failed to get file descriptor from "
+               "stream "
+               "of file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fsync(fd)) {
+        // LCOV_EXCL_START
+        printf("disk file - grow: Failed to sync buffers to disk"
+               "of file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
     df->num_pages = df->file_size / PAGE_SIZE;
 
     df->write_count++;
@@ -309,11 +332,14 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     int fd = fileno(df->file);
 
     if (fd == -1) {
+        // LCOV_EXCL_START
         printf("disk file - shrink: Failed to get file descriptor from "
                "stream "
                "of file %s: %s\n",
                df->file_name,
                strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     long shrink_by_bytes = PAGE_SIZE * by_num_pages;
@@ -343,6 +369,16 @@ disk_file_shrink(disk_file* df, size_t by_num_pages)
     if (df->file_size == -1) {
         // LCOV_EXCL_START
         printf("disk file - shrink: failed to ftell file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fsync(fd)) {
+        // LCOV_EXCL_START
+        printf("disk file - grow: Failed to sync buffers to disk"
+               "of file %s: %s\n",
                df->file_name,
                strerror(errno));
         exit(EXIT_FAILURE);
@@ -444,6 +480,29 @@ write_pages(disk_file*     df,
                 fst_page,
                 lst_page);
 #endif
+    }
+
+    int fd = fileno(df->file);
+
+    if (fd == -1) {
+        // LCOV_EXCL_START
+        printf("disk file - shrink: Failed to get file descriptor from "
+               "stream "
+               "of file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fsync(fd)) {
+        // LCOV_EXCL_START
+        printf("disk file - grow: Failed to sync buffers to disk"
+               "of file %s: %s\n",
+               df->file_name,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     df->write_count++;
