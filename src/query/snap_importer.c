@@ -18,13 +18,15 @@
 #include <zlib.h>
 
 #include "access/in_memory_graph.h"
+#include "access/node.h"
 #include "constants.h"
 #include "data-struct/htable.h"
+#include "physical_database.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
 #define CHUNK        (1 << 19)
-#define STATUS_LINES (100000)
+#define STATUS_LINES (1000000)
 #define TIMEOUT      (999)
 
 static size_t
@@ -288,8 +290,11 @@ get_no_rels(dataset_t data)
     return result;
 }
 
-dict_ul_ul*
-import_from_txt(heap_file* hf, const char* path, bool weighted)
+dict_ul_ul**
+import_from_txt(heap_file*  hf,
+                const char* path,
+                bool        weighted,
+                dataset_t   dataset)
 {
     if (!hf || !path) {
         // LCOV_EXCL_START
@@ -300,14 +305,16 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
 
     int import_fields = weighted ? 3 : 2;
 
-    unsigned long from_to[2];
-    double        weight;
-    char          buf[CHUNK];
-    size_t        lines        = 1;
-    dict_ul_ul*   txt_to_db_id = d_ul_ul_create();
-    unsigned long db_id        = 0;
-    char          label[MAX_STR_LEN];
-    int           label_len;
+    unsigned long              from_to[2];
+    double                     weight;
+    char                       buf[CHUNK];
+    size_t                     lines          = 1;
+    dict_ul_ul*                txt_to_db_id_n = d_ul_ul_create();
+    dict_ul_ul*                txt_to_db_id_r = d_ul_ul_create();
+    unsigned long              db_id          = 0;
+    char                       label[MAX_STR_LEN];
+    int                        label_len;
+    static const unsigned long factor_percent = 100;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -320,9 +327,24 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
 
     hf->cache->bulk_import = true;
 
+    unsigned long num_pages_nodes =
+          get_no_nodes(dataset) * NUM_SLOTS_PER_NODE / SLOTS_PER_PAGE
+          + (get_no_nodes(dataset) * NUM_SLOTS_PER_NODE % SLOTS_PER_PAGE);
+
+    unsigned long num_pages_rels =
+          get_no_rels(dataset) * NUM_SLOTS_PER_REL / SLOTS_PER_PAGE
+          + (get_no_rels(dataset) * NUM_SLOTS_PER_REL % SLOTS_PER_PAGE);
+
+    allocate_pages(hf->cache->pdb, node_ft, num_pages_nodes);
+    allocate_pages(hf->cache->pdb, relationship_ft, num_pages_rels);
+
     while (fgets(buf, sizeof(buf), in_file)) {
-        if (lines % STATUS_LINES == 0) {
-            printf("Processed %lu Relationships\n", lines);
+        if (lines % (get_no_rels(dataset) / factor_percent) == 0) {
+            printf("Processed %u %% of the Relationships (%lu of %lu)\n",
+                   (unsigned char)(((float)lines / (float)get_no_rels(dataset))
+                                   * (float)factor_percent),
+                   lines,
+                   get_no_rels(dataset));
         }
 
         if (*buf == '#') {
@@ -351,8 +373,8 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
         }
 
         for (int i = 0; i < import_fields; ++i) {
-            if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
-                from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
+            if (dict_ul_ul_contains(txt_to_db_id_n, from_to[i])) {
+                from_to[i] = dict_ul_ul_get_direct(txt_to_db_id_n, from_to[i]);
             } else {
                 label_len = snprintf(NULL, 0, "%lu", from_to[i]);
                 if (label_len
@@ -365,16 +387,28 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
                 }
 
                 db_id = create_node(hf, label);
-                dict_ul_ul_insert(txt_to_db_id, from_to[i], db_id);
+                dict_ul_ul_insert(txt_to_db_id_n, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
 
-        if (weighted) {
-            create_relationship(hf, from_to[0], from_to[1], weight, "\0");
-        } else {
-            create_relationship(hf, from_to[0], from_to[1], 1, "\0");
+        label_len = snprintf(NULL, 0, "%lu", lines);
+        if (label_len != snprintf(label, label_len + 1, "%lu", lines)) {
+            // LCOV_EXCL_START
+            printf("snap importer - import from txt: failed to write "
+                   "id as label!\n");
+            exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
         }
+
+        if (weighted) {
+            create_relationship(hf, from_to[0], from_to[1], weight, label);
+        } else {
+            create_relationship(hf, from_to[0], from_to[1], 1, label);
+        }
+
+        dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);
+
         lines++;
     }
 
@@ -382,11 +416,18 @@ import_from_txt(heap_file* hf, const char* path, bool weighted)
 
     hf->cache->bulk_import = false;
 
-    return txt_to_db_id;
+    dict_ul_ul** result = malloc(2 * sizeof(dict_ul_ul*));
+    result[0]           = txt_to_db_id_n;
+    result[1]           = txt_to_db_id_r;
+
+    return result;
 }
 
-dict_ul_ul*
-in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
+dict_ul_ul**
+in_memory_import_from_txt(in_memory_graph* g,
+                          const char*      path,
+                          bool             weighted,
+                          dataset_t        dataset)
 {
     if (!g || !path) {
         // LCOV_EXCL_START
@@ -395,14 +436,16 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
         // LCOV_EXCL_STOP
     }
 
-    int import_fields = weighted ? 3 : 2;
+    int                        import_fields  = weighted ? 3 : 2;
+    static const unsigned long factor_percent = 100;
 
     unsigned long from_to[2];
     double        weight;
     char          buf[CHUNK];
-    size_t        lines        = 1;
-    dict_ul_ul*   txt_to_db_id = d_ul_ul_create();
-    unsigned long db_id        = 0;
+    size_t        lines          = 1;
+    dict_ul_ul*   txt_to_db_id_n = d_ul_ul_create();
+    dict_ul_ul*   txt_to_db_id_r = d_ul_ul_create();
+    unsigned long db_id          = 0;
     char          label[MAX_STR_LEN];
     int           label_len;
 
@@ -416,8 +459,12 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
     }
 
     while (fgets(buf, sizeof(buf), in_file)) {
-        if (lines % STATUS_LINES == 0) {
-            printf("%s %lu\n", "Processed", lines);
+        if (lines % (get_no_rels(dataset) / factor_percent) == 0) {
+            printf("Processed %u %% of the Relationships (%lu of %lu)\n",
+                   (unsigned char)(((float)lines / (float)get_no_rels(dataset))
+                                   * (float)factor_percent),
+                   lines,
+                   get_no_rels(dataset));
         }
 
         if (*buf == '#') {
@@ -446,8 +493,8 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
         }
 
         for (int i = 0; i < import_fields; ++i) {
-            if (dict_ul_ul_contains(txt_to_db_id, from_to[i])) {
-                from_to[i] = dict_ul_ul_get_direct(txt_to_db_id, from_to[i]);
+            if (dict_ul_ul_contains(txt_to_db_id_n, from_to[i])) {
+                from_to[i] = dict_ul_ul_get_direct(txt_to_db_id_n, from_to[i]);
             } else {
                 label_len = snprintf(NULL, 0, "%lu", from_to[i]);
                 if (label_len
@@ -460,22 +507,66 @@ in_memory_import_from_txt(in_memory_graph* g, const char* path, bool weighted)
                 }
 
                 db_id = in_memory_create_node(g, label);
-                dict_ul_ul_insert(txt_to_db_id, from_to[i], db_id);
+                dict_ul_ul_insert(txt_to_db_id_n, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
 
-        if (weighted) {
-            in_memory_create_relationship_weighted(
-                  g, from_to[0], from_to[1], weight, "\0");
-        } else {
-            in_memory_create_relationship(g, from_to[0], from_to[1], "\0");
+        label_len = snprintf(NULL, 0, "%lu", lines);
+        if (label_len != snprintf(label, label_len + 1, "%lu", lines)) {
+            // LCOV_EXCL_START
+            printf("snap importer - import from txt: failed to write "
+                   "id as label!\n");
+            exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
         }
+
+        if (weighted) {
+            db_id = in_memory_create_relationship_weighted(
+                  g, from_to[0], from_to[1], weight, label);
+        } else {
+            db_id = in_memory_create_relationship(
+                  g, from_to[0], from_to[1], label);
+        }
+
+        dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);
 
         lines++;
     }
 
     fclose(in_file);
 
-    return txt_to_db_id;
+    dict_ul_ul** result = malloc(2 * sizeof(dict_ul_ul*));
+    result[0]           = txt_to_db_id_n;
+    result[1]           = txt_to_db_id_r;
+
+    return result;
+}
+
+void
+import(heap_file* hf, bool weighted, dataset_t dataset)
+{
+
+    const char* temp_file_dl  = "dataset.txt.gz";
+    const char* temp_file_unc = "dataset.txt";
+
+    if (download_dataset(dataset, temp_file_dl) != 0) {
+        // LLCOV_EXCL_START
+        printf("snap importer - import: Couldn't download dataset!\n");
+        exit(EXIT_FAILURE);
+        // LLCOV_EXCL_STOP
+    }
+
+    if (uncompress_dataset(temp_file_dl, temp_file_unc) != 0) {
+        // LLCOV_EXCL_START
+        printf("snap importer - import: Couldn't uncompress dataset!\n");
+        exit(EXIT_FAILURE);
+        // LLCOV_EXCL_STOP
+    }
+
+    dict_ul_ul** result = import_from_txt(hf, temp_file_unc, weighted, dataset);
+
+    dict_ul_ul_destroy(result[0]);
+    dict_ul_ul_destroy(result[1]);
+    free(result);
 }

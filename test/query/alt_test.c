@@ -57,8 +57,11 @@ main(void)
 #endif
     );
 
-    dict_ul_ul* map = import_from_txt(
-          hf, "/home/someusername/workspace_local/celegans.txt", false);
+    dict_ul_ul* map =
+          import_from_txt(hf,
+                          "/home/someusername/workspace_local/celegans.txt",
+                          false,
+                          C_ELEGANS);
 
     const unsigned long num_landmarks = 3;
 
@@ -113,9 +116,10 @@ main(void)
         dict_ul_d_destroy(heuristic[i]);
     }
 
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
 #ifdef VERBOSE
     fclose(log_file);
 #endif

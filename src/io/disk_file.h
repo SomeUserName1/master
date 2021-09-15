@@ -64,6 +64,9 @@ write_pages(disk_file*     df,
             unsigned char* data);
 
 void
+disk_file_sync(disk_file* df);
+
+void
 clear_page(disk_file* df, size_t page_no);
 
 void

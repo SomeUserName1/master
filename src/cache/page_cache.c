@@ -195,7 +195,7 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
             if (pc->bulk_import) {
                 frame_no = bulk_evict(pc);
             } else {
-                frame_no = evict_page(pc);
+                frame_no = evict(pc);
             }
         }
 
@@ -310,7 +310,7 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 }
 
 size_t
-evict_page(page_cache* pc)
+evict(page_cache* pc)
 {
     if (!pc) {
         // LCOV_EXCL_START
@@ -363,6 +363,12 @@ evict_page(page_cache* pc)
         queue_ul_remove(pc->recently_referenced, evict_index[evicted - 1 - i]);
     }
 
+    disk_file_sync(pc->pdb->catalogue);
+    for (file_type j = 0; j < invalid_ft; ++j) {
+        disk_file_sync(pc->pdb->header[j]);
+        disk_file_sync(pc->pdb->records[j]);
+    }
+
     if (evicted == 0) {
         // LCOV_EXCL_START
         printf("page cache - evict: could not find a page to evict, as all "
@@ -399,6 +405,12 @@ bulk_evict(page_cache* pc)
             evicted++;
             frame_no = i;
         }
+    }
+
+    disk_file_sync(pc->pdb->catalogue);
+    for (file_type j = 0; j < invalid_ft; ++j) {
+        disk_file_sync(pc->pdb->header[j]);
+        disk_file_sync(pc->pdb->records[j]);
     }
 
     if (evicted == 0) {

@@ -101,6 +101,8 @@ get_avg_degree(heap_file*  hf,
         array_list_relationship_destroy(rels);
     }
 
+    array_list_node_destroy(nodes);
+
     return ((float)total_degree) / ((float)num_nodes);
 }
 

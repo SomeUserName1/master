@@ -63,8 +63,11 @@ main(void)
     }
 #endif
 
-    dict_ul_ul_destroy(import_from_txt(
-          hf, "/home/someusername/workspace_local/celegans.txt", false));
+    dict_ul_ul_destroy(
+          import_from_txt(hf,
+                          "/home/someusername/workspace_local/celegans.txt",
+                          false,
+                          C_ELEGANS));
 
     const unsigned int max_walk_steps = 100;
     path*              rand_w;
@@ -95,6 +98,9 @@ main(void)
                    || r->source_node == r_next->source_node
                    || r->source_node == r_next->target_node
                    || r->target_node == r_next->source_node);
+
+            free(r);
+            free(r_next);
         }
 
         path_destroy(rand_w);
@@ -124,6 +130,8 @@ main(void)
             r_next = read_relationship(hf,
                                        array_list_ul_get(rand_w->edges, j + 1));
             assert(r->target_node == r_next->source_node);
+            free(r);
+            free(r_next);
         }
 
         path_destroy(rand_w);
@@ -150,14 +158,17 @@ main(void)
             r_next = read_relationship(hf,
                                        array_list_ul_get(rand_w->edges, j + 1));
             assert(r->source_node == r_next->target_node);
+            free(r);
+            free(r_next);
         }
 
         path_destroy(rand_w);
     }
 
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
 #ifdef VERBOSE
     fclose(log_file);
 #endif

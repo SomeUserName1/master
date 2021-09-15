@@ -299,7 +299,7 @@ test_unpin_page(void)
 }
 
 void
-test_evict_page(void)
+test_evict(void)
 {
     char* file_name = "test";
 
@@ -343,7 +343,7 @@ test_evict_page(void)
     assert(llist_ul_size(pc->free_frames) == 0);
     unpin_page(pc, 0, records, node_ft);
 
-    evict_page(pc);
+    evict(pc);
 
     assert(llist_ul_size(pc->free_frames) == EVICT_LRU_K);
 
@@ -471,7 +471,7 @@ main(void)
     test_new_page();
     test_pin_page();
     test_unpin_page();
-    test_evict_page();
+    test_evict();
     test_flush_page();
     test_flush_all_pages();
 

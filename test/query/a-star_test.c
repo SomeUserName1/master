@@ -56,8 +56,11 @@ main(void)
 #endif
     );
 
-    dict_ul_ul* map = import_from_txt(
-          hf, "/home/someusername/workspace_local/celegans.txt", false);
+    dict_ul_ul* map =
+          import_from_txt(hf,
+                          "/home/someusername/workspace_local/celegans.txt",
+                          false,
+                          C_ELEGANS);
 
     dict_ul_d* heuristic = d_ul_d_create();
 

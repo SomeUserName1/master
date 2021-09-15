@@ -7,6 +7,7 @@
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
  */
+#include "physical_database.h"
 #include "query/degree.h"
 
 #include "access/heap_file.h"
@@ -77,9 +78,11 @@ prepare(void)
 void
 clean_up(heap_file* hf)
 {
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
+    page_cache*   pc  = hf->cache;
+    phy_database* pdb = pc->pdb;
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
 
 #ifdef VERBOSE
     fclose(log_file);

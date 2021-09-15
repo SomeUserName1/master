@@ -54,8 +54,11 @@ main(void)
 #endif
     );
 
-    dict_ul_ul* map = import_from_txt(
-          hf, "/home/someusername/workspace_local/celegans.txt", false);
+    dict_ul_ul* map =
+          import_from_txt(hf,
+                          "/home/someusername/workspace_local/celegans.txt",
+                          false,
+                          C_ELEGANS);
 
 #ifdef VERBOSE
     const char* log_path = "/home/someusername/workspace_local/alt_test.txt";
@@ -237,9 +240,10 @@ main(void)
 
     traversal_result_destroy(result);
     dict_ul_ul_destroy(map);
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
 #ifdef VERBOSE
     fclose(log_file);
 #endif

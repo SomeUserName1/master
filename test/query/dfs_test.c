@@ -129,9 +129,11 @@ main(void)
     assert(dict_ul_ul_get_direct(result->parents, 5) == 4);
 
     traversal_result_destroy(result);
-    phy_database_delete(hf->cache->pdb);
-    page_cache_destroy(hf->cache);
+
     heap_file_destroy(hf);
+    page_cache_destroy(pc);
+    phy_database_delete(pdb);
+
 #ifdef VERBOSE
     fclose(log_file);
 #endif
