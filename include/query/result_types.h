@@ -68,8 +68,7 @@ path*
 construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
-               dict_ul_ul*   parents,
-               double        distance
+               dict_ul_ul*   parents
 #ifdef VERBOSE
                ,
                FILE* log_file

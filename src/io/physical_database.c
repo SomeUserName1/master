@@ -387,11 +387,13 @@ phy_database_validate_empty_header(phy_database* db, file_type ft)
 
         for (size_t i = 0; i < PAGE_SIZE; ++i) {
             if (buf[i] != 0) {
+                // LCOV_EXCL_START
                 printf("physical database - create: Non-empty header %s "
                        "for empty record file %s!\n",
                        db->header[ft]->file_name,
                        db->records[ft]->file_name);
                 return false;
+                // LCOV_EXCL_STOP
             }
         }
     } else {

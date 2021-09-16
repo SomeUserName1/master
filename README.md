@@ -10,6 +10,7 @@ Dynamic record locality optimizing storage scheme for graph databases.
 
 - [x] SRS
 - [x] SDD
+- [x] Copyright & License
 - Code Comments
     - [ ] data-struct
     - [ ] io
@@ -36,8 +37,8 @@ Dynamic record locality optimizing storage scheme for graph databases.
     - [x] data structures
     - [x] io
     - [x] cache
-    - [ ] Access (WIP)  
-    - [ ] Queries  
+    - [x] Access  
+    - [x] Queries  
     - [ ] Logging
   - [ ] layout (Impl + tests)
 

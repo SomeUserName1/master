@@ -50,7 +50,9 @@ void
 traversal_result_destroy(traversal_result* result)
 {
     if (!result) {
+        // LCOV_EXCL_START
         return;
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_ul_destroy(result->traversal_numbers);
@@ -91,7 +93,9 @@ void
 sssp_result_destroy(sssp_result* result)
 {
     if (!result) {
+        // LCOV_EXCL_START
         return;
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_d_destroy(result->distances);
@@ -134,8 +138,9 @@ void
 path_destroy(path* p)
 {
     if (!p) {
-        // LCOV_EXCL_LINE
+        // LCOV_EXCL_START
         return;
+        // LCOV_EXCL_STOP
     }
 
     array_list_ul_destroy(p->edges);
@@ -146,8 +151,7 @@ path*
 construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
-               dict_ul_ul*   parents,
-               double        distance
+               dict_ul_ul*   parents
 #ifdef VERBOSE
                ,
                FILE* log_file
@@ -166,6 +170,7 @@ construct_path(heap_file*    hf,
     array_list_ul*  edges_reverse = al_ul_create();
     relationship_t* rel;
     unsigned long   parent_id;
+    double          distance = 0;
     do {
         parent_id = dict_ul_ul_get_direct(parents, node_id);
         array_list_ul_append(edges_reverse, parent_id);
@@ -177,6 +182,8 @@ construct_path(heap_file*    hf,
 
         node_id =
               rel->target_node == node_id ? rel->source_node : rel->target_node;
+        distance += rel->weight;
+        free(rel);
     } while (node_id != source_node_id);
 
     array_list_ul* edges = al_ul_create();
@@ -218,6 +225,7 @@ path_extract_vertices(path* p, heap_file* hf)
         } else if (rel->target_node == prev_node) {
             array_list_ul_append(nodes, rel->source_node);
         }
+        free(rel);
     }
 
     return nodes;

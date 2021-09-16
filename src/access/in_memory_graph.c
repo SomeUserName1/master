@@ -67,9 +67,11 @@ node_t*
 in_memory_get_node(in_memory_graph* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("in_memory: get_node: in memory file is NULL or invalid node "
                "requested!\n");
-        return NULL;
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     return dict_ul_node_get_direct(db->cache_nodes, id);
@@ -79,8 +81,10 @@ inm_alist_node*
 in_memory_get_nodes(in_memory_graph* db)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("in_memory - get_nodes: in memory file is NULL!\n");
-        return NULL;
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     inm_alist_node*        nodes = inmal_node_create();
@@ -99,9 +103,11 @@ relationship_t*
 in_memory_get_relationship(in_memory_graph* db, unsigned long id)
 {
     if (!db || id == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("in_memory - get_relationship: in memory file is NULL or "
                "invalid relationship requested!\n");
-        return NULL;
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     return dict_ul_rel_get_direct(db->cache_rels, id);
@@ -370,12 +376,16 @@ in_memory_contains_relationship_from_to(in_memory_graph* db,
                                         direction_t      direction)
 {
     if (!db) {
+        // LCOV_EXCL_START
         printf("in_memory - contains relationship: Invalid Arguments!\n");
-        return NULL;
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     if (node_from == UNINITIALIZED_LONG || node_to == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         return NULL;
+        // LCOV_EXCL_STOP
     }
 
     relationship_t* rel;

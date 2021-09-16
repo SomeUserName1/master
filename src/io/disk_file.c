@@ -166,7 +166,9 @@ disk_file_destroy(disk_file* df)
     }
 
     if (fclose(df->file) != 0) {
+        // LCOV_EXCL_START
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
+        // LCOV_EXCL_STOP
     }
 
     free(df->f_buf);
@@ -185,13 +187,17 @@ disk_file_delete(disk_file* df)
     }
 
     if (fclose(df->file) != 0) {
+        // LCOV_EXCL_START
         printf("disk file - delete: Error closing file: %s", strerror(errno));
+        // LCOV_EXCL_STOP
     }
 
     if (remove(df->file_name) != 0) {
+        // LCOV_EXCL_START
         printf("disk file - delete: Error removing file %s: %s\n",
                df->file_name,
                strerror(errno));
+        // LCOV_EXCL_STOP
     }
 
     free(df->f_buf);

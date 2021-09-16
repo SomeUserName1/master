@@ -63,11 +63,7 @@ main(void)
     }
 #endif
 
-    dict_ul_ul_destroy(
-          import_from_txt(hf,
-                          "/home/someusername/workspace_local/celegans.txt",
-                          false,
-                          C_ELEGANS));
+    import(hf, false, C_ELEGANS);
 
     const unsigned int max_walk_steps = 100;
     path*              rand_w;

@@ -7,6 +7,7 @@
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
  */
+#include "access/relationship.h"
 #include "query/a-star.h"
 
 #include <assert.h>
@@ -19,7 +20,8 @@
 #include "query/result_types.h"
 #include "query/snap_importer.h"
 
-#define n(x) dict_ul_ul_get_direct(map, x)
+#define n(x) dict_ul_ul_get_direct(map[0], x)
+#define r(x) dict_ul_ul_get_direct(map[1], x)
 
 int
 main(void)
@@ -56,7 +58,7 @@ main(void)
 #endif
     );
 
-    dict_ul_ul* map =
+    dict_ul_ul** map =
           import_from_txt(hf,
                           "/home/someusername/workspace_local/celegans.txt",
                           false,
@@ -64,7 +66,7 @@ main(void)
 
     dict_ul_d* heuristic = d_ul_d_create();
 
-    for (size_t i = 0; i < dict_ul_ul_size(map); ++i) {
+    for (size_t i = 0; i < dict_ul_ul_size(map[0]); ++i) {
         dict_ul_d_insert(heuristic, n(i), 0.0);
     }
 
@@ -93,12 +95,37 @@ main(void)
     assert(result->target == n(111));
     assert(result->distance == 3);
 
-    assert(array_list_ul_get(result->edges, 0) == 88);
-    assert(array_list_ul_get(result->edges, 1) == 561);
-    assert(array_list_ul_get(result->edges, 2) == 763);
+    relationship_t* rel;
+    unsigned long   next_node_id;
+    bool            src;
+
+    assert(array_list_ul_get(result->edges, 0) == r(88));
+    rel          = read_relationship(hf, r(88));
+    src          = rel->source_node == n(11);
+    next_node_id = src ? rel->target_node : rel->source_node;
+    assert(src && rel->source_node == n(11) || rel->target_node == n(11));
+    free(rel);
+
+    assert(array_list_ul_get(result->edges, 1) == r(561));
+    rel = read_relationship(hf, r(561));
+    src = next_node_id == rel->source_node;
+    assert(src && rel->source_node == next_node_id
+           || rel->target_node == next_node_id);
+    next_node_id = src ? rel->target_node : rel->source_node;
+    free(rel);
+
+    assert(array_list_ul_get(result->edges, 2) == r(763));
+    rel = read_relationship(hf, r(763));
+    src = next_node_id == rel->source_node;
+    assert(src && rel->source_node == next_node_id
+           || rel->target_node == next_node_id);
+    assert(src && rel->target_node == n(111) || rel->source_node == n(111));
+    free(rel);
 
     path_destroy(result);
-    dict_ul_ul_destroy(map);
+    dict_ul_ul_destroy(map[0]);
+    dict_ul_ul_destroy(map[1]);
+    free(map);
     dict_ul_d_destroy(heuristic);
     heap_file_destroy(hf);
     page_cache_destroy(pc);

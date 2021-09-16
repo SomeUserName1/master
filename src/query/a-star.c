@@ -39,6 +39,7 @@ a_star(heap_file*    hf,
         || target_node_id == UNINITIALIZED_LONG) {
         printf("a-star: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     dict_ul_ul* parents  = d_ul_ul_create();
@@ -58,15 +59,13 @@ a_star(heap_file*    hf,
         fh_node = fib_heap_ul_extract_min(prio_queue);
 
         if (fh_node->value == target_node_id) {
-            new_dist = dict_ul_d_get_direct(distance, target_node_id);
             dict_ul_d_destroy(distance);
             free(fh_node);
             fib_heap_ul_destroy(prio_queue);
             return construct_path(hf,
                                   source_node_id,
                                   target_node_id,
-                                  parents,
-                                  new_dist
+                                  parents
 #ifdef VERBOSE
                                   ,
                                   log_file
@@ -94,7 +93,8 @@ a_star(heap_file*    hf,
             new_dist = dict_ul_d_get_direct(distance, fh_node->value)
                        + current_rel->weight
                        + dict_ul_d_get_direct(heuristic, fh_node->value);
-            if (dict_ul_d_get_direct(distance, temp) > new_dist) {
+            if (!dict_ul_d_contains(distance, temp)
+                || dict_ul_d_get_direct(distance, temp) > new_dist) {
                 dict_ul_d_insert(distance, temp, new_dist);
                 dict_ul_ul_insert(parents, temp, current_rel->id);
                 fib_heap_ul_insert(prio_queue, new_dist, temp);

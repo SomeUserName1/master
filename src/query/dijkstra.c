@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/fibonacci_heap.h"
@@ -48,6 +49,7 @@ dijkstra(heap_file*    hf,
     double                   new_dist;
     fib_heap_ul_node*        fh_node = NULL;
     fib_heap_ul_insert(prio_queue, DBL_MAX, source_node_id);
+
     dict_ul_d_insert(distance, source_node_id, 0);
 
     while (prio_queue->num_nodes > 0) {
@@ -72,7 +74,8 @@ dijkstra(heap_file*    hf,
 
             new_dist = dict_ul_d_get_direct(distance, fh_node->value)
                        + current_rel->weight;
-            if (dict_ul_d_get_direct(distance, temp) > new_dist) {
+            if (!dict_ul_d_contains(distance, temp)
+                || dict_ul_d_get_direct(distance, temp) > new_dist) {
                 dict_ul_d_insert(distance, temp, new_dist);
                 dict_ul_ul_insert(parents, temp, current_rel->id);
                 fib_heap_ul_insert(prio_queue, new_dist, temp);

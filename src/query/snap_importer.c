@@ -45,14 +45,18 @@ download_dataset(dataset_t data, const char* gz_path)
 
     curl = curl_easy_init();
     if (!curl) {
+        // LCOV_EXCL_START
         printf("%s", "Failed to initialize curl");
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     gz_file = fopen(gz_path, "wb");
     if (!gz_file) {
+        // LCOV_EXCL_START
         printf("%s", "Failed to open file to download dataset to");
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, get_url(data));
@@ -64,11 +68,13 @@ download_dataset(dataset_t data, const char* gz_path)
     result = curl_easy_perform(curl);
 
     if (result != CURLE_OK) {
+        // LCOV_EXCL_START
         printf("%s %s\n",
                "Failed to download the dataset with curl error: ",
                curl_easy_strerror(result));
         curl_easy_cleanup(curl);
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     fclose(gz_file);
@@ -95,31 +101,39 @@ uncompress_dataset(const char* gz_path, const char* out_path)
     stream.next_in  = Z_NULL;
     ret             = inflateInit2(&stream, (32 + MAX_WBITS));
     if (ret != Z_OK) {
+        // LCOV_EXCL_START
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     out_file = fopen(out_path, "wb");
     if (out_file == NULL) {
+        // LCOV_EXCL_START
         printf("%s", "couldn't open the output file");
         inflateEnd(&stream);
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     in_gz_file = fopen(gz_path, "rb");
     if (in_gz_file == NULL) {
+        // LCOV_EXCL_START
         printf("%s", "couldn't open the input file as gzipped");
         fclose(out_file);
         inflateEnd(&stream);
         return -1;
+        // LCOV_EXCL_STOP
     }
 
     do {
         stream.avail_in = fread(in, 1, CHUNK, in_gz_file);
         if (ferror(in_gz_file)) {
+            // LCOV_EXCL_START
             inflateEnd(&stream);
             fclose(out_file);
             fclose(in_gz_file);
             return -1;
+            // LCOV_EXCL_STOP
         }
 
         stream.next_in = in;
@@ -128,6 +142,7 @@ uncompress_dataset(const char* gz_path, const char* out_path)
             stream.next_out  = out;
 
             ret = inflate(&stream, Z_SYNC_FLUSH);
+            // LCOV_EXCL_START
             assert(ret != Z_STREAM_ERROR);
             switch (ret) {
                 case Z_NEED_DICT:
@@ -138,14 +153,17 @@ uncompress_dataset(const char* gz_path, const char* out_path)
                     fclose(out_file);
                     fclose(in_gz_file);
                     return -1;
+                    // LCOV_EXCL_STOP
             }
 
             have = CHUNK - stream.avail_out;
             if (fwrite(out, 1, have, out_file) != have || ferror(out_file)) {
+                // LCOV_EXCL_START
                 inflateEnd(&stream);
                 fclose(out_file);
                 fclose(in_gz_file);
                 return -1;
+                // LCOV_EXCL_STOP
             }
         } while (stream.avail_out == 0);
     } while (ret != Z_STREAM_END);
@@ -308,7 +326,7 @@ import_from_txt(heap_file*  hf,
     unsigned long              from_to[2];
     double                     weight;
     char                       buf[CHUNK];
-    size_t                     lines          = 1;
+    size_t                     lines          = 0;
     dict_ul_ul*                txt_to_db_id_n = d_ul_ul_create();
     dict_ul_ul*                txt_to_db_id_r = d_ul_ul_create();
     unsigned long              db_id          = 0;
@@ -402,9 +420,10 @@ import_from_txt(heap_file*  hf,
         }
 
         if (weighted) {
-            create_relationship(hf, from_to[0], from_to[1], weight, label);
+            db_id = create_relationship(
+                  hf, from_to[0], from_to[1], weight, label);
         } else {
-            create_relationship(hf, from_to[0], from_to[1], 1, label);
+            db_id = create_relationship(hf, from_to[0], from_to[1], 1, label);
         }
 
         dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);
@@ -419,6 +438,10 @@ import_from_txt(heap_file*  hf,
     dict_ul_ul** result = malloc(2 * sizeof(dict_ul_ul*));
     result[0]           = txt_to_db_id_n;
     result[1]           = txt_to_db_id_r;
+
+    printf("Processed 100 %% of the Relationships (%lu of %lu)\n",
+           lines,
+           get_no_rels(dataset));
 
     return result;
 }
@@ -442,7 +465,7 @@ in_memory_import_from_txt(in_memory_graph* g,
     unsigned long from_to[2];
     double        weight;
     char          buf[CHUNK];
-    size_t        lines          = 1;
+    size_t        lines          = 0;
     dict_ul_ul*   txt_to_db_id_n = d_ul_ul_create();
     dict_ul_ul*   txt_to_db_id_r = d_ul_ul_create();
     unsigned long db_id          = 0;
@@ -539,6 +562,10 @@ in_memory_import_from_txt(in_memory_graph* g,
     dict_ul_ul** result = malloc(2 * sizeof(dict_ul_ul*));
     result[0]           = txt_to_db_id_n;
     result[1]           = txt_to_db_id_r;
+
+    printf("Processed 100 %% of the Relationships (%lu of %lu)\n",
+           lines,
+           get_no_rels(dataset));
 
     return result;
 }

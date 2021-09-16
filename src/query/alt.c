@@ -69,6 +69,8 @@ alt_chose_avg_deg_rand_landmark(heap_file*  hf,
         );
     } while (degree < avg_degree);
 
+    array_list_node_destroy(nodes);
+
     return landmark_id;
 }
 
@@ -152,11 +154,16 @@ alt(heap_file*    hf,
             fprintf("alt N %lu\n", array_list_node_get(nodes, j)->id);
 #endif
 
-            if (temp_dist < dict_ul_d_get_direct(heuristic, j)) {
-                dict_ul_d_insert(heuristic, j, temp_dist);
+            if (!dict_ul_d_contains(heuristic,
+                                    array_list_node_get(nodes, j)->id)
+                || temp_dist < dict_ul_d_get_direct(
+                         heuristic, array_list_node_get(nodes, j)->id)) {
+                dict_ul_d_insert(
+                      heuristic, array_list_node_get(nodes, j)->id, temp_dist);
             }
         }
     }
+    array_list_node_destroy(nodes);
 
     path* result = a_star(hf,
                           heuristic,

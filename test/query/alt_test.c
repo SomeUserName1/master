@@ -20,7 +20,8 @@
 #include "query/result_types.h"
 #include "query/snap_importer.h"
 
-#define n(x) dict_ul_ul_get_direct(map, x)
+#define n(x) dict_ul_ul_get_direct(map[0], x)
+#define r(x) dict_ul_ul_get_direct(map[1], x)
 
 int
 main(void)
@@ -57,7 +58,7 @@ main(void)
 #endif
     );
 
-    dict_ul_ul* map =
+    dict_ul_ul** map =
           import_from_txt(hf,
                           "/home/someusername/workspace_local/celegans.txt",
                           false,
@@ -76,10 +77,6 @@ main(void)
 #endif
 
     dict_ul_d* heuristic[num_landmarks];
-
-    for (size_t i = 0; i < num_landmarks; ++i) {
-        heuristic[i] = d_ul_d_create();
-    }
 
     alt_preprocess(hf,
                    BOTH,
@@ -105,12 +102,10 @@ main(void)
     assert(result->target == n(111));
     assert(result->distance == 3);
 
-    assert(array_list_ul_get(result->edges, 0) == 88);
-    assert(array_list_ul_get(result->edges, 1) == 561);
-    assert(array_list_ul_get(result->edges, 2) == 763);
-
     path_destroy(result);
-    dict_ul_ul_destroy(map);
+    dict_ul_ul_destroy(map[0]);
+    dict_ul_ul_destroy(map[1]);
+    free(map);
 
     for (size_t i = 0; i < num_landmarks; ++i) {
         dict_ul_d_destroy(heuristic[i]);
