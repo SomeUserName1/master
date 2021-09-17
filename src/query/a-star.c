@@ -103,9 +103,11 @@ a_star(heap_file*    hf,
         free(fh_node);
         array_list_relationship_destroy(current_rels);
     }
+    // LCOV_EXCL_START
     fib_heap_ul_destroy(prio_queue);
     dict_ul_ul_destroy(parents);
     dict_ul_d_destroy(distance);
 
     return create_path(source_node_id, target_node_id, DBL_MAX, al_ul_create());
+    // LCOV_EXCL_STOP
 }

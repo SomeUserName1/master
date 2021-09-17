@@ -240,14 +240,14 @@ relationship_to_string(const relationship_t* record,
 
     int length = snprintf(NULL,
                           0,
-                          "Relationship ID: %#lX\n"
-                          "Flags: %#hhX\n"
-                          "Source Node: %#lX\n"
-                          "Target Node: %#lX\n"
-                          "Source node's previous relationship: %#lX\n"
-                          "Source node's next relationship: %#lX\n"
-                          "Target node's previous relationship: %#lX\n"
-                          "Target node's next relationship: %#lX\n"
+                          "Relationship ID: %lu\n"
+                          "Flags: %u\n"
+                          "Source Node: %lu\n"
+                          "Target Node: %lu\n"
+                          "Source node's previous relationship: %lu\n"
+                          "Source node's next relationship: %lu\n"
+                          "Target node's previous relationship: %lu\n"
+                          "Target node's next relationship: %lu\n"
                           "Weight: %.1f\n"
                           "Label %s\n",
                           record->id,
@@ -274,14 +274,14 @@ relationship_to_string(const relationship_t* record,
 
     int result = snprintf(buffer,
                           length,
-                          "Relationship ID: %#lX\n"
-                          "Flags: %#hhX\n"
-                          "Source Node: %#lX\n"
-                          "Target Node: %#lX\n"
-                          "Source node's previous relationship: %#lX\n"
-                          "Source node's next relationship: %#lX\n"
-                          "Target node's previous relationship: %#lX\n"
-                          "Target node's next relationship: %#lX\n"
+                          "Relationship ID: %lu\n"
+                          "Flags: %u\n"
+                          "Source Node: %lu\n"
+                          "Target Node: %lu\n"
+                          "Source node's previous relationship: %lu\n"
+                          "Source node's next relationship: %lu\n"
+                          "Target node's previous relationship: %lu\n"
+                          "Target node's next relationship: %lu\n"
                           "First Property: %.1f\n"
                           "Label %s\n",
                           record->id,
@@ -313,14 +313,14 @@ relationship_pretty_print(const relationship_t* record)
         // LCOV_EXCL_STOP
     }
 
-    printf("Relationship ID: %#lX\n"
-           "Flags: %#hhX\n"
-           "Source Node: %#lX\n"
-           "Target Node: %#lX\n"
-           "Source node's previous relationship: %#lX\n"
-           "Source node's next relationship: %#lX\n"
-           "Target node's previous relationship: %#lX\n"
-           "Target node's next relationship: %#lX\n"
+    printf("Relationship ID: %lu\n"
+           "Flags: %u\n"
+           "Source Node: %lu\n"
+           "Target Node: %lu\n"
+           "Source node's previous relationship: %lu\n"
+           "Source node's next relationship: %lu\n"
+           "Target node's previous relationship: %lu\n"
+           "Target node's next relationship: %lu\n"
            "Weight: %.1f\n"
            "Label %s\n",
 

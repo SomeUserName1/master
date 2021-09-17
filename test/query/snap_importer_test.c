@@ -23,7 +23,7 @@
 #define DATASET_TEMP   ("/home/someusername/workspace_local/dataset.txt.gz")
 #define PATH_CELEGANS  ("/home/someusername/workspace_local/celegans.txt")
 #define PATH_EMAIL     ("/home/someusername/workspace_local/email_eu.txt")
-#define PATH_DBLP      ("/home/someusername/workspace_local/hflp.txt")
+#define PATH_DBLP      ("/home/someusername/workspace_local/dblp.txt")
 #define PATH_AMAZON    ("/home/someusername/workspace_local/amazon.txt")
 #define PATH_YOUTUBE   ("/home/someusername/workspace_local/youtube.txt")
 #define PATH_WIKIPEDIA ("/home/someusername/workspace_local/wikipeida.txt")
@@ -706,14 +706,14 @@ main(void)
     printf("Snap importer test: amazon imported successfully\n");
     test_youtube();
     printf("Snap importer test: youtube imported successfully\n");
-    //  test_wikipedia();
-    //  printf("Snap importer test: wikipedia imported successfully\n");
-    //  test_live_journal();
-    //  printf("Snap importer test: live journal imported successfully\n");
-    //  test_orkut();
-    //  printf("Snap importer test: orkut imported successfully\n");
-    //  test_friendster();
-    //  printf("Snap importer test: friendster imported successfully\n");
+    test_wikipedia();
+    printf("Snap importer test: wikipedia imported successfully\n");
+    test_live_journal();
+    printf("Snap importer test: live journal imported successfully\n");
+    test_orkut();
+    printf("Snap importer test: orkut imported successfully\n");
+    test_friendster();
+    printf("Snap importer test: friendster imported successfully\n");
     test_get_url();
     printf("Snap importer test: tested urls successfully\n");
     test_get_no_nodes();

@@ -152,8 +152,8 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
 
     int length = snprintf(NULL,
                           0,
-                          "Node ID: %#lX\n"
-                          "First Relationship: %#lX\n"
+                          "Node ID: %lu\n"
+                          "First Relationship: %lu\n"
                           "Label: %s\n",
                           record->id,
                           record->first_relationship,
@@ -169,8 +169,8 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
 
     int result = snprintf(buffer,
                           length,
-                          "Node ID: %#lX\n"
-                          "First Relationship: %#lX\n"
+                          "Node ID: %lu\n"
+                          "First Relationship: %lu\n"
                           "Label: %s\n",
                           record->id,
                           record->first_relationship,
@@ -193,8 +193,8 @@ node_pretty_print(const node_t* record)
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-    printf("Node ID: %#lX\n"
-           "First Relationship: %#lX\n"
+    printf("Node ID: %lu\n"
+           "First Relationship: %lu\n"
            "Label: %s\n",
            record->id,
            record->first_relationship,

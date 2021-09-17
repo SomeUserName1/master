@@ -10,6 +10,7 @@
 #include "query/snap_importer.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -359,8 +360,9 @@ import_from_txt(heap_file*  hf,
     while (fgets(buf, sizeof(buf), in_file)) {
         if (lines % (get_no_rels(dataset) / factor_percent) == 0) {
             printf("Processed %u %% of the Relationships (%lu of %lu)\n",
-                   (unsigned char)(((float)lines / (float)get_no_rels(dataset))
-                                   * (float)factor_percent),
+                   (unsigned char)ceil(
+                         ((float)lines / (float)get_no_rels(dataset))
+                         * (float)factor_percent),
                    lines,
                    get_no_rels(dataset));
         }
@@ -484,8 +486,9 @@ in_memory_import_from_txt(in_memory_graph* g,
     while (fgets(buf, sizeof(buf), in_file)) {
         if (lines % (get_no_rels(dataset) / factor_percent) == 0) {
             printf("Processed %u %% of the Relationships (%lu of %lu)\n",
-                   (unsigned char)(((float)lines / (float)get_no_rels(dataset))
-                                   * (float)factor_percent),
+                   (unsigned char)ceil(
+                         ((float)lines / (float)get_no_rels(dataset))
+                         * (float)factor_percent),
                    lines,
                    get_no_rels(dataset));
         }

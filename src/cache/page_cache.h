@@ -53,10 +53,10 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
 void
 unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
 
-size_t
+void
 evict(page_cache* pc);
 
-size_t
+void
 bulk_evict(page_cache* pc);
 
 void

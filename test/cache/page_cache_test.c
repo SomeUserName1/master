@@ -180,16 +180,13 @@ test_pin_page(void)
     allocate_pages(pc->pdb, node_ft, 3);
 
     page* test_page_1 = pin_page(pc, 0, records, node_ft);
-    page* test_page_2 = pin_page(pc, 2, records, node_ft);
 
     size_t frame_no_1 =
           dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0);
-    size_t frame_no_2 =
-          dict_ul_ul_get_direct(pc->page_map[records][node_ft], 2);
 
-    assert(pc->num_pins == 2);
+    assert(pc->num_pins == 1);
     assert(pc->num_unpins == 0);
-    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
+    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
     assert(queue_ul_size(pc->recently_referenced) == 0);
 
     assert(test_page_1);
@@ -200,6 +197,27 @@ test_pin_page(void)
     assert(test_page_1->fk == records);
     assert(test_page_1->pin_count == 1);
 
+    page* test_page_3 = pin_page(pc, 0, records, node_ft);
+    assert(test_page_3);
+    assert(test_page_3 == test_page_1);
+    assert(test_page_3->pin_count == 2);
+    assert(test_page_3->ft == node_ft);
+    assert(test_page_3->fk == records);
+    assert(pc->num_pins == 2);
+    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
+
+    page* test_page_4 = pin_page(pc, 0, records, node_ft);
+    assert(test_page_4);
+    assert(test_page_4 == test_page_1);
+    assert(test_page_4->pin_count == 3);
+    assert(pc->num_pins == 3);
+    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
+    test_page_1->pin_count = 0;
+    queue_ul_append(pc->recently_referenced, 0);
+
+    page*  test_page_2 = pin_page(pc, 2, records, node_ft);
+    size_t frame_no_2 =
+          dict_ul_ul_get_direct(pc->page_map[records][node_ft], 2);
     assert(test_page_2);
     assert(pc->cache[frame_no_2] == test_page_2);
     assert(test_page_2->page_no == 2);
@@ -207,27 +225,9 @@ test_pin_page(void)
     assert(test_page_2->ft == node_ft);
     assert(test_page_2->fk == records);
     assert(test_page_2->pin_count == 1);
-
-    page* test_page_3 = pin_page(pc, 0, records, node_ft);
-    assert(test_page_3);
-    assert(test_page_3 == test_page_1);
-    assert(test_page_3->pin_count == 2);
-    assert(test_page_3->ft == node_ft);
-    assert(test_page_3->fk == records);
-    assert(pc->num_pins == 3);
-    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
-
-    page* test_page_4 = pin_page(pc, 0, records, node_ft);
-    assert(test_page_4);
-    assert(test_page_4 == test_page_1);
-    assert(test_page_4->pin_count == 3);
     assert(pc->num_pins == 4);
-    assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 2);
 
-    test_page_1->pin_count = 0;
     test_page_2->pin_count = 0;
-    test_page_3->pin_count = 0;
-    test_page_4->pin_count = 0;
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
@@ -347,8 +347,11 @@ test_evict(void)
 
     assert(llist_ul_size(pc->free_frames) == EVICT_LRU_K);
 
-    for (size_t i = 0; i < EVICT_LRU_K; ++i) {
+    size_t max_evict =
+          CACHE_N_PAGES < EVICT_LRU_K ? CACHE_N_PAGES : EVICT_LRU_K;
+    for (size_t i = 0; i < max_evict; ++i) {
         assert(!dict_ul_ul_contains(pc->page_map[records][node_ft], i));
+        // NOLINTNEXTLINE
         assert(!queue_ul_contains(pc->recently_referenced, frame_nos[i]));
     }
 

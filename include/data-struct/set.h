@@ -288,13 +288,14 @@
             if (s->cbs.free) {                                                 \
                 s->cbs.free(s->buckets[idx].elem);                             \
             }                                                                  \
-            s->buckets[idx].is_used = false;                                   \
                                                                                \
             cur = s->buckets[idx].next;                                        \
             if (cur) {                                                         \
                 s->buckets[idx].elem = cur->elem;                              \
                 s->buckets[idx].next = cur->next;                              \
                 free(cur);                                                     \
+            } else {                                                           \
+                s->buckets[idx].is_used = false;                               \
             }                                                                  \
             s->num_used--;                                                     \
             return 0;                                                          \

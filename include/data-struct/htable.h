@@ -338,7 +338,6 @@
             if (ht->cbs.value_free) {                                          \
                 ht->cbs.value_free(ht->buckets[idx].value);                    \
             }                                                                  \
-            ht->buckets[idx].is_used = false;                                  \
                                                                                \
             cur = ht->buckets[idx].next;                                       \
             if (cur) {                                                         \
@@ -346,6 +345,8 @@
                 ht->buckets[idx].value = cur->value;                           \
                 ht->buckets[idx].next  = cur->next;                            \
                 free(cur);                                                     \
+            } else {                                                           \
+                ht->buckets[idx].is_used = false;                              \
             }                                                                  \
             ht->num_used--;                                                    \
             return 0;                                                          \

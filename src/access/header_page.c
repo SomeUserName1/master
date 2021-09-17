@@ -438,4 +438,6 @@ write_bits(page_cache*    pc,
         free(shifted_data);
     }
     free(data);
+
+    p->dirty = true;
 }

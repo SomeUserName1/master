@@ -174,7 +174,7 @@ write_string(page* p, size_t offset, char* value)
     if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN
         || value[MAX_STR_LEN - 1] != '\0' || p->pin_count < 1) {
         // LCOV_EXCL_START
-        printf("page - write string: Invalid arguments!\n");
+        printf("page - write string: Invalid arguments! %s\n", value);
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

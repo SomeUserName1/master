@@ -244,9 +244,12 @@ test_next_free_slots(void)
     next_free_slots(hf, true);
     assert(hf->last_alloc_node_id
            == PAGE_SIZE * CHAR_BIT / NUM_SLOTS_PER_NODE + 1);
+    unpin_page(pc, 0, header, node_ft);
 
     page* p2 = pin_page(pc, 1, header, node_ft);
+    assert(p2->pin_count > 0);
     memset(p2->data, UCHAR_MAX, PAGE_SIZE);
+    unpin_page(pc, 1, header, node_ft);
 
     assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 1);
 
@@ -259,8 +262,6 @@ test_next_free_slots(void)
                        != 0));
     assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
 
-    unpin_page(pc, 1, header, node_ft);
-    unpin_page(pc, 0, header, node_ft);
     heap_file_destroy(hf);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
@@ -387,10 +388,12 @@ test_create_relationship(void)
     assert(hf->last_alloc_node_id == 1);
     assert(hf->last_alloc_rel_id == 0);
 
-    page*           p   = pin_page(pc, 0, records, relationship_ft);
     relationship_t* rel = new_relationship();
-    rel->id             = id;
+
+    rel->id = id;
+    page* p = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_2);
@@ -403,16 +406,20 @@ test_create_relationship(void)
     assert(rel->label[0] == '\0');
     free(rel);
 
-    page*   node_p = pin_page(pc, 0, records, node_ft);
     node_t* node_1 = new_node();
-    node_1->id     = n_1;
+    node_t* node_2 = new_node();
+
+    node_1->id   = n_1;
+    page* node_p = pin_page(pc, 0, records, node_ft);
     node_read(node_1, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_1->id == n_1);
     assert(node_1->first_relationship == id);
 
-    node_t* node_2 = new_node();
-    node_2->id     = n_2;
+    node_2->id = n_2;
+    node_p     = pin_page(pc, 0, records, node_ft);
     node_read(node_2, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_2->id == n_2);
     assert(node_2->first_relationship == id);
     free(node_1);
@@ -424,7 +431,11 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_2;
+
+    p = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
+
     assert(rel->id == id_2);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_3);
@@ -439,7 +450,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_2);
@@ -456,7 +469,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_3;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_3);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_4);
@@ -471,7 +486,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_2;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_2);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_3);
@@ -486,7 +503,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_2);
@@ -509,25 +528,33 @@ test_create_relationship(void)
 
     node_1     = new_node();
     node_1->id = n_1;
+    node_p     = pin_page(pc, 0, records, node_ft);
     node_read(node_1, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_1->id == n_1);
     assert(node_1->first_relationship == id);
 
     node_2     = new_node();
     node_2->id = n_2;
+    node_p     = pin_page(pc, 0, records, node_ft);
     node_read(node_2, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_2->id == n_2);
     assert(node_2->first_relationship == id);
 
     node_t* node_3 = new_node();
     node_3->id     = n_3;
+    node_p         = pin_page(pc, 0, records, node_ft);
     node_read(node_3, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_3->id == n_3);
     assert(node_3->first_relationship == id_2);
 
     node_t* node_4 = new_node();
     node_4->id     = n_4;
+    node_p         = pin_page(pc, 0, records, node_ft);
     node_read(node_4, node_p);
+    unpin_page(pc, 0, records, node_ft);
     assert(node_4->id == n_4);
     assert(node_4->first_relationship == id_3);
 
@@ -538,7 +565,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_2);
@@ -553,7 +582,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_2;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_2);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_3);
@@ -568,7 +599,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_3;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_3);
     assert(rel->source_node == n_1);
     assert(rel->target_node == n_4);
@@ -583,7 +616,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_4;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_4);
     assert(rel->source_node == n_2);
     assert(rel->target_node == n_3);
@@ -598,7 +633,9 @@ test_create_relationship(void)
 
     rel     = new_relationship();
     rel->id = id_5;
+    p       = pin_page(pc, 0, records, relationship_ft);
     relationship_read(rel, p);
+    unpin_page(pc, 0, records, relationship_ft);
     assert(rel->id == id_5);
     assert(rel->source_node == n_2);
     assert(rel->target_node == n_4);
@@ -610,9 +647,6 @@ test_create_relationship(void)
     assert(rel->weight == test_weight_4);
     assert(rel->label[0] == '\0');
     free(rel);
-
-    unpin_page(pc, 0, records, node_ft);
-    unpin_page(pc, 0, records, relationship_ft);
 
     heap_file_destroy(hf);
     page_cache_destroy(pc);

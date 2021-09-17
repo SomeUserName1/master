@@ -189,15 +189,15 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
         pinned_page = pc->cache[frame_no];
         pinned_page->pin_count++;
     } else {
-        if (llist_ul_size(pc->free_frames) > 0) {
-            frame_no = llist_ul_take(pc->free_frames, 0);
-        } else {
+        if (llist_ul_size(pc->free_frames) == 0) {
             if (pc->bulk_import) {
-                frame_no = bulk_evict(pc);
+                bulk_evict(pc);
             } else {
-                frame_no = evict(pc);
+                evict(pc);
             }
         }
+
+        frame_no = llist_ul_take(pc->free_frames, 0);
 
         pinned_page = pc->cache[frame_no];
 
@@ -309,7 +309,7 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 #endif
 }
 
-size_t
+void
 evict(page_cache* pc)
 {
     if (!pc) {
@@ -341,11 +341,12 @@ evict(page_cache* pc)
                   pc->page_map[candidate_page->fk][candidate_page->ft],
                   candidate_page->page_no);
             /* Add the frame to the free frames list */
-            llist_ul_append(pc->free_frames, i);
+            llist_ul_append(pc->free_frames, candidate);
 
-            pc->cache[candidate]->page_no = ULONG_MAX;
-            pc->cache[candidate]->fk      = invalid;
-            pc->cache[candidate]->ft      = invalid_ft;
+            candidate_page->page_no = ULONG_MAX;
+            candidate_page->fk      = invalid;
+            candidate_page->ft      = invalid_ft;
+            memset(candidate_page->data, 0, PAGE_SIZE);
 
             evict_index[evicted] = i;
             evicted++;
@@ -377,19 +378,16 @@ evict(page_cache* pc)
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-
-    return candidate;
 }
 
-size_t
+void
 bulk_evict(page_cache* pc)
 {
     size_t evicted = 0;
-    size_t frame_no;
     page*  c_page;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
         c_page = pc->cache[i];
-        if (pc->cache[i]->pin_count == 0) {
+        if (c_page->pin_count == 0) {
             flush_page(pc, i);
 
             dict_ul_ul_remove(pc->page_map[c_page->fk][c_page->ft],
@@ -398,12 +396,12 @@ bulk_evict(page_cache* pc)
             /* Add the frame to the free frames list */
             llist_ul_append(pc->free_frames, i);
 
-            pc->cache[i]->page_no = ULONG_MAX;
-            pc->cache[i]->fk      = invalid;
-            pc->cache[i]->ft      = invalid_ft;
+            c_page->page_no = ULONG_MAX;
+            c_page->fk      = invalid;
+            c_page->ft      = invalid_ft;
+            memset(c_page->data, 0, PAGE_SIZE);
 
             evicted++;
-            frame_no = i;
         }
     }
 
@@ -422,8 +420,6 @@ bulk_evict(page_cache* pc)
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-
-    return frame_no;
 }
 
 void
