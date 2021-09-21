@@ -59,7 +59,8 @@ prepare(void)
     allocate_pages(phf, node_ft, 1);
     allocate_pages(phf, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(phf
+    page_cache* pc = page_cache_create(phf,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache

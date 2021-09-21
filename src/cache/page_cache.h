@@ -21,6 +21,7 @@
 typedef struct
 {
     phy_database* pdb;
+    size_t        n_pages;
     size_t        num_pins;
     size_t        num_unpins;
     bool          bulk_import;
@@ -37,7 +38,8 @@ typedef struct
 } page_cache;
 
 page_cache*
-page_cache_create(phy_database* pdb
+page_cache_create(phy_database* pdb,
+                  size_t        n_pages
 #ifdef VERBOSE
                   ,
                   const char* log_path

@@ -38,7 +38,8 @@ test_page_cache_create(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -100,7 +101,8 @@ test_page_cache_destroy(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -131,7 +133,8 @@ test_new_page(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -170,7 +173,8 @@ test_pin_page(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -250,7 +254,8 @@ test_unpin_page(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -314,7 +319,8 @@ test_evict(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -382,7 +388,8 @@ test_flush_page(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -431,7 +438,8 @@ test_flush_all_pages(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache

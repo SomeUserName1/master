@@ -26,7 +26,8 @@
 #define SWAP_MAX_NUM_PINNED_PAGES (6)
 
 page_cache*
-page_cache_create(phy_database* pdb
+page_cache_create(phy_database* pdb,
+                  size_t        n_pages
 #ifdef VERBOSE
                   ,
                   const char* log_path
@@ -50,6 +51,7 @@ page_cache_create(phy_database* pdb
     }
 
     pc->pdb                 = pdb;
+    pc->n_pages             = n_pages;
     pc->num_pins            = 0;
     pc->num_unpins          = 0;
     pc->free_frames         = ll_ul_create();
@@ -66,7 +68,7 @@ page_cache_create(phy_database* pdb
         }
     }
 
-    unsigned char* data = calloc(CACHE_N_PAGES, PAGE_SIZE);
+    unsigned char* data = calloc(n_pages, PAGE_SIZE);
 
     if (!data) {
         // LCOV_EXCL_START
@@ -75,7 +77,7 @@ page_cache_create(phy_database* pdb
         // LCOV_EXCL_STOP
     }
 
-    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
+    for (unsigned long i = 0; i < n_pages; ++i) {
         pc->cache[i] = page_create(data + (PAGE_SIZE * i));
         llist_ul_append(pc->free_frames, i);
     }
@@ -123,7 +125,7 @@ page_cache_destroy(page_cache* pc)
 
     free(pc->cache[0]->data);
 
-    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
+    for (unsigned long i = 0; i < pc->n_pages; ++i) {
         page_destroy(pc->cache[i]);
     }
 
@@ -385,7 +387,7 @@ bulk_evict(page_cache* pc)
 {
     size_t evicted = 0;
     page*  c_page;
-    for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
+    for (size_t i = 0; i < pc->n_pages; ++i) {
         c_page = pc->cache[i];
         if (c_page->pin_count == 0) {
             flush_page(pc, i);
@@ -479,7 +481,7 @@ flush_page(page_cache* pc, size_t frame_no)
 void
 flush_all_pages(page_cache* pc)
 {
-    for (unsigned long i = 0; i < CACHE_N_PAGES; ++i) {
+    for (unsigned long i = 0; i < pc->n_pages; ++i) {
         flush_page(pc, i);
     }
 }

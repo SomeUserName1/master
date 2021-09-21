@@ -197,7 +197,8 @@ test_relationship_write(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -305,7 +306,8 @@ test_relationship_read(void)
                                             log_name_pdb
 #endif
     );
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache

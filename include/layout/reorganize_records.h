@@ -12,15 +12,6 @@
 
 #include "access/heap_file.h"
 
-unsigned long*
-remap_node_ids(heap_file* hf, const unsigned long* partition);
-
-unsigned long*
-remap_rel_ids(heap_file* hf);
-
-void
-sort_incidence_list(heap_file* hf);
-
 void
 prepare_move_node(heap_file* hf, unsigned long id, unsigned long to_id);
 
@@ -28,6 +19,24 @@ void
 prepare_move_relationship(heap_file* hf, unsigned long id, unsigned long to_id);
 
 void
+swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd);
+
+void
+swap_relationships(heap_file* hf, unsigned long fst, unsigned long snd);
+
+void
 swap_page(heap_file* hf, size_t fst, size_t snd, file_type ft);
+
+void
+reorder_nodes(heap_file* hf, dict_ul_ul* new_ids);
+
+void
+reorder_relationships_by_ids(heap_file* hf, dict_ul_ul* new_ids);
+
+void
+reorder_relationships_by_nodes(heap_file* hf);
+
+void
+sort_incidence_list(heap_file* hf);
 
 #endif

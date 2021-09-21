@@ -56,7 +56,8 @@ prepare(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -706,14 +707,14 @@ main(void)
     printf("Snap importer test: amazon imported successfully\n");
     test_youtube();
     printf("Snap importer test: youtube imported successfully\n");
-    test_wikipedia();
-    printf("Snap importer test: wikipedia imported successfully\n");
-    test_live_journal();
-    printf("Snap importer test: live journal imported successfully\n");
-    test_orkut();
-    printf("Snap importer test: orkut imported successfully\n");
-    test_friendster();
-    printf("Snap importer test: friendster imported successfully\n");
+    //  test_wikipedia();
+    //  printf("Snap importer test: wikipedia imported successfully\n");
+    //   test_live_journal();
+    //   printf("Snap importer test: live journal imported successfully\n");
+    //   test_orkut();
+    //   printf("Snap importer test: orkut imported successfully\n");
+    //   test_friendster();
+    //   printf("Snap importer test: friendster imported successfully\n");
     test_get_url();
     printf("Snap importer test: tested urls successfully\n");
     test_get_no_nodes();

@@ -138,8 +138,6 @@ test_dict_ul_ul_destroy(void)
 
     fclose(in_file);
 
-    dict_ul_ul_print(dict);
-
     dict_ul_ul_destroy(dict);
 }
 
@@ -296,8 +294,6 @@ test_dict_ul_int_destroy(void)
 
     fclose(in_file);
 
-    dict_ul_int_print(dict);
-
     dict_ul_int_destroy(dict);
 }
 
@@ -337,6 +333,9 @@ test_dict_ul_int_it(void)
     assert(first && second);
 
     dict_ul_int_iterator_destroy(it);
+
+    dict_ul_int_print(dict);
+
     dict_ul_int_destroy(dict);
 }
 
@@ -467,8 +466,6 @@ test_dict_ul_node_destroy(void)
 
     fclose(in_file);
 
-    dict_ul_node_print(dict);
-
     dict_ul_node_destroy(dict);
 }
 
@@ -505,6 +502,9 @@ test_dict_ul_node_it(void)
     }
 
     dict_ul_node_iterator_destroy(it);
+
+    dict_ul_node_print(dict);
+
     dict_ul_node_destroy(dict);
 }
 
@@ -635,8 +635,6 @@ test_dict_ul_rel_destroy(void)
 
     fclose(in_file);
 
-    dict_ul_rel_print(dict);
-
     dict_ul_rel_destroy(dict);
 }
 
@@ -673,6 +671,9 @@ test_dict_ul_rel_it(void)
     }
 
     dict_ul_rel_iterator_destroy(it);
+
+    dict_ul_rel_print(dict);
+
     dict_ul_rel_destroy(dict);
 }
 

@@ -47,7 +47,8 @@ test_heap_file_create(void)
 
     allocate_pages(pdb, node_ft, 2);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -97,7 +98,8 @@ test_heap_file_destroy(void)
 
     allocate_pages(pdb, node_ft, 2);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -138,7 +140,8 @@ test_check_record_exists(void)
 
     allocate_pages(pdb, node_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -195,7 +198,8 @@ test_next_free_slots(void)
 
     allocate_pages(pdb, node_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -287,7 +291,8 @@ test_create_node(void)
 
     allocate_pages(pdb, node_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -363,7 +368,8 @@ test_create_relationship(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -673,7 +679,8 @@ test_read_node(void)
 
     allocate_pages(pdb, node_ft, 2);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -739,7 +746,8 @@ test_read_relationship(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -795,7 +803,8 @@ test_update_node(void)
 
     allocate_pages(pdb, node_ft, 2);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -850,7 +859,8 @@ test_update_relationship(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -913,7 +923,8 @@ test_delete_node(void)
 
     allocate_pages(pdb, node_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -967,7 +978,8 @@ test_delete_relationship(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1022,7 +1034,8 @@ test_get_nodes(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1080,7 +1093,8 @@ test_get_relationships(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1140,7 +1154,8 @@ test_rel_chain_small(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1256,7 +1271,8 @@ test_next_relationship_id(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1325,7 +1341,8 @@ test_expand(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
@@ -1414,7 +1431,8 @@ test_contains_relationship_from_to(void)
     allocate_pages(pdb, node_ft, 1);
     allocate_pages(pdb, relationship_ft, 1);
 
-    page_cache* pc = page_cache_create(pdb
+    page_cache* pc = page_cache_create(pdb,
+                                       CACHE_N_PAGES
 #ifdef VERBOSE
                                        ,
                                        log_name_cache
