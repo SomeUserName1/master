@@ -127,3 +127,31 @@ Dynamic record locality optimizing storage scheme for graph databases.
 - Do analysis in Python
 
 
+## Meeting 8
+- sample main file
+- log both string and internal id
+- Filter/find by string id
+- Readme instead of dev manual + readme stucture
+
+
+# README
+
+## Building
+### Dependencies
+- Curl
+- Zlib
+
+## Testing
+
+## Running
+- Sample(s)
+- High level API overview: import, CRUD, get_nodes, expand, queries, reorder
+- How to set buffer size & so on
+- 
+
+## Limitations
+- IDs, max, id handling - internal not adjustable to some degree, gaps on page boundaries
+- File limits
+- Neo4J 
+
+

@@ -13,9 +13,9 @@
 #include "access/heap_file.h"
 
 dict_ul_ul*
-identity_partition(heap_file* hf);
+identity_order(heap_file* hf);
 
 dict_ul_ul*
-random_partition(heap_file* hf);
+random_order(heap_file* hf);
 
 #endif

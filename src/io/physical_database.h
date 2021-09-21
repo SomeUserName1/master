@@ -41,7 +41,8 @@ typedef struct
     disk_file* catalogue;
 #ifdef ADJ_LIST
     disk_file* header[1];
-    disk_file* records[1] size_t remaining_header_bits[1];
+    disk_file* records[1];
+    size_t     remaining_header_bits[1];
 #else
     disk_file* header[2];
     disk_file* records[2];

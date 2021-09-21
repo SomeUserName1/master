@@ -697,34 +697,34 @@ test_get_relationships_large(void)
 int
 main(void)
 {
-    test_celegans();
-    printf("Snap importer test: celegenas imported successfully\n");
-    test_email();
-    printf("Snap importer test: email eu imported successfully\n");
-    test_dblp();
-    printf("Snap importer test: dblp imported successfully\n");
-    test_amazon();
-    printf("Snap importer test: amazon imported successfully\n");
-    test_youtube();
-    printf("Snap importer test: youtube imported successfully\n");
-    //  test_wikipedia();
-    //  printf("Snap importer test: wikipedia imported successfully\n");
+    //  test_celegans();
+    //  printf("Snap importer test: celegenas imported successfully\n");
+    //  test_email();
+    //  printf("Snap importer test: email eu imported successfully\n");
+    //  test_dblp();
+    //  printf("Snap importer test: dblp imported successfully\n");
+    //  test_amazon();
+    //  printf("Snap importer test: amazon imported successfully\n");
+    //  test_youtube();
+    //  printf("Snap importer test: youtube imported successfully\n");
+    test_wikipedia();
+    printf("Snap importer test: wikipedia imported successfully\n");
     //   test_live_journal();
     //   printf("Snap importer test: live journal imported successfully\n");
     //   test_orkut();
     //   printf("Snap importer test: orkut imported successfully\n");
     //   test_friendster();
     //   printf("Snap importer test: friendster imported successfully\n");
-    test_get_url();
-    printf("Snap importer test: tested urls successfully\n");
-    test_get_no_nodes();
-    printf("Snap importer test: tested get no nodes successfully\n");
-    test_get_no_rels();
-    printf("Snap importer test: tested get no rels successfully\n");
-    test_rel_chain();
-    printf("snap importer test: test rel chain successful!\n");
-    test_get_nodes_large();
-    printf("snap importer test: test get nodes successful!\n");
-    test_get_relationships_large();
-    printf("snap importer test: test get relationships successful!\n");
+    //  test_get_url();
+    //  printf("Snap importer test: tested urls successfully\n");
+    //  test_get_no_nodes();
+    //  printf("Snap importer test: tested get no nodes successfully\n");
+    //  test_get_no_rels();
+    //  printf("Snap importer test: tested get no rels successfully\n");
+    //  test_rel_chain();
+    //  printf("snap importer test: test rel chain successful!\n");
+    //  test_get_nodes_large();
+    //  printf("snap importer test: test get nodes successful!\n");
+    //  test_get_relationships_large();
+    //  printf("snap importer test: test get relationships successful!\n");
 }

@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 dict_ul_ul*
-identity_partition(heap_file* hf)
+identity_order(heap_file* hf)
 {
     if (!hf) {
         // LCOV_EXCL_START
@@ -36,7 +36,7 @@ identity_partition(heap_file* hf)
 }
 
 dict_ul_ul*
-random_partition(heap_file* hf)
+random_order(heap_file* hf)
 {
     if (!hf) {
         // LCOV_EXCL_START
@@ -45,13 +45,7 @@ random_partition(heap_file* hf)
         // LCOV_EXCL_STOP
     }
 
-    dict_ul_ul*      partition = d_ul_ul_create();
-    array_list_node* nodes     = get_nodes(hf);
-
-    for (size_t i = 0; i < array_list_node_size(nodes); ++i) {
-        dict_ul_ul_insert(partition, array_list_node_get(nodes, i)->id, i);
-    }
-    array_list_node_destroy(nodes);
+    dict_ul_ul* partition = identity_order(hf);
 
     size_t        pos;
     unsigned long temp;
