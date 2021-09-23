@@ -25,7 +25,7 @@ identity_order(heap_file* hf)
     }
 
     dict_ul_ul*      partition = d_ul_ul_create();
-    array_list_node* nodes     = get_nodes(hf);
+    array_list_node* nodes     = get_nodes(hf, false);
 
     for (size_t i = 0; i < array_list_node_size(nodes); ++i) {
         dict_ul_ul_insert(partition, array_list_node_get(nodes, i)->id, i);

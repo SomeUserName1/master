@@ -24,12 +24,9 @@
 sssp_result*
 dijkstra(heap_file*    hf,
          unsigned long source_node_id,
-         direction_t   direction
-#ifdef VERBOSE
-         ,
-         FILE* log_file
-#endif
-)
+         direction_t   direction,
+         bool          log,
+         FILE*         log_file)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
@@ -54,19 +51,21 @@ dijkstra(heap_file*    hf,
 
     while (prio_queue->num_nodes > 0) {
         fh_node      = fib_heap_ul_extract_min(prio_queue);
-        current_rels = expand(hf, fh_node->value, direction);
+        current_rels = expand(hf, fh_node->value, direction, log);
 
-#ifdef VERBOSE
-        fprintf(log_file, "dijkstra %s %lu\n", "N", fh_node->value);
-#endif
+        if (log) {
+            fprintf(log_file, "dijkstra %s %lu\n", "N", fh_node->value);
+            fflush(log_file);
+        }
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);
              ++i) {
             current_rel = array_list_relationship_get(current_rels, i);
 
-#ifdef VERBOSE
-            fprintf(log_file, "dijkstra %s %lu\n", "R", current_rel->id);
-#endif
+            if (log) {
+                fprintf(log_file, "dijkstra %s %lu\n", "R", current_rel->id);
+                fflush(log_file);
+            }
 
             temp = fh_node->value == current_rel->source_node
                          ? current_rel->target_node

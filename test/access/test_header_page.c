@@ -160,58 +160,45 @@ test_read_bits(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p);
+    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p, false);
 
-    page* p = pin_page(pc, 0, header, node_ft);
+    page* p = pin_page(pc, 0, header, node_ft, false);
     write_uchar(p, 0, 1);
 
-    unsigned char* bits = read_bits(pc, p, 0, CHAR_BIT - 1, 1);
+    unsigned char* bits = read_bits(pc, p, 0, CHAR_BIT - 1, 1, false);
 
     assert(bits[0] == 1);
     free(bits);
 
     write_uchar(p, 1, test_number);
-    bits = read_bits(pc, p, 0, CHAR_BIT - 1, CHAR_BIT + 1);
+    bits = read_bits(pc, p, 0, CHAR_BIT - 1, CHAR_BIT + 1, false);
     assert(bits[0] == 1);
     assert(bits[1] == test_number);
     free(bits);
 
     write_uchar(p, PAGE_SIZE - 1, UCHAR_MAX);
-    page* next = pin_page(pc, 1, header, node_ft);
+    page* next = pin_page(pc, 1, header, node_ft, false);
     write_uchar(next, 0, test_number);
-    bits = read_bits(pc, p, PAGE_SIZE - 1, 2, 2 * CHAR_BIT - 2);
+    bits = read_bits(pc, p, PAGE_SIZE - 1, 2, 2 * CHAR_BIT - 2, false);
 
     assert(bits[0] == 63);
     assert(bits[1] == 5);
     free(bits);
 
-    bits = read_bits(pc, p, 0, 1, CHAR_BIT);
+    bits = read_bits(pc, p, 0, 1, CHAR_BIT, false);
 
     assert(bits[0] == 2);
 
     free(bits);
 
-    unpin_page(pc, 0, header, node_ft);
-    unpin_page(pc, 1, header, node_ft);
+    unpin_page(pc, 0, header, node_ft, false);
+    unpin_page(pc, 1, header, node_ft, false);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
@@ -223,68 +210,60 @@ test_write_bits(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p);
-    clear_page(pdb->header[node_ft], 0);
+    allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p, false);
+    clear_page(pdb->header[node_ft], 0, false);
 
-    page* p = pin_page(pc, 0, header, node_ft);
+    page* p = pin_page(pc, 0, header, node_ft, false);
 
     unsigned char* data = malloc(sizeof(unsigned char));
     data[0]             = 1;
-    write_bits(pc, p, 1, 1, 1, data);
+    write_bits(pc, p, 1, 1, 1, data, false);
 
     assert(p->data[1] == (1 << (CHAR_BIT - 2)));
     unsigned char* data_1 = calloc(2, sizeof(unsigned char));
     data_1[0]             = UCHAR_MAX;
     data_1[1]             = test_number;
-    write_bits(
-          pc, p, PAGE_SIZE - 1, CHAR_BIT / 2, CHAR_BIT + CHAR_BIT / 2, data_1);
+    write_bits(pc,
+               p,
+               PAGE_SIZE - 1,
+               CHAR_BIT / 2,
+               CHAR_BIT + CHAR_BIT / 2,
+               data_1,
+               false);
 
-    page* np = pin_page(pc, 1, header, node_ft);
+    page* np = pin_page(pc, 1, header, node_ft, false);
 
     assert(p->data[PAGE_SIZE - 1] == UCHAR_MAX >> (CHAR_BIT / 2));
     assert(np->data[0] == 5);
 
     unsigned char* write_mask = calloc(2, sizeof(unsigned char));
-    write_bits(pc, p, 0, 0, 2 * CHAR_BIT, write_mask);
+    write_bits(pc, p, 0, 0, 2 * CHAR_BIT, write_mask, false);
 
     assert(p->data[0] == 0);
     assert(p->data[1] == 0);
 
     write_mask    = malloc(sizeof(unsigned char));
     write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, 0, test_case_write, write_mask);
+    write_bits(pc, p, 0, 0, test_case_write, write_mask, false);
 
     assert(p->data[0] == 252);
     assert(p->data[1] == 0);
 
     write_mask    = malloc(sizeof(unsigned char));
     write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, test_case_write, 3, write_mask);
+    write_bits(pc, p, 0, test_case_write, 3, write_mask, false);
 
     assert(p->data[0] == 255);
     assert(p->data[1] == 128);
 
-    unpin_page(pc, 0, header, node_ft);
-    unpin_page(pc, 1, header, node_ft);
+    unpin_page(pc, 0, header, node_ft, false);
+    unpin_page(pc, 1, header, node_ft, false);
 
     page_cache_destroy(pc);
     phy_database_delete(pdb);

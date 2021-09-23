@@ -11,6 +11,7 @@
 #include "physical_database.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,16 +23,23 @@ test_phy_database_validate_empty_header(void)
 {
     phy_database* db = calloc(1, sizeof(*db));
 
-    db->catalogue  = disk_file_create("catalogue_test");
-    db->header[0]  = disk_file_create("header_test");
-    db->records[0] = disk_file_create("record_test");
+    FILE* log_file = fopen("test_log", "a");
+    if (!log_file) {
+        printf("test disk file: failed to open test log file %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    db->catalogue  = disk_file_create("catalogue_test", log_file);
+    db->header[0]  = disk_file_create("header_test", log_file);
+    db->records[0] = disk_file_create("record_test", log_file);
 
     assert(phy_database_validate_empty_header(db, 0));
 
     unsigned char data[PAGE_SIZE];
     memset(data, 1, PAGE_SIZE);
-    disk_file_grow(db->catalogue, 1);
-    write_page(db->catalogue, 0, data);
+    disk_file_grow(db->catalogue, 1, false);
+    write_page(db->catalogue, 0, data, false);
 
     assert(!phy_database_validate_empty_header(db, 0));
     assert(db->remaining_header_bits[0] == PAGE_SIZE * CHAR_BIT);
@@ -49,28 +57,35 @@ test_phy_database_validate_header(void)
 {
     phy_database* db = calloc(1, sizeof(*db));
 
-    db->catalogue = disk_file_create("catalogue_test");
-    disk_file_grow(db->catalogue, 1);
-    db->header[0]  = disk_file_create("header_test");
-    db->records[0] = disk_file_create("record_test");
+    FILE* log_file = fopen("test_log", "a");
+    if (!log_file) {
+        printf("test disk file: failed to open test log file %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    db->catalogue = disk_file_create("catalogue_test", log_file);
+    disk_file_grow(db->catalogue, 1, false);
+    db->header[0]  = disk_file_create("header_test", log_file);
+    db->records[0] = disk_file_create("record_test", log_file);
 
     unsigned char data[PAGE_SIZE];
     // Case 1: Empty header for non empty record file
-    disk_file_grow(db->records[0], 1);
+    disk_file_grow(db->records[0], 1, false);
     memset(data, 1, PAGE_SIZE);
-    write_page(db->records[0], 0, data);
+    write_page(db->records[0], 0, data, false);
     assert(!phy_database_validate_header(db, 0));
 
     // Case 2: smaller header than record file
-    disk_file_grow(db->header[0], 1);
+    disk_file_grow(db->header[0], 1, false);
     memset(data, 0, PAGE_SIZE);
     data[0] = 1;
-    write_page(db->catalogue, 0, data);
+    write_page(db->catalogue, 0, data, false);
     assert(!phy_database_validate_header(db, 0));
 
     // case 3: larger header than record file
     data[3] = UCHAR_MAX;
-    write_page(db->catalogue, 0, data);
+    write_page(db->catalogue, 0, data, false);
     assert(!phy_database_validate_header(db, 0));
 
     // case 4: matching header and record file
@@ -78,7 +93,7 @@ test_phy_database_validate_header(void)
     data[1] = 1;
     data[2] = 0;
     data[3] = 0;
-    write_page(db->catalogue, 0, data);
+    write_page(db->catalogue, 0, data, false);
 
     assert(phy_database_validate_header(db, 0));
 
@@ -100,16 +115,9 @@ test_phy_database_create(void)
 {
     char* db_name = "test";
 
-#ifdef VERBOSE
     char* log_file_name = "test_log";
-#endif
 
-    phy_database* pdb = phy_database_create(db_name
-#ifdef VERBOSE
-                                            ,
-                                            log_file_name
-#endif
-    );
+    phy_database* pdb = phy_database_create(db_name, log_file_name);
 
     assert(pdb);
     assert(pdb->catalogue);
@@ -128,16 +136,9 @@ test_phy_database_delete(void)
 {
     char* db_name = "test";
 
-#ifdef VERBOSE
     char* log_file_name = "test_log";
-#endif
 
-    phy_database* pdb = phy_database_create(db_name
-#ifdef VERBOSE
-                                            ,
-                                            log_file_name
-#endif
-    );
+    phy_database* pdb = phy_database_create(db_name, log_file_name);
 
     assert(pdb);
 
@@ -149,12 +150,6 @@ test_phy_database_delete(void)
     assert(!fopen("test_nodes.idx", "r"));
     assert(!fopen("test_relationships.idx", "r"));
 
-#ifdef VERBOSE
-    FILE* log = fopen("test_log", "r");
-    assert(log);
-    fclose("test_log");
-#endif
-
     printf("test phy db delete successfull!\n");
 }
 
@@ -163,16 +158,9 @@ test_phy_database_close(void)
 {
     char* db_name = "test";
 
-#ifdef VERBOSE
     char* log_file_name = "test_log";
-#endif
 
-    phy_database* pdb = phy_database_create(db_name
-#ifdef VERBOSE
-                                            ,
-                                            log_file_name
-#endif
-    );
+    phy_database* pdb = phy_database_create(db_name, log_file_name);
 
     assert(pdb);
 
@@ -204,18 +192,11 @@ test_allocate_pages(void)
 {
     char* db_name = "test";
 
-#ifdef VERBOSE
     char* log_file_name = "test_log";
-#endif
 
-    phy_database* pdb = phy_database_create(db_name
-#ifdef VERBOSE
-                                            ,
-                                            log_file_name
-#endif
-    );
+    phy_database* pdb = phy_database_create(db_name, log_file_name);
 
-    allocate_pages(pdb, node_ft, 1);
+    allocate_pages(pdb, node_ft, 1, true);
 
     assert(pdb->records[node_ft]->num_pages == 1);
     assert(pdb->records[node_ft]->file_size == PAGE_SIZE);
@@ -225,7 +206,7 @@ test_allocate_pages(void)
            == PAGE_SIZE * CHAR_BIT - PAGE_SIZE / SLOT_SIZE);
 
     // PAGE_SIZE is here just to test sth. larger than 1
-    allocate_pages(pdb, node_ft, PAGE_SIZE - 1);
+    allocate_pages(pdb, node_ft, PAGE_SIZE - 1, false);
 
     assert(pdb->records[node_ft]->num_pages == PAGE_SIZE);
     assert(pdb->records[node_ft]->file_size == PAGE_SIZE * PAGE_SIZE);
@@ -252,34 +233,22 @@ test_phy_database_open(void)
 {
     char* db_name = "test";
 
-#ifdef VERBOSE
     char* log_file_name = "test_log";
-#endif
 
-    phy_database* pdb = phy_database_create(db_name
-#ifdef VERBOSE
-                                            ,
-                                            log_file_name
-#endif
-    );
+    phy_database* pdb = phy_database_create(db_name, log_file_name);
 
-    allocate_pages(pdb, node_ft, PAGE_SIZE);
+    allocate_pages(pdb, node_ft, PAGE_SIZE, false);
     unsigned char data[PAGE_SIZE];
     memset(data, 1, PAGE_SIZE);
-    write_page(pdb->records[node_ft], 0, data);
+    write_page(pdb->records[node_ft], 0, data, false);
 
     phy_database_close(pdb);
 
     memset(data, 0, PAGE_SIZE);
 
-    pdb = phy_database_open(db_name
-#ifdef VERBOSE
-                            ,
-                            log_file_name
-#endif
-    );
+    pdb = phy_database_open(db_name, log_file_name);
 
-    read_page(pdb->records[node_ft], 0, data);
+    read_page(pdb->records[node_ft], 0, data, false);
 
     for (size_t i = 0; i < PAGE_SIZE; ++i) {
         assert(data[i] == 1);

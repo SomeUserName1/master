@@ -27,24 +27,11 @@ test_page_cache_create(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
     assert(pc);
     assert(pc->pdb == pdb);
     assert(pc->num_pins == 0);
@@ -64,14 +51,12 @@ test_page_cache_create(void)
 
     assert(pc->cache);
 
-#ifdef VERBOSE
     assert(pc->log_file);
 
     if (fclose(pc->log_file) != 0) {
         printf("page cache test - create: failed to close log file! %s\n",
                strerror(errno));
     }
-#endif
 
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
@@ -90,24 +75,11 @@ test_page_cache_destroy(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     page_cache_destroy(pc);
 
@@ -122,26 +94,13 @@ test_new_page(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    page* n_page = new_page(pc, node_ft);
+    page* n_page = new_page(pc, node_ft, true);
 
     assert(n_page);
     assert(n_page->page_no == pc->pdb->records[node_ft]->num_pages - 1);
@@ -162,28 +121,15 @@ test_pin_page(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, 3);
+    allocate_pages(pc->pdb, node_ft, 3, false);
 
-    page* test_page_1 = pin_page(pc, 0, records, node_ft);
+    page* test_page_1 = pin_page(pc, 0, records, node_ft, true);
 
     size_t frame_no_1 =
           dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0);
@@ -201,7 +147,7 @@ test_pin_page(void)
     assert(test_page_1->fk == records);
     assert(test_page_1->pin_count == 1);
 
-    page* test_page_3 = pin_page(pc, 0, records, node_ft);
+    page* test_page_3 = pin_page(pc, 0, records, node_ft, false);
     assert(test_page_3);
     assert(test_page_3 == test_page_1);
     assert(test_page_3->pin_count == 2);
@@ -210,7 +156,7 @@ test_pin_page(void)
     assert(pc->num_pins == 2);
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
 
-    page* test_page_4 = pin_page(pc, 0, records, node_ft);
+    page* test_page_4 = pin_page(pc, 0, records, node_ft, false);
     assert(test_page_4);
     assert(test_page_4 == test_page_1);
     assert(test_page_4->pin_count == 3);
@@ -219,7 +165,7 @@ test_pin_page(void)
     test_page_1->pin_count = 0;
     queue_ul_append(pc->recently_referenced, 0);
 
-    page*  test_page_2 = pin_page(pc, 2, records, node_ft);
+    page*  test_page_2 = pin_page(pc, 2, records, node_ft, false);
     size_t frame_no_2 =
           dict_ul_ul_get_direct(pc->page_map[records][node_ft], 2);
     assert(test_page_2);
@@ -243,29 +189,16 @@ test_unpin_page(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, 1);
+    allocate_pages(pc->pdb, node_ft, 1, false);
 
-    page* test_page_1 = pin_page(pc, 0, records, node_ft);
-    page* test_page_2 = pin_page(pc, 0, records, node_ft);
+    page* test_page_1 = pin_page(pc, 0, records, node_ft, false);
+    page* test_page_2 = pin_page(pc, 0, records, node_ft, false);
 
     size_t frame_no_1 =
           dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0);
@@ -283,7 +216,7 @@ test_unpin_page(void)
     assert(test_page_1->fk == records);
     assert(test_page_1->pin_count == 2);
 
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, true);
 
     assert(test_page_1->pin_count == 1);
     assert(pc->num_unpins == 1);
@@ -291,7 +224,7 @@ test_unpin_page(void)
     assert(queue_ul_size(pc->recently_referenced) == 1);
     assert(queue_ul_get(pc->recently_referenced, 0) == frame_no_1);
 
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, false);
     assert(pc->num_unpins == 2);
     assert(test_page_1->pin_count == 0);
     assert(queue_ul_size(pc->recently_referenced) == 1);
@@ -308,29 +241,16 @@ test_evict(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES + 1);
+    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES + 1, false);
 
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        pin_page(pc, i, records, node_ft);
+        pin_page(pc, i, records, node_ft, false);
     }
 
     assert(llist_ul_size(pc->free_frames) == 0);
@@ -338,18 +258,18 @@ test_evict(void)
     size_t frame_nos[EVICT_LRU_K];
     for (size_t i = 0; i < EVICT_LRU_K; ++i) {
         frame_nos[i] = dict_ul_ul_get_direct(pc->page_map[records][node_ft], i);
-        unpin_page(pc, i, records, node_ft);
+        unpin_page(pc, i, records, node_ft, false);
     }
 
     assert(llist_ul_size(pc->free_frames) == 0);
 
     size_t reads_before = pdb->records[node_ft]->read_count;
-    pin_page(pc, 0, records, node_ft);
+    pin_page(pc, 0, records, node_ft, false);
     assert(reads_before == pdb->records[node_ft]->read_count);
     assert(llist_ul_size(pc->free_frames) == 0);
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, false);
 
-    evict(pc);
+    evict(pc, true);
 
     assert(llist_ul_size(pc->free_frames) == EVICT_LRU_K);
 
@@ -377,39 +297,27 @@ test_flush_page(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, 1);
+    allocate_pages(pc->pdb, node_ft, 1, false);
 
-    page* p = pin_page(pc, 0, records, node_ft);
+    page* p = pin_page(pc, 0, records, node_ft, false);
     write_ulong(p, 0, 1);
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, false);
 
     unsigned long writes_before = pdb->records[node_ft]->write_count;
 
-    flush_page(pc, dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0));
+    flush_page(
+          pc, dict_ul_ul_get_direct(pc->page_map[records][node_ft], 0), true);
 
     assert(writes_before + 1 == pdb->records[node_ft]->write_count);
 
     unsigned char buf[PAGE_SIZE];
-    read_page(pdb->records[node_ft], 0, buf);
+    read_page(pdb->records[node_ft], 0, buf, false);
     unsigned long content;
     memcpy(&content, buf, sizeof(unsigned long));
 
@@ -427,42 +335,29 @@ test_flush_all_pages(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES);
+    allocate_pages(pc->pdb, node_ft, CACHE_N_PAGES, false);
 
     page* p;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        p = pin_page(pc, i, records, node_ft);
+        p = pin_page(pc, i, records, node_ft, false);
         write_ulong(p, 0, 1);
         pc->cache[i]->pin_count = 0;
     }
 
-    flush_all_pages(pc);
+    flush_all_pages(pc, true);
 
     printf("finished flushing\n");
 
     unsigned char buf[PAGE_SIZE];
     unsigned long content;
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        read_page(pdb->records[node_ft], i, buf);
+        read_page(pdb->records[node_ft], i, buf, false);
         content = 0;
         memcpy(&content, buf, sizeof(unsigned long));
         assert(content == 1);

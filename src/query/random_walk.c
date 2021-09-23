@@ -21,12 +21,9 @@ path*
 random_walk(heap_file*    hf,
             unsigned long node_id,
             size_t        num_steps,
-            direction_t   direction
-#ifdef VERBOSE
-            ,
-            FILE* log_file
-#endif
-)
+            direction_t   direction,
+            bool          log,
+            FILE*         log_file)
 {
     if (!hf || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
@@ -42,11 +39,12 @@ random_walk(heap_file*    hf,
     unsigned long            current_node = node_id;
 
     for (size_t i = 0; i < num_steps; ++i) {
-        cur_rels = expand(hf, current_node, direction);
+        cur_rels = expand(hf, current_node, direction, log);
 
-#ifdef VERBOSE
-        fprintf(log_file, "random_walk N %lu\n", current_node);
-#endif
+        if (log) {
+            fprintf(log_file, "random_walk N %lu\n", current_node);
+            fflush(log_file);
+        }
 
         if (array_list_relationship_size(cur_rels) == 0) {
             array_list_relationship_destroy(cur_rels);
@@ -55,9 +53,10 @@ random_walk(heap_file*    hf,
 
         rel = array_list_relationship_get(
               cur_rels, rand() % array_list_relationship_size(cur_rels));
-#ifdef VERBOSE
-        fprintf(log_file, "random_walk R %lu\n", rel->id);
-#endif
+        if (log) {
+            fprintf(log_file, "random_walk R %lu\n", rel->id);
+            fflush(log_file);
+        }
 
         array_list_ul_append(visited_rels, rel->id);
         distance += rel->weight;

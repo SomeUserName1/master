@@ -10,6 +10,7 @@
 #include "query/random_walk.h"
 
 #include <assert.h>
+#include <errno.h>
 
 #include "access/heap_file.h"
 #include "access/relationship.h"
@@ -23,46 +24,42 @@ main(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
     phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
+
                                             ,
                                             log_name_pdb
-#endif
+
     );
 
-    allocate_pages(pdb, node_ft, 1);
-    allocate_pages(pdb, relationship_ft, 1);
+    allocate_pages(pdb, node_ft, 1, false);
+    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
-#ifdef VERBOSE
+
                                        ,
                                        log_name_cache
-#endif
+
     );
 
     heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
+
                                      ,
                                      log_name_file
-#endif
+
     );
 
-#ifdef VERBOSE
-    const char* log_path = "/home/someusername/workspace_local/alt_test.txt";
+    const char* log_path = "/home/someusername/workspace_local/randw_test.txt";
     FILE*       log_file = fopen(log_path, "w+");
 
     if (!log_file) {
         printf("ALT test: failed to open log file! %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
 
     import(hf, false, C_ELEGANS);
 
@@ -72,14 +69,8 @@ main(void)
     relationship_t*    r_next;
 
     for (size_t i = 1; i < max_walk_steps; ++i) {
-        rand_w = random_walk(hf,
-                             0,
-                             i,
-                             BOTH
-#ifdef VERBOSE
-                             ,
-                             log_file
-#endif
+        rand_w = random_walk(hf, 0, i, BOTH, true, log_file
+
         );
         assert(rand_w->distance == i);
         assert(rand_w->source == 0);
@@ -88,9 +79,10 @@ main(void)
         for (size_t j = 0; j < i - 1; ++j) {
             // for direction BOTH, consecutive edges need to share one node, no
             // matter if src or target
-            r      = read_relationship(hf, array_list_ul_get(rand_w->edges, j));
-            r_next = read_relationship(hf,
-                                       array_list_ul_get(rand_w->edges, j + 1));
+            r = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j), false);
+            r_next = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j + 1), false);
             assert(r->target_node == r_next->target_node
                    || r->source_node == r_next->source_node
                    || r->source_node == r_next->target_node
@@ -107,14 +99,8 @@ main(void)
     // no edges to take for directed random walks.
 
     for (size_t i = 1; i < max_walk_steps; ++i) {
-        rand_w = random_walk(hf,
-                             0,
-                             i,
-                             OUTGOING
-#ifdef VERBOSE
-                             ,
-                             log_file
-#endif
+        rand_w = random_walk(hf, 0, i, OUTGOING, false, log_file
+
         );
         assert(rand_w->distance <= i);
         assert(rand_w->source == 0);
@@ -123,9 +109,10 @@ main(void)
         for (size_t j = 0; j < (size_t)rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
-            r      = read_relationship(hf, array_list_ul_get(rand_w->edges, j));
-            r_next = read_relationship(hf,
-                                       array_list_ul_get(rand_w->edges, j + 1));
+            r = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j), false);
+            r_next = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j + 1), false);
             assert(r->target_node == r_next->source_node);
             free(r);
             free(r_next);
@@ -135,14 +122,8 @@ main(void)
     }
 
     for (size_t i = 1; i < max_walk_steps; ++i) {
-        rand_w = random_walk(hf,
-                             0,
-                             i,
-                             INCOMING
-#ifdef VERBOSE
-                             ,
-                             log_file
-#endif
+        rand_w = random_walk(hf, 0, i, INCOMING, false, log_file
+
         );
         assert(rand_w->distance <= i);
         assert(rand_w->source == 0);
@@ -151,9 +132,10 @@ main(void)
         for (size_t j = 0; j < (size_t)rand_w->distance - 1; ++j) {
             // for direction OUTGOING, r target must correspond to r_next's
             // source
-            r      = read_relationship(hf, array_list_ul_get(rand_w->edges, j));
-            r_next = read_relationship(hf,
-                                       array_list_ul_get(rand_w->edges, j + 1));
+            r = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j), false);
+            r_next = read_relationship(
+                  hf, array_list_ul_get(rand_w->edges, j + 1), false);
             assert(r->source_node == r_next->target_node);
             free(r);
             free(r_next);
@@ -166,7 +148,5 @@ main(void)
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
-#ifdef VERBOSE
     fclose(log_file);
-#endif
 }

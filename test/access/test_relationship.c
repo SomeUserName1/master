@@ -186,26 +186,13 @@ test_relationship_write(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, relationship_ft, 1);
+    allocate_pages(pc->pdb, relationship_ft, 1, false);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
@@ -220,7 +207,7 @@ test_relationship_write(void)
     memset(relationship->label, 4, MAX_STR_LEN - 1);
     relationship->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, records, relationship_ft);
+    page* p = pin_page(pc, 0, records, relationship_ft, false);
     relationship_write(relationship, p);
 
     unsigned long src =
@@ -278,7 +265,7 @@ test_relationship_write(void)
                       + sizeof(double) + sizeof(unsigned char),
                 label);
 
-    unpin_page(pc, 0, records, relationship_ft);
+    unpin_page(pc, 0, records, relationship_ft, false);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(label[i] == 4);
@@ -295,26 +282,13 @@ test_relationship_read(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, relationship_ft, 1);
+    allocate_pages(pc->pdb, relationship_ft, 1, false);
 
     relationship_t* relationship  = new_relationship();
     relationship->id              = 3;
@@ -329,7 +303,7 @@ test_relationship_read(void)
     memset(relationship->label, 4, MAX_STR_LEN - 1);
     relationship->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, records, relationship_ft);
+    page* p = pin_page(pc, 0, records, relationship_ft, false);
     relationship_write(relationship, p);
 
     relationship_t* n_rel = new_relationship();
@@ -337,7 +311,7 @@ test_relationship_read(void)
     relationship_read(n_rel, p);
     assert(n_rel->target_node == NUM);
 
-    unpin_page(pc, 0, records, relationship_ft);
+    unpin_page(pc, 0, records, relationship_ft, false);
 
     assert(relationship_equals(n_rel, relationship));
 

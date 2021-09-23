@@ -26,13 +26,7 @@
 #define SWAP_MAX_NUM_PINNED_PAGES (6)
 
 page_cache*
-page_cache_create(phy_database* pdb,
-                  size_t        n_pages
-#ifdef VERBOSE
-                  ,
-                  const char* log_path
-#endif
-)
+page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
 {
     if (!pdb) {
         // LCOV_EXCL_START
@@ -82,8 +76,7 @@ page_cache_create(phy_database* pdb,
         llist_ul_append(pc->free_frames, i);
     }
 
-#ifdef VERBOSE
-    FILE* log_file = fopen(log_path, "w+");
+    FILE* log_file = fopen(log_path, "a");
 
     if (!log_file) {
         // LCOV_EXCL_START
@@ -92,7 +85,6 @@ page_cache_create(phy_database* pdb,
         // LCOV_EXCL_STOP
     }
     pc->log_file = log_file;
-#endif
 
     return pc;
 }
@@ -107,7 +99,7 @@ page_cache_destroy(page_cache* pc)
         // LCOV_EXCL_STOP
     }
 
-    flush_all_pages(pc);
+    flush_all_pages(pc, false);
 
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
@@ -129,20 +121,18 @@ page_cache_destroy(page_cache* pc)
         page_destroy(pc->cache[i]);
     }
 
-#ifdef VERBOSE
     if (fclose(pc->log_file) != 0) {
         // LCOV_EXCL_START
         printf("page cache - destroy: Error closing file: %s", strerror(errno));
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-#endif
 
     free(pc);
 }
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
+pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
 {
     if (!pc || (fk == catalogue && ft != 0)) {
         // LCOV_EXCL_START
@@ -193,9 +183,9 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
     } else {
         if (llist_ul_size(pc->free_frames) == 0) {
             if (pc->bulk_import) {
-                bulk_evict(pc);
+                bulk_evict(pc, log);
             } else {
-                evict(pc);
+                evict(pc, log);
             }
         }
 
@@ -231,22 +221,23 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
             }
         }
 
-        read_page(df, page_no, pinned_page->data);
+        read_page(df, page_no, pinned_page->data, log);
 
         dict_ul_ul_insert(pc->page_map[fk][ft], page_no, frame_no);
     }
 
     pc->num_pins++;
 
-#ifdef VERBOSE
-    fprintf(pc->log_file, "Pin %lu %lu %lu\n", fk, ft, page_no);
-#endif
+    if (log) {
+        fprintf(pc->log_file, "Pin %u %u %lu\n", fk, ft, page_no);
+        fflush(pc->log_file);
+    }
 
     return pinned_page;
 }
 
 void
-unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
+unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
 {
     if (!pc || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
         // LCOV_EXCL_START
@@ -306,13 +297,14 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft)
 
     pc->num_unpins++;
 
-#ifdef VERBOSE
-    fprintf(pc->log_file, "Unpin %lu %lu %lu\n", fk, ft, page_no);
-#endif
+    if (log) {
+        fprintf(pc->log_file, "Unpin %u %u %lu\n", fk, ft, page_no);
+        fflush(pc->log_file);
+    }
 }
 
 void
-evict(page_cache* pc)
+evict(page_cache* pc, bool log)
 {
     if (!pc) {
         // LCOV_EXCL_START
@@ -331,13 +323,11 @@ evict(page_cache* pc)
 
         if (candidate_page->pin_count == 0) {
 
-            /* If the page is dirty flush it */
-            if (candidate_page->dirty) {
-                flush_page(pc, candidate);
+            flush_page(pc, candidate, log);
+            if (log) {
+                fprintf(pc->log_file, "evict %lu\n", candidate_page->page_no);
+                fflush(pc->log_file);
             }
-#ifdef VERBOSE
-            fprintf(pc->log_file, "evict %lu\n", candidate_page->page_no);
-#endif
             /* Remove reference of page from lookup table */
             dict_ul_ul_remove(
                   pc->page_map[candidate_page->fk][candidate_page->ft],
@@ -383,14 +373,18 @@ evict(page_cache* pc)
 }
 
 void
-bulk_evict(page_cache* pc)
+bulk_evict(page_cache* pc, bool log)
 {
     size_t evicted = 0;
     page*  c_page;
     for (size_t i = 0; i < pc->n_pages; ++i) {
         c_page = pc->cache[i];
         if (c_page->pin_count == 0) {
-            flush_page(pc, i);
+            flush_page(pc, i, log);
+            if (log) {
+                fprintf(pc->log_file, "evict %lu\n", c_page->page_no);
+                fflush(pc->log_file);
+            }
 
             dict_ul_ul_remove(pc->page_map[c_page->fk][c_page->ft],
                               c_page->page_no);
@@ -425,7 +419,7 @@ bulk_evict(page_cache* pc)
 }
 
 void
-flush_page(page_cache* pc, size_t frame_no)
+flush_page(page_cache* pc, size_t frame_no, bool log)
 {
     if (!pc) {
         // LCOV_EXCL_START
@@ -445,7 +439,6 @@ flush_page(page_cache* pc, size_t frame_no)
     }
 
     if (candidate->dirty) {
-
         disk_file* df;
         switch (candidate->fk) {
             case catalogue: {
@@ -468,26 +461,27 @@ flush_page(page_cache* pc, size_t frame_no)
             }
         }
 
-        write_page(df, candidate->page_no, candidate->data);
+        write_page(df, candidate->page_no, candidate->data, log);
 
         pc->cache[frame_no]->dirty = false;
     }
 
-#ifdef VERBSE
-    fprintf(pc->log_file, "Flushed %lu\n", pc->cache[frame_no]->page_no);
-#endif
+    if (log) {
+        fprintf(pc->log_file, "Flushed %lu\n", pc->cache[frame_no]->page_no);
+        fflush(pc->log_file);
+    }
 }
 
 void
-flush_all_pages(page_cache* pc)
+flush_all_pages(page_cache* pc, bool log)
 {
     for (unsigned long i = 0; i < pc->n_pages; ++i) {
-        flush_page(pc, i);
+        flush_page(pc, i, log);
     }
 }
 
 page*
-new_page(page_cache* pc, file_type ft)
+new_page(page_cache* pc, file_type ft, bool log)
 {
     if (!pc) {
         // LCOV_EXCL_START
@@ -496,7 +490,7 @@ new_page(page_cache* pc, file_type ft)
         // LCOV_EXCL_STOP
     }
 
-    allocate_pages(pc->pdb, ft, 1);
-    return pin_page(pc, pc->pdb->records[ft]->num_pages - 1, records, ft);
+    allocate_pages(pc->pdb, ft, 1, log);
+    return pin_page(pc, pc->pdb->records[ft]->num_pages - 1, records, ft, log);
 }
 

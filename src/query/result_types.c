@@ -151,12 +151,8 @@ path*
 construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
-               dict_ul_ul*   parents
-#ifdef VERBOSE
-               ,
-               FILE* log_file
-#endif
-)
+               dict_ul_ul*   parents,
+               bool          log)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG
         || target_node_id == UNINITIALIZED_LONG || !parents) {
@@ -174,11 +170,7 @@ construct_path(heap_file*    hf,
     do {
         parent_id = dict_ul_ul_get_direct(parents, node_id);
         array_list_ul_append(edges_reverse, parent_id);
-        rel = read_relationship(hf, parent_id);
-
-#ifdef VERBOSE
-        fprintf(log_file, "construct_path %s %lu\n", "R", rel->id);
-#endif
+        rel = read_relationship(hf, parent_id, log);
 
         node_id =
               rel->target_node == node_id ? rel->source_node : rel->target_node;
@@ -201,7 +193,7 @@ construct_path(heap_file*    hf,
 }
 
 array_list_ul*
-path_extract_vertices(path* p, heap_file* hf)
+path_extract_vertices(path* p, heap_file* hf, bool log)
 {
     if (!hf || !p) {
         // LCOV_EXCL_START
@@ -217,7 +209,7 @@ path_extract_vertices(path* p, heap_file* hf)
     relationship_t* rel;
 
     for (size_t i = 0; i < array_list_ul_size(p->edges); ++i) {
-        rel       = read_relationship(hf, array_list_ul_get(p->edges, i));
+        rel       = read_relationship(hf, array_list_ul_get(p->edges, i), log);
         prev_node = array_list_ul_get(nodes, array_list_ul_size(nodes) - 1);
 
         if (rel->source_node == prev_node) {

@@ -22,20 +22,13 @@ void
 test_disk_file_create(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     assert(df);
     assert(df->file);
@@ -45,30 +38,13 @@ test_disk_file_create(void)
     assert(df->write_count == 0);
     assert(df->f_buf);
     assert(df->file->_IO_buf_base == df->f_buf);
-#ifdef VERBOSE
     assert(df->log_file);
-#endif
 
     if (fclose(df->file) != 0) {
         printf("test_disk_file_creat: error closing file: %s", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
-    if (remove(df->file_name) != 0) {
-        printf("test_disk_file_creat: error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-#ifdef VERBOSE
-    if (fclose(df->file) != 0) {
-        printf("test_disk_file_creat: error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    if (remove("test_log") != 0) {
-        printf("test_disk_file_creat: error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-#endif
     free(df->f_buf);
     free(df);
 }
@@ -77,58 +53,30 @@ void
 test_disk_file_destroy(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     assert(df);
 
     disk_file_destroy(df);
-
-    if (remove(file_name) != 0) {
-        printf("test_disk_file_creat: error removing file: %s",
-               strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-#ifdef VERBOSE
-    if (remove("test_log") != 0) {
-        printf("test_disk_file_creat: error removing file: %s",
-               strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-#endif
 }
 
 void
 test_disk_file_open(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     assert(df);
 
@@ -137,17 +85,17 @@ test_disk_file_open(void)
 
     memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
-    write_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    write_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     disk_file_destroy(df);
 
-    df = disk_file_open(file_name);
+    df = disk_file_open(file_name, false);
 
     memset(data, 0, NUM_TEST_PAGES * PAGE_SIZE);
 
-    read_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    read_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     for (size_t i = 0; i < NUM_TEST_PAGES * PAGE_SIZE - 1; ++i) {
         assert(data[i] == 1);
@@ -160,56 +108,38 @@ void
 test_disk_file_delete(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     assert(df);
 
     disk_file_delete(df);
 
     assert(!fopen("test_file", "r"));
-
-#ifdef VERBOSE
-    assert(!fopen("test_log", "r"));
-#endif
 }
 
 void
 test_disk_file_grow(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     assert(df->write_count == 0);
     assert(df->num_pages == 0);
     assert(df->file_size == 0);
 
-    disk_file_grow(df, 1);
+    disk_file_grow(df, 1, true);
 
     assert(df->write_count == 1);
     assert(df->num_pages == 1);
@@ -232,7 +162,7 @@ test_disk_file_grow(void)
         assert(!data[i]);
     }
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
     assert(df->write_count == 2);
     assert(df->num_pages == NUM_TEST_PAGES + 1);
@@ -246,28 +176,21 @@ void
 test_disk_file_shrink(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
     assert(df->write_count == 1);
     assert(df->num_pages == NUM_TEST_PAGES);
     assert(df->file_size == NUM_TEST_PAGES * PAGE_SIZE);
 
-    disk_file_shrink(df, 2);
+    disk_file_shrink(df, 2, true);
 
     assert(df->write_count == 2);
     assert(df->num_pages == NUM_TEST_PAGES - 2);
@@ -283,32 +206,25 @@ void
 test_write_page(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     unsigned char* data = malloc(PAGE_SIZE * sizeof(unsigned char));
 
     memset(data, 1, PAGE_SIZE);
 
-    disk_file_grow(df, 1);
+    disk_file_grow(df, 1, false);
 
     assert(df->write_count == 1);
     assert(df->num_pages == 1);
     assert(df->file_size == PAGE_SIZE);
 
-    write_page(df, 0, data);
+    write_page(df, 0, data, true);
 
     assert(df->write_count == 2);
     assert(df->num_pages == 1);
@@ -339,33 +255,26 @@ void
 test_write_pages(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
     memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
     assert(df->write_count == 1);
     assert(df->num_pages == NUM_TEST_PAGES);
     assert(df->file_size == NUM_TEST_PAGES * PAGE_SIZE);
 
-    write_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    write_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     assert(df->write_count == 2);
     assert(df->num_pages == NUM_TEST_PAGES);
@@ -395,32 +304,25 @@ void
 test_read_page(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     unsigned char* data = malloc(PAGE_SIZE * sizeof(unsigned char));
 
     memset(data, 1, PAGE_SIZE);
 
-    disk_file_grow(df, 1);
+    disk_file_grow(df, 1, false);
 
-    write_page(df, 0, data);
+    write_page(df, 0, data, false);
 
     memset(data, 0, PAGE_SIZE);
 
-    read_page(df, 0, data);
+    read_page(df, 0, data, true);
 
     assert(df->read_count == 1);
 
@@ -436,33 +338,26 @@ void
 test_read_pages(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
     memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
-    write_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    write_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     memset(data, 0, PAGE_SIZE);
 
-    read_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    read_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     assert(df->read_count == 1);
 
@@ -478,33 +373,26 @@ void
 test_clear_page(void)
 {
     char* file_name = "test_file";
-#ifdef VERBOSE
-    FILE* log_file = fopen("test_log", "a+");
+    FILE* log_file  = fopen("test_log", "a");
     if (!log_file) {
         printf("test disk file: failed to open test log file %s",
                strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
-    disk_file* df = disk_file_create(file_name
-#ifdef VERBOSE
-                                     ,
-                                     log_file
-#endif
-    );
+    disk_file* df = disk_file_create(file_name, log_file);
 
     unsigned char* data =
           malloc(NUM_TEST_PAGES * PAGE_SIZE * sizeof(unsigned char));
 
     memset(data, 1, NUM_TEST_PAGES * PAGE_SIZE);
 
-    disk_file_grow(df, NUM_TEST_PAGES);
+    disk_file_grow(df, NUM_TEST_PAGES, false);
 
-    write_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    write_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     memset(data, 0, PAGE_SIZE);
 
-    read_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    read_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     assert(df->read_count == 1);
 
@@ -512,11 +400,11 @@ test_clear_page(void)
         assert(data[i] == 1);
     }
 
-    clear_page(df, 1);
+    clear_page(df, 1, true);
 
     memset(data, 3, PAGE_SIZE);
 
-    read_pages(df, 0, NUM_TEST_PAGES - 1, data);
+    read_pages(df, 0, NUM_TEST_PAGES - 1, data, false);
 
     for (size_t i = 0; i < NUM_TEST_PAGES * PAGE_SIZE; ++i) {
         if (i / PAGE_SIZE == 1) {

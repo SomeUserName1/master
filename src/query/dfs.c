@@ -23,12 +23,9 @@
 traversal_result*
 dfs(heap_file*    hf,
     unsigned long source_node_id,
-    direction_t   direction
-#ifdef VERBOSE
-    ,
-    FILE* log_file
-#endif
-)
+    direction_t   direction,
+    bool          log,
+    FILE*         log_file)
 {
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
@@ -53,19 +50,21 @@ dfs(heap_file*    hf,
 
     while (stack_size > 0) {
         node_id      = stack_ul_pop(node_stack);
-        current_rels = expand(hf, node_id, direction);
+        current_rels = expand(hf, node_id, direction, log);
 
-#ifdef VERBOSE
-        fprintf(log_file, "dfs %s %lu\n", "N", node_id);
-#endif
+        if (log) {
+            fprintf(log_file, "dfs %s %lu\n", "N", node_id);
+            fflush(log_file);
+        }
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);
              ++i) {
             current_rel = array_list_relationship_get(current_rels, i);
 
-#ifdef VERBOSE
-            fprintf(log_file, "dfs %s %lu\n", "R", current_rel->id);
-#endif
+            if (log) {
+                fprintf(log_file, "dfs %s %lu\n", "R", current_rel->id);
+                fflush(log_file);
+            }
 
             temp = node_id == current_rel->source_node
                          ? current_rel->target_node

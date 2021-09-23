@@ -26,12 +26,9 @@ a_star(heap_file*    hf,
        dict_ul_d*    heuristic,
        unsigned long source_node_id,
        unsigned long target_node_id,
-       direction_t   direction
-#ifdef VERBOSE
-       ,
-       FILE* log_file
-#endif
-)
+       direction_t   direction,
+       bool          log,
+       FILE*         log_file)
 {
     if (!hf
         || source_node_id == UNINITIALIZED_LONG
@@ -62,30 +59,25 @@ a_star(heap_file*    hf,
             dict_ul_d_destroy(distance);
             free(fh_node);
             fib_heap_ul_destroy(prio_queue);
-            return construct_path(hf,
-                                  source_node_id,
-                                  target_node_id,
-                                  parents
-#ifdef VERBOSE
-                                  ,
-                                  log_file
-#endif
-            );
+            return construct_path(
+                  hf, source_node_id, target_node_id, parents, log_file);
         }
 
-        current_rels = expand(hf, fh_node->value, direction);
+        current_rels = expand(hf, fh_node->value, direction, log);
 
-#ifdef VERBOSE
-        fprintf(log_file, "%s %lu\n", "a-star N", fh_node->value);
-#endif
+        if (log) {
+            fprintf(log_file, "%s %lu\n", "a-star N", fh_node->value);
+            fflush(log_file);
+        }
 
         for (size_t i = 0; i < array_list_relationship_size(current_rels);
              ++i) {
             current_rel = array_list_relationship_get(current_rels, i);
 
-#ifdef VERBOSE
-            fprintf(log_file, "%s %lu\n", "a-star R", current_rel->id);
-#endif
+            if (log) {
+                fprintf(log_file, "%s %lu\n", "a-star R", current_rel->id);
+                fflush(log_file);
+            }
             temp = fh_node->value == current_rel->source_node
                          ? current_rel->target_node
                          : current_rel->source_node;

@@ -53,9 +53,6 @@ void
 sssp_result_destroy(sssp_result* result);
 
 path*
-sssp_extract_path(sssp_result* result, heap_file* hf);
-
-path*
 create_path(unsigned long  source_node_id,
             unsigned long  target_node_id,
             double         distance,
@@ -68,14 +65,10 @@ path*
 construct_path(heap_file*    hf,
                unsigned long source_node_id,
                unsigned long target_node_id,
-               dict_ul_ul*   parents
-#ifdef VERBOSE
-               ,
-               FILE* log_file
-#endif
-);
+               dict_ul_ul*   parents,
+               bool          log);
 
 array_list_ul*
-path_extract_vertices(path* p, heap_file* hf);
+path_extract_vertices(path* p, heap_file* hf, bool log);
 
 #endif

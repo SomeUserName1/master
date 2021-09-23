@@ -48,26 +48,14 @@ typedef struct
     disk_file* records[2];
     size_t remaining_header_bits[2];
 #endif
-#ifdef VERBOSE
     FILE* log_file;
-#endif
 } phy_database;
 
 phy_database*
-phy_database_create(char* db_name
-#ifdef VERBOSE
-                    ,
-                    const char* log_file
-#endif
-);
+phy_database_create(char* db_name, const char* log_file);
 
 phy_database*
-phy_database_open(char* db_name
-#ifdef VERBOSE
-                  ,
-                  const char* log_file
-#endif
-);
+phy_database_open(char* db_name, const char* log_file);
 
 void
 phy_database_delete(phy_database* db);
@@ -82,7 +70,7 @@ bool
 phy_database_validate_header(phy_database* db, file_type ft);
 
 void
-allocate_pages(phy_database* db, file_type ft, size_t num_pages);
+allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log);
 
 void
 deallocate_pages(phy_database* db, file_type ft);

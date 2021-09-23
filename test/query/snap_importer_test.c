@@ -40,35 +40,33 @@ prepare(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
     phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
+
                                             ,
                                             log_name_pdb
-#endif
+
     );
 
-    allocate_pages(pdb, node_ft, 1);
-    allocate_pages(pdb, relationship_ft, 1);
+    allocate_pages(pdb, node_ft, 1, false);
+    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
-#ifdef VERBOSE
+
                                        ,
                                        log_name_cache
-#endif
+
     );
 
     heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
+
                                      ,
                                      log_name_file
-#endif
+
     );
     return hf;
 }
@@ -241,8 +239,9 @@ test_rel_chain(void)
 
     dict_ul_ul** map = import_from_txt(hf, PATH_EMAIL, false, EMAIL_EU_CORE);
 
-    node_t*         node = read_node(hf, 0);
-    relationship_t* rel  = read_relationship(hf, node->first_relationship);
+    node_t*         node = read_node(hf, 0, false);
+    relationship_t* rel =
+          read_relationship(hf, node->first_relationship, false);
     free(node);
     unsigned long next_id;
     // 1.
@@ -257,7 +256,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 2.
     assert(rel->id == r(411));
     assert(rel->source_node == n(17));
@@ -269,7 +268,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 3.
     assert(rel->id == r(2181));
     assert(rel->source_node == n(0));
@@ -281,7 +280,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 4.
     assert(rel->id == r(2265));
     assert(rel->source_node == n(316));
@@ -293,7 +292,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
 
     // 5.
     assert(rel->id == r(2388));
@@ -306,7 +305,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 6.
     assert(rel->id == r(2430));
     assert(rel->source_node == n(146));
@@ -318,7 +317,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 7.
     assert(rel->id == r(3476));
     assert(rel->source_node == n(581));
@@ -330,7 +329,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 8.
     assert(rel->id == r(3854));
     assert(rel->source_node == n(0));
@@ -342,7 +341,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 9.
     assert(rel->id == r(4278));
     assert(rel->source_node == n(0));
@@ -354,7 +353,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 10.
     assert(rel->id == r(4741));
     assert(rel->source_node == n(0));
@@ -366,7 +365,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 11.
     assert(rel->id == r(5671));
     assert(rel->source_node == n(218));
@@ -378,7 +377,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 12.
     assert(rel->id == r(5742));
     assert(rel->source_node == n(0));
@@ -390,7 +389,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 13.
     assert(rel->id == r(5744));
     assert(rel->source_node == n(0));
@@ -402,7 +401,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 14.
     assert(rel->id == r(5751));
     assert(rel->source_node == n(734));
@@ -414,7 +413,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 15.
     assert(rel->id == r(5768));
     assert(rel->source_node == n(18));
@@ -426,7 +425,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 16.
     assert(rel->id == r(5826));
     assert(rel->source_node == n(0));
@@ -438,7 +437,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 17.
     assert(rel->id == r(5871));
     assert(rel->source_node == n(178));
@@ -449,7 +448,7 @@ test_rel_chain(void)
     assert(rel->next_rel_target == r(5875));
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 18.
     assert(rel->id == r(5875));
     assert(rel->source_node == n(0));
@@ -461,7 +460,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 19.
     assert(rel->id == r(6301));
     assert(rel->source_node == n(0));
@@ -473,7 +472,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 20.
     assert(rel->id == r(6618));
     assert(rel->source_node == n(0));
@@ -485,7 +484,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 21.
     assert(rel->id == r(7100));
     assert(rel->source_node == n(0));
@@ -497,7 +496,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 22.
     assert(rel->id == r(7960));
     assert(rel->source_node == n(221));
@@ -509,7 +508,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 23.
     assert(rel->id == r(8517));
     assert(rel->source_node == n(0));
@@ -521,7 +520,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 24.
     assert(rel->id == r(8518));
     assert(rel->source_node == n(0));
@@ -533,7 +532,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 25.
     assert(rel->id == r(8548));
     assert(rel->source_node == n(250));
@@ -545,7 +544,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 26.
     assert(rel->id == r(9155));
     assert(rel->source_node == n(0));
@@ -557,7 +556,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 27.
     assert(rel->id == r(9696));
     assert(rel->source_node == n(74));
@@ -569,7 +568,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 28.
     assert(rel->id == r(10385));
     assert(rel->source_node == n(248));
@@ -581,7 +580,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 29.
     assert(rel->id == r(10654));
     assert(rel->source_node == n(0));
@@ -593,7 +592,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 30.
     assert(rel->id == r(10655));
     assert(rel->source_node == n(498));
@@ -605,7 +604,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 31.
     assert(rel->id == r(10895));
     assert(rel->source_node == n(0));
@@ -617,7 +616,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 32.
     assert(rel->id == r(10990));
     assert(rel->source_node == n(0));
@@ -629,7 +628,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_source;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 33.
     assert(rel->id == r(11093));
     assert(rel->source_node == n(377));
@@ -641,7 +640,7 @@ test_rel_chain(void)
 
     next_id = rel->next_rel_target;
     free(rel);
-    rel = read_relationship(hf, next_id);
+    rel = read_relationship(hf, next_id, false);
     // 34.
     assert(rel->id == r(11096));
     assert(rel->source_node == n(0));
@@ -671,7 +670,7 @@ test_get_nodes_large(void)
 
     import(hf, false, YOUTUBE);
 
-    array_list_node* nodes = get_nodes(hf);
+    array_list_node* nodes = get_nodes(hf, false);
     assert(array_list_node_size(nodes) == hf->n_nodes);
     assert(array_list_node_size(nodes) == YOUTUBE_NO_NODES);
 
@@ -686,7 +685,7 @@ test_get_relationships_large(void)
 
     import(hf, false, YOUTUBE);
 
-    array_list_relationship* rels = get_relationships(hf);
+    array_list_relationship* rels = get_relationships(hf, false);
     assert(array_list_relationship_size(rels) == hf->n_rels);
     assert(array_list_relationship_size(rels) == YOUTUBE_NO_RELS);
 
@@ -697,34 +696,34 @@ test_get_relationships_large(void)
 int
 main(void)
 {
-    //  test_celegans();
-    //  printf("Snap importer test: celegenas imported successfully\n");
-    //  test_email();
-    //  printf("Snap importer test: email eu imported successfully\n");
-    //  test_dblp();
-    //  printf("Snap importer test: dblp imported successfully\n");
-    //  test_amazon();
-    //  printf("Snap importer test: amazon imported successfully\n");
-    //  test_youtube();
-    //  printf("Snap importer test: youtube imported successfully\n");
-    test_wikipedia();
-    printf("Snap importer test: wikipedia imported successfully\n");
+    test_celegans();
+    printf("Snap importer test: celegenas imported successfully\n");
+    test_email();
+    printf("Snap importer test: email eu imported successfully\n");
+    test_dblp();
+    printf("Snap importer test: dblp imported successfully\n");
+    //   test_amazon();
+    //   printf("Snap importer test: amazon imported successfully\n");
+    //   test_youtube();
+    //   printf("Snap importer test: youtube imported successfully\n");
+    // test_wikipedia();
+    // printf("Snap importer test: wikipedia imported successfully\n");
     //   test_live_journal();
     //   printf("Snap importer test: live journal imported successfully\n");
     //   test_orkut();
     //   printf("Snap importer test: orkut imported successfully\n");
     //   test_friendster();
     //   printf("Snap importer test: friendster imported successfully\n");
-    //  test_get_url();
-    //  printf("Snap importer test: tested urls successfully\n");
-    //  test_get_no_nodes();
-    //  printf("Snap importer test: tested get no nodes successfully\n");
-    //  test_get_no_rels();
-    //  printf("Snap importer test: tested get no rels successfully\n");
-    //  test_rel_chain();
-    //  printf("snap importer test: test rel chain successful!\n");
-    //  test_get_nodes_large();
-    //  printf("snap importer test: test get nodes successful!\n");
-    //  test_get_relationships_large();
-    //  printf("snap importer test: test get relationships successful!\n");
+    test_get_url();
+    printf("Snap importer test: tested urls successfully\n");
+    test_get_no_nodes();
+    printf("Snap importer test: tested get no nodes successfully\n");
+    test_get_no_rels();
+    printf("Snap importer test: tested get no rels successfully\n");
+    test_rel_chain();
+    printf("snap importer test: test rel chain successful!\n");
+    test_get_nodes_large();
+    printf("snap importer test: test get nodes successful!\n");
+    test_get_relationships_large();
+    printf("snap importer test: test get relationships successful!\n");
 }

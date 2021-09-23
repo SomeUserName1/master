@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-cd /home/someusername/sync/workspace/uni/master/build
+cd ../build
 llvm-cov gcov -l -p src/**/*.gcno
 mkdir -p coverage
 cd ..

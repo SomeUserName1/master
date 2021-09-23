@@ -28,35 +28,33 @@ main(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
     phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
+
                                             ,
                                             log_name_pdb
-#endif
+
     );
 
-    allocate_pages(pdb, node_ft, 1);
-    allocate_pages(pdb, relationship_ft, 1);
+    allocate_pages(pdb, node_ft, 1, false);
+    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
-#ifdef VERBOSE
+
                                        ,
                                        log_name_cache
-#endif
+
     );
 
     heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
+
                                      ,
                                      log_name_file
-#endif
+
     );
 
     dict_ul_ul** map =
@@ -67,7 +65,6 @@ main(void)
 
     const unsigned long num_landmarks = 3;
 
-#ifdef VERBOSE
     const char* log_path = "/home/someusername/workspace_local/alt_test.txt";
     FILE*       log_file = fopen(log_path, "w+");
 
@@ -75,17 +72,17 @@ main(void)
         printf("ALT test: failed to open log file! %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
 
     dict_ul_d* heuristic[num_landmarks];
 
     alt_preprocess(hf,
                    BOTH,
                    num_landmarks,
-                   heuristic
-#ifdef VERBOSE
-                         log_file
-#endif
+                   heuristic,
+                   true,
+
+                   log_file
+
     );
 
     path* result = alt(hf,
@@ -93,10 +90,11 @@ main(void)
                        num_landmarks,
                        n(11),
                        n(111),
-                       BOTH
-#ifdef VERBOSE
-                             log_file
-#endif
+                       BOTH,
+                       true,
+
+                       log_file
+
     );
 
     assert(result->source == n(11));
@@ -116,7 +114,5 @@ main(void)
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
-#ifdef VERBOSE
     fclose(log_file);
-#endif
 }

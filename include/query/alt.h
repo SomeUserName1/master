@@ -14,16 +14,19 @@
 #include "access/relationship.h"
 #include "result_types.h"
 
+unsigned long
+alt_chose_avg_deg_rand_landmark(heap_file*  hf,
+                                direction_t direction,
+                                bool        log,
+                                FILE*       log_file);
+
 void
 alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
-               dict_ul_d**   landmark_dists
-#ifdef VERBOSE
-               ,
-               FILE* log_file
-#endif
-);
+               dict_ul_d**   landmark_dists,
+               bool          log,
+               FILE*         log_file);
 
 path*
 alt(heap_file*    hf,
@@ -31,11 +34,8 @@ alt(heap_file*    hf,
     unsigned long num_landmarks,
     unsigned long source_node_id,
     unsigned long target_node_id,
-    direction_t   direction
-#ifdef VERBOSE
-    ,
-    FILE* log_file
-#endif
-);
+    direction_t   direction,
+    bool          log,
+    FILE*         log_file);
 
 #endif

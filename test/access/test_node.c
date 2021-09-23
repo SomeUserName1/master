@@ -142,26 +142,13 @@ test_node_write(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, 1);
+    allocate_pages(pc->pdb, node_ft, 1, false);
 
     node_t* node             = new_node();
     node->id                 = 1;
@@ -169,7 +156,7 @@ test_node_write(void)
     memset(node->label, 1, MAX_STR_LEN - 1);
     node->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, records, node_ft);
+    page* p = pin_page(pc, 0, records, node_ft, false);
     node_write(node, p);
 
     unsigned long fst_rel =
@@ -182,7 +169,7 @@ test_node_write(void)
                       + sizeof(unsigned long),
                 label);
 
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, false);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(label[i] == node->label[i]);
@@ -199,26 +186,13 @@ test_node_read(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_cache";
-#endif
 
-    phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_pdb
-#endif
-    );
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
+    page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-    allocate_pages(pc->pdb, node_ft, 1);
+    allocate_pages(pc->pdb, node_ft, 1, false);
 
     node_t* node             = new_node();
     node->id                 = 1;
@@ -226,14 +200,14 @@ test_node_read(void)
     memset(node->label, 1, MAX_STR_LEN - 1);
     node->label[MAX_STR_LEN - 1] = '\0';
 
-    page* p = pin_page(pc, 0, records, node_ft);
+    page* p = pin_page(pc, 0, records, node_ft, false);
     node_write(node, p);
 
     node_t* n_node = new_node();
     n_node->id     = 1;
     node_read(n_node, p);
 
-    unpin_page(pc, 0, records, node_ft);
+    unpin_page(pc, 0, records, node_ft, false);
 
     assert(node_equals(n_node, node));
 

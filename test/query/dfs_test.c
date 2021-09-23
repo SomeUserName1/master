@@ -33,70 +33,61 @@ main(void)
 {
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_pdb   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
     phy_database* pdb = phy_database_create(file_name
-#ifdef VERBOSE
+
                                             ,
                                             log_name_pdb
-#endif
+
     );
 
-    allocate_pages(pdb, node_ft, 1);
-    allocate_pages(pdb, relationship_ft, 1);
+    allocate_pages(pdb, node_ft, 1, false);
+    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
-#ifdef VERBOSE
+
                                        ,
                                        log_name_cache
-#endif
+
     );
 
     heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
+
                                      ,
                                      log_name_file
-#endif
+
     );
     for (size_t i = 0; i < NUM_NODES; ++i) {
-        create_node(hf, "\0");
+        create_node(hf, "\0", false);
     }
 
-    create_relationship(hf, node0, node1, 1.0, "\0");
-    create_relationship(hf, node0, node2, 1.0, "\0");
-    create_relationship(hf, node0, node3, 1.0, "\0");
+    create_relationship(hf, node0, node1, 1.0, "\0", false);
+    create_relationship(hf, node0, node2, 1.0, "\0", false);
+    create_relationship(hf, node0, node3, 1.0, "\0", false);
 
-    create_relationship(hf, node1, node4, 1.0, "\0");
-    create_relationship(hf, node1, node5, 1.0, "\0");
+    create_relationship(hf, node1, node4, 1.0, "\0", false);
+    create_relationship(hf, node1, node5, 1.0, "\0", false);
 
-    create_relationship(hf, node2, node6, 1.0, "\0");
-    create_relationship(hf, node2, node7, 1.0, "\0");
+    create_relationship(hf, node2, node6, 1.0, "\0", false);
+    create_relationship(hf, node2, node7, 1.0, "\0", false);
 
-    create_relationship(hf, node3, node8, 1.0, "\0");
-    create_relationship(hf, node3, node9, 1.0, "\0");
+    create_relationship(hf, node3, node8, 1.0, "\0", false);
+    create_relationship(hf, node3, node9, 1.0, "\0", false);
 
-#ifdef VERBOSE
-    const char* log_path = "/home/someusername/workspace_local/alt_test.txt";
+    const char* log_path = "/home/someusername/workspace_local/dfs_test.txt";
     FILE*       log_file = fopen(log_path, "w+");
 
     if (!log_file) {
         printf("ALT test: failed to open log file! %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-#endif
 
-    traversal_result* result = dfs(hf,
-                                   0,
-                                   BOTH
-#ifdef VERBOSE
-                                   ,
-                                   log_file
-#endif
+    traversal_result* result = dfs(hf, 0, BOTH, true, log_file
+
     );
 
     assert(result->source == 0);
@@ -135,7 +126,5 @@ main(void)
     page_cache_destroy(pc);
     phy_database_delete(pdb);
 
-#ifdef VERBOSE
     fclose(log_file);
-#endif
 }

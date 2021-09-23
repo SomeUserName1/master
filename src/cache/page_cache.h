@@ -25,12 +25,10 @@ typedef struct
     size_t        num_pins;
     size_t        num_unpins;
     bool          bulk_import;
-#ifdef VERBOSE
-    FILE* log_file;
-#endif
-    llist_ul*   free_frames;
-    queue_ul*   recently_referenced;
-    dict_ul_ul* page_map[invalid]
+    FILE*         log_file;
+    llist_ul*     free_frames;
+    queue_ul*     recently_referenced;
+    dict_ul_ul*   page_map[invalid]
                         [invalid_ft]; /* Page M is stored in frame N. Invalid =
                                          num file kinds, invalid_ft = num file
                                          types. See physical_database.h*/
@@ -38,36 +36,34 @@ typedef struct
 } page_cache;
 
 page_cache*
-page_cache_create(phy_database* pdb,
-                  size_t        n_pages
-#ifdef VERBOSE
-                  ,
-                  const char* log_path
-#endif
-);
+page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path);
 
 void
 page_cache_destroy(page_cache* pc);
 
 page*
-pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
+pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log);
 
 void
-unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft);
+unpin_page(page_cache* pc,
+           size_t      page_no,
+           file_kind   fk,
+           file_type   ft,
+           bool        log);
 
 void
-evict(page_cache* pc);
+evict(page_cache* pc, bool log);
 
 void
-bulk_evict(page_cache* pc);
+bulk_evict(page_cache* pc, bool log);
 
 void
-flush_page(page_cache* pc, size_t frame_no);
+flush_page(page_cache* pc, size_t frame_no, bool log);
 
 void
-flush_all_pages(page_cache* pc);
+flush_all_pages(page_cache* pc, bool log);
 
 page*
-new_page(page_cache* pc, file_type ft);
+new_page(page_cache* pc, file_type ft, bool log);
 
 #endif

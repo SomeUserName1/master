@@ -354,8 +354,8 @@ import_from_txt(heap_file*  hf,
           get_no_rels(dataset) * NUM_SLOTS_PER_REL / SLOTS_PER_PAGE
           + (get_no_rels(dataset) * NUM_SLOTS_PER_REL % SLOTS_PER_PAGE);
 
-    allocate_pages(hf->cache->pdb, node_ft, num_pages_nodes);
-    allocate_pages(hf->cache->pdb, relationship_ft, num_pages_rels);
+    allocate_pages(hf->cache->pdb, node_ft, num_pages_nodes, false);
+    allocate_pages(hf->cache->pdb, relationship_ft, num_pages_rels, false);
 
     while (fgets(buf, sizeof(buf), in_file)) {
         if (lines % (get_no_rels(dataset) / factor_percent) == 0) {
@@ -406,7 +406,7 @@ import_from_txt(heap_file*  hf,
                     // LCOV_EXCL_STOP
                 }
 
-                db_id = create_node(hf, label);
+                db_id = create_node(hf, label, false);
                 dict_ul_ul_insert(txt_to_db_id_n, from_to[i], db_id);
                 from_to[i] = db_id;
             }
@@ -423,9 +423,10 @@ import_from_txt(heap_file*  hf,
 
         if (weighted) {
             db_id = create_relationship(
-                  hf, from_to[0], from_to[1], weight, label);
+                  hf, from_to[0], from_to[1], weight, label, false);
         } else {
-            db_id = create_relationship(hf, from_to[0], from_to[1], 1, label);
+            db_id = create_relationship(
+                  hf, from_to[0], from_to[1], 1, label, false);
         }
 
         dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);

@@ -24,12 +24,9 @@
 
 unsigned long
 alt_chose_avg_deg_rand_landmark(heap_file*  hf,
-                                direction_t direction
-#ifdef VERBOSE
-                                ,
-                                FILE* log_file
-#endif
-)
+                                direction_t direction,
+                                bool        log,
+                                FILE*       log_file)
 {
     if (!hf) {
         // LCOV_EXCL_START
@@ -38,35 +35,23 @@ alt_chose_avg_deg_rand_landmark(heap_file*  hf,
         // LCOV_EXCL_STOP
     }
 
-    array_list_node* nodes = get_nodes(hf);
+    array_list_node* nodes = get_nodes(hf, log);
 
-    double avg_degree = get_avg_degree(hf,
-                                       direction
-#ifdef VERBOSE
-                                       ,
-                                       log_file
-#endif
-    );
-
-    double        degree = 0;
+    double        avg_degree = get_avg_degree(hf, direction, log, log_file);
+    double        degree     = 0;
     unsigned long landmark_id;
 
     do {
         landmark_id = array_list_node_get(nodes, rand() % hf->n_nodes)->id;
 
-#ifdef VERBOSE
-        fprintf(
-              log_file, "alt_chose_avg_deg_rand_landmark N %lu\n", landmark_id);
-#endif
+        if (log) {
+            fprintf(log_file,
+                    "alt_chose_avg_deg_rand_landmark N %lu\n",
+                    landmark_id);
+            fflush(log_file);
+        }
 
-        degree = (double)get_degree(hf,
-                                    landmark_id,
-                                    direction
-#ifdef VERBOSE
-                                    ,
-                                    log_file
-#endif
-        );
+        degree = (double)get_degree(hf, landmark_id, direction, log, log_file);
     } while (degree < avg_degree);
 
     array_list_node_destroy(nodes);
@@ -78,12 +63,9 @@ void
 alt_preprocess(heap_file*    hf,
                direction_t   d,
                unsigned long num_landmarks,
-               dict_ul_d**   landmark_dists
-#ifdef VERBOSE
-               ,
-               FILE* log_file
-#endif
-)
+               dict_ul_d**   landmark_dists,
+               bool          log,
+               FILE*         log_file)
 {
     if (!hf || !landmark_dists) {
         // LCOV_EXCL_START
@@ -96,21 +78,8 @@ alt_preprocess(heap_file*    hf,
     sssp_result*  result;
 
     for (size_t i = 0; i < num_landmarks; ++i) {
-        landmarks[i] = alt_chose_avg_deg_rand_landmark(hf,
-                                                       d
-#ifdef VERBOSE
-                                                       ,
-                                                       log_file
-#endif
-        );
-        result = dijkstra(hf,
-                          landmarks[i],
-                          d
-#ifdef VERBOSE
-                          ,
-                          log_file
-#endif
-        );
+        landmarks[i] = alt_chose_avg_deg_rand_landmark(hf, d, log, log_file);
+        result       = dijkstra(hf, landmarks[i], d, log, log_file);
 
         // Assign the distances gathered by using dijkstras and discard the rest
         // of the sssp result (pred edges and the struct itself.
@@ -126,12 +95,9 @@ alt(heap_file*    hf,
     unsigned long num_landmarks,
     unsigned long source_node_id,
     unsigned long target_node_id,
-    direction_t   direction
-#ifdef VERBOSE
-    ,
-    FILE* log_file
-#endif
-)
+    direction_t   direction,
+    bool          log,
+    FILE*         log_file)
 {
     if (!hf || !landmark_dists) {
         // LCOV_EXCL_START
@@ -141,7 +107,7 @@ alt(heap_file*    hf,
     }
 
     dict_ul_d*       heuristic = d_ul_d_create();
-    array_list_node* nodes     = get_nodes(hf);
+    array_list_node* nodes     = get_nodes(hf, log);
 
     double temp_dist;
     for (size_t i = 0; i < num_landmarks; ++i) {
@@ -150,9 +116,12 @@ alt(heap_file*    hf,
                   dict_ul_d_get_direct(landmark_dists[i],
                                        array_list_node_get(nodes, j)->id)
                   - dict_ul_d_get_direct(landmark_dists[i], target_node_id));
-#ifdef VERBOSE
-            fprintf("alt N %lu\n", array_list_node_get(nodes, j)->id);
-#endif
+            if (log) {
+                fprintf(log_file,
+                        "alt N %lu\n",
+                        array_list_node_get(nodes, j)->id);
+                fflush(log_file);
+            }
 
             if (!dict_ul_d_contains(heuristic,
                                     array_list_node_get(nodes, j)->id)
@@ -169,12 +138,9 @@ alt(heap_file*    hf,
                           heuristic,
                           source_node_id,
                           target_node_id,
-                          direction
-#ifdef VERBOSE
-                          ,
-                          log_file
-#endif
-    );
+                          direction,
+                          log,
+                          log_file);
 
     dict_ul_d_destroy(heuristic);
     return result;
