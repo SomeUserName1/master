@@ -1,9 +1,13 @@
-#!/bin/zsh
+#!/bin/bash
 
 cd ../build
-llvm-cov gcov -l -p src/**/*.gcno
+llvm-cov gcov -l -p $(find . -name "*.gcno" -type f)
 mkdir -p coverage
 cd ..
 gcovr -g -k -r . --html --html-details -o build/coverage/report.html
 cd build
-rm **/*.(gcov|gcno|gcda)
+codecov
+find . -name "*.gcov" -type f -exec rm \{\} \;
+find . -name "*.gcno" -type f -exec rm \{\} \;
+find . -name "*.gcda" -type f -exec rm \{\} \;
+

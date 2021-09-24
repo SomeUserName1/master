@@ -85,8 +85,8 @@ firefox coverage/report.html&
 - [x] layout 
 - [x] Filter/find by string id
 - [x] log both string and internal id
+- [x] Make coverage script bash compatible
 - [ ] sample main file
-- [ ] Make coverage script bash compatible
 
 #### Tests
 - [x] data structures
@@ -94,6 +94,7 @@ firefox coverage/report.html&
 - [x] cache
 - [x] access  
 - [x] queries  
+- [x] logging
 - [ ] layout 
 - [ ] Benchmark crud, expand, get nodes and compare to Neo4j
 

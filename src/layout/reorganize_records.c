@@ -180,9 +180,21 @@ prepare_move_relationship(heap_file*    hf,
 void
 swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log)
 {
-    if (!hf || fst == UNINITIALIZED_LONG || snd == UNINITIALIZED_LONG) {
+    // The node ids must be within the current amount pages and they must not be
+    // on a page boundary
+    if (!hf || fst == UNINITIALIZED_LONG || snd == UNINITIALIZED_LONG
+        || (fst + 1) * NUM_SLOTS_PER_NODE * SLOT_SIZE - 1
+                 > hf->cache->pdb->records[node_ft]->num_pages * PAGE_SIZE
+        || (snd + 1) * NUM_SLOTS_PER_NODE * SLOT_SIZE - 1
+                 > hf->cache->pdb->records[node_ft]->num_pages * PAGE_SIZE
+        || (fst * NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE
+                 > ((fst + 1) * NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE
+        || (snd * NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE
+                 > ((snd + 1) * NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE) {
+        // LCOV_EXCL_START
         printf("reorder records - swao node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     bool fst_exists = check_record_exists(hf, fst, true, log);
@@ -263,8 +275,10 @@ swap_relationships(heap_file*    hf,
                    bool          log)
 {
     if (!hf || fst == UNINITIALIZED_LONG || snd == UNINITIALIZED_LONG) {
+        // LCOV_EXCL_START
         printf("reorder records - swao node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     bool fst_exists = check_record_exists(hf, fst, false, log);
@@ -614,7 +628,7 @@ reorder_relationships(heap_file*  hf,
 {
     if (!hf || !new_ids) {
         // LCOV_EXCL_START
-        printf("reorder_records - reorder nodes: Invalid Arguments!\n");
+        printf("reorder_records - reorder relationships: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -692,9 +706,11 @@ void
 reorder_relationships_by_nodes(heap_file* hf, bool log)
 {
     if (!hf) {
+        // LCOV_EXCL_START
         printf("reorganize records - reorder relationships by nodes: Invalid "
                "Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
     // for each node, fetch the outgoing set and assign them new ids, based on
     // their nodes.
@@ -775,9 +791,11 @@ void
 sort_incidence_list(heap_file* hf, bool log)
 {
     if (!hf) {
+        // LCVOV_EXCL_START
         printf("reorganize records - sort_incidence_list: Invalid "
                "Arguments!\n");
         exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
     }
 
     array_list_node*         nodes = get_nodes(hf, log);

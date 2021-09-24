@@ -31,7 +31,7 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
 #define SLOTS_PER_PAGE (4096 / 16)
 
 /* size of the cache for the actual graph */
-#define CACHE_SIZE    (PAGE_SIZE * 10)
+#define CACHE_SIZE    (PAGE_SIZE * 10000)
 #define CACHE_N_PAGES (CACHE_SIZE / PAGE_SIZE)
 
 /* The implemented LRU-K evicts 1 + CACHE_N_PAGES * EVICT_LRU_SHARE pages

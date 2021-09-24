@@ -32,33 +32,15 @@ prepare(void)
 
     char* file_name = "test";
 
-#ifdef VERBOSE
     char* log_name_phf   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
-    phy_database* phf = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_phf
-#endif
-    );
+    phy_database* phf = phy_database_create(file_name, log_name_phf);
 
-    page_cache* pc = page_cache_create(phf,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    page_cache* pc = page_cache_create(phf, CACHE_N_PAGES, log_name_cache);
 
-    heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
-                                     ,
-                                     log_name_file
-#endif
-    );
+    heap_file* hf = heap_file_create(pc, log_name_file);
 
     import(hf, false, C_ELEGANS);
 
@@ -73,10 +55,6 @@ clean_up(heap_file* hf)
     heap_file_destroy(hf);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
-
-#ifdef VERBOSE
-    fclose(log_file);
-#endif
 }
 
 void
@@ -84,7 +62,7 @@ test_prepare_move_node(void)
 {
     heap_file* hf = prepare();
 
-    array_list_relationship* rels = expand(hf, 0, BOTH);
+    array_list_relationship* rels = expand(hf, 0, BOTH, false);
     bool                     is_src_node[array_list_relationship_size(rels)];
 
     for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
@@ -92,9 +70,9 @@ test_prepare_move_node(void)
     }
     array_list_relationship_destroy(rels);
 
-    prepare_move_node(hf, 0, 1);
+    prepare_move_node(hf, 0, 1, true);
 
-    rels = expand(hf, 0, BOTH);
+    rels = expand(hf, 0, BOTH, false);
     for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
         assert(is_src_node[i]
                      && array_list_relationship_get(rels, i)->source_node == 1
@@ -110,11 +88,15 @@ test_prepare_move_relationship(void)
 {
     heap_file* hf = prepare();
 
-    relationship_t* rel       = read_relationship(hf, 0);
-    relationship_t* prev_src  = read_relationship(hf, rel->prev_rel_source);
-    relationship_t* next_src  = read_relationship(hf, rel->next_rel_source);
-    relationship_t* prev_trgt = read_relationship(hf, rel->prev_rel_target);
-    relationship_t* next_trgt = read_relationship(hf, rel->next_rel_target);
+    relationship_t* rel = read_relationship(hf, 0, false);
+    relationship_t* prev_src =
+          read_relationship(hf, rel->prev_rel_source, false);
+    relationship_t* next_src =
+          read_relationship(hf, rel->next_rel_source, false);
+    relationship_t* prev_trgt =
+          read_relationship(hf, rel->prev_rel_target, false);
+    relationship_t* next_trgt =
+          read_relationship(hf, rel->next_rel_target, false);
 
     bool which_pointer[4][4];
     memset(which_pointer, 0, 4 * sizeof(unsigned char));
@@ -171,7 +153,7 @@ test_prepare_move_relationship(void)
         which_pointer[3][3] = true;
     }
 
-    prepare_move_relationship(hf, 0, 1);
+    prepare_move_relationship(hf, 0, 1, false);
 
     if (which_pointer[0][0]) {
         assert(prev_src->prev_rel_source == 1);
@@ -228,11 +210,11 @@ test_prepare_move_relationship(void)
     node_t* fst_src;
     node_t* fst_trgt;
     if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
-        fst_src = read_node(hf, rel->source_node);
+        fst_src = read_node(hf, rel->source_node, false);
         assert(fst_src->first_relationship == 1);
     }
     if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
-        fst_trgt = read_node(hf, rel->target_node);
+        fst_trgt = read_node(hf, rel->target_node, false);
         assert(fst_trgt->first_relationship == 1);
     }
 
@@ -241,11 +223,153 @@ test_prepare_move_relationship(void)
 
 void
 test_swap_nodes(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    static const unsigned long id_on_snd_page = 90;
+
+    node_t* node_1_before = read_node(hf, 1, false);
+    node_t* node_2_before = read_node(hf, id_on_snd_page, false);
+
+    swap_nodes(hf, 1, id_on_snd_page, true);
+
+    node_t* node_1_after = read_node(hf, 1, false);
+    node_t* node_2_after = read_node(hf, id_on_snd_page, false);
+
+    assert(strcmp(node_1_before->label, node_2_after->label) == 0);
+    assert(node_1_before->first_relationship
+           == node_2_after->first_relationship);
+    assert(node_1_before->id == node_1_after->id);
+
+    assert(strcmp(node_2_before->label, node_1_after->label) == 0);
+    assert(node_2_before->first_relationship
+           == node_1_after->first_relationship);
+    assert(node_2_before->id == node_2_after->id);
+
+    static const unsigned long id_on_third_page = 180;
+
+    delete_node(hf, id_on_third_page, false);
+
+    swap_nodes(hf, id_on_snd_page, id_on_third_page, false);
+
+    node_t* node_3 = read_node(hf, id_on_third_page, false);
+
+    assert(strcmp(node_2_after->label, node_3->label) == 0);
+    assert(node_2_after->first_relationship == node_3->first_relationship);
+
+    assert(!check_record_exists(hf, id_on_snd_page, true, false));
+    assert(check_record_exists(hf, id_on_third_page, true, false));
+
+    clean_up(hf);
+}
 
 void
 test_swap_relationships(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    static const unsigned long id_on_snd_page = 45;
+
+    relationship_t* relationship_1_before = read_relationship(hf, 1, false);
+    relationship_t* relationship_2_before =
+          read_relationship(hf, id_on_snd_page, false);
+
+    swap_relationships(hf, 1, id_on_snd_page, true);
+
+    relationship_t* relationship_1_after = read_relationship(hf, 1, false);
+    relationship_t* relationship_2_after =
+          read_relationship(hf, id_on_snd_page, false);
+
+    assert(strcmp(relationship_1_before->label, relationship_2_after->label)
+           == 0);
+
+    assert(relationship_1_before->source_node
+           == relationship_2_after->source_node);
+
+    assert(relationship_1_before->target_node
+           == relationship_2_after->target_node);
+
+    assert(relationship_1_before->prev_rel_source
+           == relationship_2_after->prev_rel_source);
+
+    assert(relationship_1_before->next_rel_source
+           == relationship_2_after->next_rel_source);
+
+    assert(relationship_1_before->prev_rel_target
+           == relationship_2_after->prev_rel_target);
+
+    assert(relationship_1_before->next_rel_target
+           == relationship_2_after->next_rel_target);
+
+    assert(relationship_1_before->flags == relationship_2_after->flags);
+
+    assert(relationship_1_before->weight == relationship_2_after->weight);
+
+    assert(strcmp(relationship_2_before->label, relationship_1_after->label)
+           == 0);
+
+    assert(relationship_2_before->source_node
+           == relationship_1_after->source_node);
+
+    assert(relationship_2_before->target_node
+           == relationship_1_after->target_node);
+
+    assert(relationship_2_before->prev_rel_source
+           == relationship_1_after->prev_rel_source);
+
+    assert(relationship_2_before->next_rel_source
+           == relationship_1_after->next_rel_source);
+
+    assert(relationship_2_before->prev_rel_target
+           == relationship_1_after->prev_rel_target);
+
+    assert(relationship_2_before->next_rel_target
+           == relationship_1_after->next_rel_target);
+
+    assert(relationship_2_before->flags == relationship_1_after->flags);
+
+    assert(relationship_2_before->weight == relationship_1_after->weight);
+
+    assert(relationship_2_before->id == relationship_2_after->id);
+
+    static const unsigned long id_on_third_page = 180;
+
+    delete_relationship(hf, id_on_third_page, false);
+
+    swap_relationships(hf, id_on_snd_page, id_on_third_page, false);
+
+    relationship_t* relationship_3 =
+          read_relationship(hf, id_on_third_page, false);
+
+    assert(strcmp(relationship_2_after->label, relationship_3->label) == 0);
+
+    assert(relationship_2_after->source_node == relationship_3->source_node);
+
+    assert(relationship_2_after->target_node == relationship_3->target_node);
+
+    assert(relationship_2_after->prev_rel_source
+           == relationship_3->prev_rel_source);
+
+    assert(relationship_2_after->next_rel_source
+           == relationship_3->next_rel_source);
+
+    assert(relationship_2_after->prev_rel_target
+           == relationship_3->prev_rel_target);
+
+    assert(relationship_2_after->next_rel_target
+           == relationship_3->next_rel_target);
+
+    assert(relationship_2_after->flags == relationship_3->flags);
+
+    assert(relationship_2_after->weight == relationship_3->weight);
+
+    assert(relationship_2_after->id == relationship_2_after->id);
+
+    assert(!check_record_exists(hf, id_on_snd_page, false, false));
+    assert(check_record_exists(hf, id_on_third_page, false, false));
+
+    clean_up(hf);
+}
 
 void
 test_swap_record_pages(void)
