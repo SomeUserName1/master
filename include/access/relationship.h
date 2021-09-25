@@ -21,14 +21,10 @@
 #include "page.h"
 
 #define ON_DISK_REL_SIZE                                                       \
-    (6 * sizeof(unsigned long) + sizeof(double) + sizeof(unsigned char)        \
-     + MAX_STR_LEN * sizeof(char))
+    (6 * sizeof(unsigned long) + sizeof(double) + sizeof(unsigned long))
 
 #define NUM_SLOTS_PER_REL                                                      \
     ((ON_DISK_REL_SIZE / SLOT_SIZE) + (ON_DISK_REL_SIZE % SLOT_SIZE != 0))
-
-#define FIRST_REL_SOURCE_FLAG (0x01)
-#define FIRST_REL_TARGET_FLAG (0x02)
 
 typedef enum
 {
@@ -53,8 +49,7 @@ typedef struct RelationshipRecord
     unsigned long prev_rel_target;
     unsigned long next_rel_target;
     double        weight;
-    unsigned char flags;
-    char          label[MAX_STR_LEN];
+    unsigned long label;
 } relationship_t;
 
 /**
@@ -132,12 +127,6 @@ relationship_to_string(const relationship_t* record,
 
 void
 relationship_pretty_print(const relationship_t* record);
-
-void
-relationship_set_first_source(relationship_t* rel);
-
-void
-relationship_set_first_target(relationship_t* rel);
 
 void
 rel_free(relationship_t* rel);

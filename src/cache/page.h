@@ -49,10 +49,10 @@ void
 write_double(page* p, size_t offset, double value);
 
 void
-read_string(page* p, size_t offset, char* buf);
+read_string(page* p, size_t offset, char* buf, size_t len);
 
 void
-write_string(page* p, size_t offset, char* value);
+write_string(page* p, size_t offset, char* value, size_t len);
 
 void
 page_pretty_print(const page* p);

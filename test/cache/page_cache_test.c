@@ -64,6 +64,7 @@ test_page_cache_create(void)
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
         page_destroy(pc->cache[i]);
     }
+    free(pc->cache);
     free(pc);
     phy_database_delete(pdb);
 

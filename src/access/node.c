@@ -9,6 +9,7 @@
  */
 #include "access/node.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,12 +59,11 @@ node_read(node_t* record, page* read_from_page)
         // LCOV_EXCL_STOP
     }
 
-    size_t first_slot =
-          (record->id * NUM_SLOTS_PER_NODE * SLOT_SIZE) % PAGE_SIZE;
+    size_t first_slot = (record->id & UCHAR_MAX) * SLOT_SIZE;
 
     record->first_relationship = read_ulong(read_from_page, first_slot);
-    read_string(
-          read_from_page, first_slot + sizeof(unsigned long), record->label);
+    record->label =
+          read_ulong(read_from_page, first_slot + sizeof(unsigned long));
 }
 
 void
@@ -76,11 +76,10 @@ node_write(node_t* record, page* write_to_page)
         // LCOV_EXCL_STOP
     }
 
-    size_t first_slot =
-          (record->id * NUM_SLOTS_PER_NODE * SLOT_SIZE) % PAGE_SIZE;
+    size_t first_slot = (record->id & UCHAR_MAX) * SLOT_SIZE;
 
     write_ulong(write_to_page, first_slot, record->first_relationship);
-    write_string(
+    write_ulong(
           write_to_page, first_slot + sizeof(unsigned long), record->label);
 }
 
@@ -96,7 +95,7 @@ node_clear(node_t* record)
 
     record->id                 = UNINITIALIZED_LONG;
     record->first_relationship = UNINITIALIZED_LONG;
-    memset(record->label, 0, MAX_STR_LEN);
+    record->label              = UNINITIALIZED_LONG;
 }
 
 inline node_t*
@@ -120,7 +119,7 @@ node_copy(const node_t* original)
 
     copy->id                 = original->id;
     copy->first_relationship = original->first_relationship;
-    strncpy(copy->label, original->label, MAX_STR_LEN);
+    copy->label              = original->label;
 
     return copy;
 }
@@ -137,7 +136,7 @@ node_equals(const node_t* first, const node_t* second)
 
     return ((first->id == second->id)
             && (first->first_relationship == second->first_relationship)
-            && memcmp(first->label, second->label, MAX_STR_LEN) == 0);
+            && (first->label == second->label));
 }
 
 void
@@ -154,7 +153,7 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           0,
                           "Node ID: %lu\n"
                           "First Relationship: %lu\n"
-                          "Label: %s\n",
+                          "Label: %lu\n",
                           record->id,
                           record->first_relationship,
                           record->label);
@@ -171,7 +170,7 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
                           length,
                           "Node ID: %lu\n"
                           "First Relationship: %lu\n"
-                          "Label: %s\n",
+                          "Label: %lu\n",
                           record->id,
                           record->first_relationship,
                           record->label);
@@ -195,7 +194,7 @@ node_pretty_print(const node_t* record)
     }
     printf("Node ID: %lu\n"
            "First Relationship: %lu\n"
-           "Label: %s\n",
+           "Label: %lu\n",
            record->id,
            record->first_relationship,
            record->label);
@@ -235,4 +234,3 @@ d_ul_node_create(void)
 {
     return dict_ul_node_create(d_node_cbs);
 }
-

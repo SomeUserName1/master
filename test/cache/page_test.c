@@ -18,6 +18,7 @@
 #include "constants.h"
 #include "physical_database.h"
 
+#define MAX_STR_LEN             (31)
 #define TEST_BYTE               (1 << 5) // is 0010 0000
 #define TEST_NUMBER             (42)
 #define DOUBLE_MINUS_TWO_PREFIX (0xC0)
@@ -242,9 +243,9 @@ test_read_string(void)
 
     p->pin_count = 1;
     char check_first[MAX_STR_LEN];
-    read_string(p, 0, check_first);
+    read_string(p, 0, check_first, MAX_STR_LEN);
     char check_second[MAX_STR_LEN];
-    read_string(p, MAX_STR_LEN, check_second);
+    read_string(p, MAX_STR_LEN, check_second, MAX_STR_LEN);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(check_first[i] == 'a');
@@ -275,17 +276,17 @@ test_write_string(void)
     memset(write_snd, 'b', MAX_STR_LEN - 1);
     write_snd[MAX_STR_LEN - 1] = '\0';
 
-    write_string(p, 0, write_first);
-    write_string(p, MAX_STR_LEN, write_snd);
+    write_string(p, 0, write_first, MAX_STR_LEN);
+    write_string(p, MAX_STR_LEN, write_snd, MAX_STR_LEN);
 
-    write_string(p, PAGE_SIZE - MAX_STR_LEN, write_first);
+    write_string(p, PAGE_SIZE - MAX_STR_LEN, write_first, MAX_STR_LEN);
 
     char check_first[MAX_STR_LEN];
-    read_string(p, 0, check_first);
+    read_string(p, 0, check_first, MAX_STR_LEN);
     char check_second[MAX_STR_LEN];
-    read_string(p, MAX_STR_LEN, check_second);
+    read_string(p, MAX_STR_LEN, check_second, MAX_STR_LEN);
     char check_third[MAX_STR_LEN];
-    read_string(p, PAGE_SIZE - MAX_STR_LEN, check_third);
+    read_string(p, PAGE_SIZE - MAX_STR_LEN, check_third, MAX_STR_LEN);
 
     for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
         assert(check_first[i] == 'a');

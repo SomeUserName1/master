@@ -10,6 +10,7 @@
 #include "access/node.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +32,7 @@ test_new_node(void)
     assert(node);
     assert(node->id == UNINITIALIZED_LONG);
     assert(node->first_relationship == UNINITIALIZED_LONG);
-    assert(node->label[0] == '\0');
+    assert(node->label == UNINITIALIZED_LONG);
 
     free(node);
 }
@@ -46,17 +47,17 @@ test_node_free(void)
 void
 test_node_clear(void)
 {
-    node_t* node             = new_node();
-    node->id                 = 1;
-    node->first_relationship = 1;
-    char* str                = "ab\0";
-    memcpy(node->label, str, strlen(str) + 1);
+    node_t* node              = new_node();
+    node->id                  = 1;
+    node->first_relationship  = 1;
+    const unsigned long label = 123;
+    node->label               = label;
 
     node_clear(node);
 
     assert(node->id == UNINITIALIZED_LONG);
     assert(node->first_relationship == UNINITIALIZED_LONG);
-    assert(node->label[0] == '\0');
+    assert(node->label == UNINITIALIZED_LONG);
 
     free(node);
 }
@@ -64,22 +65,17 @@ test_node_clear(void)
 void
 test_node_copy(void)
 {
-    node_t* node             = new_node();
-    node->id                 = 1;
-    node->first_relationship = 1;
-    memset(node->label, 1, MAX_STR_LEN - 1);
-    node->label[MAX_STR_LEN - 1] = '\0';
+    node_t* node              = new_node();
+    node->id                  = 1;
+    node->first_relationship  = 1;
+    const unsigned long label = 11111111;
+    node->label               = label;
 
     node_t* copy = node_copy(node);
 
     assert(node->id == copy->id);
     assert(node->first_relationship == copy->first_relationship);
-
-    for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
-        assert(node->label[i] == 1);
-    }
-
-    assert(node->label[MAX_STR_LEN - 1] == '\0');
+    assert(copy->label == label);
 
     free(node);
     free(copy);
@@ -88,11 +84,11 @@ test_node_copy(void)
 void
 test_node_equals(void)
 {
-    node_t* node             = new_node();
-    node->id                 = NUM;
-    node->first_relationship = NUM;
-    memset(node->label, 1, MAX_STR_LEN - 1);
-    node->label[MAX_STR_LEN - 1] = '\0';
+    node_t* node              = new_node();
+    node->id                  = NUM;
+    node->first_relationship  = NUM;
+    const unsigned long label = 11111111;
+    node->label               = label;
 
     node_t* eq_node = node_copy(node);
 
@@ -108,7 +104,7 @@ test_node_equals(void)
     assert(!node_equals(node, eq_node));
 
     eq_node->first_relationship = node->first_relationship;
-    eq_node->label[0]           = '\0';
+    eq_node->label              = 0;
 
     assert(!node_equals(node, eq_node));
 
@@ -150,31 +146,24 @@ test_node_write(void)
 
     allocate_pages(pc->pdb, node_ft, 1, false);
 
-    node_t* node             = new_node();
-    node->id                 = 1;
-    node->first_relationship = NUM;
-    memset(node->label, 1, MAX_STR_LEN - 1);
-    node->label[MAX_STR_LEN - 1] = '\0';
+    node_t* node              = new_node();
+    node->id                  = 1;
+    node->first_relationship  = NUM;
+    const unsigned long label = 11111111;
+    node->label               = label;
 
     page* p = pin_page(pc, 0, records, node_ft, false);
     node_write(node, p);
 
-    unsigned long fst_rel =
-          read_ulong(p, node->id * NUM_SLOTS_PER_NODE * SLOT_SIZE);
+    unsigned long fst_rel = read_ulong(p, (node->id & UCHAR_MAX) * SLOT_SIZE);
     assert(fst_rel == node->first_relationship);
 
-    char label[MAX_STR_LEN];
-    read_string(p,
-                node->id * NUM_SLOTS_PER_NODE * SLOT_SIZE
-                      + sizeof(unsigned long),
-                label);
+    unsigned long m_label = read_ulong(
+          p, (node->id & UCHAR_MAX) * SLOT_SIZE + sizeof(unsigned long));
 
     unpin_page(pc, 0, records, node_ft, false);
 
-    for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
-        assert(label[i] == node->label[i]);
-    }
-    assert(label[MAX_STR_LEN - 1] == node->label[MAX_STR_LEN - 1]);
+    assert(m_label == node->label);
 
     free(node);
     page_cache_destroy(pc);
@@ -194,13 +183,12 @@ test_node_read(void)
 
     allocate_pages(pc->pdb, node_ft, 1, false);
 
-    node_t* node             = new_node();
-    node->id                 = 1;
-    node->first_relationship = NUM;
-    memset(node->label, 1, MAX_STR_LEN - 1);
-    node->label[MAX_STR_LEN - 1] = '\0';
-
-    page* p = pin_page(pc, 0, records, node_ft, false);
+    node_t* node              = new_node();
+    node->id                  = 1;
+    node->first_relationship  = NUM;
+    const unsigned long label = 11111111;
+    node->label               = label;
+    page* p                   = pin_page(pc, 0, records, node_ft, false);
     node_write(node, p);
 
     node_t* n_node = new_node();

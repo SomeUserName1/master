@@ -12,6 +12,7 @@
 #include "layout/random_layout.h"
 
 #include <assert.h>
+#include <errno.h>
 
 #include "access/heap_file.h"
 #include "data-struct/htable.h"
@@ -20,43 +21,16 @@
 heap_file*
 prepare(void)
 {
-#ifdef VERBOSE
-    log_file = fopen(log_path, "w+");
-    if (!log_file) {
-        printf("ALT test: failed to open log file! %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-#endif
-
-    char* file_name = "test";
-
-#ifdef VERBOSE
+    char* file_name      = "test";
     char* log_name_phf   = "log_test_pdb";
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
-#endif
 
-    phy_database* phf = phy_database_create(file_name
-#ifdef VERBOSE
-                                            ,
-                                            log_name_phf
-#endif
-    );
+    phy_database* phf = phy_database_create(file_name, log_name_phf);
 
-    page_cache* pc = page_cache_create(phf,
-                                       CACHE_N_PAGES
-#ifdef VERBOSE
-                                       ,
-                                       log_name_cache
-#endif
-    );
+    page_cache* pc = page_cache_create(phf, CACHE_N_PAGES, log_name_cache);
 
-    heap_file* hf = heap_file_create(pc
-#ifdef VERBOSE
-                                     ,
-                                     log_name_file
-#endif
-    );
+    heap_file* hf = heap_file_create(pc, log_name_file);
 
     import(hf, false, C_ELEGANS);
 
@@ -71,10 +45,6 @@ clean_up(heap_file* hf)
     heap_file_destroy(hf);
     page_cache_destroy(pc);
     phy_database_delete(pdb);
-
-#ifdef VERBOSE
-    fclose(log_file);
-#endif
 }
 
 void
@@ -86,7 +56,7 @@ test_identity_order(void)
 
     assert(dict_ul_ul_size(order) == hf->n_nodes);
 
-    array_list_node* nodes = get_nodes(hf);
+    array_list_node* nodes = get_nodes(hf, false);
 
     for (size_t i = 0; i < hf->n_nodes; ++i) {
         assert(dict_ul_ul_contains(order, array_list_node_get(nodes, i)->id));
@@ -104,7 +74,7 @@ test_random_order(void)
 
     assert(dict_ul_ul_size(order) == hf->n_nodes);
 
-    array_list_node* nodes = get_nodes(hf);
+    array_list_node* nodes = get_nodes(hf, false);
 
     for (size_t i = 0; i < hf->n_nodes; ++i) {
         assert(dict_ul_ul_contains(order, array_list_node_get(nodes, i)->id));

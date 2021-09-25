@@ -161,16 +161,15 @@ prepare_move_relationship(heap_file*    hf,
     free(prev_rel_to);
 
     // adjust the id in the nodes first relationship fields if neccessary
-    node_t* node;
-    if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
-        node                     = read_node(hf, rel->source_node, log);
+    node_t* node = read_node(hf, rel->source_node, log);
+    if (rel->id == node->first_relationship) {
         node->first_relationship = to_id;
         update_node(hf, node, log);
         free(node);
     }
 
-    if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
-        node                     = read_node(hf, rel->target_node, log);
+    node = read_node(hf, rel->target_node, log);
+    if (rel->id == node->first_relationship) {
         node->first_relationship = to_id;
         update_node(hf, node, log);
         free(node);

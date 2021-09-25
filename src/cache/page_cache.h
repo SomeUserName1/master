@@ -32,7 +32,7 @@ typedef struct
                         [invalid_ft]; /* Page M is stored in frame N. Invalid =
                                          num file kinds, invalid_ft = num file
                                          types. See physical_database.h*/
-    page* cache[CACHE_N_PAGES];       /* Frame N contains page M */
+    page** cache;                     /* Frame N contains page M */
 } page_cache;
 
 page_cache*

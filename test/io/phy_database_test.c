@@ -89,10 +89,11 @@ test_phy_database_validate_header(void)
     assert(!phy_database_validate_header(db, 0));
 
     // case 4: matching header and record file
-    data[0] = 0;
-    data[1] = 1;
+    data[0] = SLOTS_PER_PAGE;
+    data[1] = 0;
     data[2] = 0;
     data[3] = 0;
+    printf("Page size %lu\n", PAGE_SIZE);
     write_page(db->catalogue, 0, data, false);
 
     assert(phy_database_validate_header(db, 0));

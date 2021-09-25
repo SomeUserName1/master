@@ -117,9 +117,9 @@ disk_file_open(char* file_name, FILE* log_file)
         // LCOV_EXCL_STOP
     }
 
-    df->file_size = ftell(df->file);
+    long file_size = ftell(df->file);
 
-    if (df->file_size == -1) {
+    if (file_size < 0) {
         // LCOV_EXCL_START
         printf("disk file - create: failed to ftell %s: "
                "%s\n",
@@ -127,6 +127,8 @@ disk_file_open(char* file_name, FILE* log_file)
                strerror(errno));
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
+    } else {
+        df->file_size = file_size;
     }
 
     df->num_pages   = df->file_size / PAGE_SIZE;
@@ -262,9 +264,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
 
     free(data);
 
-    df->file_size = ftell(df->file);
+    long file_size = ftell(df->file);
 
-    if (df->file_size == -1) {
+    if (file_size < 0) {
         // LCOV_EXCL_START
         printf("disk file - grow: failed to ftell "
                "file %s: %s\n",
@@ -272,6 +274,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
                strerror(errno));
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
+    } else {
+        df->file_size = file_size;
     }
 
     df->num_pages = df->file_size / PAGE_SIZE;
@@ -340,7 +344,7 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
     }
 
     long shrink_by_bytes = PAGE_SIZE * by_num_pages;
-    if (ftruncate(fd, df->file_size - shrink_by_bytes) != 0) {
+    if (ftruncate(fd, (long)df->file_size - shrink_by_bytes) != 0) {
         // LCOV_EXCL_START
         printf("disk file - shrink: Failed to "
                "truncate the file %s: %s\n",
@@ -358,9 +362,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
         // LCOV_EXCL_STOP
     }
 
-    df->file_size = ftell(df->file);
+    long file_size = ftell(df->file);
 
-    if (df->file_size == -1) {
+    if (file_size < 0) {
         // LCOV_EXCL_START
         printf("disk file - shrink: failed to "
                "ftell file %s: %s\n",
@@ -368,6 +372,8 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
                strerror(errno));
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
+    } else {
+        df->file_size = file_size;
     }
 
     df->num_pages = df->file_size / PAGE_SIZE;

@@ -331,8 +331,6 @@ import_from_txt(heap_file*  hf,
     dict_ul_ul*                txt_to_db_id_n = d_ul_ul_create();
     dict_ul_ul*                txt_to_db_id_r = d_ul_ul_create();
     unsigned long              db_id          = 0;
-    char                       label[MAX_STR_LEN];
-    int                        label_len;
     static const unsigned long factor_percent = 100;
 
     FILE* in_file = fopen(path, "r");
@@ -396,37 +394,18 @@ import_from_txt(heap_file*  hf,
             if (dict_ul_ul_contains(txt_to_db_id_n, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id_n, from_to[i]);
             } else {
-                label_len = snprintf(NULL, 0, "%lu", from_to[i]);
-                if (label_len
-                    != snprintf(label, label_len + 1, "%lu", from_to[i])) {
-                    // LCOV_EXCL_START
-                    printf("snap importer - import from txt: failed to write "
-                           "id as label!\n");
-                    exit(EXIT_FAILURE);
-                    // LCOV_EXCL_STOP
-                }
-
-                db_id = create_node(hf, label, false);
+                db_id = create_node(hf, from_to[i], false);
                 dict_ul_ul_insert(txt_to_db_id_n, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
 
-        label_len = snprintf(NULL, 0, "%lu", lines);
-        if (label_len != snprintf(label, label_len + 1, "%lu", lines)) {
-            // LCOV_EXCL_START
-            printf("snap importer - import from txt: failed to write "
-                   "id as label!\n");
-            exit(EXIT_FAILURE);
-            // LCOV_EXCL_STOP
-        }
-
         if (weighted) {
             db_id = create_relationship(
-                  hf, from_to[0], from_to[1], weight, label, false);
+                  hf, from_to[0], from_to[1], weight, lines, false);
         } else {
             db_id = create_relationship(
-                  hf, from_to[0], from_to[1], 1, label, false);
+                  hf, from_to[0], from_to[1], 1, lines, false);
         }
 
         dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);
@@ -472,8 +451,6 @@ in_memory_import_from_txt(in_memory_graph* g,
     dict_ul_ul*   txt_to_db_id_n = d_ul_ul_create();
     dict_ul_ul*   txt_to_db_id_r = d_ul_ul_create();
     unsigned long db_id          = 0;
-    char          label[MAX_STR_LEN];
-    int           label_len;
 
     FILE* in_file = fopen(path, "r");
     if (in_file == NULL) {
@@ -523,37 +500,19 @@ in_memory_import_from_txt(in_memory_graph* g,
             if (dict_ul_ul_contains(txt_to_db_id_n, from_to[i])) {
                 from_to[i] = dict_ul_ul_get_direct(txt_to_db_id_n, from_to[i]);
             } else {
-                label_len = snprintf(NULL, 0, "%lu", from_to[i]);
-                if (label_len
-                    != snprintf(label, label_len + 1, "%lu", from_to[i])) {
-                    // LCOV_EXCL_START
-                    printf("snap importer - import from txt: failed to write "
-                           "id as label!\n");
-                    exit(EXIT_FAILURE);
-                    // LCOV_EXCL_STOP
-                }
 
-                db_id = in_memory_create_node(g, label);
+                db_id = in_memory_create_node(g, from_to[i]);
                 dict_ul_ul_insert(txt_to_db_id_n, from_to[i], db_id);
                 from_to[i] = db_id;
             }
         }
 
-        label_len = snprintf(NULL, 0, "%lu", lines);
-        if (label_len != snprintf(label, label_len + 1, "%lu", lines)) {
-            // LCOV_EXCL_START
-            printf("snap importer - import from txt: failed to write "
-                   "id as label!\n");
-            exit(EXIT_FAILURE);
-            // LCOV_EXCL_STOP
-        }
-
         if (weighted) {
             db_id = in_memory_create_relationship_weighted(
-                  g, from_to[0], from_to[1], weight, label);
+                  g, from_to[0], from_to[1], weight, lines);
         } else {
             db_id = in_memory_create_relationship(
-                  g, from_to[0], from_to[1], label);
+                  g, from_to[0], from_to[1], lines);
         }
 
         dict_ul_ul_insert(txt_to_db_id_r, lines, db_id);

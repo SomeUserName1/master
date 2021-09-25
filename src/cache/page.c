@@ -156,33 +156,32 @@ write_double(page* p, size_t offset, double value)
 }
 
 void
-read_string(page* p, size_t offset, char* buf)
+read_string(page* p, size_t offset, char* buf, size_t len)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN
-        || p->pin_count < 1) {
+    if (!p || offset > PAGE_SIZE - sizeof(char) * len || p->pin_count < 1) {
         // LCOV_EXCL_START
         printf("page - read string: Invalid arguments!\n");
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-    memcpy(buf, p->data + offset, sizeof(char) * MAX_STR_LEN);
+    memcpy(buf, p->data + offset, sizeof(char) * len);
 }
 
 void
-write_string(page* p, size_t offset, char* value)
+write_string(page* p, size_t offset, char* value, size_t len)
 {
-    if (!p || offset > PAGE_SIZE - sizeof(char) * MAX_STR_LEN
-        || value[MAX_STR_LEN - 1] != '\0' || p->pin_count < 1) {
+    if (!p || offset > PAGE_SIZE - sizeof(char) * len || value[len - 1] != '\0'
+        || p->pin_count < 1) {
         // LCOV_EXCL_START
         printf("page - write string: Invalid arguments! %s\n", value);
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
-    char buf[MAX_STR_LEN];
-    memset(buf, 0, MAX_STR_LEN);
-    strncpy(buf, value, MAX_STR_LEN * sizeof(char));
-    memcpy(p->data + offset, buf, MAX_STR_LEN);
+    char buf[len];
+    memset(buf, 0, len);
+    strncpy(buf, value, len * sizeof(char));
+    memcpy(p->data + offset, buf, len);
 
     p->dirty = true;
 }

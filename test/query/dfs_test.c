@@ -17,16 +17,6 @@
 #include "query/result_types.h"
 
 #define NUM_NODES (10)
-static const unsigned long node0 = 0;
-static const unsigned long node1 = 1;
-static const unsigned long node2 = 2;
-static const unsigned long node3 = 3;
-static const unsigned long node4 = 4;
-static const unsigned long node5 = 5;
-static const unsigned long node6 = 6;
-static const unsigned long node7 = 7;
-static const unsigned long node8 = 8;
-static const unsigned long node9 = 9;
 
 int
 main(void)
@@ -37,46 +27,34 @@ main(void)
     char* log_name_cache = "log_test_pc";
     char* log_name_file  = "log_test_hf";
 
-    phy_database* pdb = phy_database_create(file_name
-
-                                            ,
-                                            log_name_pdb
-
-    );
+    phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
     allocate_pages(pdb, node_ft, 1, false);
     allocate_pages(pdb, relationship_ft, 1, false);
 
-    page_cache* pc = page_cache_create(pdb,
-                                       CACHE_N_PAGES
+    page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
-                                       ,
-                                       log_name_cache
+    heap_file* hf = heap_file_create(pc, log_name_file);
 
-    );
-
-    heap_file* hf = heap_file_create(pc
-
-                                     ,
-                                     log_name_file
-
-    );
+    size_t nids[NUM_NODES];
     for (size_t i = 0; i < NUM_NODES; ++i) {
-        create_node(hf, "\0", false);
+        nids[i] = create_node(hf, 0, false);
     }
 
-    create_relationship(hf, node0, node1, 1.0, "\0", false);
-    create_relationship(hf, node0, node2, 1.0, "\0", false);
-    create_relationship(hf, node0, node3, 1.0, "\0", false);
+    const size_t nrels = 9;
+    size_t       rids[nrels];
+    rids[0] = create_relationship(hf, nids[0], nids[1], 1.0, 0, false);
+    rids[1] = create_relationship(hf, nids[0], nids[2], 1.0, 0, false);
+    rids[2] = create_relationship(hf, nids[0], nids[3], 1.0, 0, false);
 
-    create_relationship(hf, node1, node4, 1.0, "\0", false);
-    create_relationship(hf, node1, node5, 1.0, "\0", false);
+    rids[3] = create_relationship(hf, nids[1], nids[4], 1.0, 0, false);
+    rids[4] = create_relationship(hf, nids[1], nids[5], 1.0, 0, false);
 
-    create_relationship(hf, node2, node6, 1.0, "\0", false);
-    create_relationship(hf, node2, node7, 1.0, "\0", false);
+    rids[5] = create_relationship(hf, nids[2], nids[6], 1.0, 0, false);
+    rids[6] = create_relationship(hf, nids[2], nids[7], 1.0, 0, false);
 
-    create_relationship(hf, node3, node8, 1.0, "\0", false);
-    create_relationship(hf, node3, node9, 1.0, "\0", false);
+    rids[7] = create_relationship(hf, nids[3], nids[8], 1.0, 0, false);
+    rids[8] = create_relationship(hf, nids[3], nids[9], 1.0, 0, false);
 
     const char* log_path = "/home/someusername/workspace_local/dfs_test.txt";
     FILE*       log_file = fopen(log_path, "w+");
@@ -90,20 +68,21 @@ main(void)
 
     );
 
+    // FIXME cont here
     assert(result->source == 0);
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 0) == 0);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 1) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 1) == 0);
+    assert(dict_ul_ul_get_direct(result->parents, 1) == rids[0]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 2) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 2) == 1);
+    assert(dict_ul_ul_get_direct(result->parents, 2) == rids[1]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 3) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 3) == 2);
+    assert(dict_ul_ul_get_direct(result->parents, 3) == rids[2]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 8) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 8) == 7);
+    assert(dict_ul_ul_get_direct(result->parents, 8) == rids[7]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 9) == 2);
     assert(dict_ul_ul_get_direct(result->parents, 9) == 8);

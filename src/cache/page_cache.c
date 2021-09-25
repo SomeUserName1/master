@@ -23,8 +23,6 @@
 #include "page.h"
 #include "physical_database.h"
 
-#define SWAP_MAX_NUM_PINNED_PAGES (6)
-
 page_cache*
 page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
 {
@@ -71,6 +69,7 @@ page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
         // LCOV_EXCL_STOP
     }
 
+    pc->cache = calloc(n_pages, sizeof(page*));
     for (unsigned long i = 0; i < n_pages; ++i) {
         pc->cache[i] = page_create(data + (PAGE_SIZE * i));
         llist_ul_append(pc->free_frames, i);
@@ -120,6 +119,7 @@ page_cache_destroy(page_cache* pc)
     for (unsigned long i = 0; i < pc->n_pages; ++i) {
         page_destroy(pc->cache[i]);
     }
+    free(pc->cache);
 
     if (fclose(pc->log_file) != 0) {
         // LCOV_EXCL_START

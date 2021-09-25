@@ -11,13 +11,14 @@
 #define DISK_FILE_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 
 typedef struct
 {
     char*  file_name;
     FILE*  file;
-    long   file_size;
+    size_t file_size;
     size_t num_pages;
     size_t read_count;
     size_t write_count;

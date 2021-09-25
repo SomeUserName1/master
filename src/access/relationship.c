@@ -9,6 +9,7 @@
  */
 #include "access/relationship.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,8 +47,7 @@ relationship_read(relationship_t* record, page* read_from_page)
         // LCOV_EXCL_STOP
     }
 
-    size_t first_slot =
-          (record->id * NUM_SLOTS_PER_REL * SLOT_SIZE) % PAGE_SIZE;
+    size_t first_slot = (record->id & UCHAR_MAX) * SLOT_SIZE;
 
     record->source_node = read_ulong(read_from_page, first_slot);
     record->target_node =
@@ -78,19 +78,12 @@ relationship_read(relationship_t* record, page* read_from_page)
                             + sizeof(unsigned long) + sizeof(unsigned long)
                             + sizeof(unsigned long) + sizeof(unsigned long));
 
-    record->flags =
-          read_uchar(read_from_page,
+    record->label =
+          read_ulong(read_from_page,
                      first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(double));
-
-    read_string(read_from_page,
-                first_slot + sizeof(unsigned long) + sizeof(unsigned long)
-                      + sizeof(unsigned long) + sizeof(unsigned long)
-                      + sizeof(unsigned long) + sizeof(unsigned long)
-                      + sizeof(double) + sizeof(unsigned char),
-                record->label);
 }
 
 void
@@ -103,8 +96,7 @@ relationship_write(relationship_t* record, page* write_to_page)
         // LCOV_EXCL_STOP
     }
 
-    size_t first_slot =
-          (record->id * NUM_SLOTS_PER_REL * SLOT_SIZE) % PAGE_SIZE;
+    size_t first_slot = (record->id & UCHAR_MAX) * SLOT_SIZE;
 
     write_ulong(write_to_page, first_slot, record->source_node);
     write_ulong(write_to_page,
@@ -136,19 +128,12 @@ relationship_write(relationship_t* record, page* write_to_page)
                        + sizeof(unsigned long) + sizeof(unsigned long),
                  record->weight);
 
-    write_uchar(write_to_page,
+    write_ulong(write_to_page,
                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
                       + sizeof(unsigned long) + sizeof(unsigned long)
                       + sizeof(unsigned long) + sizeof(unsigned long)
                       + sizeof(double),
-                record->flags);
-
-    write_string(write_to_page,
-                 first_slot + sizeof(unsigned long) + sizeof(unsigned long)
-                       + sizeof(unsigned long) + sizeof(unsigned long)
-                       + sizeof(unsigned long) + sizeof(unsigned long)
-                       + sizeof(double) + sizeof(unsigned char),
-                 record->label);
+                record->label);
 }
 
 inline void
@@ -162,7 +147,6 @@ relationship_clear(relationship_t* record)
     }
 
     record->id              = UNINITIALIZED_LONG;
-    record->flags           = UNINITIALIZED_BYTE;
     record->source_node     = UNINITIALIZED_LONG;
     record->target_node     = UNINITIALIZED_LONG;
     record->prev_rel_source = UNINITIALIZED_LONG;
@@ -170,7 +154,7 @@ relationship_clear(relationship_t* record)
     record->prev_rel_target = UNINITIALIZED_LONG;
     record->next_rel_target = UNINITIALIZED_LONG;
     record->weight          = UNINITIALIZED_WEIGHT;
-    memset(record->label, 0, MAX_STR_LEN);
+    record->label           = UNINITIALIZED_LONG;
 }
 
 inline relationship_t*
@@ -193,7 +177,6 @@ relationship_copy(const relationship_t* original)
     }
 
     copy->id              = original->id;
-    copy->flags           = original->flags;
     copy->source_node     = original->source_node;
     copy->target_node     = original->target_node;
     copy->prev_rel_source = original->prev_rel_source;
@@ -201,7 +184,7 @@ relationship_copy(const relationship_t* original)
     copy->prev_rel_target = original->prev_rel_target;
     copy->next_rel_target = original->next_rel_target;
     copy->weight          = original->weight;
-    strncpy(copy->label, original->label, MAX_STR_LEN);
+    copy->label           = original->label;
 
     return copy;
 }
@@ -216,14 +199,14 @@ relationship_equals(const relationship_t* first, const relationship_t* second)
         // LCOV_EXCL_STOP
     }
 
-    return ((first->id == second->id) && (first->flags == second->flags)
+    return ((first->id == second->id)
             && (first->source_node == second->source_node)
             && (first->target_node == second->target_node)
             && (first->prev_rel_source == second->prev_rel_source)
             && (first->next_rel_source == second->next_rel_source)
             && (first->prev_rel_target == second->prev_rel_target)
             && (first->weight == second->weight)
-            && memcmp(first->label, second->label, MAX_STR_LEN) == 0);
+            && (first->label == second->label));
 }
 
 void
@@ -241,7 +224,6 @@ relationship_to_string(const relationship_t* record,
     int length = snprintf(NULL,
                           0,
                           "Relationship ID: %lu\n"
-                          "Flags: %u\n"
                           "Source Node: %lu\n"
                           "Target Node: %lu\n"
                           "Source node's previous relationship: %lu\n"
@@ -249,9 +231,8 @@ relationship_to_string(const relationship_t* record,
                           "Target node's previous relationship: %lu\n"
                           "Target node's next relationship: %lu\n"
                           "Weight: %.1f\n"
-                          "Label %s\n",
+                          "Label %lu\n",
                           record->id,
-                          record->flags,
                           record->source_node,
                           record->target_node,
                           record->prev_rel_source,
@@ -275,7 +256,6 @@ relationship_to_string(const relationship_t* record,
     int result = snprintf(buffer,
                           length,
                           "Relationship ID: %lu\n"
-                          "Flags: %u\n"
                           "Source Node: %lu\n"
                           "Target Node: %lu\n"
                           "Source node's previous relationship: %lu\n"
@@ -283,9 +263,8 @@ relationship_to_string(const relationship_t* record,
                           "Target node's previous relationship: %lu\n"
                           "Target node's next relationship: %lu\n"
                           "First Property: %.1f\n"
-                          "Label %s\n",
+                          "Label %lu\n",
                           record->id,
-                          record->flags,
                           record->source_node,
                           record->target_node,
                           record->prev_rel_source,
@@ -314,7 +293,6 @@ relationship_pretty_print(const relationship_t* record)
     }
 
     printf("Relationship ID: %lu\n"
-           "Flags: %u\n"
            "Source Node: %lu\n"
            "Target Node: %lu\n"
            "Source node's previous relationship: %lu\n"
@@ -322,10 +300,8 @@ relationship_pretty_print(const relationship_t* record)
            "Target node's previous relationship: %lu\n"
            "Target node's next relationship: %lu\n"
            "Weight: %.1f\n"
-           "Label %s\n",
-
+           "Label %lu\n",
            record->id,
-           record->flags,
            record->source_node,
            record->target_node,
            record->prev_rel_source,
@@ -334,40 +310,6 @@ relationship_pretty_print(const relationship_t* record)
            record->next_rel_target,
            record->weight,
            record->label);
-}
-
-inline void
-relationship_set_first_source(relationship_t* rel)
-{
-    if (!rel) {
-        // LCOV_EXCL_START
-        printf("relationship - set first source: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-        // LCOV_EXCL_STOP
-    }
-
-    if (rel->flags == UNINITIALIZED_BYTE) {
-        rel->flags = FIRST_REL_SOURCE_FLAG;
-    } else {
-        rel->flags = rel->flags | FIRST_REL_SOURCE_FLAG;
-    }
-}
-
-inline void
-relationship_set_first_target(relationship_t* rel)
-{
-    if (!rel) {
-        // LCOV_EXCL_START
-        printf("relationship - set first target: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
-        // LCOV_EXCL_STOP
-    }
-
-    if (rel->flags == UNINITIALIZED_BYTE) {
-        rel->flags = FIRST_REL_TARGET_FLAG;
-    } else {
-        rel->flags = rel->flags | FIRST_REL_TARGET_FLAG;
-    }
 }
 
 inline void

@@ -7,28 +7,27 @@
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
  */
+#include "constants.h"
 #include "layout/reorganize_records.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "access/heap_file.h"
 #include "access/node.h"
 #include "access/relationship.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
+#include "page.h"
+#include "page_cache.h"
+#include "physical_database.h"
 #include "query/snap_importer.h"
 
 heap_file*
 prepare(void)
 {
-#ifdef VERBOSE
-    log_file = fopen(log_path, "w+");
-    if (!log_file) {
-        printf("ALT test: failed to open log file! %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-#endif
 
     char* file_name = "test";
 
@@ -207,14 +206,13 @@ test_prepare_move_relationship(void)
         assert(prev_src->next_rel_target == 1);
     }
 
-    node_t* fst_src;
-    node_t* fst_trgt;
-    if ((rel->flags & FIRST_REL_SOURCE_FLAG) != 0) {
-        fst_src = read_node(hf, rel->source_node, false);
+    node_t* fst_src = read_node(hf, rel->source_node, false);
+    ;
+    node_t* fst_trgt = read_node(hf, rel->target_node, false);
+    if (fst_src->first_relationship == rel->id) {
         assert(fst_src->first_relationship == 1);
     }
-    if ((rel->flags & FIRST_REL_TARGET_FLAG) != 0) {
-        fst_trgt = read_node(hf, rel->target_node, false);
+    if (fst_trgt->first_relationship == rel->id) {
         assert(fst_trgt->first_relationship == 1);
     }
 
@@ -236,12 +234,12 @@ test_swap_nodes(void)
     node_t* node_1_after = read_node(hf, 1, false);
     node_t* node_2_after = read_node(hf, id_on_snd_page, false);
 
-    assert(strcmp(node_1_before->label, node_2_after->label) == 0);
+    assert(node_1_before->label == node_2_after->label);
     assert(node_1_before->first_relationship
            == node_2_after->first_relationship);
     assert(node_1_before->id == node_1_after->id);
 
-    assert(strcmp(node_2_before->label, node_1_after->label) == 0);
+    assert(node_2_before->label == node_1_after->label);
     assert(node_2_before->first_relationship
            == node_1_after->first_relationship);
     assert(node_2_before->id == node_2_after->id);
@@ -254,7 +252,7 @@ test_swap_nodes(void)
 
     node_t* node_3 = read_node(hf, id_on_third_page, false);
 
-    assert(strcmp(node_2_after->label, node_3->label) == 0);
+    assert(node_2_after->label == node_3->label);
     assert(node_2_after->first_relationship == node_3->first_relationship);
 
     assert(!check_record_exists(hf, id_on_snd_page, true, false));
@@ -280,8 +278,7 @@ test_swap_relationships(void)
     relationship_t* relationship_2_after =
           read_relationship(hf, id_on_snd_page, false);
 
-    assert(strcmp(relationship_1_before->label, relationship_2_after->label)
-           == 0);
+    assert(relationship_1_before->label == relationship_2_after->label);
 
     assert(relationship_1_before->source_node
            == relationship_2_after->source_node);
@@ -301,12 +298,9 @@ test_swap_relationships(void)
     assert(relationship_1_before->next_rel_target
            == relationship_2_after->next_rel_target);
 
-    assert(relationship_1_before->flags == relationship_2_after->flags);
-
     assert(relationship_1_before->weight == relationship_2_after->weight);
 
-    assert(strcmp(relationship_2_before->label, relationship_1_after->label)
-           == 0);
+    assert(relationship_2_before->label == relationship_1_after->label);
 
     assert(relationship_2_before->source_node
            == relationship_1_after->source_node);
@@ -326,8 +320,6 @@ test_swap_relationships(void)
     assert(relationship_2_before->next_rel_target
            == relationship_1_after->next_rel_target);
 
-    assert(relationship_2_before->flags == relationship_1_after->flags);
-
     assert(relationship_2_before->weight == relationship_1_after->weight);
 
     assert(relationship_2_before->id == relationship_2_after->id);
@@ -341,7 +333,7 @@ test_swap_relationships(void)
     relationship_t* relationship_3 =
           read_relationship(hf, id_on_third_page, false);
 
-    assert(strcmp(relationship_2_after->label, relationship_3->label) == 0);
+    assert(relationship_2_after->label == relationship_3->label);
 
     assert(relationship_2_after->source_node == relationship_3->source_node);
 
@@ -359,8 +351,6 @@ test_swap_relationships(void)
     assert(relationship_2_after->next_rel_target
            == relationship_3->next_rel_target);
 
-    assert(relationship_2_after->flags == relationship_3->flags);
-
     assert(relationship_2_after->weight == relationship_3->weight);
 
     assert(relationship_2_after->id == relationship_2_after->id);
@@ -373,7 +363,65 @@ test_swap_relationships(void)
 
 void
 test_swap_record_pages(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    page*          header_page = pin_page(hf->cache, 0, header, node_ft, false);
+    unsigned char* header_copy = malloc(PAGE_SIZE);
+    memcpy(header_copy, header_page->data, PAGE_SIZE);
+    unpin_page(hf->cache, 0, header, node_ft, false);
+
+    page*          first_page = pin_page(hf->cache, 0, records, node_ft, false);
+    unsigned char* first_page_copy = malloc(PAGE_SIZE);
+    memcpy(first_page_copy, first_page->data, PAGE_SIZE);
+    unpin_page(hf->cache, 0, records, node_ft, false);
+
+    page* second_page = pin_page(hf->cache, 1, records, node_ft, false);
+    unsigned char* second_page_copy = malloc(PAGE_SIZE);
+    memcpy(second_page_copy, second_page->data, PAGE_SIZE);
+    unpin_page(hf->cache, 1, records, node_ft, false);
+
+    static const size_t last_node_id = 127;
+    static const size_t f_s_id       = 128;
+    static const size_t l_s_id       = 255;
+    node_t*             fst_node     = read_node(hf, 0, false);
+    node_t*             lst_node     = read_node(hf, last_node_id, false);
+    node_t*             f_s_node     = read_node(hf, f_s_id, false);
+    node_t*             l_s_node     = read_node(hf, l_s_id, false);
+
+    swap_record_pages(hf, 0, 1, node_ft, true);
+
+    header_page = pin_page(hf->cache, 0, header, node_ft, false);
+    for (size_t i = 0; i < 2 * SLOTS_PER_PAGE / CHAR_BIT; ++i) {
+        if (i < SLOTS_PER_PAGE / CHAR_BIT) {
+            assert(header_page->data[i]
+                   == header_copy[SLOTS_PER_PAGE / CHAR_BIT + i]);
+        } else {
+            assert(header_page->data[SLOTS_PER_PAGE / CHAR_BIT + i]
+                   == header_copy[i]);
+        }
+    }
+    unpin_page(hf->cache, 0, header, node_ft, false);
+
+    node_t* fst_node_a = read_node(hf, 0, false);
+    node_t* lst_node_a = read_node(hf, last_node_id, false);
+    node_t* f_s_node_a = read_node(hf, f_s_id, false);
+    node_t* l_s_node_a = read_node(hf, l_s_id, false);
+
+    assert(fst_node->first_relationship == f_s_node_a->first_relationship);
+    assert(fst_node->label == f_s_node_a->label);
+
+    assert(lst_node->first_relationship == l_s_node_a->first_relationship);
+    assert(lst_node->label == l_s_node_a->label);
+
+    assert(f_s_node->first_relationship == fst_node_a->first_relationship);
+    assert(f_s_node->label == fst_node_a->label);
+
+    assert(l_s_node->first_relationship == lst_node_a->first_relationship);
+    assert(l_s_node->label == lst_node_a->label);
+
+    clean_up(hf);
+}
 
 void
 test_reorder_nodes(void)

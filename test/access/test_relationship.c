@@ -10,6 +10,7 @@
 #include "access/relationship.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,7 +22,8 @@
 #define NUM                (123)
 #define OTHER_NUM          (222)
 #define NUM_ULONG_FIELDS   (6)
-static const double TEST_DBL = 2.0;
+static const double        TEST_DBL = 2.0;
+static const unsigned long label    = 11111111;
 
 void
 test_new_rel(void)
@@ -35,9 +37,8 @@ test_new_rel(void)
     assert(relationship->prev_rel_source == UNINITIALIZED_LONG);
     assert(relationship->prev_rel_target == UNINITIALIZED_LONG);
     assert(relationship->next_rel_target == UNINITIALIZED_LONG);
-    assert(relationship->flags == UNINITIALIZED_BYTE);
     assert(relationship->weight == UNINITIALIZED_WEIGHT);
-    assert(relationship->label[0] == '\0');
+    assert(relationship->label == UNINITIALIZED_LONG);
     free(relationship);
 }
 
@@ -53,7 +54,6 @@ test_relationship_clear(void)
 {
     relationship_t* relationship  = new_relationship();
     relationship->id              = 1;
-    relationship->flags           = 1;
     relationship->source_node     = 1;
     relationship->target_node     = 1;
     relationship->prev_rel_source = 1;
@@ -61,13 +61,11 @@ test_relationship_clear(void)
     relationship->next_rel_source = 1;
     relationship->next_rel_target = 1;
     relationship->weight          = 1.0;
-    memset(relationship->label, 1, MAX_STR_LEN - 1);
-    relationship->label[MAX_STR_LEN - 1] = '\0';
+    relationship->label           = label;
 
     relationship_clear(relationship);
 
     assert(relationship->id == UNINITIALIZED_LONG);
-    assert(relationship->flags == UNINITIALIZED_BYTE);
     assert(relationship->source_node == UNINITIALIZED_LONG);
     assert(relationship->target_node == UNINITIALIZED_LONG);
     assert(relationship->prev_rel_source == UNINITIALIZED_LONG);
@@ -75,7 +73,7 @@ test_relationship_clear(void)
     assert(relationship->next_rel_source == UNINITIALIZED_LONG);
     assert(relationship->next_rel_target == UNINITIALIZED_LONG);
     assert(relationship->weight == UNINITIALIZED_WEIGHT);
-    assert(relationship->label[0] == '\0');
+    assert(relationship->label == UNINITIALIZED_LONG);
 
     free(relationship);
 }
@@ -85,7 +83,6 @@ test_relationship_copy(void)
 {
     relationship_t* relationship  = new_relationship();
     relationship->id              = 1;
-    relationship->flags           = 1;
     relationship->source_node     = 1;
     relationship->target_node     = 1;
     relationship->prev_rel_source = 1;
@@ -93,12 +90,11 @@ test_relationship_copy(void)
     relationship->next_rel_source = 1;
     relationship->next_rel_target = 1;
     relationship->weight          = 1.0;
-    memset(relationship->label, 1, MAX_STR_LEN - 1);
-    relationship->label[MAX_STR_LEN - 1] = '\0';
+    relationship->label           = label;
 
     relationship_t* copy = relationship_copy(relationship);
+
     assert(relationship->id == copy->id);
-    assert(relationship->flags == copy->flags);
     assert(relationship->source_node == copy->source_node);
     assert(relationship->target_node == copy->target_node);
     assert(relationship->prev_rel_source == copy->prev_rel_source);
@@ -106,10 +102,7 @@ test_relationship_copy(void)
     assert(relationship->next_rel_source == copy->next_rel_source);
     assert(relationship->next_rel_target == copy->next_rel_target);
     assert(relationship->weight == copy->weight);
-
-    for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
-        assert(relationship->label[i] == copy->label[i]);
-    }
+    assert(relationship->label == copy->label);
 
     copy->source_node = 2;
     assert(relationship->source_node != copy->source_node);
@@ -163,25 +156,6 @@ test_relationship_pretty_print(void)
 }
 
 void
-test_first_rel_flag(void)
-{
-    relationship_t* rel = new_relationship();
-
-    relationship_set_first_source(rel);
-    assert(rel->flags == FIRST_REL_SOURCE_FLAG);
-
-    relationship_clear(rel);
-
-    relationship_set_first_target(rel);
-    assert(rel->flags == FIRST_REL_TARGET_FLAG);
-
-    relationship_set_first_source(rel);
-    assert(rel->flags == (FIRST_REL_SOURCE_FLAG | FIRST_REL_TARGET_FLAG));
-
-    free(rel);
-}
-
-void
 test_relationship_write(void)
 {
     char* file_name = "test";
@@ -203,74 +177,58 @@ test_relationship_write(void)
     relationship->prev_rel_target = 3;
     relationship->next_rel_target = 1;
     relationship->weight          = TEST_DBL;
-    relationship->flags           = 3;
-    memset(relationship->label, 4, MAX_STR_LEN - 1);
-    relationship->label[MAX_STR_LEN - 1] = '\0';
+    relationship->label           = label;
 
     page* p = pin_page(pc, 0, records, relationship_ft, false);
     relationship_write(relationship, p);
 
     unsigned long src =
-          read_ulong(p, relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE);
+          read_ulong(p, (relationship->id & UCHAR_MAX) * SLOT_SIZE);
     assert(src == 1);
 
-    unsigned long trgt =
-          read_ulong(p,
-                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
-                           + sizeof(unsigned long));
+    unsigned long trgt = read_ulong(p,
+                                    (relationship->id & UCHAR_MAX) * SLOT_SIZE
+                                          + sizeof(unsigned long));
     assert(trgt == NUM);
 
     unsigned long prv_src =
           read_ulong(p,
-                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                     (relationship->id & UCHAR_MAX) * SLOT_SIZE
                            + sizeof(unsigned long) + sizeof(unsigned long));
     assert(prv_src == 1);
 
-    unsigned long nxt_src =
-          read_ulong(p,
-                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
-                           + sizeof(unsigned long) + sizeof(unsigned long)
-                           + sizeof(unsigned long));
+    unsigned long nxt_src = read_ulong(
+          p,
+          (relationship->id & UCHAR_MAX) * SLOT_SIZE + sizeof(unsigned long)
+                + sizeof(unsigned long) + sizeof(unsigned long));
     assert(nxt_src == 2);
 
     unsigned long prv_trgt =
           read_ulong(p,
-                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                     (relationship->id & UCHAR_MAX) * SLOT_SIZE
                            + sizeof(unsigned long) + sizeof(unsigned long)
                            + sizeof(unsigned long) + sizeof(unsigned long));
     assert(prv_trgt == 3);
 
     unsigned long nxt_trgt =
           read_ulong(p,
-                     relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                     (relationship->id & UCHAR_MAX) * SLOT_SIZE
                            + (NUM_ULONG_FIELDS - 1) * sizeof(unsigned long));
     assert(nxt_trgt == 1);
 
     double weight =
           read_double(p,
-                      relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+                      (relationship->id & UCHAR_MAX) * SLOT_SIZE
                             + NUM_ULONG_FIELDS * sizeof(unsigned long));
     assert(weight == TEST_DBL);
 
-    unsigned char flags = read_uchar(
+    unsigned long m_label = read_ulong(
           p,
-          relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
+          (relationship->id & UCHAR_MAX) * SLOT_SIZE
                 + NUM_ULONG_FIELDS * sizeof(unsigned long) + sizeof(double));
-    assert(flags == 3);
-
-    char label[MAX_STR_LEN];
-    read_string(p,
-                relationship->id * NUM_SLOTS_PER_REL * SLOT_SIZE
-                      + NUM_ULONG_FIELDS * sizeof(unsigned long)
-                      + sizeof(double) + sizeof(unsigned char),
-                label);
+    assert(m_label == label);
 
     unpin_page(pc, 0, records, relationship_ft, false);
-
-    for (size_t i = 0; i < MAX_STR_LEN - 1; ++i) {
-        assert(label[i] == 4);
-    }
-    assert(label[MAX_STR_LEN - 1] == relationship->label[MAX_STR_LEN - 1]);
 
     free(relationship);
     page_cache_destroy(pc);
@@ -299,9 +257,7 @@ test_relationship_read(void)
     relationship->prev_rel_target = 3;
     relationship->next_rel_target = 1;
     relationship->weight          = TEST_DBL;
-    relationship->flags           = 3;
-    memset(relationship->label, 4, MAX_STR_LEN - 1);
-    relationship->label[MAX_STR_LEN - 1] = '\0';
+    relationship->label           = label;
 
     page* p = pin_page(pc, 0, records, relationship_ft, false);
     relationship_write(relationship, p);
@@ -332,7 +288,6 @@ main(void)
     test_relationship_equals();
     test_relationship_to_string();
     test_relationship_pretty_print();
-    test_first_rel_flag();
     test_relationship_write();
     test_relationship_read();
 

@@ -441,10 +441,10 @@ test_in_memory_next_rel_none(void)
 {
     in_memory_graph* db = in_memory_graph_create();
     for (size_t i = 0; i < NUM_NODES; ++i) {
-        in_memory_create_node(db, "\0");
+        in_memory_create_node(db, 0);
     }
 
-    in_memory_create_relationship(db, 0, 1, "\0");
+    in_memory_create_relationship(db, 0, 1, 0);
     relationship_t* rel = in_memory_get_relationship(db, 0);
 
     unsigned long rel_id = in_memory_next_relationship_id(db, 0, rel, BOTH);
@@ -488,11 +488,11 @@ test_in_memory_contains_rel(void)
 {
     in_memory_graph* db = in_memory_graph_create();
     for (size_t i = 0; i < NUM_NODES; ++i) {
-        in_memory_create_node(db, "\0");
+        in_memory_create_node(db, 0);
     }
 
     for (size_t i = NUM_EDGES; i > 0; --i) {
-        in_memory_create_relationship(db, i - 1, i, "\0");
+        in_memory_create_relationship(db, i - 1, i, 0);
     }
 
     relationship_t* rel;

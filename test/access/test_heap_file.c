@@ -19,13 +19,10 @@
 #include <assert.h>
 #include <limits.h>
 
-static const double        test_weight_1  = 2.0;
-static const double        test_weight_2  = 3.0;
-static const double        test_weight_3  = 4.0;
-static const double        test_weight_4  = 5.0;
-static const unsigned char next_slot_test = 6;
-static const unsigned long num_pages_for_two_header_p =
-      1 + PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE;
+static const double test_weight_1 = 2.0;
+static const double test_weight_2 = 3.0;
+static const double test_weight_3 = 4.0;
+static const double test_weight_4 = 5.0;
 
 void
 test_heap_file_create(void)
@@ -103,19 +100,22 @@ test_check_record_exists(void)
     unsigned char* write_mask = malloc(sizeof(unsigned char));
     write_mask[0]             = UCHAR_MAX;
     page* p                   = pin_page(pc, 0, header, node_ft, false);
-    write_bits(pc, p, 0, 0, 3, write_mask, false);
+    write_bits(pc, p, 0, 0, NUM_SLOTS_PER_NODE, write_mask, false);
 
     assert(check_record_exists(hf, 0, true, true));
+    assert(!check_record_exists(hf, 1, true, true));
 
     write_mask    = malloc(sizeof(unsigned char));
     write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, 3, 3, write_mask, false);
+    write_bits(
+          pc, p, 0, NUM_SLOTS_PER_NODE, NUM_SLOTS_PER_NODE, write_mask, false);
 
     assert(check_record_exists(hf, 0, true, false));
     assert(check_record_exists(hf, 1, true, false));
     assert(!check_record_exists(hf, 2, true, false));
     assert(!check_record_exists(hf, 3, true, false));
     assert(!check_record_exists(hf, 85, true, false));
+    assert(!check_record_exists(hf, ((3 << CHAR_BIT) | 5), true, false));
 
     unpin_page(pc, 0, header, node_ft, false);
     heap_file_destroy(hf);
@@ -128,9 +128,11 @@ test_next_free_slots(void)
 {
     char* file_name = "test";
 
-    char* log_name_pdb   = "log_test_pdb";
-    char* log_name_cache = "log_test_pc";
-    char* log_name_file  = "log_test_hf";
+    char*         log_name_pdb   = "log_test_pdb";
+    char*         log_name_cache = "log_test_pc";
+    char*         log_name_file  = "log_test_hf";
+    unsigned long num_pages_for_two_header_p =
+          1 + PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE;
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
@@ -146,35 +148,25 @@ test_next_free_slots(void)
     unsigned char* write_mask = malloc(sizeof(unsigned char));
     write_mask[0]             = UCHAR_MAX;
     page* p                   = pin_page(pc, 0, header, node_ft, false);
-    write_bits(pc, p, 0, 0, 3, write_mask, false);
+    write_bits(pc, p, 0, 0, NUM_SLOTS_PER_NODE, write_mask, false);
 
     next_free_slots(hf, true, false);
     assert(hf->last_alloc_node_id == 1);
 
     write_mask    = malloc(sizeof(unsigned char));
     write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, 3, 3, write_mask, false);
+    write_bits(
+          pc, p, 0, NUM_SLOTS_PER_NODE, NUM_SLOTS_PER_NODE, write_mask, false);
 
     next_free_slots(hf, true, false);
     assert(hf->last_alloc_node_id == 2);
-
-    write_mask    = malloc(sizeof(unsigned char));
-    write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 0, next_slot_test, 3, write_mask, false);
-
-    write_mask    = malloc(sizeof(unsigned char));
-    write_mask[0] = UCHAR_MAX;
-    write_bits(pc, p, 1, 1, 3, write_mask, false);
-
-    next_free_slots(hf, true, false);
-    assert(hf->last_alloc_node_id == 4);
 
     memset(p->data, UCHAR_MAX, PAGE_SIZE);
     allocate_pages(pdb, node_ft, num_pages_for_two_header_p, false);
 
     next_free_slots(hf, true, false);
     assert(hf->last_alloc_node_id
-           == PAGE_SIZE * CHAR_BIT / NUM_SLOTS_PER_NODE + 1);
+           == ((PAGE_SIZE * CHAR_BIT / SLOTS_PER_PAGE) << CHAR_BIT));
     unpin_page(pc, 0, header, node_ft, false);
 
     page* p2 = pin_page(pc, 1, header, node_ft, false);
@@ -186,11 +178,7 @@ test_next_free_slots(void)
 
     next_free_slots(hf, true, false);
     assert(hf->last_alloc_node_id
-           == (pdb->records[node_ft]->num_pages - 1) * SLOTS_PER_PAGE
-                          / NUM_SLOTS_PER_NODE
-                    + (pdb->records[node_ft]->num_pages
-                             - 1 * SLOTS_PER_PAGE / NUM_SLOTS_PER_NODE
-                       != 0));
+           == ((pdb->records[node_ft]->num_pages - 1) << CHAR_BIT));
     assert(pdb->records[node_ft]->num_pages == num_pages_for_two_header_p + 2);
 
     heap_file_destroy(hf);
@@ -215,7 +203,7 @@ test_create_node(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long id = create_node(hf, "\0", true);
+    unsigned long id = create_node(hf, 0, true);
 
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
@@ -230,10 +218,10 @@ test_create_node(void)
     node_read(node, p);
     assert(node->id == id);
     assert(node->first_relationship == UNINITIALIZED_LONG);
-    assert(node->label[0] == '\0');
+    assert(node->label == 0);
     free(node);
 
-    unsigned long id_1 = create_node(hf, "\0", false);
+    unsigned long id_1 = create_node(hf, 0, false);
 
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id_1 == 1);
@@ -247,7 +235,7 @@ test_create_node(void)
     node_read(node_1, p);
     assert(node_1->id == id_1);
     assert(node_1->first_relationship == UNINITIALIZED_LONG);
-    assert(node_1->label[0] == '\0');
+    assert(node_1->label == 0);
     free(node_1);
     unpin_page(pc, 0, records, node_ft, false);
 
@@ -274,9 +262,9 @@ test_create_relationship(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, "\0", true);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, 0, true);
 
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
@@ -298,9 +286,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id);
     assert(rel->next_rel_target == id);
-    assert(rel->flags == 3);
     assert(rel->weight == 1.0);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     node_t* node_1 = new_node();
@@ -322,10 +309,10 @@ test_create_relationship(void)
     free(node_1);
     free(node_2);
 
-    unsigned long n_3 = create_node(hf, "\0", false);
-    unsigned long n_4 = create_node(hf, "\0", false);
+    unsigned long n_3 = create_node(hf, 0, false);
+    unsigned long n_4 = create_node(hf, 0, false);
     unsigned long id_2 =
-          create_relationship(hf, n_1, n_3, test_weight_1, "\0", false);
+          create_relationship(hf, n_1, n_3, test_weight_1, 0, false);
 
     rel     = new_relationship();
     rel->id = id_2;
@@ -341,9 +328,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id_2);
     assert(rel->next_rel_target == id_2);
-    assert(rel->flags == 2);
     assert(rel->weight == test_weight_1);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -358,13 +344,12 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_2);
     assert(rel->prev_rel_target == id);
     assert(rel->next_rel_target == id);
-    assert(rel->flags == 3);
     assert(rel->weight == 1.0);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     unsigned long id_3 =
-          create_relationship(hf, n_1, n_4, test_weight_2, "\0", false);
+          create_relationship(hf, n_1, n_4, test_weight_2, 0, false);
 
     rel     = new_relationship();
     rel->id = id_3;
@@ -378,9 +363,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id_3);
     assert(rel->next_rel_target == id_3);
-    assert(rel->flags == 2);
     assert(rel->weight == test_weight_2);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -395,9 +379,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_3);
     assert(rel->prev_rel_target == id_2);
     assert(rel->next_rel_target == id_2);
-    assert(rel->flags == 2);
     assert(rel->weight == test_weight_1);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -412,20 +395,19 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_2);
     assert(rel->prev_rel_target == id);
     assert(rel->next_rel_target == id);
-    assert(rel->flags == 3);
     assert(rel->weight == 1.0);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     unsigned long id_4 =
-          create_relationship(hf, n_2, n_3, test_weight_3, "\0", false);
+          create_relationship(hf, n_2, n_3, test_weight_3, 0, false);
     unsigned long id_5 =
-          create_relationship(hf, n_2, n_4, test_weight_4, "\0", false);
+          create_relationship(hf, n_2, n_4, test_weight_4, 0, false);
 
     assert(hf->n_nodes == 4);
     assert(hf->n_rels == 5);
     assert(hf->last_alloc_node_id == 3);
-    assert(hf->last_alloc_rel_id == 4);
+    assert(hf->last_alloc_rel_id == 8);
 
     node_1     = new_node();
     node_1->id = n_1;
@@ -476,9 +458,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_2);
     assert(rel->prev_rel_target == id_5);
     assert(rel->next_rel_target == id_4);
-    assert(rel->flags == 3);
     assert(rel->weight == 1.0);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -493,9 +474,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_3);
     assert(rel->prev_rel_target == id_4);
     assert(rel->next_rel_target == id_4);
-    assert(rel->flags == 2);
     assert(rel->weight == test_weight_1);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -510,9 +490,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id_5);
     assert(rel->next_rel_target == id_5);
-    assert(rel->flags == 2);
     assert(rel->weight == test_weight_2);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -527,9 +506,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id_5);
     assert(rel->prev_rel_target == id_2);
     assert(rel->next_rel_target == id_2);
-    assert(rel->flags == 0);
     assert(rel->weight == test_weight_3);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     rel     = new_relationship();
@@ -544,9 +522,8 @@ test_create_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id_3);
     assert(rel->next_rel_target == id_3);
-    assert(rel->flags == 0);
     assert(rel->weight == test_weight_4);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     heap_file_destroy(hf);
@@ -571,7 +548,7 @@ test_read_node(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long id = create_node(hf, "\0", false);
+    unsigned long id = create_node(hf, 0, false);
 
     assert(id != UNINITIALIZED_LONG);
     assert(id == 0);
@@ -581,10 +558,10 @@ test_read_node(void)
     node_t* node = read_node(hf, id, true);
     assert(node->id == id);
     assert(node->first_relationship == UNINITIALIZED_LONG);
-    assert(node->label[0] == '\0');
+    assert(node->label == 0);
     free(node);
 
-    unsigned long id_1 = create_node(hf, "\0", false);
+    unsigned long id_1 = create_node(hf, 0, false);
 
     assert(id_1 != UNINITIALIZED_LONG);
     assert(id_1 == 1);
@@ -594,7 +571,7 @@ test_read_node(void)
     node_t* node_1 = read_node(hf, id_1, false);
     assert(node_1->id == id_1);
     assert(node_1->first_relationship == UNINITIALIZED_LONG);
-    assert(node_1->label[0] == '\0');
+    assert(node_1->label == 0);
     free(node_1);
 
     heap_file_destroy(hf);
@@ -620,9 +597,9 @@ test_read_relationship(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, 0, false);
 
     relationship_t* rel = read_relationship(hf, id, true);
     assert(rel->id == id);
@@ -632,9 +609,8 @@ test_read_relationship(void)
     assert(rel->next_rel_source == id);
     assert(rel->prev_rel_target == id);
     assert(rel->next_rel_target == id);
-    assert(rel->flags == 3);
     assert(rel->weight == 1.0);
-    assert(rel->label[0] == '\0');
+    assert(rel->label == 0);
     free(rel);
 
     heap_file_destroy(hf);
@@ -658,19 +634,20 @@ test_update_node(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long id = create_node(hf, "\0", false);
+    unsigned long              id    = create_node(hf, 0, false);
+    static const unsigned long label = 123;
 
     node_t* node = read_node(hf, id, false);
     assert(node->id == id);
     assert(node->first_relationship == UNINITIALIZED_LONG);
-    assert(node->label[0] == '\0');
+    assert(node->label == 0);
 
     node->first_relationship = 0;
-    strncpy(node->label, "abc", 4);
+    node->label              = label;
     update_node(hf, node, true);
 
     assert(node->first_relationship == 0);
-    assert(strcmp(node->label, "abc") == 0);
+    assert(node->label == 123);
     free(node);
 
     heap_file_destroy(hf);
@@ -696,9 +673,10 @@ test_update_relationship(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long id  = create_relationship(hf, n_1, n_2, 1.0, 0, false);
+    static const unsigned long label = 123;
 
     relationship_t* rel  = read_relationship(hf, id, false);
     rel->source_node     = 1;
@@ -707,7 +685,7 @@ test_update_relationship(void)
     rel->next_rel_source = 3;
     rel->prev_rel_target = 4;
     rel->next_rel_target = 1;
-    strncpy(rel->label, "abc", 4);
+    rel->label           = label;
     update_relationship(hf, rel, true);
 
     assert(rel->source_node == 1);
@@ -717,7 +695,7 @@ test_update_relationship(void)
     assert(rel->prev_rel_target == 4);
     assert(rel->next_rel_target == 1);
 
-    assert(strcmp(rel->label, "abc") == 0);
+    assert(rel->label == 123);
     free(rel);
 
     heap_file_destroy(hf);
@@ -742,8 +720,8 @@ test_delete_node(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
 
     assert(check_record_exists(hf, n_1, true, false));
     assert(check_record_exists(hf, n_2, true, false));
@@ -779,10 +757,10 @@ test_delete_relationship(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
     unsigned long rel =
-          create_relationship(hf, n_1, n_2, test_weight_1, "\0", false);
+          create_relationship(hf, n_1, n_2, test_weight_1, 0, false);
 
     assert(check_record_exists(hf, n_1, false, false));
     delete_relationship(hf, n_1, true);
@@ -818,12 +796,12 @@ test_get_nodes(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long n_3 = create_node(hf, "\0", false);
-    unsigned long n_4 = create_node(hf, "\0", false);
-    unsigned long n_5 = create_node(hf, "\0", false);
-    unsigned long n_6 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long n_3 = create_node(hf, 0, false);
+    unsigned long n_4 = create_node(hf, 0, false);
+    unsigned long n_5 = create_node(hf, 0, false);
+    unsigned long n_6 = create_node(hf, 0, false);
 
     delete_node(hf, n_4, false);
 
@@ -859,14 +837,14 @@ test_get_relationships(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
 
-    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_2 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_3 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_4 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_5 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_6 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_2 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_3 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_4 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_5 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_6 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
 
     delete_relationship(hf, r_4, false);
 
@@ -902,12 +880,12 @@ test_rel_chain_small(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_5 = create_node(hf, "\0", false);
-    unsigned long n_6 = create_node(hf, "\0", false);
+    unsigned long n_5 = create_node(hf, 0, false);
+    unsigned long n_6 = create_node(hf, 0, false);
 
-    unsigned long r_9 = create_relationship(hf, n_5, n_5, 1.0, "\0", false);
-    unsigned long r_7 = create_relationship(hf, n_5, n_6, 1.0, "\0", false);
-    unsigned long r_8 = create_relationship(hf, n_6, n_5, 1.0, "\0", false);
+    unsigned long r_9 = create_relationship(hf, n_5, n_5, 1.0, 0, false);
+    unsigned long r_7 = create_relationship(hf, n_5, n_6, 1.0, 0, false);
+    unsigned long r_8 = create_relationship(hf, n_6, n_5, 1.0, 0, false);
 
     relationship_t* r9 = read_relationship(hf, r_9, false);
     relationship_t* r7 = read_relationship(hf, r_7, false);
@@ -928,15 +906,15 @@ test_rel_chain_small(void)
     assert(r8->next_rel_target == r_9);
     assert(r8->prev_rel_target == r_7);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long n_3 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long n_3 = create_node(hf, 0, false);
 
-    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
-    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0", false);
-    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0", false);
-    unsigned long r_6 = create_relationship(hf, n_2, n_1, 1.0, "\0", false);
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, 0, false);
+    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, 0, false);
+    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, 0, false);
+    unsigned long r_6 = create_relationship(hf, n_2, n_1, 1.0, 0, false);
 
     relationship_t* r1 = read_relationship(hf, r_1, false);
     relationship_t* r2 = read_relationship(hf, r_2, false);
@@ -1001,14 +979,14 @@ test_next_relationship_id(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long n_3 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long n_3 = create_node(hf, 0, false);
 
-    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
-    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0", false);
-    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0", false);
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, 0, false);
+    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, 0, false);
+    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, 0, false);
 
     relationship_t* r1 = read_relationship(hf, r_1, false);
     relationship_t* r2 = read_relationship(hf, r_2, false);
@@ -1053,14 +1031,14 @@ test_expand(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long n_1 = create_node(hf, "\0", false);
-    unsigned long n_2 = create_node(hf, "\0", false);
-    unsigned long n_3 = create_node(hf, "\0", false);
+    unsigned long n_1 = create_node(hf, 0, false);
+    unsigned long n_2 = create_node(hf, 0, false);
+    unsigned long n_3 = create_node(hf, 0, false);
 
-    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
-    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0", false);
-    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0", false);
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, 0, false);
+    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, 0, false);
+    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, 0, false);
 
     relationship_t* r1 = read_relationship(hf, r_1, false);
     relationship_t* r2 = read_relationship(hf, r_2, false);
@@ -1125,15 +1103,15 @@ test_contains_relationship_from_to(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    unsigned long              n_1    = create_node(hf, "\0", false);
-    unsigned long              n_2    = create_node(hf, "\0", false);
-    unsigned long              n_3    = create_node(hf, "\0", false);
+    unsigned long              n_1    = create_node(hf, 0, false);
+    unsigned long              n_2    = create_node(hf, 0, false);
+    unsigned long              n_3    = create_node(hf, 0, false);
     static const unsigned long non_ex = 666;
 
-    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, "\0", false);
-    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, "\0", false);
-    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, "\0", false);
-    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, "\0", false);
+    unsigned long r_1 = create_relationship(hf, n_1, n_1, 1.0, 0, false);
+    unsigned long r_2 = create_relationship(hf, n_1, n_2, 1.0, 0, false);
+    unsigned long r_3 = create_relationship(hf, n_1, n_3, 1.0, 0, false);
+    unsigned long r_5 = create_relationship(hf, n_3, n_1, 1.0, 0, false);
 
     relationship_t* r1 =
           contains_relationship_from_to(hf, n_1, n_1, BOTH, true);

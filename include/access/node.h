@@ -18,7 +18,7 @@
 #include "data-struct/htable.h"
 #include "page.h"
 
-#define ON_DISK_NODE_SIZE (sizeof(unsigned long) + MAX_STR_LEN * sizeof(char))
+#define ON_DISK_NODE_SIZE (sizeof(unsigned long) + sizeof(unsigned long))
 
 #define NUM_SLOTS_PER_NODE                                                     \
     ((ON_DISK_NODE_SIZE / SLOT_SIZE) + (ON_DISK_NODE_SIZE % SLOT_SIZE != 0))
@@ -32,7 +32,7 @@ typedef struct NodeRecord
 {
     unsigned long id;
     unsigned long first_relationship;
-    char          label[MAX_STR_LEN];
+    unsigned long label;
 } node_t;
 
 /**

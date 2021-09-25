@@ -45,14 +45,14 @@ bool
 check_record_exists(heap_file* hf, unsigned long id, bool node, bool log);
 
 unsigned long
-create_node(heap_file* hf, char* label, bool log);
+create_node(heap_file* hf, unsigned long label, bool log);
 
 unsigned long
 create_relationship(heap_file*    hf,
                     unsigned long from_node_id,
                     unsigned long to_node_id,
                     double        weight,
-                    char*         label,
+                    unsigned long label,
                     bool          log);
 
 node_t*
@@ -95,5 +95,11 @@ contains_relationship_from_to(heap_file*    hf,
                               unsigned long node_to,
                               direction_t   direction,
                               bool          log);
+
+relationship_t*
+find_relationships(heap_file* hf, unsigned long label, bool log);
+
+node_t*
+find_node(heap_file* hf, unsigned long label, bool log);
 
 #endif

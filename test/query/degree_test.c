@@ -89,15 +89,15 @@ test_get_degree(void)
 {
     heap_file* hf = prepare();
 
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
 
-    create_relationship(hf, 0, 1, 1.0, "\0", false);
-    create_relationship(hf, 0, 2, 1.0, "\0", false);
-    create_relationship(hf, 0, 3, 1.0, "\0", false);
-    create_relationship(hf, 1, 0, 1.0, "\0", false);
+    create_relationship(hf, 0, 1, 1.0, 0, false);
+    create_relationship(hf, 0, 2, 1.0, 0, false);
+    create_relationship(hf, 0, 3, 1.0, 0, false);
+    create_relationship(hf, 1, 0, 1.0, 0, false);
     printf("t1\n");
 
     assert(get_degree(hf, 0, BOTH, true, log_file
@@ -124,16 +124,16 @@ test_get_avg_degree(void)
 {
     heap_file* hf = prepare();
 
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
 
-    create_relationship(hf, 0, 1, 1.0, "\0", false);
-    create_relationship(hf, 0, 2, 1.0, "\0", false);
-    create_relationship(hf, 0, 3, 1.0, "\0", false);
-    create_relationship(hf, 1, 0, 1.0, "\0", false);
-    create_relationship(hf, 2, 3, 1.0, "\0", false);
+    create_relationship(hf, 0, 1, 1.0, 0, false);
+    create_relationship(hf, 0, 2, 1.0, 0, false);
+    create_relationship(hf, 0, 3, 1.0, 0, false);
+    create_relationship(hf, 1, 0, 1.0, 0, false);
+    create_relationship(hf, 2, 3, 1.0, 0, false);
 
     float avg_deg = get_avg_degree(hf, BOTH, true, log_file
 
@@ -165,16 +165,16 @@ test_get_min_degree(void)
 {
     heap_file* hf = prepare();
 
-    create_node(hf, "\0", false);
-    create_node(hf, "\0", false);
-    create_node(hf, "\0", false);
-    create_node(hf, "\0", false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
 
-    create_relationship(hf, 0, 1, 1.0, "\0", false);
-    create_relationship(hf, 0, 2, 1.0, "\0", false);
-    create_relationship(hf, 0, 3, 1.0, "\0", false);
-    create_relationship(hf, 1, 0, 1.0, "\0", false);
-    create_relationship(hf, 2, 3, 1.0, "\0", false);
+    create_relationship(hf, 0, 1, 1.0, 0, false);
+    create_relationship(hf, 0, 2, 1.0, 0, false);
+    create_relationship(hf, 0, 3, 1.0, 0, false);
+    create_relationship(hf, 1, 0, 1.0, 0, false);
+    create_relationship(hf, 2, 3, 1.0, 0, false);
 
     assert(get_min_degree(hf, OUTGOING, true, log_file
 
@@ -197,16 +197,16 @@ text_get_max_degree(void)
 {
     heap_file* hf = prepare();
 
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
-    create_node(hf, "in_memory_create_node(hf)", false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
+    create_node(hf, 0, false);
 
-    create_relationship(hf, 0, 1, 1.0, "\0", false);
-    create_relationship(hf, 0, 2, 1.0, "\0", false);
-    create_relationship(hf, 0, 3, 1.0, "\0", false);
-    create_relationship(hf, 1, 0, 1.0, "\0", false);
-    create_relationship(hf, 2, 3, 1.0, "\0", false);
+    create_relationship(hf, 0, 1, 1.0, 0, false);
+    create_relationship(hf, 0, 2, 1.0, 0, false);
+    create_relationship(hf, 0, 3, 1.0, 0, false);
+    create_relationship(hf, 1, 0, 1.0, 0, false);
+    create_relationship(hf, 2, 3, 1.0, 0, false);
 
     assert(get_max_degree(hf, OUTGOING, true, log_file
 

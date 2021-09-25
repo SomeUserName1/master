@@ -17,9 +17,7 @@
 #include <assert.h>
 #include <limits.h>
 
-static const unsigned char test_number = 5;
-static const unsigned long num_pages_for_two_header_p =
-      1 + PAGE_SIZE * CHAR_BIT;
+static const unsigned char test_number     = 5;
 static const unsigned char test_case_shift = 7;
 static const unsigned char test_case_write = 6;
 
@@ -160,8 +158,9 @@ test_read_bits(void)
 {
     char* file_name = "test";
 
-    char* log_name_pdb   = "log_test_pdb";
-    char* log_name_cache = "log_test_cache";
+    char*               log_name_pdb               = "log_test_pdb";
+    char*               log_name_cache             = "log_test_cache";
+    const unsigned long num_pages_for_two_header_p = 1 + PAGE_SIZE * CHAR_BIT;
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
     page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
@@ -215,6 +214,7 @@ test_write_bits(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
     page_cache*   pc  = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
+    const unsigned long num_pages_for_two_header_p = 1 + PAGE_SIZE * CHAR_BIT;
 
     allocate_pages(pc->pdb, node_ft, num_pages_for_two_header_p, false);
     clear_page(pdb->header[node_ft], 0, false);

@@ -91,7 +91,7 @@ test_disk_file_open(void)
 
     disk_file_destroy(df);
 
-    df = disk_file_open(file_name, false);
+    df = disk_file_open(file_name, log_file);
 
     memset(data, 0, NUM_TEST_PAGES * PAGE_SIZE);
 
@@ -100,6 +100,8 @@ test_disk_file_open(void)
     for (size_t i = 0; i < NUM_TEST_PAGES * PAGE_SIZE - 1; ++i) {
         assert(data[i] == 1);
     }
+
+    free(data);
 
     disk_file_delete(df);
 }
@@ -197,7 +199,7 @@ test_disk_file_shrink(void)
     assert(df->file_size == (NUM_TEST_PAGES - 2) * PAGE_SIZE);
 
     assert(fseek(df->file, 0, SEEK_END) == 0);
-    assert(ftell(df->file) == (NUM_TEST_PAGES - 2) * PAGE_SIZE);
+    assert(ftell(df->file) == (long)((NUM_TEST_PAGES - 2) * PAGE_SIZE));
 
     disk_file_delete(df);
 }
@@ -424,6 +426,7 @@ int
 main(void)
 {
     test_disk_file_create();
+    test_disk_file_open();
     test_disk_file_destroy();
     test_disk_file_delete();
     test_disk_file_grow();
