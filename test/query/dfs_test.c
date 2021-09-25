@@ -36,25 +36,35 @@ main(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    size_t nids[NUM_NODES];
+    const size_t record0 = 0;
+    const size_t record1 = 1;
+    const size_t record2 = 2;
+    const size_t record3 = 3;
+    const size_t record4 = 4;
+    const size_t record5 = 5;
+    const size_t record6 = 6;
+    const size_t record7 = 7;
+    const size_t record8 = 8;
+    const size_t record9 = 9;
+    size_t       nids[NUM_NODES];
     for (size_t i = 0; i < NUM_NODES; ++i) {
         nids[i] = create_node(hf, 0, false);
     }
 
     const size_t nrels = 9;
     size_t       rids[nrels];
-    rids[0] = create_relationship(hf, nids[0], nids[1], 1.0, 0, false);
-    rids[1] = create_relationship(hf, nids[0], nids[2], 1.0, 0, false);
-    rids[2] = create_relationship(hf, nids[0], nids[3], 1.0, 0, false);
+    rids[record0] = create_relationship(hf, record0, record1, 1.0, 0, false);
+    rids[record1] = create_relationship(hf, record0, record2, 1.0, 0, false);
+    rids[record2] = create_relationship(hf, record0, record3, 1.0, 0, false);
 
-    rids[3] = create_relationship(hf, nids[1], nids[4], 1.0, 0, false);
-    rids[4] = create_relationship(hf, nids[1], nids[5], 1.0, 0, false);
+    rids[record3] = create_relationship(hf, record1, record4, 1.0, 0, false);
+    rids[record4] = create_relationship(hf, record1, record5, 1.0, 0, false);
 
-    rids[5] = create_relationship(hf, nids[2], nids[6], 1.0, 0, false);
-    rids[6] = create_relationship(hf, nids[2], nids[7], 1.0, 0, false);
+    rids[record5] = create_relationship(hf, record2, record6, 1.0, 0, false);
+    rids[record6] = create_relationship(hf, record2, record7, 1.0, 0, false);
 
-    rids[7] = create_relationship(hf, nids[3], nids[8], 1.0, 0, false);
-    rids[8] = create_relationship(hf, nids[3], nids[9], 1.0, 0, false);
+    rids[record7] = create_relationship(hf, record3, record8, 1.0, 0, false);
+    rids[record8] = create_relationship(hf, record3, record9, 1.0, 0, false);
 
     const char* log_path = "/home/someusername/workspace_local/dfs_test.txt";
     FILE*       log_file = fopen(log_path, "w+");
@@ -64,40 +74,37 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
-    traversal_result* result = dfs(hf, 0, BOTH, true, log_file
+    traversal_result* result = dfs(hf, 0, BOTH, true, log_file);
 
-    );
-
-    // FIXME cont here
     assert(result->source == 0);
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 0) == 0);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[0]) == 0);
 
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 1) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 1) == rids[0]);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[1]) == 1);
+    assert(dict_ul_ul_get_direct(result->parents, nids[1]) == rids[0]);
 
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 2) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 2) == rids[1]);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[2]) == 1);
+    assert(dict_ul_ul_get_direct(result->parents, nids[2]) == rids[1]);
 
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 3) == 1);
-    assert(dict_ul_ul_get_direct(result->parents, 3) == rids[2]);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[3]) == 1);
+    assert(dict_ul_ul_get_direct(result->parents, nids[3]) == rids[2]);
 
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 8) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 8) == rids[7]);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[8]) == 2);
+    assert(dict_ul_ul_get_direct(result->parents, nids[8]) == rids[7]);
 
-    assert(dict_ul_ul_get_direct(result->traversal_numbers, 9) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 9) == 8);
+    assert(dict_ul_ul_get_direct(result->traversal_numbers, nids[9]) == 2);
+    assert(dict_ul_ul_get_direct(result->parents, nids[9]) == rids[8]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 6) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 6) == 5);
+    assert(dict_ul_ul_get_direct(result->parents, 6) == rids[5]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 7) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 7) == 6);
+    assert(dict_ul_ul_get_direct(result->parents, 7) == rids[6]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 4) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 4) == 3);
+    assert(dict_ul_ul_get_direct(result->parents, 4) == rids[3]);
 
     assert(dict_ul_ul_get_direct(result->traversal_numbers, 5) == 2);
-    assert(dict_ul_ul_get_direct(result->parents, 5) == 4);
+    assert(dict_ul_ul_get_direct(result->parents, 5) == rids[4]);
 
     traversal_result_destroy(result);
 
