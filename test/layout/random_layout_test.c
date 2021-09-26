@@ -62,6 +62,9 @@ test_identity_order(void)
         assert(dict_ul_ul_contains(order, array_list_node_get(nodes, i)->id));
     }
 
+    array_list_node_destroy(nodes);
+    dict_ul_ul_destroy(order);
+
     clean_up(hf);
 }
 
@@ -79,6 +82,8 @@ test_random_order(void)
     for (size_t i = 0; i < hf->n_nodes; ++i) {
         assert(dict_ul_ul_contains(order, array_list_node_get(nodes, i)->id));
     }
+    array_list_node_destroy(nodes);
+    dict_ul_ul_destroy(order);
 
     clean_up(hf);
 }

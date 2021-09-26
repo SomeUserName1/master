@@ -42,26 +42,21 @@ prepare_move_node(heap_file*    hf,
         return;
     }
 
-    node_t* node = read_node(hf, id, log);
+    relationship_t*          rel;
+    array_list_relationship* rels = expand(hf, id, BOTH, log);
 
-    unsigned long   rel_id = node->first_relationship;
-    relationship_t* rel;
-
-    do {
-        rel = read_relationship(hf, rel_id, log);
+    for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
+        rel = array_list_relationship_get(rels, i);
 
         if (rel->source_node == id) {
-            rel_id           = rel->next_rel_source;
             rel->source_node = to_id;
-        } else {
-            rel_id           = rel->next_rel_target;
+        }
+        if (rel->target_node == id) {
             rel->target_node = to_id;
         }
-
         update_relationship(hf, rel, log);
-        rel_id = next_relationship_id(hf, id, rel, BOTH, log);
-    } while (rel_id != node->first_relationship);
-    free(node);
+    }
+    array_list_relationship_destroy(rels);
 }
 
 void
@@ -84,6 +79,21 @@ prepare_move_relationship(heap_file*    hf,
     // Go through both incidence lists and check if the relationship to be
     // moved appears there. if so, adjust the id
     relationship_t* rel = read_relationship(hf, id, log);
+
+    // adjust the id in the nodes first relationship fields if neccessary
+    node_t* node = read_node(hf, rel->source_node, log);
+    if (rel->id == node->first_relationship) {
+        node->first_relationship = to_id;
+        update_node(hf, node, log);
+        free(node);
+    }
+
+    node = read_node(hf, rel->target_node, log);
+    if (rel->id == node->first_relationship) {
+        node->first_relationship = to_id;
+        update_node(hf, node, log);
+        free(node);
+    }
 
     // Adjust next pointer in source node's previous relation
     relationship_t* prev_rel_from =
@@ -159,21 +169,6 @@ prepare_move_relationship(heap_file*    hf,
 
     update_relationship(hf, prev_rel_to, log);
     free(prev_rel_to);
-
-    // adjust the id in the nodes first relationship fields if neccessary
-    node_t* node = read_node(hf, rel->source_node, log);
-    if (rel->id == node->first_relationship) {
-        node->first_relationship = to_id;
-        update_node(hf, node, log);
-        free(node);
-    }
-
-    node = read_node(hf, rel->target_node, log);
-    if (rel->id == node->first_relationship) {
-        node->first_relationship = to_id;
-        update_node(hf, node, log);
-        free(node);
-    }
 }
 
 void
@@ -713,7 +708,7 @@ reorder_relationships_by_nodes(heap_file* hf, bool log)
     }
     // for each node, fetch the outgoing set and assign them new ids, based on
     // their nodes.
-    unsigned long* new_order = malloc(hf->n_nodes * sizeof(unsigned long));
+    unsigned long* new_order = calloc(hf->n_nodes, sizeof(unsigned long));
     array_list_relationship* rels;
     array_list_node*         nodes = get_nodes(hf, log);
 
@@ -730,6 +725,7 @@ reorder_relationships_by_nodes(heap_file* hf, bool log)
     array_list_node_destroy(nodes);
 
     reorder_relationships_by_sequence(hf, new_order, log);
+    free(new_order);
 }
 
 void

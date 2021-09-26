@@ -19,20 +19,22 @@ identity_order(heap_file* hf)
 {
     if (!hf) {
         // LCOV_EXCL_START
-        printf("trivial partitions - identity: Invalid Arguments!\n");
+        printf("random orders - identity: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
-    dict_ul_ul*      partition = d_ul_ul_create();
-    array_list_node* nodes     = get_nodes(hf, false);
+    dict_ul_ul*      order = d_ul_ul_create();
+    array_list_node* nodes = get_nodes(hf, false);
 
     for (size_t i = 0; i < array_list_node_size(nodes); ++i) {
-        dict_ul_ul_insert(partition, array_list_node_get(nodes, i)->id, i);
+        dict_ul_ul_insert(order,
+                          array_list_node_get(nodes, i)->id,
+                          array_list_node_get(nodes, i)->id);
     }
     array_list_node_destroy(nodes);
 
-    return partition;
+    return order;
 }
 
 dict_ul_ul*
@@ -40,21 +42,30 @@ random_order(heap_file* hf)
 {
     if (!hf) {
         // LCOV_EXCL_START
-        printf("trivial partitions - identity: Invalid Arguments!\n");
+        printf("random order - random order: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
-    dict_ul_ul* partition = identity_order(hf);
+    dict_ul_ul*      order = identity_order(hf);
+    array_list_node* nodes = get_nodes(hf, false);
 
-    size_t        pos;
-    unsigned long temp;
-    for (size_t i = 0; i < dict_ul_ul_size(partition); ++i) {
-        pos  = rand() % (hf->n_nodes);
-        temp = dict_ul_ul_get_direct(partition, i);
-        dict_ul_ul_insert(partition, i, dict_ul_ul_get_direct(partition, pos));
-        dict_ul_ul_insert(partition, pos, temp);
+    size_t        r_i;
+    size_t        rand_id;
+    unsigned long cur_id;
+    for (size_t i = 0; i < dict_ul_ul_size(order); ++i) {
+        r_i     = rand() % (hf->n_nodes);
+        rand_id = array_list_node_get(nodes, r_i)->id;
+
+        cur_id =
+              dict_ul_ul_get_direct(order, array_list_node_get(nodes, i)->id);
+
+        dict_ul_ul_insert(order, cur_id, dict_ul_ul_get_direct(order, rand_id));
+
+        dict_ul_ul_insert(order, rand_id, cur_id);
     }
 
-    return partition;
+    array_list_node_destroy(nodes);
+
+    return order;
 }
