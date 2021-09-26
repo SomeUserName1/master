@@ -425,19 +425,193 @@ test_swap_record_pages(void)
 
 void
 test_reorder_nodes(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    array_list_node* nodes   = get_nodes(hf, false);
+    dict_ul_ul*      new_ids = d_ul_ul_create();
+
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        dict_ul_ul_insert(new_ids,
+                          array_list_node_get(nodes, i)->id,
+                          array_list_node_get(nodes, hf->n_nodes - i - 1)->id);
+    }
+
+    reorder_nodes(hf, new_ids, NULL, true);
+
+    array_list_node* new_nodes = get_nodes(hf, false);
+
+    assert(array_list_node_size(nodes) == array_list_node_size(new_nodes));
+
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        assert(array_list_node_get(nodes, i)->first_relationship
+               == array_list_node_get(new_nodes, hf->n_nodes - i - 1)
+                        ->first_relationship);
+
+        assert(array_list_node_get(nodes, i)->label
+               == array_list_node_get(new_nodes, hf->n_nodes - i - 1)->label);
+    }
+
+    array_list_node_destroy(nodes);
+    array_list_node_destroy(new_nodes);
+
+    clean_up(hf);
+}
 
 void
 test_reorder_nodes_by_sequence(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    array_list_node* nodes = get_nodes(hf, false);
+
+    unsigned long sequence[hf->n_nodes];
+
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        sequence[i] = array_list_node_get(nodes, hf->n_nodes - i - 1)->id;
+    }
+
+    reorder_nodes_by_sequence(hf, sequence, true);
+
+    array_list_node* new_nodes = get_nodes(hf, false);
+
+    assert(array_list_node_size(nodes) == array_list_node_size(new_nodes));
+
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        assert(array_list_node_get(nodes, i)->first_relationship
+               == array_list_node_get(new_nodes, hf->n_nodes - i - 1)
+                        ->first_relationship);
+
+        assert(array_list_node_get(nodes, i)->label
+               == array_list_node_get(new_nodes, hf->n_nodes - i - 1)->label);
+    }
+
+    array_list_node_destroy(nodes);
+    array_list_node_destroy(new_nodes);
+
+    clean_up(hf);
+}
 
 void
 test_reorder_relationships(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    array_list_relationship* rels    = get_relationships(hf, false);
+    dict_ul_ul*              new_ids = d_ul_ul_create();
+
+    for (size_t i = 0; i < hf->n_rels; ++i) {
+        dict_ul_ul_insert(
+              new_ids,
+              array_list_relationship_get(rels, i)->id,
+              array_list_relationship_get(rels, hf->n_rels - i - 1)->id);
+    }
+
+    reorder_relationships(hf, new_ids, NULL, true);
+
+    array_list_relationship* new_rels = get_relationships(hf, false);
+
+    assert(array_list_relationship_size(rels)
+           == array_list_relationship_size(new_rels));
+
+    for (size_t i = 0; i < hf->n_rels; ++i) {
+        assert(array_list_relationship_get(rels, i)->source_node
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->source_node);
+
+        assert(array_list_relationship_get(rels, i)->target_node
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->target_node);
+
+        assert(array_list_relationship_get(rels, i)->prev_rel_source
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->prev_rel_source);
+
+        assert(array_list_relationship_get(rels, i)->next_rel_source
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->next_rel_source);
+
+        assert(array_list_relationship_get(rels, i)->prev_rel_target
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->prev_rel_target);
+
+        assert(array_list_relationship_get(rels, i)->next_rel_target
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->next_rel_target);
+
+        assert(array_list_relationship_get(rels, i)->weight
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->weight);
+
+        assert(array_list_relationship_get(rels, i)->label
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->label);
+    }
+
+    array_list_relationship_destroy(rels);
+    array_list_relationship_destroy(new_rels);
+
+    clean_up(hf);
+}
 
 void
 test_reorder_relationship_by_sequence(void)
-{}
+{
+    heap_file* hf = prepare();
+
+    array_list_relationship* rels = get_relationships(hf, false);
+    unsigned long            sequence[hf->n_rels];
+
+    for (size_t i = 0; i < hf->n_rels; ++i) {
+        sequence[i] = array_list_relationship_get(rels, hf->n_rels - i - 1)->id;
+    }
+
+    reorder_relationships_by_sequence(hf, sequence, true);
+
+    array_list_relationship* new_rels = get_relationships(hf, false);
+
+    assert(array_list_relationship_size(rels)
+           == array_list_relationship_size(new_rels));
+
+    for (size_t i = 0; i < hf->n_rels; ++i) {
+        assert(array_list_relationship_get(rels, i)->source_node
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->source_node);
+
+        assert(array_list_relationship_get(rels, i)->target_node
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->target_node);
+
+        assert(array_list_relationship_get(rels, i)->prev_rel_source
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->prev_rel_source);
+
+        assert(array_list_relationship_get(rels, i)->next_rel_source
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->next_rel_source);
+
+        assert(array_list_relationship_get(rels, i)->prev_rel_target
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->prev_rel_target);
+
+        assert(array_list_relationship_get(rels, i)->next_rel_target
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->next_rel_target);
+
+        assert(array_list_relationship_get(rels, i)->weight
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->weight);
+
+        assert(array_list_relationship_get(rels, i)->label
+               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
+                        ->label);
+    }
+
+    array_list_relationship_destroy(rels);
+    array_list_relationship_destroy(new_rels);
+
+    clean_up(hf);
+}
 
 void
 test_reorder_relationships_by_nodes(void)

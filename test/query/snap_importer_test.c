@@ -12,7 +12,6 @@
 #include "query/snap_importer.h"
 
 #include <assert.h>
-#include <gperftools/profiler.h>
 #include <string.h>
 
 #include "access/heap_file.h"
