@@ -90,6 +90,11 @@ check_record_exists(heap_file* hf, unsigned long id, bool node, bool log)
         // LCOV_EXCL_STOP
     }
 
+    if ((node && (id % NUM_SLOTS_PER_NODE) != 0)
+        || (!node && (id % NUM_SLOTS_PER_REL) != 0)) {
+        return false;
+    }
+
     unsigned char slots = node ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
     file_type     ft    = node ? node_ft : relationship_ft;
 
@@ -630,14 +635,25 @@ delete_node(heap_file* hf, unsigned long node_id, bool log)
     if (node->first_relationship != UNINITIALIZED_LONG) {
         relationship_t* rel =
               read_relationship(hf, node->first_relationship, log);
+        unsigned long last_id     = UNINITIALIZED_LONG;
         unsigned long prev_rel_id = node_id == rel->source_node
                                           ? rel->prev_rel_source
                                           : rel->prev_rel_target;
 
-        while (prev_rel_id != UNINITIALIZED_LONG) {
-            rel         = read_relationship(hf, prev_rel_id, log);
-            prev_rel_id = node_id == rel->source_node ? rel->prev_rel_source
-                                                      : rel->prev_rel_target;
+        while (prev_rel_id != last_id) {
+            rel = read_relationship(hf, prev_rel_id, log);
+
+            last_id = prev_rel_id;
+            if (node_id == rel->source_node) {
+                prev_rel_id = rel->prev_rel_source;
+            } else if (node_id == rel->target_node) {
+                prev_rel_id = rel->prev_rel_target;
+            } else {
+                printf("heap file - delete node: Invalid Reationship in "
+                       "chain!\n");
+                exit(EXIT_FAILURE);
+            }
+
             delete_relationship(hf, rel->id, log);
         }
     }

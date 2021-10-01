@@ -407,7 +407,7 @@ test_create_relationship(void)
     assert(hf->n_nodes == 4);
     assert(hf->n_rels == 5);
     assert(hf->last_alloc_node_id == 3);
-    assert(hf->last_alloc_rel_id == 8);
+    assert(hf->last_alloc_rel_id == 4 * NUM_SLOTS_PER_REL);
 
     node_1     = new_node();
     node_1->id = n_1;

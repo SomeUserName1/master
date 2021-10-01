@@ -14,18 +14,6 @@
 #include "disk_file.h"
 
 void
-prepare_move_node(heap_file*    hf,
-                  unsigned long id,
-                  unsigned long to_id,
-                  bool          log);
-
-void
-prepare_move_relationship(heap_file*    hf,
-                          unsigned long id,
-                          unsigned long to_id,
-                          bool          log);
-
-void
 swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log);
 
 void
@@ -42,10 +30,7 @@ swap_record_pages(heap_file* hf,
                   bool       log);
 
 void
-reorder_nodes(heap_file*  hf,
-              dict_ul_ul* new_ids,
-              disk_file*  new_header,
-              bool        log);
+reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log);
 
 void
 reorder_nodes_by_sequence(heap_file*           hf,
@@ -53,10 +38,7 @@ reorder_nodes_by_sequence(heap_file*           hf,
                           bool                 log);
 
 void
-reorder_relationships(heap_file*  hf,
-                      dict_ul_ul* new_ids,
-                      disk_file*  new_header,
-                      bool        log);
+reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log);
 
 void
 reorder_relationships_by_nodes(heap_file* hf, bool log);

@@ -26,7 +26,7 @@ static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
     (LONG_MAX / PAGE_SIZE) /* Approx 1 << 32 - 1 pages; Overall Maximum        \
                               size of the database in bytes is 8 EiB */
 
-#define SLOT_SIZE      (32)
+#define SLOT_SIZE      (16)
 #define SLOTS_PER_PAGE (PAGE_SIZE / SLOT_SIZE)
 
 /* size of the cache for the actual graph */
