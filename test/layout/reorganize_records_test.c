@@ -41,7 +41,14 @@ prepare(void)
 
     heap_file* hf = heap_file_create(pc, log_name_file);
 
-    import(hf, false, EMAIL_EU_CORE);
+    dict_ul_ul** maps =
+          import_from_txt(hf,
+                          "/home/someusername/workspace_local/email_eu.txt",
+                          false,
+                          EMAIL_EU_CORE);
+    dict_ul_ul_destroy(maps[0]);
+    dict_ul_ul_destroy(maps[1]);
+    free(maps);
 
     return hf;
 }
@@ -125,13 +132,14 @@ test_swap_relationships(void)
     const unsigned long id_on_snd_page = SLOTS_PER_PAGE / NUM_SLOTS_PER_REL;
 
     relationship_t* relationship_1_before =
-          read_relationship(hf, 1 * NUM_SLOTS_PER_REL, false);
+          read_relationship(hf, NUM_SLOTS_PER_REL, false);
     relationship_t* relationship_2_before =
           read_relationship(hf, id_on_snd_page, false);
 
     swap_relationships(hf, NUM_SLOTS_PER_REL, id_on_snd_page, true);
 
-    relationship_t* relationship_1_after = read_relationship(hf, 1, false);
+    relationship_t* relationship_1_after =
+          read_relationship(hf, NUM_SLOTS_PER_REL, false);
     relationship_t* relationship_2_after =
           read_relationship(hf, id_on_snd_page, false);
 
@@ -226,7 +234,7 @@ test_swap_relationships(void)
           read_relationship(hf, rel->next_rel_target, false);
 
     bool which_pointer[4][4];
-    memset(which_pointer, 0, 4 * sizeof(unsigned char));
+    memset(which_pointer, 0, 4 * 4 * sizeof(unsigned char));
 
     if (prev_src->prev_rel_source == 0) {
         which_pointer[0][0] = true;
@@ -280,7 +288,7 @@ test_swap_relationships(void)
         which_pointer[3][3] = true;
     }
 
-    swap_relationships(hf, 0, 1, false);
+    swap_relationships(hf, 0, NUM_SLOTS_PER_REL, false);
 
     free(rel);
     free(prev_src);
@@ -288,71 +296,62 @@ test_swap_relationships(void)
     free(prev_trgt);
     free(next_trgt);
 
-    rel       = read_relationship(hf, 1, false);
+    rel       = read_relationship(hf, NUM_SLOTS_PER_REL, false);
     prev_src  = read_relationship(hf, rel->prev_rel_source, false);
     next_src  = read_relationship(hf, rel->next_rel_source, false);
     prev_trgt = read_relationship(hf, rel->prev_rel_target, false);
     next_trgt = read_relationship(hf, rel->next_rel_target, false);
 
     if (which_pointer[0][0]) {
-        assert(prev_src->prev_rel_source == 1);
+        assert(prev_src->prev_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[0][1]) {
-        assert(prev_src->next_rel_source == 1);
+        assert(prev_src->next_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[0][2]) {
-        assert(prev_src->prev_rel_target == 1);
+        assert(prev_src->prev_rel_target == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[0][3]) {
-        assert(prev_src->next_rel_target == 1);
+        assert(prev_src->next_rel_target == NUM_SLOTS_PER_REL);
     }
 
     if (which_pointer[1][0]) {
-        assert(next_src->prev_rel_source == 1);
+        assert(next_src->prev_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[1][1]) {
-        assert(next_src->next_rel_source == 1);
+        assert(next_src->next_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[1][2]) {
-        assert(next_src->prev_rel_target == 1);
+        assert(next_src->prev_rel_target == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[1][3]) {
-        assert(next_src->next_rel_target == 1);
+        assert(next_src->next_rel_target == NUM_SLOTS_PER_REL);
     }
 
     if (which_pointer[2][0]) {
-        assert(prev_trgt->prev_rel_source == 1);
+        assert(prev_trgt->prev_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[2][1]) {
-        assert(prev_trgt->next_rel_source == 1);
+        assert(prev_trgt->next_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[2][2]) {
-        assert(prev_trgt->prev_rel_target == 1);
+        assert(prev_trgt->prev_rel_target == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[2][3]) {
-        assert(prev_trgt->next_rel_target == 1);
+        assert(prev_trgt->next_rel_target == NUM_SLOTS_PER_REL);
     }
 
     if (which_pointer[3][0]) {
-        assert(next_trgt->prev_rel_source == 1);
+        assert(next_trgt->prev_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[3][1]) {
-        assert(next_trgt->next_rel_source == 1);
+        assert(next_trgt->next_rel_source == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[3][2]) {
-        assert(next_trgt->prev_rel_target == 1);
+        assert(next_trgt->prev_rel_target == NUM_SLOTS_PER_REL);
     }
     if (which_pointer[3][3]) {
-        assert(next_trgt->next_rel_target == 1);
-    }
-
-    node_t* fst_src  = read_node(hf, rel->source_node, false);
-    node_t* fst_trgt = read_node(hf, rel->target_node, false);
-    if (fst_src->first_relationship == rel->id) {
-        assert(fst_src->first_relationship == 1);
-    }
-    if (fst_trgt->first_relationship == rel->id) {
-        assert(fst_trgt->first_relationship == 1);
+        assert(next_trgt->next_rel_target == NUM_SLOTS_PER_REL);
     }
 
     clean_up(hf);
@@ -698,8 +697,8 @@ main(void)
 {
     // test_swap_nodes();
     // printf("finished test swap nodes\n");
-    test_swap_relationships();
-    printf("finished test swap relationships\n");
+    // test_swap_relationships();
+    // printf("finished test swap relationships\n");
     test_swap_record_pages();
     printf("finished test swap record pages\n");
     test_reorder_nodes();

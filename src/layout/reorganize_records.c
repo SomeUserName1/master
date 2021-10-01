@@ -201,8 +201,8 @@ swap_relationships(heap_file*    hf,
         return;
     }
 
-    relationship_t* fst_rel = read_relationship(hf, fst, log);
-    relationship_t* snd_rel = read_relationship(hf, snd, log);
+    relationship_t* fst_rel = NULL;
+    relationship_t* snd_rel = NULL;
 
     node_t*         fst_src           = NULL;
     node_t*         fst_trgt          = NULL;
@@ -219,6 +219,7 @@ swap_relationships(heap_file*    hf,
     relationship_t* snd_next_rel_to   = NULL;
 
     if (fst_exists) {
+        fst_rel = read_relationship(hf, fst, log);
         // adjust the id in the nodes first relationship fields if neccessary
         fst_src = read_node(hf, fst_rel->source_node, log);
         if (fst_rel->id == fst_src->first_relationship) {
@@ -234,8 +235,8 @@ swap_relationships(heap_file*    hf,
 
         // Adjust next pointer in source node's previous relation
         fst_prev_rel_from =
-              fst == fst_rel->prev_rel_source ? fst_rel
-              : snd == fst_rel->prev_rel_source
+              fst_rel && fst == fst_rel->prev_rel_source ? fst_rel
+              : snd_rel && snd == fst_rel->prev_rel_source
                     ? snd_rel
                     : read_relationship(hf, fst_rel->prev_rel_source, log);
 
@@ -247,8 +248,8 @@ swap_relationships(heap_file*    hf,
 
         // Adjust next pointer in target node's previous relation
         fst_prev_rel_to =
-              fst_rel->prev_rel_target == fst   ? fst_rel
-              : fst_rel->prev_rel_target == snd ? snd_rel
+              fst_rel && fst_rel->prev_rel_target == fst   ? fst_rel
+              : snd_rel && fst_rel->prev_rel_target == snd ? snd_rel
               : fst_rel->prev_rel_target == fst_prev_rel_from->id
                     ? fst_prev_rel_from
                     : read_relationship(hf, fst_rel->prev_rel_target, log);
@@ -261,8 +262,8 @@ swap_relationships(heap_file*    hf,
 
         // Adjust previous pointer in source node's next relation
         fst_next_rel_from =
-              fst_rel->next_rel_source == fst   ? fst_rel
-              : fst_rel->next_rel_source == snd ? snd_rel
+              fst_rel && fst_rel->next_rel_source == fst   ? fst_rel
+              : snd_rel && fst_rel->next_rel_source == snd ? snd_rel
               : fst_rel->next_rel_source == fst_prev_rel_from->id
                     ? fst_prev_rel_from
               : fst_rel->next_rel_source == fst_prev_rel_to->id
@@ -277,8 +278,8 @@ swap_relationships(heap_file*    hf,
 
         // Adjust previous pointer in target node's next relation
         fst_next_rel_to =
-              fst_rel->next_rel_target == fst   ? fst_rel
-              : fst_rel->next_rel_target == snd ? snd_rel
+              fst_rel && fst_rel->next_rel_target == fst   ? fst_rel
+              : snd_rel && fst_rel->next_rel_target == snd ? snd_rel
               : fst_rel->next_rel_target == fst_prev_rel_from->id
                     ? fst_prev_rel_from
               : fst_rel->next_rel_target == fst_prev_rel_to->id
@@ -295,10 +296,10 @@ swap_relationships(heap_file*    hf,
     }
 
     if (snd_exists) {
+        snd_rel = read_relationship(hf, snd, log);
         // adjust the id in the nodes first relationship fields if neccessary
-        snd_src = (fst_src != NULL && snd_rel->source_node == fst_src->id)
-                        ? fst_src
-                  : (fst_trgt != NULL && snd_rel->source_node == fst_trgt->id)
+        snd_src = (fst_src && snd_rel->source_node == fst_src->id) ? fst_src
+                  : (fst_trgt && snd_rel->source_node == fst_trgt->id)
                         ? fst_trgt
                         : read_node(hf, snd_rel->source_node, log);
 
@@ -306,9 +307,8 @@ swap_relationships(heap_file*    hf,
             snd_src->first_relationship = fst;
         }
 
-        snd_trgt = (fst_src != NULL && snd_rel->target_node == fst_src->id)
-                         ? fst_src
-                   : (fst_trgt != NULL && snd_rel->target_node == fst_trgt->id)
+        snd_trgt = (fst_src && snd_rel->target_node == fst_src->id) ? fst_src
+                   : (fst_trgt && snd_rel->target_node == fst_trgt->id)
                          ? fst_trgt
                    : snd_rel->target_node == snd_src->id
                          ? snd_src
@@ -523,7 +523,7 @@ swap_relationships(heap_file*    hf,
 
     if (fst_exists != snd_exists) {
         unsigned long record_page_id = fst >> CHAR_BIT;
-        unsigned char slot_in_page   = snd & UCHAR_MAX;
+        unsigned char slot_in_page   = fst & UCHAR_MAX;
 
         size_t absolute_slot = record_page_id * SLOTS_PER_PAGE + slot_in_page;
 
@@ -532,7 +532,7 @@ swap_relationships(heap_file*    hf,
         size_t bit_offset  = absolute_slot % CHAR_BIT;
 
         unsigned char* used_bits = malloc(sizeof(unsigned char));
-        used_bits[0]             = fst_exists ? UCHAR_MAX : 0;
+        used_bits[0]             = snd_exists ? UCHAR_MAX : 0;
 
         page* header_page =
               pin_page(hf->cache, header_id, header, relationship_ft, log);
@@ -556,7 +556,7 @@ swap_relationships(heap_file*    hf,
         byte_offset  = (absolute_slot / CHAR_BIT) % PAGE_SIZE;
         bit_offset   = absolute_slot % CHAR_BIT;
         used_bits    = malloc(sizeof(unsigned char));
-        used_bits[0] = snd_exists ? UCHAR_MAX : 0;
+        used_bits[0] = fst_exists ? UCHAR_MAX : 0;
 
         header_page =
               pin_page(hf->cache, header_id, header, relationship_ft, log);
