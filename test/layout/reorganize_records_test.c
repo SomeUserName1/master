@@ -367,13 +367,15 @@ test_swap_record_pages(void)
     memcpy(header_copy, header_page->data, PAGE_SIZE);
     unpin_page(hf->cache, 0, header, node_ft, false);
 
-    static const size_t last_node_id = 127;
-    static const size_t f_s_id       = 128;
-    static const size_t l_s_id       = 255;
-    node_t*             fst_node     = read_node(hf, 0, false);
-    node_t*             lst_node     = read_node(hf, last_node_id, false);
-    node_t*             f_s_node     = read_node(hf, f_s_id, false);
-    node_t*             l_s_node     = read_node(hf, l_s_id, false);
+    const size_t last_node_id = SLOTS_PER_PAGE / NUM_SLOTS_PER_NODE - 1;
+    const size_t f_s_id       = 1 << CHAR_BIT;
+    const size_t l_s_id =
+          (1 << CHAR_BIT)
+          | ((SLOTS_PER_PAGE / NUM_SLOTS_PER_NODE - 1) & UCHAR_MAX);
+    node_t* fst_node = read_node(hf, 0, false);
+    node_t* lst_node = read_node(hf, last_node_id, false);
+    node_t* f_s_node = read_node(hf, f_s_id, false);
+    node_t* l_s_node = read_node(hf, l_s_id, false);
 
     swap_record_pages(hf, 0, 1, node_ft, true);
 
@@ -406,6 +408,15 @@ test_swap_record_pages(void)
 
     assert(l_s_node->first_relationship == lst_node_a->first_relationship);
     assert(l_s_node->label == lst_node_a->label);
+
+    free(fst_node);
+    free(fst_node_a);
+    free(lst_node);
+    free(lst_node_a);
+    free(f_s_node);
+    free(f_s_node_a);
+    free(l_s_node);
+    free(l_s_node_a);
 
     clean_up(hf);
 }
@@ -699,8 +710,8 @@ main(void)
     // printf("finished test swap nodes\n");
     // test_swap_relationships();
     // printf("finished test swap relationships\n");
-    test_swap_record_pages();
-    printf("finished test swap record pages\n");
+    // test_swap_record_pages();
+    // printf("finished test swap record pages\n");
     test_reorder_nodes();
     printf("finished test reorder nodes\n");
     test_reorder_nodes_by_sequence();

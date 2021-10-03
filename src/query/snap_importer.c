@@ -346,11 +346,13 @@ import_from_txt(heap_file*  hf,
 
     unsigned long num_pages_nodes =
           get_no_nodes(dataset) * NUM_SLOTS_PER_NODE / SLOTS_PER_PAGE
-          + (get_no_nodes(dataset) * NUM_SLOTS_PER_NODE % SLOTS_PER_PAGE);
+          + (((get_no_nodes(dataset) * NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE)
+             != 0);
 
     unsigned long num_pages_rels =
           get_no_rels(dataset) * NUM_SLOTS_PER_REL / SLOTS_PER_PAGE
-          + (get_no_rels(dataset) * NUM_SLOTS_PER_REL % SLOTS_PER_PAGE);
+          + (((get_no_rels(dataset) * NUM_SLOTS_PER_REL) % SLOTS_PER_PAGE)
+             != 0);
 
     allocate_pages(hf->cache->pdb, node_ft, num_pages_nodes, false);
     allocate_pages(hf->cache->pdb, relationship_ft, num_pages_rels, false);

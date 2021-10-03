@@ -593,15 +593,22 @@ swap_record_pages(heap_file* hf, size_t fst, size_t snd, file_type ft, bool log)
         // LCOV_EXCL_STOP
     }
 
+    if (fst == snd) {
+        return;
+    }
+
     unsigned long n_slots_records =
           ft == node_ft ? NUM_SLOTS_PER_NODE : NUM_SLOTS_PER_REL;
+    unsigned long fst_id;
+    unsigned long snd_id;
 
     for (size_t i = 0; i < SLOTS_PER_PAGE; i += n_slots_records) {
+        fst_id = (fst << CHAR_BIT) | i;
+        snd_id = (snd << CHAR_BIT) | i;
         if (ft == node_ft) {
-            swap_nodes(hf, fst << CHAR_BIT & i, snd << CHAR_BIT & i, log);
+            swap_nodes(hf, fst_id, snd_id, log);
         } else {
-            swap_relationships(
-                  hf, fst << CHAR_BIT & i, snd << CHAR_BIT & i, log);
+            swap_relationships(hf, fst_id, snd_id, log);
         }
     }
 
@@ -611,10 +618,6 @@ swap_record_pages(heap_file* hf, size_t fst, size_t snd, file_type ft, bool log)
     }
 }
 
-// from i to n
-// find node that should go to slot i
-// switch that node with node i
-// update the from id for the node that was previously at i
 void
 reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
 {
@@ -635,37 +638,44 @@ reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
         dict_ul_ul_iterator_next(it, &old_id, &new_id);     // cur => fut
         dict_ul_ul_insert(inverse_new_ids, new_id, old_id); // fut => cur
     }
+    dict_ul_ul_iterator_destroy(it);
 
     size_t n_ids = hf->cache->pdb->records[node_ft]->num_pages * SLOTS_PER_PAGE;
-    unsigned char cur_slot = 0;
+    unsigned long cur_slot = 0;
     unsigned long cur_page = 0;
     unsigned long temp_new;
 
     for (size_t i = 0; i < n_ids; ++i) {
-        new_id = cur_page << CHAR_BIT & cur_slot;
-        old_id = dict_ul_ul_get_direct(inverse_new_ids, new_id);
-        swap_nodes(hf, old_id, new_id, log);
+        new_id = cur_page << CHAR_BIT | cur_slot;
 
-        // remove the element that was just swapped
-        dict_ul_ul_remove(new_ids, old_id);
-        dict_ul_ul_remove(inverse_new_ids, new_id);
+        if (dict_ul_ul_get(inverse_new_ids, new_id, &old_id) == 0) {
+            swap_nodes(hf, old_id, new_id, log);
 
-        // update the dict such that the node that was previously at position
-        // new id is now at old id
-        temp_new = dict_ul_ul_get_direct(new_ids, new_id);
-        // remove the old entries for the node that was swapped with
-        dict_ul_ul_remove(new_ids, new_id);
-        dict_ul_ul_remove(inverse_new_ids, temp_new);
-        dict_ul_ul_insert(new_ids, old_id, temp_new);
-        dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
+            // remove the element that was just swapped
+            dict_ul_ul_remove(new_ids, old_id);
+            dict_ul_ul_remove(inverse_new_ids, new_id);
 
-        if (cur_slot + 1 % UCHAR_MAX == 0) {
+            if (old_id != new_id) {
+                // update the dict such that the node that was previously at
+                // position new id is now at old id
+                temp_new = dict_ul_ul_get_direct(new_ids, new_id);
+                // remove the old entries for the node that was swapped with
+                dict_ul_ul_remove(new_ids, new_id);
+                dict_ul_ul_remove(inverse_new_ids, temp_new);
+                dict_ul_ul_insert(new_ids, old_id, temp_new);
+                dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
+            }
+        }
+
+        if (cur_slot == UCHAR_MAX) {
             cur_page++;
             cur_slot = 0;
         } else {
             cur_slot++;
         }
     }
+
+    dict_ul_ul_destroy(inverse_new_ids);
 }
 
 void
@@ -736,22 +746,26 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
     unsigned long temp_new;
 
     for (size_t i = 0; i < n_ids; ++i) {
-        new_id = cur_page << CHAR_BIT & cur_slot;
-        old_id = dict_ul_ul_get_direct(inverse_new_ids, new_id);
-        swap_relationships(hf, old_id, new_id, log);
+        new_id = cur_page << CHAR_BIT | cur_slot;
 
-        // remove the element that was just swapped
-        dict_ul_ul_remove(new_ids, old_id);
-        dict_ul_ul_remove(inverse_new_ids, new_id);
+        if (dict_ul_ul_get(inverse_new_ids, new_id, &old_id) == 0) {
+            swap_relationships(hf, old_id, new_id, log);
 
-        // update the dict such that the node that was previously at position
-        // new id is now at old id
-        temp_new = dict_ul_ul_get_direct(new_ids, new_id);
-        // remove the old entries for the node that was swapped with
-        dict_ul_ul_remove(new_ids, new_id);
-        dict_ul_ul_remove(inverse_new_ids, temp_new);
-        dict_ul_ul_insert(new_ids, old_id, temp_new);
-        dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
+            // remove the element that was just swapped
+            dict_ul_ul_remove(new_ids, old_id);
+            dict_ul_ul_remove(inverse_new_ids, new_id);
+
+            if (old_id != new_id) {
+                // update the dict such that the node that was previously at
+                // position new id is now at old id
+                temp_new = dict_ul_ul_get_direct(new_ids, new_id);
+                // remove the old entries for the node that was swapped with
+                dict_ul_ul_remove(new_ids, new_id);
+                dict_ul_ul_remove(inverse_new_ids, temp_new);
+                dict_ul_ul_insert(new_ids, old_id, temp_new);
+                dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
+            }
+        }
 
         if (cur_slot + 1 % UCHAR_MAX == 0) {
             cur_page++;
