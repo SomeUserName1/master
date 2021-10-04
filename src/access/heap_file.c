@@ -619,6 +619,7 @@ delete_node(heap_file* hf, unsigned long node_id, bool log)
         unsigned long prev_rel_id = node_id == rel->source_node
                                           ? rel->prev_rel_source
                                           : rel->prev_rel_target;
+        free(rel);
 
         while (prev_rel_id != last_id) {
             rel = read_relationship(hf, prev_rel_id, log);
@@ -635,6 +636,7 @@ delete_node(heap_file* hf, unsigned long node_id, bool log)
             }
 
             delete_relationship(hf, rel->id, log);
+            free(rel);
         }
     }
 

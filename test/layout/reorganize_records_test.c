@@ -99,6 +99,12 @@ test_swap_nodes(void)
     assert(node_2_after->label == node_3->label);
     assert(node_2_after->first_relationship == node_3->first_relationship);
 
+    free(node_1_before);
+    free(node_2_before);
+    free(node_1_after);
+    free(node_2_after);
+    free(node_3);
+
     assert(!check_record_exists(hf, id_on_snd_page, true, false));
     assert(check_record_exists(hf, id_on_third_page, true, false));
 
@@ -219,6 +225,12 @@ test_swap_relationships(void)
     assert(relationship_2_after->weight == relationship_3->weight);
 
     assert(relationship_2_after->id == relationship_2_after->id);
+
+    free(relationship_1_before);
+    free(relationship_2_before);
+    free(relationship_1_after);
+    free(relationship_2_after);
+    free(relationship_3);
 
     assert(!check_record_exists(hf, id_on_snd_page, false, false));
     assert(check_record_exists(hf, id_on_third_page, false, false));
@@ -353,6 +365,12 @@ test_swap_relationships(void)
     if (which_pointer[3][3]) {
         assert(next_trgt->next_rel_target == NUM_SLOTS_PER_REL);
     }
+
+    free(rel);
+    free(prev_src);
+    free(next_src);
+    free(prev_trgt);
+    free(next_trgt);
 
     clean_up(hf);
 }
@@ -674,22 +692,22 @@ test_sort_incidence_array_list(void)
 int
 main(void)
 {
-    // test_swap_nodes();
-    // printf("finished test swap nodes\n");
-    // test_swap_relationships();
-    // printf("finished test swap relationships\n");
-    // test_swap_record_pages();
-    // printf("finished test swap record pages\n");
-    // test_reorder_nodes();
-    // printf("finished test reorder nodes\n");
-    // test_reorder_nodes_by_sequence();
-    // printf("finished test reorder nodes by sequence\n");
-    // test_reorder_relationships();
-    // printf("finished test reorder relationships\n");
-    // test_reorder_relationship_by_sequence();
-    // printf("finished test reorder relationships by sequence\n");
-    // test_reorder_relationships_by_nodes();
-    // printf("finished test reorder relationships by nodes\n");
+    test_swap_nodes();
+    printf("finished test swap nodes\n");
+    test_swap_relationships();
+    printf("finished test swap relationships\n");
+    test_swap_record_pages();
+    printf("finished test swap record pages\n");
+    test_reorder_nodes();
+    printf("finished test reorder nodes\n");
+    test_reorder_nodes_by_sequence();
+    printf("finished test reorder nodes by sequence\n");
+    test_reorder_relationships();
+    printf("finished test reorder relationships\n");
+    test_reorder_relationship_by_sequence();
+    printf("finished test reorder relationships by sequence\n");
+    test_reorder_relationships_by_nodes();
+    printf("finished test reorder relationships by nodes\n");
     test_sort_incidence_array_list();
     printf("finished test sort incidence list\n");
 }

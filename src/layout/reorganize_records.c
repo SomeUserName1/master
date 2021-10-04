@@ -64,9 +64,11 @@ swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log)
         for (size_t i = 0; i < array_list_relationship_size(rels_snd); ++i) {
             rel = array_list_relationship_get(rels_snd, i);
             if (!array_list_relationship_contains(rels, rel)) {
-                array_list_relationship_append(rels, rel);
+                array_list_relationship_append(rels, relationship_copy(rel));
             }
         }
+
+        array_list_relationship_destroy(rels_snd);
 
         for (size_t i = 0; i < array_list_relationship_size(rels); ++i) {
             rel = array_list_relationship_get(rels, i);
@@ -85,8 +87,9 @@ swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log)
 
             update_relationship(hf, rel, log);
         }
-        array_list_relationship_destroy(rels);
     }
+
+    array_list_relationship_destroy(rels);
 
     node_t* fst_node;
     node_t* snd_node;
@@ -161,11 +164,13 @@ swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log)
     if (fst_exists) {
         fst_node->id = snd;
         update_node(hf, fst_node, log);
+        free(fst_node);
     }
 
     if (snd_exists) {
         snd_node->id = fst;
         update_node(hf, snd_node, log);
+        free(snd_node);
     }
 }
 
@@ -571,11 +576,13 @@ swap_relationships(heap_file*    hf,
     if (fst_exists) {
         fst_rel->id = snd;
         update_relationship(hf, fst_rel, log);
+        free(fst_rel);
     }
 
     if (snd_exists) {
         snd_rel->id = fst;
         update_relationship(hf, snd_rel, log);
+        free(snd_rel);
     }
 }
 
@@ -706,6 +713,7 @@ reorder_nodes_by_sequence(heap_file*           hf,
     phy_database_delete(temp_pdb);
 
     reorder_nodes(hf, new_ids, log);
+    dict_ul_ul_destroy(new_ids);
 }
 
 void
@@ -764,6 +772,7 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
             cur_slot++;
         }
     }
+    dict_ul_ul_destroy(inverse_new_ids);
 }
 
 void
@@ -832,6 +841,7 @@ reorder_relationships_by_sequence(heap_file*           hf,
     phy_database_delete(temp_pdb);
 
     reorder_relationships(hf, new_ids, log);
+    dict_ul_ul_destroy(new_ids);
 }
 
 void
@@ -898,6 +908,7 @@ sort_incidence_list(heap_file* hf, bool log)
             rel->next_rel_target = sorted_rel_ids[1];
         }
         update_relationship(hf, rel, log);
+        free(rel);
 
         for (size_t j = 1; j < rels_size - 1; ++j) {
             rel = read_relationship(hf, sorted_rel_ids[j], log);
@@ -910,6 +921,7 @@ sort_incidence_list(heap_file* hf, bool log)
                 rel->next_rel_target = sorted_rel_ids[j + 1];
             }
             update_relationship(hf, rel, log);
+            free(rel);
         }
 
         rel = read_relationship(hf, sorted_rel_ids[rels_size - 1], log);
@@ -922,6 +934,7 @@ sort_incidence_list(heap_file* hf, bool log)
             rel->next_rel_target = sorted_rel_ids[0];
         }
         update_relationship(hf, rel, log);
+        free(rel);
 
         array_list_relationship_destroy(rels);
         set_ul_destroy(rel_ids);
