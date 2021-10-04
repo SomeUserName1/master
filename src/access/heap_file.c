@@ -146,7 +146,7 @@ next_free_slots(heap_file* hf, bool node, bool log)
     unsigned char slot_in_page   = *prev_allocd_id & UCHAR_MAX;
     bool          found_slot     = false;
 
-    do {
+    while (record_page_id < hf->cache->pdb->records[ft]->num_pages) {
         if (!check_record_exists(hf, cur_id, node, log)
             && slot_in_page % SLOTS_PER_PAGE
                      <= (slot_in_page + (n_slots - 1)) % SLOTS_PER_PAGE) {
@@ -164,7 +164,7 @@ next_free_slots(heap_file* hf, bool node, bool log)
         }
 
         cur_id = (record_page_id << CHAR_BIT) | slot_in_page;
-    } while (record_page_id < hf->cache->pdb->records[ft]->num_pages);
+    }
 
     if (!found_slot) {
         page* np = new_page(hf->cache, ft, log);

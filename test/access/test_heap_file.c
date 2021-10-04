@@ -197,8 +197,6 @@ test_create_node(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
@@ -254,9 +252,6 @@ test_create_relationship(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -542,8 +537,6 @@ test_read_node(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 2, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
@@ -590,9 +583,6 @@ test_read_relationship(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
@@ -627,8 +617,6 @@ test_update_node(void)
     char*         log_name_cache = "log_test_pc";
     char*         log_name_file  = "log_test_hf";
     phy_database* pdb            = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 2, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -665,9 +653,6 @@ test_update_relationship(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -714,8 +699,6 @@ test_delete_node(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
@@ -749,9 +732,6 @@ test_delete_relationship(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -788,9 +768,6 @@ test_get_nodes(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -829,9 +806,6 @@ test_get_relationships(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -872,9 +846,6 @@ test_rel_chain_small(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -972,9 +943,6 @@ test_next_relationship_id(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
@@ -1023,9 +991,6 @@ test_expand(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
@@ -1095,9 +1060,6 @@ test_contains_relationship_from_to(void)
     char* log_name_file  = "log_test_hf";
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
-
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
 
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 

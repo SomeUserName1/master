@@ -523,22 +523,6 @@ test_reorder_relationships(void)
                == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
                         ->target_node);
 
-        assert(array_list_relationship_get(rels, i)->prev_rel_source
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->prev_rel_source);
-
-        assert(array_list_relationship_get(rels, i)->next_rel_source
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->next_rel_source);
-
-        assert(array_list_relationship_get(rels, i)->prev_rel_target
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->prev_rel_target);
-
-        assert(array_list_relationship_get(rels, i)->next_rel_target
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->next_rel_target);
-
         assert(array_list_relationship_get(rels, i)->weight
                == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
                         ->weight);
@@ -581,22 +565,6 @@ test_reorder_relationship_by_sequence(void)
         assert(array_list_relationship_get(rels, i)->target_node
                == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
                         ->target_node);
-
-        assert(array_list_relationship_get(rels, i)->prev_rel_source
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->prev_rel_source);
-
-        assert(array_list_relationship_get(rels, i)->next_rel_source
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->next_rel_source);
-
-        assert(array_list_relationship_get(rels, i)->prev_rel_target
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->prev_rel_target);
-
-        assert(array_list_relationship_get(rels, i)->next_rel_target
-               == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
-                        ->next_rel_target);
 
         assert(array_list_relationship_get(rels, i)->weight
                == array_list_relationship_get(new_rels, hf->n_rels - i - 1)
@@ -643,7 +611,7 @@ test_reorder_relationships_by_nodes(void)
     for (size_t i = 0; i < hf->n_rels; ++i) {
         rel = array_list_relationship_get(rels, i);
 
-        if (rel->source_node != cur_node_id) {
+        while (rel->source_node != cur_node_id && j < hf->n_rels) {
             j++;
             cur_node_id = array_list_node_get(new_nodes, j)->id;
         }
@@ -652,7 +620,7 @@ test_reorder_relationships_by_nodes(void)
     }
 
     array_list_relationship_destroy(rels);
-    array_list_node_destroy(nodes);
+    array_list_node_destroy(new_nodes);
 
     clean_up(hf);
 }
@@ -714,14 +682,14 @@ main(void)
     // printf("finished test swap record pages\n");
     // test_reorder_nodes();
     // printf("finished test reorder nodes\n");
-    test_reorder_nodes_by_sequence();
-    printf("finished test reorder nodes by sequence\n");
-    test_reorder_relationships();
-    printf("finished test reorder relationships\n");
-    test_reorder_relationships_by_nodes();
-    printf("finished test reorder relationships by nodes\n");
-    test_reorder_relationship_by_sequence();
-    printf("finished test reorder relationships by sequence\n");
+    // test_reorder_nodes_by_sequence();
+    // printf("finished test reorder nodes by sequence\n");
+    // test_reorder_relationships();
+    // printf("finished test reorder relationships\n");
+    // test_reorder_relationship_by_sequence();
+    // printf("finished test reorder relationships by sequence\n");
+    // test_reorder_relationships_by_nodes();
+    // printf("finished test reorder relationships by nodes\n");
     test_sort_incidence_array_list();
     printf("finished test sort incidence list\n");
 }

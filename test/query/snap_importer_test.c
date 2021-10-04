@@ -50,9 +50,6 @@ prepare(void)
 
     );
 
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
 
@@ -667,11 +664,11 @@ test_get_nodes_large(void)
 {
     heap_file* hf = prepare();
 
-    import(hf, false, YOUTUBE);
+    import(hf, false, EMAIL_EU_CORE);
 
     array_list_node* nodes = get_nodes(hf, false);
     assert(array_list_node_size(nodes) == hf->n_nodes);
-    assert(array_list_node_size(nodes) == YOUTUBE_NO_NODES);
+    assert(array_list_node_size(nodes) == EMAIL_EU_CORE_NO_NODES);
 
     array_list_node_destroy(nodes);
     clean_up(hf);
@@ -682,11 +679,11 @@ test_get_relationships_large(void)
 {
     heap_file* hf = prepare();
 
-    import(hf, false, YOUTUBE);
+    import(hf, false, EMAIL_EU_CORE);
 
     array_list_relationship* rels = get_relationships(hf, false);
     assert(array_list_relationship_size(rels) == hf->n_rels);
-    assert(array_list_relationship_size(rels) == YOUTUBE_NO_RELS);
+    assert(array_list_relationship_size(rels) == EMAIL_EU_CORE_NO_RELS);
 
     array_list_relationship_destroy(rels);
     clean_up(hf);
@@ -699,8 +696,8 @@ main(void)
     printf("Snap importer test: celegenas imported successfully\n");
     test_email();
     printf("Snap importer test: email eu imported successfully\n");
-    test_dblp();
-    printf("Snap importer test: dblp imported successfully\n");
+    // test_dblp();
+    // printf("Snap importer test: dblp imported successfully\n");
     //   test_amazon();
     //   printf("Snap importer test: amazon imported successfully\n");
     //   test_youtube();

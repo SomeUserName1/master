@@ -39,9 +39,6 @@ main(void)
 
     );
 
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb,
                                        CACHE_N_PAGES
 

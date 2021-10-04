@@ -52,9 +52,6 @@ prepare(void)
 
     );
 
-    allocate_pages(phf, node_ft, 1, false);
-    allocate_pages(phf, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(phf,
                                        CACHE_N_PAGES
 

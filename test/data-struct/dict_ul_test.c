@@ -10,6 +10,7 @@
 #include "data-struct/htable.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -155,6 +156,7 @@ test_dict_ul_ul_it(void)
 
     unsigned long key;
     unsigned long value;
+    size_t        i = 0;
 
     while (dict_ul_ul_iterator_next(it, &key, &value) > -1) {
         if (key == TEST_KEY || key == TEST_KEY_1) {
@@ -169,7 +171,10 @@ test_dict_ul_ul_it(void)
                 assert(false);
             }
         }
+        i++;
     }
+
+    assert(i == dict->num_used);
 
     dict_ul_ul_iterator_destroy(it);
     dict_ul_ul_destroy(dict);
@@ -677,6 +682,32 @@ test_dict_ul_rel_it(void)
     dict_ul_rel_destroy(dict);
 }
 
+void
+test_dict_ul_ul_it_large(void)
+{
+
+    dict_ul_ul* d = d_ul_ul_create();
+    for (size_t i = 0; i < 4 * USHRT_MAX; ++i) {
+        dict_ul_ul_insert(d, i, 0);
+    }
+
+    assert(dict_ul_ul_size(d) == 4 * USHRT_MAX);
+
+    dict_ul_ul_iterator* it = dict_ul_ul_iterator_create(d);
+    size_t               i  = 0;
+    unsigned long        k;
+    unsigned long        v;
+
+    while (dict_ul_ul_iterator_next(it, &k, &v) == 0) {
+        i++;
+    }
+
+    assert(i == dict_ul_ul_size(d));
+
+    dict_ul_ul_iterator_destroy(it);
+    dict_ul_ul_destroy(d);
+}
+
 int
 main(void)
 {
@@ -719,6 +750,8 @@ main(void)
     test_dict_ul_rel_contains();
     test_dict_ul_rel_destroy();
     test_dict_ul_rel_it();
+
+    test_dict_ul_ul_it_large();
 
     printf("%s", "All tests for dict_ul successfull\n");
 }

@@ -31,14 +31,12 @@ swap_nodes(heap_file* hf, unsigned long fst, unsigned long snd, bool log)
     // The node ids must be within the current amount pages and they must not be
     // on a page boundary
     if (!hf || fst == UNINITIALIZED_LONG || snd == UNINITIALIZED_LONG
-        || (fst + 1) * NUM_SLOTS_PER_NODE * SLOT_SIZE - 1
-                 > hf->cache->pdb->records[node_ft]->num_pages * PAGE_SIZE
-        || (snd + 1) * NUM_SLOTS_PER_NODE * SLOT_SIZE - 1
-                 > hf->cache->pdb->records[node_ft]->num_pages * PAGE_SIZE
-        || (fst * NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE
-                 > ((fst + 1) * NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE
-        || (snd * NUM_SLOTS_PER_NODE) % SLOTS_PER_PAGE
-                 > ((snd + 1) * NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE) {
+        || (fst >> CHAR_BIT) >= hf->cache->pdb->records[node_ft]->num_pages
+        || (snd >> CHAR_BIT) >= hf->cache->pdb->records[node_ft]->num_pages
+        || (fst % SLOTS_PER_PAGE)
+                 > ((fst + NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE)
+        || (snd % SLOTS_PER_PAGE)
+                 > ((snd + NUM_SLOTS_PER_NODE - 1) % SLOTS_PER_PAGE)) {
         // LCOV_EXCL_START
         printf("reorder records - swao node: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
@@ -178,16 +176,14 @@ swap_relationships(heap_file*    hf,
                    bool          log)
 {
     if (!hf || fst == UNINITIALIZED_LONG || snd == UNINITIALIZED_LONG
-        || (fst + 1) * NUM_SLOTS_PER_REL * SLOT_SIZE - 1
-                 > hf->cache->pdb->records[relationship_ft]->num_pages
-                         * PAGE_SIZE
-        || (snd + 1) * NUM_SLOTS_PER_REL * SLOT_SIZE - 1
-                 > hf->cache->pdb->records[relationship_ft]->num_pages
-                         * PAGE_SIZE
-        || (fst * NUM_SLOTS_PER_REL) % SLOTS_PER_PAGE
-                 > ((fst + 1) * NUM_SLOTS_PER_REL - 1) % SLOTS_PER_PAGE
-        || (snd * NUM_SLOTS_PER_REL) % SLOTS_PER_PAGE
-                 > ((snd + 1) * NUM_SLOTS_PER_REL - 1) % SLOTS_PER_PAGE) {
+        || (fst >> CHAR_BIT)
+                 >= hf->cache->pdb->records[relationship_ft]->num_pages
+        || (snd >> CHAR_BIT)
+                 >= hf->cache->pdb->records[relationship_ft]->num_pages
+        || (fst % SLOTS_PER_PAGE)
+                 > ((fst + NUM_SLOTS_PER_REL - 1) % SLOTS_PER_PAGE)
+        || (snd % SLOTS_PER_PAGE)
+                 > ((snd + NUM_SLOTS_PER_REL - 1) % SLOTS_PER_PAGE)) {
         // LCOV_EXCL_START
         printf("reorder records - swap relationship: Invalid Arguments!\n");
         exit(EXIT_FAILURE);
@@ -634,23 +630,15 @@ reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
     unsigned long        old_id;
     unsigned long        new_id;
 
-    size_t i = 0;
     while (dict_ul_ul_iterator_next(it, &old_id, &new_id) == 0) {
         dict_ul_ul_insert(inverse_new_ids, new_id, old_id); // fut => cur
-        printf("i %lu, new size %lu, inverse size %lu\n",
-               i,
-               new_ids->num_used,
-               inverse_new_ids->num_used);
-        i++;
-        // FIXME continue here: i = 1004 for 1005 nodes. Probably sth with
-        // htable iterator
     }
     dict_ul_ul_iterator_destroy(it);
 
     size_t n_ids = hf->cache->pdb->records[node_ft]->num_pages * SLOTS_PER_PAGE;
-    unsigned long cur_slot = 0;
-    unsigned long cur_page = 0;
-    unsigned long temp_new;
+    unsigned short cur_slot = 0;
+    unsigned long  cur_page = 0;
+    unsigned long  temp_new;
 
     for (size_t i = 0; i < n_ids; ++i) {
         new_id = cur_page << CHAR_BIT | cur_slot;
@@ -704,14 +692,12 @@ reorder_nodes_by_sequence(heap_file*           hf,
 
     dict_ul_ul*   new_ids  = d_ul_ul_create();
     phy_database* temp_pdb = phy_database_create("reord_temp", "temp_log");
-    disk_file_grow(temp_pdb->header[node_ft], n_pages, false);
 
     page_cache* temp_pc = page_cache_create(temp_pdb, n_pages, "temp_log");
     heap_file*  temp_hf = heap_file_create(temp_pc, "temp_log");
 
     for (size_t i = 0; i < hf->n_nodes; ++i) {
         next_free_slots(temp_hf, true, false);
-        temp_hf->n_nodes++;
         dict_ul_ul_insert(new_ids, sequence[i], temp_hf->last_alloc_node_id);
     }
 
@@ -722,10 +708,6 @@ reorder_nodes_by_sequence(heap_file*           hf,
     reorder_nodes(hf, new_ids, log);
 }
 
-// from i to n
-// find rel that should go to slot i
-// switch that rel with rel i
-// update the from id for the rel that was previously at i
 void
 reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
 {
@@ -742,16 +724,16 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
     unsigned long        old_id;
     unsigned long        new_id;
 
-    for (size_t i = 0; i < dict_ul_ul_size(new_ids); ++i) {
-        dict_ul_ul_iterator_next(it, &old_id, &new_id);     // cur => fut
+    while (dict_ul_ul_iterator_next(it, &old_id, &new_id) == 0) {
         dict_ul_ul_insert(inverse_new_ids, new_id, old_id); // fut => cur
     }
+    dict_ul_ul_iterator_destroy(it);
 
     size_t n_ids =
           hf->cache->pdb->records[relationship_ft]->num_pages * SLOTS_PER_PAGE;
-    unsigned char cur_slot = 0;
-    unsigned long cur_page = 0;
-    unsigned long temp_new;
+    unsigned short cur_slot = 0;
+    unsigned long  cur_page = 0;
+    unsigned long  temp_new;
 
     for (size_t i = 0; i < n_ids; ++i) {
         new_id = cur_page << CHAR_BIT | cur_slot;
@@ -775,7 +757,7 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
             }
         }
 
-        if (cur_slot + 1 % UCHAR_MAX == 0) {
+        if (cur_slot == UCHAR_MAX) {
             cur_page++;
             cur_slot = 0;
         } else {
@@ -796,7 +778,7 @@ reorder_relationships_by_nodes(heap_file* hf, bool log)
     }
     // for each node, fetch the outgoing set and assign them new ids, based on
     // their nodes.
-    unsigned long* new_order = calloc(hf->n_nodes, sizeof(unsigned long));
+    unsigned long* new_order = calloc(hf->n_rels, sizeof(unsigned long));
     array_list_relationship* rels;
     array_list_node*         nodes = get_nodes(hf, log);
 
@@ -834,11 +816,11 @@ reorder_relationships_by_sequence(heap_file*           hf,
           + (hf->n_rels * NUM_SLOTS_PER_REL % (PAGE_SIZE * CHAR_BIT) != 0);
 
     dict_ul_ul*   new_ids  = d_ul_ul_create();
-    phy_database* temp_pdb = phy_database_create("reord_temp", NULL);
+    phy_database* temp_pdb = phy_database_create("reord_temp", "temp_log");
     disk_file_grow(temp_pdb->header[relationship_ft], n_pages, false);
 
-    page_cache* temp_pc = page_cache_create(temp_pdb, n_pages, NULL);
-    heap_file*  temp_hf = heap_file_create(temp_pc, NULL);
+    page_cache* temp_pc = page_cache_create(temp_pdb, n_pages, "temp_log");
+    heap_file*  temp_hf = heap_file_create(temp_pc, "temp_log");
 
     for (size_t i = 0; i < hf->n_rels; ++i) {
         next_free_slots(temp_hf, false, false);

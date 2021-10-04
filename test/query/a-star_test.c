@@ -34,9 +34,6 @@ main(void)
 
     phy_database* pdb = phy_database_create(file_name, log_name_pdb);
 
-    allocate_pages(pdb, node_ft, 1, false);
-    allocate_pages(pdb, relationship_ft, 1, false);
-
     page_cache* pc = page_cache_create(pdb, CACHE_N_PAGES, log_name_cache);
 
     heap_file* hf = heap_file_create(pc, log_name_file);
