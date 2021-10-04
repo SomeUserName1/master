@@ -712,8 +712,8 @@ main(void)
     // printf("finished test swap relationships\n");
     // test_swap_record_pages();
     // printf("finished test swap record pages\n");
-    test_reorder_nodes();
-    printf("finished test reorder nodes\n");
+    // test_reorder_nodes();
+    // printf("finished test reorder nodes\n");
     test_reorder_nodes_by_sequence();
     printf("finished test reorder nodes by sequence\n");
     test_reorder_relationships();

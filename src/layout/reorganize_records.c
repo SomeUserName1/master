@@ -634,9 +634,16 @@ reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
     unsigned long        old_id;
     unsigned long        new_id;
 
-    for (size_t i = 0; i < dict_ul_ul_size(new_ids); ++i) {
-        dict_ul_ul_iterator_next(it, &old_id, &new_id);     // cur => fut
+    size_t i = 0;
+    while (dict_ul_ul_iterator_next(it, &old_id, &new_id) == 0) {
         dict_ul_ul_insert(inverse_new_ids, new_id, old_id); // fut => cur
+        printf("i %lu, new size %lu, inverse size %lu\n",
+               i,
+               new_ids->num_used,
+               inverse_new_ids->num_used);
+        i++;
+        // FIXME continue here: i = 1004 for 1005 nodes. Probably sth with
+        // htable iterator
     }
     dict_ul_ul_iterator_destroy(it);
 
@@ -696,14 +703,15 @@ reorder_nodes_by_sequence(heap_file*           hf,
           + (hf->n_rels * NUM_SLOTS_PER_NODE % (PAGE_SIZE * CHAR_BIT) != 0);
 
     dict_ul_ul*   new_ids  = d_ul_ul_create();
-    phy_database* temp_pdb = phy_database_create("reord_temp", NULL);
+    phy_database* temp_pdb = phy_database_create("reord_temp", "temp_log");
     disk_file_grow(temp_pdb->header[node_ft], n_pages, false);
 
-    page_cache* temp_pc = page_cache_create(temp_pdb, n_pages, NULL);
-    heap_file*  temp_hf = heap_file_create(temp_pc, NULL);
+    page_cache* temp_pc = page_cache_create(temp_pdb, n_pages, "temp_log");
+    heap_file*  temp_hf = heap_file_create(temp_pc, "temp_log");
 
     for (size_t i = 0; i < hf->n_nodes; ++i) {
         next_free_slots(temp_hf, true, false);
+        temp_hf->n_nodes++;
         dict_ul_ul_insert(new_ids, sequence[i], temp_hf->last_alloc_node_id);
     }
 

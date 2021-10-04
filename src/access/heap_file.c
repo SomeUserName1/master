@@ -144,13 +144,15 @@ next_free_slots(heap_file* hf, bool node, bool log)
     unsigned long cur_id         = *prev_allocd_id;
     unsigned long record_page_id = *prev_allocd_id >> CHAR_BIT;
     unsigned char slot_in_page   = *prev_allocd_id & UCHAR_MAX;
+    bool          found_slot     = false;
 
     do {
         if (!check_record_exists(hf, cur_id, node, log)
             && slot_in_page % SLOTS_PER_PAGE
                      <= (slot_in_page + (n_slots - 1)) % SLOTS_PER_PAGE) {
             *prev_allocd_id = cur_id;
-            return;
+            found_slot      = true;
+            break;
         }
 
         if ((slot_in_page + n_slots) % SLOTS_PER_PAGE
@@ -164,20 +166,47 @@ next_free_slots(heap_file* hf, bool node, bool log)
         cur_id = (record_page_id << CHAR_BIT) | slot_in_page;
     } while (record_page_id < hf->cache->pdb->records[ft]->num_pages);
 
-    page* np = new_page(hf->cache, ft, log);
+    if (!found_slot) {
+        page* np = new_page(hf->cache, ft, log);
 
-    if (np->page_no > (unsigned long)(ULONG_MAX << CHAR_BIT)) {
-        // LCOV_EXCL_START
-        printf("heap file - next free slot: Reached size limit of Database\n"
-               "Unreachable in most ile systems as file size limit is by "
-               "orders of magnitude smaller (16 TiB FS limit vs. 1.6 EiB DB "
-               "limit\n");
-        exit(EXIT_FAILURE);
-        // LCOV_EXCL_STOP
-    } else {
-        *prev_allocd_id = np->page_no << CHAR_BIT;
-        unpin_page(hf->cache, np->page_no, records, ft, log);
+        if (np->page_no > (unsigned long)(ULONG_MAX << CHAR_BIT)) {
+            // LCOV_EXCL_START
+            printf(
+                  "heap file - next free slot: Reached size limit of Database\n"
+                  "Unreachable in most ile systems as file size limit is by "
+                  "orders of magnitude smaller (16 TiB FS limit vs. 1.6 EiB DB "
+                  "limit\n");
+            exit(EXIT_FAILURE);
+            // LCOV_EXCL_STOP
+        } else {
+            *prev_allocd_id = np->page_no << CHAR_BIT;
+            unpin_page(hf->cache, np->page_no, records, ft, log);
+        }
     }
+
+    record_page_id = *prev_allocd_id >> CHAR_BIT;
+    slot_in_page   = *prev_allocd_id & UCHAR_MAX;
+
+    size_t absolute_slot = record_page_id * SLOTS_PER_PAGE + slot_in_page;
+
+    size_t header_id   = absolute_slot / (PAGE_SIZE * CHAR_BIT);
+    size_t byte_offset = (absolute_slot / CHAR_BIT) % PAGE_SIZE;
+    size_t bit_offset  = absolute_slot % CHAR_BIT;
+
+    page* header_page = pin_page(hf->cache, header_id, header, ft, log);
+
+    unsigned char* used_bits = malloc(sizeof(unsigned char));
+    used_bits[0]             = UCHAR_MAX;
+
+    write_bits(hf->cache,
+               header_page,
+               byte_offset,
+               bit_offset,
+               n_slots,
+               used_bits,
+               log);
+
+    unpin_page(hf->cache, header_id, header, ft, log);
 }
 
 static node_t*
@@ -346,30 +375,6 @@ create_node(heap_file* hf, unsigned long label, bool log)
 
     free(node);
 
-    unsigned long record_page_id = node_id >> CHAR_BIT;
-    unsigned char slot_in_page   = node_id & UCHAR_MAX;
-
-    size_t absolute_slot = record_page_id * SLOTS_PER_PAGE + slot_in_page;
-
-    size_t header_id   = absolute_slot / (PAGE_SIZE * CHAR_BIT);
-    size_t byte_offset = (absolute_slot / CHAR_BIT) % PAGE_SIZE;
-    size_t bit_offset  = absolute_slot % CHAR_BIT;
-
-    page* header_page = pin_page(hf->cache, header_id, header, node_ft, log);
-
-    unsigned char* used_bits = malloc(sizeof(unsigned char));
-    used_bits[0]             = UCHAR_MAX;
-
-    write_bits(hf->cache,
-               header_page,
-               byte_offset,
-               bit_offset,
-               NUM_SLOTS_PER_NODE,
-               used_bits,
-               log);
-
-    unpin_page(hf->cache, header_id, header, node_ft, log);
-
     hf->n_nodes++;
 
     return node_id;
@@ -535,31 +540,6 @@ create_relationship(heap_file*    hf,
     }
 
     free(rel);
-
-    unsigned long record_page_id = rel_id >> CHAR_BIT;
-    unsigned char slot_in_page   = rel_id & UCHAR_MAX;
-
-    size_t absolute_slot = record_page_id * SLOTS_PER_PAGE + slot_in_page;
-
-    size_t header_id   = absolute_slot / (PAGE_SIZE * CHAR_BIT);
-    size_t byte_offset = (absolute_slot / CHAR_BIT) % PAGE_SIZE;
-    size_t bit_offset  = absolute_slot % CHAR_BIT;
-
-    unsigned char* used_bits = malloc(sizeof(unsigned char));
-    used_bits[0]             = UCHAR_MAX;
-
-    page* header_page =
-          pin_page(hf->cache, header_id, header, relationship_ft, log);
-
-    write_bits(hf->cache,
-               header_page,
-               byte_offset,
-               bit_offset,
-               NUM_SLOTS_PER_REL,
-               used_bits,
-               log);
-
-    unpin_page(hf->cache, header_id, header, relationship_ft, log);
 
     hf->n_rels++;
 
