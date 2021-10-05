@@ -30,6 +30,15 @@ Compile the source code
 ```
 make
 ```
+Alternatively, Ninja can be used instead of Makefiles. Append ```-GNinja``` to the cmake command and build with ```ninja``` instead of ```make```. Similarly ```ninja test``` needs to be used for tests then.
+
+## Documentation
+TODO CMake integration
+To generate the documentation simply run
+```
+doxygen
+```
+from the repository root. This generates LaTeX and HTML documentations in the folders latex and html respectively.
 
 ## Testing
 After building type 
@@ -95,7 +104,7 @@ firefox coverage/report.html&
 - [x] access  
 - [x] queries  
 - [x] logging
-- [ ] layout 
+- [x] layout 
 - [ ] Benchmark crud, expand, get nodes and compare to Neo4j
 
 #### Future Work

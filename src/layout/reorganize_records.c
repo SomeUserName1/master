@@ -848,7 +848,7 @@ void
 sort_incidence_list(heap_file* hf, bool log)
 {
     if (!hf) {
-        // LCVOV_EXCL_START
+        // LCOV_EXCL_START
         printf("reorganize records - sort_incidence_list: Invalid "
                "Arguments!\n");
         exit(EXIT_FAILURE);
