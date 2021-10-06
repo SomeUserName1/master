@@ -8,9 +8,17 @@ It consists of the low level components of a database with extended logging with
 
 
 ## Dependencies
+#### Libraries
 - Curl
 - Zlib
 
+#### Tools
+- CMake
+- Doxygen
+- Clang & LLVM
+- Clang-Tidy & Clang-Format
+- gcovr, llvm-cov
+- Ninja or Makefiles (build-essential on Debian-based Distros, base-devel on Pacman/Arch-based Distros)
 
 
 ## Building
@@ -33,7 +41,6 @@ make
 Alternatively, Ninja can be used instead of Makefiles. Append ```-GNinja``` to the cmake command and build with ```ninja``` instead of ```make```. Similarly ```ninja test``` needs to be used for tests then.
 
 ## Documentation
-TODO CMake integration
 To generate the documentation simply run
 ```
 doxygen
@@ -67,56 +74,34 @@ firefox coverage/report.html&
 
 ## TODOs
 ### Documentation 
-- [x] SRS
-- [x] SDD
-- [x] Copyright & License
 - Code Comments
-    - [ ] data-struct
-    - [ ] io
-    - [ ] cache
+    - [x] io
+    - [x] cache
     - [ ] access
     - [ ] query
     - [ ] layout
-- [ ] README
+    - [ ] data-struct
+- [ ] README (WIP)
 - [ ] Presentation
 - [ ] Update SDD
 
 ### Implementation
-#### Source
-- [x] Fixup Includes
-- [x] Marko-based genereic data structures
-- [x] Disk-based IO
-- [x] Cache
-- [x] Heap file
-- [x] Queries 
-- [x] Weights for snap importer
-- [x] logging
-- [x] layout 
-- [x] Filter/find by string id
-- [x] log both string and internal id
-- [x] Make coverage script bash compatible
 - [ ] sample main file
-
-#### Tests
-- [x] data structures
-- [x] io
-- [x] cache
-- [x] access  
-- [x] queries  
-- [x] logging
-- [x] layout 
 - [ ] Benchmark crud, expand, get nodes and compare to Neo4j
 
-#### Future Work
+### Future Work
+#### Basics
+  - Deallocate Page (phy_database), delete_page (page_cache)
   - System Catalog 
   - Iterator for get nodes and get relationships
   - Bulk ops
+  - Properties
+
+#### Transactions & Queries
   - thread-safe data structures & locks
   - Transactions & transaction buffers
   - Pattern-based/Cypher-like QL & interpreter
-  - Properties
-  - Alternative record layouts (nodes + adj list in same file, dense & sparse matrices)
-  - Distributed
-  - MVCC 
-  - Multi-Model
 
+#### Advanced
+  - Alternative record layouts (nodes + adj list in same file, dense & sparse matrices)
+  - Data Science QL that uses sparse matrices (Hot & Cold or Snapshots)

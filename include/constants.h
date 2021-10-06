@@ -18,9 +18,8 @@ static const unsigned long UNINITIALIZED_LONG   = 0xFFFFFFFFFFFFF666;
 static const unsigned char UNINITIALIZED_BYTE   = 0xFF;
 static const double        UNINITIALIZED_WEIGHT = 0x1.FFFFFFFFFF666p-1;
 
-/* The size of a page, the maximum number of pages (limited by the standard
- * library using the type long for file offsets) and the maximum amount of
- * characters in a string to be stored to disk. */
+/*! The size of a page. Fetched from the OS to match an OS page to a DB page in
+ * size. */
 #define PAGE_SIZE ((size_t)sysconf(_SC_PAGESIZE))
 #define MAX_PAGE_NO                                                            \
     (LONG_MAX / PAGE_SIZE) /* Approx 1 << 32 - 1 pages; Overall Maximum        \

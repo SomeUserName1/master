@@ -1,8 +1,11 @@
-/*
- * @(#)disk_file.c   1.0   Sep 15, 2021
+/*!
+ * \file disk_file.c
+ * \version 1.0
+ * \date Sep 15, 2021
+ * \author Fabian Klopfer <fabian.klopfer@ieee.org>
+ * \brief See \ref disk_file.h
  *
- * Copyright (c) 2021- University of Konstanz.
- *
+ * \copyright Copyright (c) 2021- University of Konstanz.
  * This software is the proprietary information of the above-mentioned
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
@@ -17,8 +20,6 @@
 #include <unistd.h>
 
 #include "constants.h"
-
-#define PiB_OFFSET 50
 
 disk_file*
 disk_file_create(char* file_name, FILE* log_file)
@@ -220,10 +221,8 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
         printf("disk file - grow: Cannot grow "
                "database by %lu pages! "
                "Exceeds "
-               "max database size "
-               "of %li PiB!\n",
-               by_num_pages,
-               LONG_MAX >> PiB_OFFSET);
+               "max database size\n",
+               by_num_pages);
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -290,12 +289,6 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
 }
 
 /**
- * DANGER ZONE!
- * This method assumes that the empty pages have
- * been moved to the end. It will simply shrink the
- * file by cutting of the last by_no_pages pages.
- * If these are not empty, the records on these
- * pages will be lost!
  */
 void
 disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)

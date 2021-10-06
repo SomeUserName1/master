@@ -1,8 +1,11 @@
-/*
- * @(#)physical_database.c   1.0   Sep 15, 2021
+/*!
+ * \file physical_database.c
+ * \version 1.0
+ * \date Sep 15, 2021
+ * \author Fabian Klopfer <fabian.klopfer@ieee.org>
+ * \brief see \ref physical_database.h.
  *
- * Copyright (c) 2021- University of Konstanz.
- *
+ * \copyright Copyright (c) 2021- University of Konstanz.
  * This software is the proprietary information of the above-mentioned
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
@@ -18,16 +21,6 @@
 
 #include "constants.h"
 #include "disk_file.h"
-
-#define CATALOGUE_POSTFIX_LEN (strlen(".info"))
-
-#define NODE_FILE_POSTFIX_LEN   (strlen("_nodes.db"))
-#define RELS_FILE_POSTFIX_LEN   (strlen("_relationships.db"))
-#define RECORD_FILE_POSTFIX_LEN (strlen(".db"))
-
-#define NODE_HEADER_POSTFIX_LEN (strlen("_nodes.idx"))
-#define RELS_HEADER_POSTFIX_LEN (strlen("_relationships.idx"))
-#define HEADER_FILE_POSTFIX_LEN (strlen(".idx"))
 
 static phy_database*
 phy_database_create_internal(char*       db_name,
@@ -62,11 +55,11 @@ phy_database_create_internal(char*       db_name,
     }
 
     char* catalogue_name =
-          calloc(strlen(db_name) + CATALOGUE_POSTFIX_LEN + 1, sizeof(char));
+          calloc(strlen(db_name) + strlen(".info") + 1, sizeof(char));
 
     strncpy(catalogue_name, db_name, strlen(db_name) + 1);
 
-    strncat(catalogue_name, ".info", CATALOGUE_POSTFIX_LEN);
+    strncat(catalogue_name, ".info", strlen(".info"));
 
     if (!open) {
         phy_db->catalogue = disk_file_create(catalogue_name, phy_db->log_file);
@@ -75,48 +68,19 @@ phy_database_create_internal(char*       db_name,
         phy_db->catalogue = disk_file_open(catalogue_name, phy_db->log_file);
     }
 
-#ifdef ADJ_LIST
-    char* header_name =
-          calloc(strlen(db_name) + HEADER_POSTFIX_LEN + 1, sizeof(char));
-
-    strncpy(header_name, db_name, strlen(db_name) + 1);
-
-    strncat(header_name, ".idx", HEADER_POSTFIX_LEN);
-
-    if (!open) {
-        phy_db->header[0] = disk_file_create(header_name, log_file);
-    } else {
-        phy_db->header[0] = disk_file_open(header_name, log_file);
-    }
-
-    /* Create or open Record files */
-    // +1 as strlen does not count \0
-    char* record_file_name =
-          calloc(strlen(db_name) + RECORD_FILE_POSTFIX_LEN + 1, sizeof(char));
-
-    strncpy(record_file_name, db_name, strlen(db_name) + 1);
-
-    strncat(rels_file_name, ".db", RECORD_FILE_POSTFIX_LEN);
-
-    if (!open) {
-        phy_db->records[0] = disk_file_create(record_file_name, log_file);
-    } else {
-        phy_db->records[0] = disk_file_open(record_file_name, log_file);
-    }
-
-#else
     /* Create or open header files for the record files */
     // +1 as strlen does not count \0
     char* nodes_header_name =
-          calloc(strlen(db_name) + NODE_HEADER_POSTFIX_LEN + 1, sizeof(char));
-    char* rels_header_name =
-          calloc(strlen(db_name) + RELS_HEADER_POSTFIX_LEN + 1, sizeof(char));
+          calloc(strlen(db_name) + strlen("_nodes.idx") + 1, sizeof(char));
+    char* rels_header_name = calloc(
+          strlen(db_name) + strlen("_relationships.idx") + 1, sizeof(char));
 
     strncpy(nodes_header_name, db_name, strlen(db_name) + 1);
     strncpy(rels_header_name, db_name, strlen(db_name) + 1);
 
-    strncat(nodes_header_name, "_nodes.idx", NODE_HEADER_POSTFIX_LEN);
-    strncat(rels_header_name, "_relationships.idx", RELS_HEADER_POSTFIX_LEN);
+    strncat(nodes_header_name, "_nodes.idx", strlen("_nodes.idx"));
+    strncat(
+          rels_header_name, "_relationships.idx", strlen("_relationships.idx"));
 
     if (!open) {
         phy_db->header[node_ft] =
@@ -133,15 +97,15 @@ phy_database_create_internal(char*       db_name,
     /* Create or open Record files */
     // +1 as strlen does not count \0
     char* nodes_file_name =
-          calloc(strlen(db_name) + NODE_FILE_POSTFIX_LEN + 1, sizeof(char));
-    char* rels_file_name =
-          calloc(strlen(db_name) + RELS_FILE_POSTFIX_LEN + 1, sizeof(char));
+          calloc(strlen(db_name) + strlen("_nodes.db") + 1, sizeof(char));
+    char* rels_file_name = calloc(
+          strlen(db_name) + strlen("_relationships.db") + 1, sizeof(char));
 
     strncpy(nodes_file_name, db_name, strlen(db_name) + 1);
     strncpy(rels_file_name, db_name, strlen(db_name) + 1);
 
-    strncat(nodes_file_name, "_nodes.db", NODE_FILE_POSTFIX_LEN);
-    strncat(rels_file_name, "_relationships.db", RELS_FILE_POSTFIX_LEN);
+    strncat(nodes_file_name, "_nodes.db", strlen("_nodes.db"));
+    strncat(rels_file_name, "_relationships.db", strlen("_relationships.db"));
 
     if (!open) {
         phy_db->records[node_ft] =
@@ -154,7 +118,6 @@ phy_database_create_internal(char*       db_name,
         phy_db->records[relationship_ft] =
               disk_file_open(rels_file_name, phy_db->log_file);
     }
-#endif
 
     bool valid_header;
     for (file_type ft = 0; ft < invalid_ft; ++ft) {
@@ -352,13 +315,7 @@ phy_database_validate_header(phy_database* db, file_type ft)
 void
 allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
 {
-    if (!db ||
-#ifdef ADJ_LIST
-        ft != record_file
-#else
-        (ft != node_ft && ft != relationship_ft)
-#endif
-    ) {
+    if (!db || (ft != node_ft && ft != relationship_ft)) {
         // LCOV_EXCL_START
         printf("physical database - allocate: Invalid arguments!\n");
         exit(EXIT_FAILURE);
@@ -367,8 +324,11 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
 
     disk_file_grow(db->records[ft], num_pages, log);
 
+    /* Compute the number of header bits that will be used due to the groth of
+     * the record file. */
     size_t neccessary_bits = num_pages * (PAGE_SIZE / SLOT_SIZE);
-
+    /* If more header bits are required than there are currently unused ones, we
+     * need to allocate more header page(s). */
     if (db->remaining_header_bits[ft] < neccessary_bits) {
         size_t additional_bits =
               neccessary_bits - db->remaining_header_bits[ft];
@@ -376,17 +336,19 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
               (additional_bits / CHAR_BIT) + (additional_bits % CHAR_BIT != 0);
         size_t additional_pages = (additional_bytes / PAGE_SIZE)
                                   + (additional_bytes % PAGE_SIZE != 0);
-
+        /* grow the header file according to the difference between additionally
+         * necessary and remaining bits. */
         disk_file_grow(db->header[ft], additional_pages, log);
 
         db->remaining_header_bits[ft] =
               (additional_pages * PAGE_SIZE * CHAR_BIT - additional_bits);
     } else {
+        /* If the current header file has enough bits left, subtract the amount
+         * of bits that are used additionally from the remaining ones. */
         db->remaining_header_bits[ft] -= neccessary_bits;
     }
 
     /* Write the size back to the catalogue */
-
     unsigned char catalogue[PAGE_SIZE];
     size_t        bits;
 
@@ -402,24 +364,3 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
     write_page(db->catalogue, 0, catalogue, log);
 }
 
-// LCOV_EXCL_START
-void
-deallocate_pages(phy_database* db, file_type ft)
-{
-    if (!db) {
-        printf("physical database - deallocate page: Invalid "
-               "arguments!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("pyhsical database - dealloc: Not Implemented! %p, %i\n", db, ft);
-    exit(EXIT_FAILURE);
-}
-
-void
-physical_database_defragment(phy_database* pdb)
-{
-    printf("pyhsical database - defragment: Not Implemented! %p\n", pdb);
-    exit(EXIT_FAILURE);
-}
-// LCOV_EXCL_STOP

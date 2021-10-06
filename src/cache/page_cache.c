@@ -1,8 +1,11 @@
-/*
- * @(#)page_cache.c   1.0   Sep 15, 2021
+/*!
+ * \file page_cache.c
+ * \version 1.0
+ * \date Sep 15, 2021
+ * \author Fabian Klopfer <fabian.klopfer@ieee.org>
+ * \brief See \ref page_cache.h
  *
- * Copyright (c) 2021- University of Konstanz.
- *
+ * \copyright Copyright (c) 2021- University of Konstanz.
  * This software is the proprietary information of the above-mentioned
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
@@ -24,7 +27,7 @@
 #include "physical_database.h"
 
 page_cache*
-page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
+page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
 {
     if (!pdb) {
         // LCOV_EXCL_START
@@ -43,7 +46,7 @@ page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
     }
 
     pc->pdb                 = pdb;
-    pc->n_pages             = n_pages;
+    pc->n_frames            = n_frames;
     pc->num_pins            = 0;
     pc->num_unpins          = 0;
     pc->free_frames         = ll_ul_create();
@@ -60,7 +63,7 @@ page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
         }
     }
 
-    unsigned char* data = calloc(n_pages, PAGE_SIZE);
+    unsigned char* data = calloc(n_frames, PAGE_SIZE);
 
     if (!data) {
         // LCOV_EXCL_START
@@ -69,9 +72,9 @@ page_cache_create(phy_database* pdb, size_t n_pages, const char* log_path)
         // LCOV_EXCL_STOP
     }
 
-    pc->cache = calloc(n_pages, sizeof(page*));
-    for (unsigned long i = 0; i < n_pages; ++i) {
-        pc->cache[i] = page_create(data + (PAGE_SIZE * i));
+    pc->frames = calloc(n_frames, sizeof(page*));
+    for (unsigned long i = 0; i < n_frames; ++i) {
+        pc->frames[i] = page_create(data + (PAGE_SIZE * i));
         llist_ul_append(pc->free_frames, i);
     }
 
@@ -114,12 +117,12 @@ page_cache_destroy(page_cache* pc)
         }
     }
 
-    free(pc->cache[0]->data);
+    free(pc->frames[0]->data);
 
-    for (unsigned long i = 0; i < pc->n_pages; ++i) {
-        page_destroy(pc->cache[i]);
+    for (unsigned long i = 0; i < pc->n_frames; ++i) {
+        page_destroy(pc->frames[i]);
     }
-    free(pc->cache);
+    free(pc->frames);
 
     if (fclose(pc->log_file) != 0) {
         // LCOV_EXCL_START
@@ -178,12 +181,12 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
     page*  pinned_page;
     if (dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
         frame_no    = dict_ul_ul_get_direct(pc->page_map[fk][ft], page_no);
-        pinned_page = pc->cache[frame_no];
+        pinned_page = pc->frames[frame_no];
         pinned_page->pin_count++;
     } else {
         if (llist_ul_size(pc->free_frames) == 0) {
             if (pc->bulk_import) {
-                bulk_evict(pc, log);
+                bulk_evict(pc);
             } else {
                 evict(pc, log);
             }
@@ -191,7 +194,7 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
 
         frame_no = llist_ul_take(pc->free_frames, 0);
 
-        pinned_page = pc->cache[frame_no];
+        pinned_page = pc->frames[frame_no];
 
         pinned_page->fk        = fk;
         pinned_page->ft        = ft;
@@ -276,7 +279,7 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
     }
 
     size_t frame_no      = dict_ul_ul_get_direct(pc->page_map[fk][ft], page_no);
-    page*  unpinned_page = pc->cache[frame_no];
+    page*  unpinned_page = pc->frames[frame_no];
 
     if (unpinned_page->pin_count == 0) {
         // LCOV_EXCL_START
@@ -319,13 +322,17 @@ evict(page_cache* pc, bool log)
     size_t evicted = 0;
     for (size_t i = 0; i < queue_ul_size(pc->recently_referenced); ++i) {
         candidate      = queue_ul_get(pc->recently_referenced, i);
-        candidate_page = pc->cache[candidate];
+        candidate_page = pc->frames[candidate];
 
         if (candidate_page->pin_count == 0) {
 
             flush_page(pc, candidate, log);
             if (log) {
-                fprintf(pc->log_file, "evict %lu\n", candidate_page->page_no);
+                fprintf(pc->log_file,
+                        "Evict %u %u %lu\n",
+                        candidate_page->fk,
+                        candidate_page->ft,
+                        candidate_page->page_no);
                 fflush(pc->log_file);
             }
             /* Remove reference of page from lookup table */
@@ -373,18 +380,14 @@ evict(page_cache* pc, bool log)
 }
 
 void
-bulk_evict(page_cache* pc, bool log)
+bulk_evict(page_cache* pc)
 {
     size_t evicted = 0;
     page*  c_page;
-    for (size_t i = 0; i < pc->n_pages; ++i) {
-        c_page = pc->cache[i];
+    for (size_t i = 0; i < pc->n_frames; ++i) {
+        c_page = pc->frames[i];
         if (c_page->pin_count == 0) {
-            flush_page(pc, i, log);
-            if (log) {
-                fprintf(pc->log_file, "evict %lu\n", c_page->page_no);
-                fflush(pc->log_file);
-            }
+            flush_page(pc, i, false);
 
             dict_ul_ul_remove(pc->page_map[c_page->fk][c_page->ft],
                               c_page->page_no);
@@ -427,7 +430,7 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
-    page* candidate = pc->cache[frame_no];
+    page* candidate = pc->frames[frame_no];
 
     if (candidate->pin_count > 0) {
         // LCOV_EXCL_START
@@ -463,11 +466,15 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
 
         write_page(df, candidate->page_no, candidate->data, log);
 
-        pc->cache[frame_no]->dirty = false;
+        pc->frames[frame_no]->dirty = false;
     }
 
     if (log) {
-        fprintf(pc->log_file, "Flushed %lu\n", pc->cache[frame_no]->page_no);
+        fprintf(pc->log_file,
+                "Flushed %u %u %lu\n",
+                pc->frames[frame_no]->fk,
+                pc->frames[frame_no]->ft,
+                pc->frames[frame_no]->page_no);
         fflush(pc->log_file);
     }
 }
@@ -475,7 +482,7 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
 void
 flush_all_pages(page_cache* pc, bool log)
 {
-    for (unsigned long i = 0; i < pc->n_pages; ++i) {
+    for (unsigned long i = 0; i < pc->n_frames; ++i) {
         flush_page(pc, i, log);
     }
 }
