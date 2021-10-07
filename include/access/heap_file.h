@@ -1,13 +1,15 @@
-/*
- * @(#)heap_file.h   1.0   Sep 15, 2021
+/*!
+ * \file heap_file.h
+ * \version 1.0
+ * \date Sep 15, 2021
+ * \author Fabian Klopfer <fabian.klopfer@ieee.org>
+ * \brief TODO
  *
- * Copyright (c) 2021- University of Konstanz.
- *
+ * \copyright Copyright (c) 2021- University of Konstanz.
  * This software is the proprietary information of the above-mentioned
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
  */
-
 #ifndef HEAP_FILE_H
 #define HEAP_FILE_H
 

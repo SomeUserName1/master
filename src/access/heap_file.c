@@ -1,8 +1,11 @@
-/*
- * @(#)heap_file.c   1.0   Sep 15, 2021
+/*!
+ * \file heap_file.c
+ * \version 1.0
+ * \date Sep 15, 2021
+ * \author Fabian Klopfer <fabian.klopfer@ieee.org>
+ * \brief See \ref heap_file.h
  *
- * Copyright (c) 2021- University of Konstanz.
- *
+ * \copyright Copyright (c) 2021- University of Konstanz.
  * This software is the proprietary information of the above-mentioned
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
@@ -24,8 +27,8 @@
 #include "page_cache.h"
 #include "physical_database.h"
 
-heap_file*
-heap_file_create(page_cache* pc, const char* log_path)
+      heap_file*
+      heap_file_create(page_cache* pc, const char* log_path)
 {
     if (!pc || !log_path) {
         // LCOV_EXCL_START
