@@ -409,15 +409,9 @@ write_pages(disk_file*     df,
                "the page numbers you "
                "specified "
                "(%lu or %lu) are "
-               "too large!\n "
-               "The size limit of the database "
-               "is currently %li PiB, that "
-               "is "
-               "the maximal page number is %li",
+               "too large!\n",
                fst_page,
-               lst_page,
-               LONG_MAX >> PiB_OFFSET,
-               MAX_PAGE_NO);
+               lst_page);
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -560,19 +554,11 @@ read_pages(disk_file*     df,
                "The current size of the "
                "database is %lu pages and "
                "%li "
-               "bytes.\n"
-               "The size limit of the "
-               "database is currently %li "
-               "PiB, that "
-               "is "
-               "the maximal page number "
-               "is %li",
+               "bytes.\n",
                fst_page,
                lst_page,
                df->num_pages,
-               df->file_size,
-               LONG_MAX >> PiB_OFFSET,
-               MAX_PAGE_NO);
+               df->file_size);
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -650,3 +636,15 @@ clear_page(disk_file* df, size_t page_no, bool log)
     free(data);
 }
 
+void
+disk_file_swap_log_file(disk_file* df, FILE* new_log_file)
+{
+    if (!df || !new_log_file) {
+        // LCOV_EXCL_START
+        printf("disk file - swap_log_file: Invalid Arguments\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    df->log_file = new_log_file;
+}

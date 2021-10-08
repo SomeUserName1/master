@@ -199,4 +199,13 @@ phy_database_validate_header(phy_database* db, file_type ft);
 void
 allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log);
 
+/*!
+ * Swaps the log file of the physical database and all its contained disk files.
+ *
+ * \param pdb The pyhsical database whichs log file to swap.
+ * \param log_file_path The path of the new log file.
+ */
+void
+phy_database_swap_log_file(phy_database* pdb, const char* log_file_path);
+
 #endif

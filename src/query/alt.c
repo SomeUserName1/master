@@ -115,10 +115,12 @@ alt(heap_file*    hf,
     double temp_dist;
     for (size_t i = 0; i < num_landmarks; ++i) {
         for (size_t j = 0; j < array_list_node_size(nodes); ++j) {
+
             temp_dist = fabs(
                   dict_ul_d_get_direct(landmark_dists[i],
                                        array_list_node_get(nodes, j)->id)
                   - dict_ul_d_get_direct(landmark_dists[i], target_node_id));
+
             if (log) {
                 fprintf(log_file,
                         "alt N %lu\n",
@@ -135,6 +137,7 @@ alt(heap_file*    hf,
             }
         }
     }
+
     array_list_node_destroy(nodes);
 
     path* result = a_star(hf,

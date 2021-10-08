@@ -1,5 +1,5 @@
 /*
- * @(#)queue_ul_test.c   1.0   Sep 15, 2021
+ * queue_ul_test.c   1.0   Sep 15, 2021
  *
  * Copyright (c) 2021- University of Konstanz.
  *

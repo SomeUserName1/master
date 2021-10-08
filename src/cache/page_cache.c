@@ -501,3 +501,95 @@ new_page(page_cache* pc, file_type ft, bool log)
     return pin_page(pc, pc->pdb->records[ft]->num_pages - 1, records, ft, log);
 }
 
+void
+page_cache_swap_log_file(page_cache* pc, const char* log_file_path)
+{
+
+    if (!pc || !log_file_path) {
+        // LCOV_EXCL_START
+        printf("page cache - swap log file: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fclose(pc->log_file) != 0) {
+        // LCOV_EXCL_START
+        printf("page_cache - swap log file: Error closing file: %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    pc->log_file = fopen(log_file_path, "a");
+
+    if (!pc->log_file) {
+        // LCOV_EXCL_START
+        printf("page cache - swap log file: failed to fopen %s: %s\n",
+               log_file_path,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+}
+
+void
+page_cache_change_n_frames(page_cache* pc, size_t n_frames)
+{
+    if (!pc) {
+        // LCOV_EXCL_START
+        printf("page cache - swap log file: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    flush_all_pages(pc, false);
+
+    for (size_t i = 0; i < pc->n_frames; ++i) {
+        if (pc->frames[i]->pin_count != 0) {
+            printf("page cache - change n frames: Can not change the frame "
+                   "size if there are still pinned pages!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    free(pc->frames[0]->data);
+    for (unsigned long i = 0; i < pc->n_frames; ++i) {
+        page_destroy(pc->frames[i]);
+    }
+    free(pc->frames);
+
+    for (file_kind i = 0; i < invalid; ++i) {
+        if (i == catalogue) {
+            dict_ul_ul_destroy(pc->page_map[i][0]);
+            pc->page_map[i][0] = d_ul_ul_create();
+            continue;
+        }
+
+        for (file_type j = 0; j < invalid_ft; ++j) {
+            dict_ul_ul_destroy(pc->page_map[i][j]);
+            pc->page_map[i][j] = d_ul_ul_create();
+        }
+    }
+
+    queue_ul_destroy(pc->recently_referenced);
+    pc->recently_referenced = q_ul_create();
+
+    unsigned char* data = calloc(n_frames, PAGE_SIZE);
+
+    if (!data) {
+        // LCOV_EXCL_START
+        printf("page cache - create: failed to allocate memory!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    llist_ul_destroy(pc->free_frames);
+    pc->free_frames = ll_ul_create();
+
+    pc->n_frames = n_frames;
+    pc->frames   = calloc(n_frames, sizeof(page*));
+    for (unsigned long i = 0; i < n_frames; ++i) {
+        pc->frames[i] = page_create(data + (PAGE_SIZE * i));
+        llist_ul_append(pc->free_frames, i);
+    }
+}

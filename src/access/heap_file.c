@@ -27,8 +27,8 @@
 #include "page_cache.h"
 #include "physical_database.h"
 
-      heap_file*
-      heap_file_create(page_cache* pc, const char* log_path)
+heap_file*
+heap_file_create(page_cache* pc, const char* log_path)
 {
     if (!pc || !log_path) {
         // LCOV_EXCL_START
@@ -1167,4 +1167,35 @@ find_relationships(heap_file* hf, unsigned long label, bool log)
            label);
     exit(EXIT_FAILURE);
     // LCOV_EXCL_STOP}
+}
+
+void
+heap_file_swap_log_file(heap_file* hf, const char* log_file_path)
+{
+
+    if (!hf || !log_file_path) {
+        // LCOV_EXCL_START
+        printf("heap file - swap log file: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fclose(hf->log_file) != 0) {
+        // LCOV_EXCL_START
+        printf("heap file - swap log file: Error closing file: %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    hf->log_file = fopen(log_file_path, "a");
+
+    if (!hf->log_file) {
+        // LCOV_EXCL_START
+        printf("heap file - swap log file: failed to fopen %s: %s\n",
+               log_file_path,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
 }

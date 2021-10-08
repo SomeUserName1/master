@@ -1,5 +1,5 @@
 /*
- * @(#)page_cache_test.c   1.0   Sep 15, 2021
+ * page_cache_test.c   1.0   Sep 15, 2021
  *
  * Copyright (c) 2021- University of Konstanz.
  *
@@ -49,7 +49,7 @@ test_page_cache_create(void)
         }
     }
 
-    assert(pc->cache);
+    assert(pc->frames);
 
     assert(pc->log_file);
 
@@ -60,11 +60,11 @@ test_page_cache_create(void)
 
     llist_ul_destroy(pc->free_frames);
     queue_ul_destroy(pc->recently_referenced);
-    free(pc->cache[0]->data);
+    free(pc->frames[0]->data);
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        page_destroy(pc->cache[i]);
+        page_destroy(pc->frames[i]);
     }
-    free(pc->cache);
+    free(pc->frames);
     free(pc);
     phy_database_delete(pdb);
 
@@ -141,7 +141,7 @@ test_pin_page(void)
     assert(queue_ul_size(pc->recently_referenced) == 0);
 
     assert(test_page_1);
-    assert(pc->cache[frame_no_1] == test_page_1);
+    assert(pc->frames[frame_no_1] == test_page_1);
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
     assert(test_page_1->ft == node_ft);
@@ -170,7 +170,7 @@ test_pin_page(void)
     size_t frame_no_2 =
           dict_ul_ul_get_direct(pc->page_map[records][node_ft], 2);
     assert(test_page_2);
-    assert(pc->cache[frame_no_2] == test_page_2);
+    assert(pc->frames[frame_no_2] == test_page_2);
     assert(test_page_2->page_no == 2);
     assert(test_page_2->dirty == false);
     assert(test_page_2->ft == node_ft);
@@ -209,7 +209,7 @@ test_unpin_page(void)
     assert(llist_ul_size(pc->free_frames) == CACHE_N_PAGES - 1);
     assert(queue_ul_size(pc->recently_referenced) == 0);
     assert(test_page_1);
-    assert(pc->cache[frame_no_1] == test_page_1);
+    assert(pc->frames[frame_no_1] == test_page_1);
     assert(test_page_1 == test_page_2);
     assert(test_page_1->page_no == 0);
     assert(test_page_1->dirty == false);
@@ -283,8 +283,8 @@ test_evict(void)
     }
 
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
-        pc->cache[i]->pin_count = 0;
-        pc->cache[i]->dirty     = false;
+        pc->frames[i]->pin_count = 0;
+        pc->frames[i]->dirty     = false;
     }
 
     page_cache_destroy(pc);
@@ -348,7 +348,7 @@ test_flush_all_pages(void)
     for (size_t i = 0; i < CACHE_N_PAGES; ++i) {
         p = pin_page(pc, i, records, node_ft, false);
         write_ulong(p, 0, 1);
-        pc->cache[i]->pin_count = 0;
+        pc->frames[i]->pin_count = 0;
     }
 
     flush_all_pages(pc, true);

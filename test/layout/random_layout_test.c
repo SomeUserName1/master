@@ -1,5 +1,5 @@
 /*
- * @(#)random_layout_test.c   1.0   Sep 15, 2021
+ * random_layout_test.c   1.0   Sep 15, 2021
  *
  * Copyright (c) 2021- University of Konstanz.
  *
@@ -9,7 +9,7 @@
  */
 
 #include "access/node.h"
-#include "layout/random_layout.h"
+#include "order/random_order.h"
 
 #include <assert.h>
 #include <errno.h>

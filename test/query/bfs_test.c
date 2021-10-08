@@ -1,5 +1,5 @@
 /*
- * @(#)bfs_test.c   1.0   Sep 15, 2021
+ * bfs_test.c   1.0   Sep 15, 2021
  *
  * Copyright (c) 2021- University of Konstanz.
  *

@@ -104,4 +104,7 @@ find_relationships(heap_file* hf, unsigned long label, bool log);
 node_t*
 find_node(heap_file* hf, unsigned long label, bool log);
 
+void
+heap_file_swap_log_file(heap_file* hf, const char* log_file_path);
+
 #endif

@@ -364,3 +364,39 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
     write_page(db->catalogue, 0, catalogue, log);
 }
 
+void
+phy_database_swap_log_file(phy_database* pdb, const char* log_file_path)
+{
+    if (!pdb || !log_file_path) {
+        // LCOV_EXCL_START
+        printf("phy_database - swap log file: Invalid Arguments!\n");
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    if (fclose(pdb->log_file) != 0) {
+        // LCOV_EXCL_START
+        printf("disk file - swap log file: Error closing file: %s",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    pdb->log_file = fopen(log_file_path, "a");
+
+    if (!pdb->log_file) {
+        // LCOV_EXCL_START
+        printf("physical database - swap log file: failed to fopen %s: %s\n",
+               log_file_path,
+               strerror(errno));
+        exit(EXIT_FAILURE);
+        // LCOV_EXCL_STOP
+    }
+
+    disk_file_swap_log_file(pdb->catalogue, pdb->log_file);
+
+    for (size_t i = 0; i < invalid_ft; ++i) {
+        disk_file_swap_log_file(pdb->header[i], pdb->log_file);
+        disk_file_swap_log_file(pdb->records[i], pdb->log_file);
+    }
+}

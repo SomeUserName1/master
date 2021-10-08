@@ -196,4 +196,26 @@ flush_all_pages(page_cache* pc, bool log);
 page*
 new_page(page_cache* pc, file_type ft, bool log);
 
+/*!
+ * Swaps the log file of the page cache.
+ *
+ * \param pc The page cache whichs log file to swap.
+ * \param log_file_path The path of the new log file.
+ */
+void
+page_cache_swap_log_file(page_cache* pc, const char* log_file_path);
+
+/*!
+ * This function changes the number of frames that are available to the page
+ * cache. It frees the previously allocated memory for the pages' data buffer
+ * and initializes a new one of size n_frames. It also reinitializes the free
+ * frames list, the recently referenced queue and the page map.
+ *
+ * \param pc The page cache whichs size shall be changed.
+ * \param n_frames The new size of the page cache in number of frames (i.e.
+ * PAGE_SIZE x n_pages)
+ */
+void
+page_cache_change_n_frames(page_cache* pc, size_t n_frames);
+
 #endif

@@ -225,4 +225,14 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log);
 void
 disk_file_shrink(disk_file* df, size_t by_num_pages, bool log);
 
+/*!
+ * Swaps the file that reads and writes are logged to.
+ * In order to change the log file of a physical database you should call \ref
+ * phy_database_swap_log_file() instead.
+ *
+ * \param df The disk file whichs log file is to be changed.
+ * \param new_log_file The file to log future reads and writes to.
+ */
+void
+disk_file_swap_log_file(disk_file* df, FILE* new_log_file);
 #endif

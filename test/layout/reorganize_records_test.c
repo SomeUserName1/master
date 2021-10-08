@@ -1,5 +1,5 @@
 /*
- * @(#)reorganize_records_test.c   1.0   Sep 15, 2021
+ * reorganize_records_test.c   1.0   Sep 15, 2021
  *
  * Copyright (c) 2021- University of Konstanz.
  *
@@ -8,7 +8,7 @@
  * copyright notice.
  */
 #include "constants.h"
-#include "layout/reorganize_records.h"
+#include "order/reorder_records.h"
 
 #include <assert.h>
 #include <limits.h>
