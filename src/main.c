@@ -117,7 +117,6 @@ main(void)
                         true,
                         log_file);
 
-    printf("finished alt\n");
     path* a_star_res = a_star(hf,
                               dijkstra_res->distances,
                               start_id,

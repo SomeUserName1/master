@@ -12,6 +12,7 @@
  */
 #include "order/reorder_records.h"
 
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -226,77 +227,72 @@ swap_relationships(heap_file*    hf,
         fst_rel = read_relationship(hf, fst, log);
         // adjust the id in the nodes first relationship fields if neccessary
         fst_src = read_node(hf, fst_rel->source_node, log);
-        if (fst_rel->id == fst_src->first_relationship) {
+        if (fst == fst_src->first_relationship) {
             fst_src->first_relationship = snd;
+            update_node(hf, fst_src, log);
         }
+        free(fst_src);
 
-        fst_trgt = fst_rel->target_node == fst_src->id
-                         ? fst_src
-                         : read_node(hf, fst_rel->target_node, log);
-        if (fst_rel->id == fst_trgt->first_relationship) {
+        fst_trgt = read_node(hf, fst_rel->target_node, log);
+        if (fst == fst_trgt->first_relationship) {
             fst_trgt->first_relationship = snd;
+            update_node(hf, fst_trgt, log);
         }
+        free(fst_trgt);
 
         // Adjust next pointer in source node's previous relation
         fst_prev_rel_from =
-              fst_rel && fst == fst_rel->prev_rel_source ? fst_rel
-              : snd_rel && snd == fst_rel->prev_rel_source
-                    ? snd_rel
-                    : read_relationship(hf, fst_rel->prev_rel_source, log);
+              read_relationship(hf, fst_rel->prev_rel_source, log);
 
-        if (fst_prev_rel_from->source_node == fst_rel->source_node) {
+        if (fst_prev_rel_from->next_rel_source == fst) {
             fst_prev_rel_from->next_rel_source = snd;
-        } else {
-            fst_prev_rel_from->next_rel_target = snd;
+            update_relationship(hf, fst_prev_rel_from, log);
         }
+        if (fst_prev_rel_from->next_rel_target == fst) {
+            fst_prev_rel_from->next_rel_target = snd;
+            update_relationship(hf, fst_prev_rel_from, log);
+        }
+        free(fst_prev_rel_from);
 
         // Adjust next pointer in target node's previous relation
-        fst_prev_rel_to =
-              fst_rel && fst_rel->prev_rel_target == fst   ? fst_rel
-              : snd_rel && fst_rel->prev_rel_target == snd ? snd_rel
-              : fst_rel->prev_rel_target == fst_prev_rel_from->id
-                    ? fst_prev_rel_from
-                    : read_relationship(hf, fst_rel->prev_rel_target, log);
+        fst_prev_rel_to = read_relationship(hf, fst_rel->prev_rel_target, log);
 
-        if (fst_prev_rel_to->source_node == fst_rel->target_node) {
+        if (fst_prev_rel_to->next_rel_source == fst) {
             fst_prev_rel_to->next_rel_source = snd;
-        } else {
-            fst_prev_rel_to->next_rel_target = snd;
+            update_relationship(hf, fst_prev_rel_to, log);
         }
+        if (fst_prev_rel_to->next_rel_target == fst) {
+            fst_prev_rel_to->next_rel_target = snd;
+            update_relationship(hf, fst_prev_rel_to, log);
+        }
+        free(fst_prev_rel_to);
 
         // Adjust previous pointer in source node's next relation
         fst_next_rel_from =
-              fst_rel && fst_rel->next_rel_source == fst   ? fst_rel
-              : snd_rel && fst_rel->next_rel_source == snd ? snd_rel
-              : fst_rel->next_rel_source == fst_prev_rel_from->id
-                    ? fst_prev_rel_from
-              : fst_rel->next_rel_source == fst_prev_rel_to->id
-                    ? fst_prev_rel_to
-                    : read_relationship(hf, fst_rel->next_rel_source, log);
+              read_relationship(hf, fst_rel->next_rel_source, log);
 
-        if (fst_next_rel_from->source_node == fst_rel->source_node) {
+        if (fst_next_rel_from->prev_rel_source == fst) {
             fst_next_rel_from->prev_rel_source = snd;
-        } else {
-            fst_next_rel_from->prev_rel_target = snd;
+            update_relationship(hf, fst_next_rel_from, log);
         }
+        if (fst_next_rel_from->prev_rel_target == fst) {
+            fst_next_rel_from->prev_rel_target = snd;
+            update_relationship(hf, fst_next_rel_from, log);
+        }
+        free(fst_next_rel_from);
 
         // Adjust previous pointer in target node's next relation
-        fst_next_rel_to =
-              fst_rel && fst_rel->next_rel_target == fst   ? fst_rel
-              : snd_rel && fst_rel->next_rel_target == snd ? snd_rel
-              : fst_rel->next_rel_target == fst_prev_rel_from->id
-                    ? fst_prev_rel_from
-              : fst_rel->next_rel_target == fst_prev_rel_to->id
-                    ? fst_prev_rel_to
-              : fst_rel->next_rel_target == fst_next_rel_from->id
-                    ? fst_next_rel_from
-                    : read_relationship(hf, fst_rel->next_rel_target, log);
+        fst_next_rel_to = read_relationship(hf, fst_rel->next_rel_target, log);
 
-        if (fst_next_rel_to->source_node == fst_rel->target_node) {
+        if (fst_next_rel_to->prev_rel_source == fst) {
             fst_next_rel_to->prev_rel_source = snd;
-        } else {
-            fst_next_rel_to->prev_rel_target = snd;
+            update_relationship(hf, fst_next_rel_to, log);
         }
+        if (fst_next_rel_to->prev_rel_target == fst) {
+            fst_next_rel_to->prev_rel_target = snd;
+            update_relationship(hf, fst_next_rel_to, log);
+        }
+        free(fst_next_rel_to);
     }
 
     if (snd_exists) {
@@ -307,7 +303,7 @@ swap_relationships(heap_file*    hf,
                         ? fst_trgt
                         : read_node(hf, snd_rel->source_node, log);
 
-        if (snd_rel->id == snd_src->first_relationship) {
+        if (snd == snd_src->first_relationship) {
             snd_src->first_relationship = fst;
         }
 
@@ -317,7 +313,7 @@ swap_relationships(heap_file*    hf,
                    : snd_rel->target_node == snd_src->id
                          ? snd_src
                          : read_node(hf, snd_rel->target_node, log);
-        if (snd_rel->id == snd_trgt->first_relationship) {
+        if (snd == snd_trgt->first_relationship) {
             snd_trgt->first_relationship = fst;
         }
 
@@ -341,7 +337,8 @@ swap_relationships(heap_file*    hf,
 
         if (snd_prev_rel_from->source_node == snd_rel->source_node) {
             snd_prev_rel_from->next_rel_source = fst;
-        } else {
+        }
+        if (snd_prev_rel_from->target_node == snd_rel->source_node) {
             snd_prev_rel_from->next_rel_target = fst;
         }
 
@@ -367,7 +364,8 @@ swap_relationships(heap_file*    hf,
 
         if (snd_prev_rel_to->source_node == snd_rel->target_node) {
             snd_prev_rel_to->next_rel_source = fst;
-        } else {
+        }
+        if (snd_prev_rel_to->target_node == snd_rel->target_node) {
             snd_prev_rel_to->next_rel_target = fst;
         }
 
@@ -395,7 +393,9 @@ swap_relationships(heap_file*    hf,
 
         if (snd_next_rel_from->source_node == snd_rel->source_node) {
             snd_next_rel_from->prev_rel_source = fst;
-        } else {
+        }
+        if (snd_next_rel_from->target_node == snd_rel->source_node) {
+
             snd_next_rel_from->prev_rel_target = fst;
         }
 
@@ -425,7 +425,8 @@ swap_relationships(heap_file*    hf,
 
         if (snd_next_rel_to->source_node == snd_rel->target_node) {
             snd_next_rel_to->prev_rel_source = fst;
-        } else {
+        }
+        if (snd_next_rel_to->target_node == snd_rel->target_node) {
             snd_next_rel_to->prev_rel_target = fst;
         }
 
@@ -480,44 +481,6 @@ swap_relationships(heap_file*    hf,
             && snd_prev_rel_from != fst_prev_rel_from) {
             update_relationship(hf, snd_prev_rel_from, log);
             free(snd_prev_rel_from);
-        }
-    }
-
-    if (fst_exists) {
-        if (fst_src != fst_trgt) {
-            update_node(hf, fst_src, log);
-            free(fst_src);
-        }
-
-        update_node(hf, fst_trgt, log);
-        free(fst_trgt);
-
-        // in case one of the previous and next pointers of source and target
-        // are to the same relationship, we must only update and free them once!
-        if (fst_next_rel_to != fst_rel && fst_next_rel_to != snd_rel
-            && fst_next_rel_to != fst_next_rel_from
-            && fst_next_rel_to != fst_prev_rel_to
-            && fst_next_rel_to != fst_prev_rel_from) {
-            update_relationship(hf, fst_next_rel_to, log);
-            free(fst_next_rel_to);
-        }
-
-        if (fst_next_rel_from != fst_rel && fst_next_rel_from != snd_rel
-            && fst_next_rel_from != fst_prev_rel_to
-            && fst_next_rel_from != fst_prev_rel_from) {
-            update_relationship(hf, fst_next_rel_from, log);
-            free(fst_next_rel_from);
-        }
-
-        if (fst_prev_rel_to != fst_rel && fst_prev_rel_to != snd_rel
-            && fst_prev_rel_to != fst_prev_rel_from) {
-            update_relationship(hf, fst_prev_rel_to, log);
-            free(fst_prev_rel_to);
-        }
-
-        if (fst_prev_rel_from != fst_rel && fst_prev_rel_from != snd_rel) {
-            update_relationship(hf, fst_prev_rel_from, log);
-            free(fst_prev_rel_from);
         }
     }
 
@@ -645,12 +608,11 @@ reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
     }
     dict_ul_ul_iterator_destroy(it);
 
-    size_t n_ids = hf->cache->pdb->records[node_ft]->num_pages * SLOTS_PER_PAGE;
     unsigned short cur_slot = 0;
     unsigned long  cur_page = 0;
     unsigned long  temp_new;
 
-    for (size_t i = 0; i < n_ids; ++i) {
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
         new_id = cur_page << CHAR_BIT | cur_slot;
 
         if (dict_ul_ul_get(inverse_new_ids, new_id, &old_id) == 0) {
@@ -664,19 +626,25 @@ reorder_nodes(heap_file* hf, dict_ul_ul* new_ids, bool log)
                 // update the dict such that the node that was previously at
                 // position new id is now at old id
                 temp_new = dict_ul_ul_get_direct(new_ids, new_id);
+
                 // remove the old entries for the node that was swapped with
                 dict_ul_ul_remove(new_ids, new_id);
                 dict_ul_ul_remove(inverse_new_ids, temp_new);
+
                 dict_ul_ul_insert(new_ids, old_id, temp_new);
                 dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
             }
         }
 
-        if (cur_slot == UCHAR_MAX) {
+        if (dict_ul_ul_size(new_ids) == 0) {
+            break;
+        }
+
+        if (cur_slot + NUM_SLOTS_PER_NODE >= UCHAR_MAX) {
             cur_page++;
             cur_slot = 0;
         } else {
-            cur_slot++;
+            cur_slot += NUM_SLOTS_PER_NODE;
         }
     }
 
@@ -740,13 +708,11 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
     }
     dict_ul_ul_iterator_destroy(it);
 
-    size_t n_ids =
-          hf->cache->pdb->records[relationship_ft]->num_pages * SLOTS_PER_PAGE;
     unsigned short cur_slot = 0;
     unsigned long  cur_page = 0;
     unsigned long  temp_new;
 
-    for (size_t i = 0; i < n_ids; ++i) {
+    for (size_t i = 0; i < hf->n_rels; ++i) {
         new_id = cur_page << CHAR_BIT | cur_slot;
 
         if (dict_ul_ul_get(inverse_new_ids, new_id, &old_id) == 0) {
@@ -760,19 +726,31 @@ reorder_relationships(heap_file* hf, dict_ul_ul* new_ids, bool log)
                 // update the dict such that the node that was previously at
                 // position new id is now at old id
                 temp_new = dict_ul_ul_get_direct(new_ids, new_id);
+
                 // remove the old entries for the node that was swapped with
                 dict_ul_ul_remove(new_ids, new_id);
                 dict_ul_ul_remove(inverse_new_ids, temp_new);
+
                 dict_ul_ul_insert(new_ids, old_id, temp_new);
                 dict_ul_ul_insert(inverse_new_ids, temp_new, old_id);
+                // printf("inner if sz nid %lu, sz inid %lu\n",
+                //        dict_ul_ul_size(new_ids),
+                //        dict_ul_ul_size(inverse_new_ids));
+
+                assert(dict_ul_ul_size(new_ids)
+                       == dict_ul_ul_size(inverse_new_ids));
             }
         }
 
-        if (cur_slot == UCHAR_MAX) {
+        if (dict_ul_ul_size(new_ids) == 0) {
+            break;
+        }
+
+        if (cur_slot + NUM_SLOTS_PER_REL >= UCHAR_MAX) {
             cur_page++;
             cur_slot = 0;
         } else {
-            cur_slot++;
+            cur_slot += NUM_SLOTS_PER_REL;
         }
     }
     dict_ul_ul_destroy(inverse_new_ids);
@@ -803,7 +781,6 @@ reorder_relationships_by_nodes(heap_file* hf, bool log)
         }
         array_list_relationship_destroy(rels);
     }
-
     array_list_node_destroy(nodes);
 
     reorder_relationships_by_sequence(hf, new_order, log);

@@ -935,8 +935,19 @@ next_relationship_id(heap_file*      hf,
     }
 
     unsigned long start_rel_id = rel->id;
-    unsigned long rel_id = node_id == rel->source_node ? rel->next_rel_source
-                                                       : rel->next_rel_target;
+    unsigned long rel_id;
+
+    if (node_id == rel->source_node) {
+        rel_id = rel->next_rel_source;
+    } else if (node_id == rel->target_node) {
+        rel_id = rel->next_rel_target;
+    } else {
+        printf("heap file - next rel id: Invalid database state!\n"
+               "node id %lu start rel id %lu \n",
+               node_id,
+               rel->id);
+        exit(EXIT_FAILURE);
+    }
 
     do {
         rel = read_relationship(hf, rel_id, log);
@@ -948,8 +959,19 @@ next_relationship_id(heap_file*      hf,
             free(rel);
             return rel_id;
         }
-        rel_id = node_id == rel->source_node ? rel->next_rel_source
-                                             : rel->next_rel_target;
+
+        if (node_id == rel->source_node) {
+            rel_id = rel->next_rel_source;
+        } else if (node_id == rel->target_node) {
+            rel_id = rel->next_rel_target;
+        } else {
+            printf("heap file - next rel id: Invalid database state!\n"
+                   "node id %lu start rel id %lu cur rel id %lu\n",
+                   node_id,
+                   start_rel_id,
+                   rel->id);
+            exit(EXIT_FAILURE);
+        }
         free(rel);
 
     } while (rel_id != start_rel_id);

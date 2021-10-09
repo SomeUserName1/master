@@ -40,6 +40,12 @@ dfs(heap_file*    hf,
     dict_ul_ul* parents = d_ul_ul_create();
     dict_ul_ul* dfs     = d_ul_ul_create();
 
+    array_list_node* nodes = get_nodes(hf, log);
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        dict_ul_ul_insert(dfs, array_list_node_get(nodes, i)->id, ULONG_MAX);
+    }
+    array_list_node_destroy(nodes);
+
     stack_ul* node_stack = st_ul_create();
 
     array_list_relationship* current_rels = NULL;
@@ -73,7 +79,7 @@ dfs(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            if (!dict_ul_ul_contains(dfs, temp)) {
+            if (dict_ul_ul_get_direct(dfs, temp) == ULONG_MAX) {
                 dict_ul_ul_insert(
                       dfs, temp, dict_ul_ul_get_direct(dfs, node_id) + 1);
                 dict_ul_ul_insert(parents, temp, current_rel->id);

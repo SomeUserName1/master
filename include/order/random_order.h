@@ -16,9 +16,15 @@
 #include "access/heap_file.h"
 
 dict_ul_ul*
-identity_order(heap_file* hf);
+identity_node_order(heap_file* hf);
 
 dict_ul_ul*
-random_order(heap_file* hf);
+identity_relationship_order(heap_file* hf);
+
+dict_ul_ul*
+random_node_order(heap_file* hf);
+
+dict_ul_ul*
+random_relationship_order(heap_file* hf);
 
 #endif

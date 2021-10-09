@@ -363,12 +363,6 @@ evict(page_cache* pc, bool log)
         queue_ul_remove(pc->recently_referenced, evict_index[evicted - 1 - i]);
     }
 
-    disk_file_sync(pc->pdb->catalogue);
-    for (file_type j = 0; j < invalid_ft; ++j) {
-        disk_file_sync(pc->pdb->header[j]);
-        disk_file_sync(pc->pdb->records[j]);
-    }
-
     if (evicted == 0) {
         // LCOV_EXCL_START
         printf("page cache - evict: could not find a page to evict, as all "
@@ -402,12 +396,6 @@ bulk_evict(page_cache* pc)
 
             evicted++;
         }
-    }
-
-    disk_file_sync(pc->pdb->catalogue);
-    for (file_type j = 0; j < invalid_ft; ++j) {
-        disk_file_sync(pc->pdb->header[j]);
-        disk_file_sync(pc->pdb->records[j]);
     }
 
     if (evicted == 0) {

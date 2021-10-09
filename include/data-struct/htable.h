@@ -367,6 +367,7 @@
                     ht->cbs.value_free(cur->value);                            \
                 }                                                              \
                 free(cur);                                                     \
+                ht->num_used--;                                                \
                 return 0;                                                      \
             }                                                                  \
             last = cur;                                                        \

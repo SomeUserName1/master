@@ -13,12 +13,12 @@ It consists of the low level components of a database with extended logging with
 - Zlib
 
 #### Tools
-- CMake
-- Doxygen
-- Clang & LLVM
-- Clang-Tidy & Clang-Format
-- gcovr, llvm-cov
-- Ninja or Makefiles (build-essential on Debian-based Distros, base-devel on Pacman/Arch-based Distros)
+- CMake, Ninja or Makefile (build system)
+- Doxygen (documentation generation)
+- Clang & LLVM (compiler)
+- Clang-Tidy & Clang-Format (extended static code analysis and auto formatting)
+- gcovr, llvm-cov (coverage generation and visualization)
+- pprof, graphviz (profiling & visualization)
 
 
 ## Building
@@ -65,6 +65,13 @@ firefox coverage/report.html&
 - Sample(s)
 - High level API overview: import, CRUD, get_nodes, expand, queries, reorder
 - How to set buffer size & so on
+
+## Profiling
+Build in debug mode and use the following commands to run the executable that you'd like to profile:
+```
+LD_PRELOAD=libprofiler.so CPUPROFILE=cpu.prof ./<executable>
+pprof ./<executable> cpu.prof
+```
 
 ## Limitations
 - IDs, max, id handling - internal not adjustable to some degree, gaps on page boundaries, no shrink or delete page, no transactions, no concurrency, no query language and processor, no ACID, no properties

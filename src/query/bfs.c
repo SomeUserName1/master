@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
 #include "data-struct/htable.h"
@@ -38,6 +39,12 @@ bfs(heap_file*    hf,
 
     dict_ul_ul* parents = d_ul_ul_create();
     dict_ul_ul* bfs     = d_ul_ul_create();
+
+    array_list_node* nodes = get_nodes(hf, log);
+    for (size_t i = 0; i < hf->n_nodes; ++i) {
+        dict_ul_ul_insert(bfs, array_list_node_get(nodes, i)->id, ULONG_MAX);
+    }
+    array_list_node_destroy(nodes);
 
     queue_ul* nodes_queue = q_ul_create();
 
@@ -70,7 +77,7 @@ bfs(heap_file*    hf,
                          ? current_rel->target_node
                          : current_rel->source_node;
 
-            if (!dict_ul_ul_contains(bfs, temp)) {
+            if (dict_ul_ul_get_direct(bfs, temp) == ULONG_MAX) {
                 dict_ul_ul_insert(
                       bfs, temp, dict_ul_ul_get_direct(bfs, node_id) + 1);
                 dict_ul_ul_insert(parents, temp, current_rel->id);

@@ -130,6 +130,7 @@ unpin_page(page_cache* pc,
            file_kind   fk,
            file_type   ft,
            bool        log);
+
 /*!
  * Evicts a page from it's frame in the page_cache.
  * If a page is to be pinned and there are no free frames left, then another
@@ -137,8 +138,7 @@ unpin_page(page_cache* pc,
  * Recently Used K algorithm. This algorithm always evicts the up to K least
  * recently unpinned pages that have a page pin count of 0. It adds the up to K
  * removed frames to the free frames list and removes them from the recently
- * referenced queue. it also flushes these pages if neccessary and calls \ref
- * disk_file_sync().
+ * referenced queue. it also flushes these pages if neccessary.
  *
  * \param pc The page cache to evict a page from.
  * \param log A flag indicating if the evcition shall be logged. If so the
@@ -156,8 +156,7 @@ evict(page_cache* pc, bool log);
  * quite some cycles when the dataset grows larger and as the reuse when
  * importing is not neccessarily as large as when querying with outher payloads.
  * It adds the removed frames to the free frames list and removes them from the
- * recently referenced queue. it also flushes these pages if neccessary and
- * calls \ref disk_file_sync().
+ * recently referenced queue. it also flushes these pages if neccessary.
  *
  * \param pc The page cache to evict a page from.
  */
