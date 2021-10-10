@@ -26,6 +26,7 @@
 #include "page.h"
 #include "page_cache.h"
 #include "physical_database.h"
+#include "strace.h"
 
 heap_file*
 heap_file_create(page_cache* pc, const char* log_path)
@@ -33,6 +34,8 @@ heap_file_create(page_cache* pc, const char* log_path)
     if (!pc || !log_path) {
         // LCOV_EXCL_START
         printf("heap file - create: Invalid Arguments\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -59,6 +62,8 @@ heap_file_create(page_cache* pc, const char* log_path)
     if (log_file == NULL) {
         // LCOV_EXCL_START
         printf("heap file - create: Failed to open log file, %d\n", errno);
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -74,6 +79,8 @@ heap_file_destroy(heap_file* hf)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap_file - destroy: Invalid Arguments\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -89,6 +96,8 @@ check_record_exists(heap_file* hf, unsigned long id, bool node, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - check record exists: Invalid arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -134,6 +143,8 @@ next_free_slots(heap_file* hf, bool node, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - next free slots: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -179,6 +190,8 @@ next_free_slots(heap_file* hf, bool node, bool log)
                   "Unreachable in most ile systems as file size limit is by "
                   "orders of magnitude smaller (16 TiB FS limit vs. 1.6 EiB DB "
                   "limit\n");
+            print_trace();
+
             exit(EXIT_FAILURE);
             // LCOV_EXCL_STOP
         } else {
@@ -221,6 +234,8 @@ read_node_internal(heap_file*    hf,
     if (!hf || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("heap file - read node internal: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -228,6 +243,8 @@ read_node_internal(heap_file*    hf,
     if (check_exists && !check_record_exists(hf, node_id, true, log)) {
         // LCOV_EXCL_START
         printf("heap file - read node internal: Node does not exist!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -256,6 +273,8 @@ read_relationship_internal(heap_file*    hf,
         // LCOV_EXCL_START
         printf("heap file - read relationship internal: Invalid "
                "Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -265,6 +284,8 @@ read_relationship_internal(heap_file*    hf,
         printf("heap file - read relationship internal: Relationship does "
                "not "
                "exist!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -293,6 +314,8 @@ update_node_internal(heap_file* hf,
     if (!hf || !node_to_write || node_to_write->id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("heap file - update node: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -301,6 +324,8 @@ update_node_internal(heap_file* hf,
         && !check_record_exists(hf, node_to_write->id, true, log)) {
         // LCOV_EXCL_START
         printf("heap file - update node internal: Node does not exist!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -327,6 +352,8 @@ update_relationship_internal(heap_file*      hf,
         || rel_to_write->weight == UNINITIALIZED_WEIGHT) {
         // LCOV_EXCL_START
         printf("heap file - update relationship: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -337,6 +364,8 @@ update_relationship_internal(heap_file*      hf,
         printf("heap file - update relationship internal: Relationship "
                "does not "
                "exist!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -358,6 +387,8 @@ create_node(heap_file* hf, unsigned long label, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - create node: Invalid Arguments\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -395,6 +426,8 @@ create_relationship(heap_file*    hf,
         || to_node_id == UNINITIALIZED_LONG || weight == UNINITIALIZED_WEIGHT) {
         // LCOV_EXCL_START
         printf("heap file - create relationship: Invalid Arguments\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -609,6 +642,8 @@ delete_node(heap_file* hf, unsigned long node_id, bool log)
     if (!hf || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("heap file - delete node: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -633,9 +668,13 @@ delete_node(heap_file* hf, unsigned long node_id, bool log)
             } else if (node_id == rel->target_node) {
                 prev_rel_id = rel->prev_rel_target;
             } else {
+                // LCOV_EXCL_START
                 printf("heap file - delete node: Invalid Reationship in "
                        "chain!\n");
+                print_trace();
+
                 exit(EXIT_FAILURE);
+                // LCOV_EXCL_STOP
             }
 
             delete_relationship(hf, rel->id, log);
@@ -684,6 +723,8 @@ delete_relationship(heap_file* hf, unsigned long rel_id, bool log)
     if (!hf || rel_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("heap file - delete relationship: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -836,6 +877,8 @@ get_nodes(heap_file* hf, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - get nodes: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -881,6 +924,8 @@ get_relationships(heap_file* hf, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - get relationship: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -930,6 +975,8 @@ next_relationship_id(heap_file*      hf,
     if (!hf || node_id == UNINITIALIZED_LONG || !rel) {
         // LCOV_EXCL_START
         printf("heap_file - next relationship id: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -946,6 +993,8 @@ next_relationship_id(heap_file*      hf,
                "node id %lu start rel id %lu \n",
                node_id,
                rel->id);
+        print_trace();
+
         exit(EXIT_FAILURE);
     }
 
@@ -970,6 +1019,8 @@ next_relationship_id(heap_file*      hf,
                    node_id,
                    start_rel_id,
                    rel->id);
+            print_trace();
+
             exit(EXIT_FAILURE);
         }
         free(rel);
@@ -985,6 +1036,8 @@ expand(heap_file* hf, unsigned long node_id, direction_t direction, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - expand: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1034,6 +1087,8 @@ contains_relationship_from_to(heap_file*    hf,
     if (!hf || direction > BOTH) {
         // LCOV_EXCL_START
         printf("heap file - contains relationship: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1096,6 +1151,8 @@ find_node(heap_file* hf, unsigned long label, bool log)
     if (!hf || !label) {
         // LCOV_EXCL_START
         printf("heap files - find node: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1136,6 +1193,8 @@ find_node(heap_file* hf, unsigned long label, bool log)
     // LCOV_EXCL_START
     printf("heap file - find node: No node with label %lu in database!\n",
            label);
+    print_trace();
+
     exit(EXIT_FAILURE);
     // LCOV_EXCL_STOP
 }
@@ -1146,6 +1205,8 @@ find_relationships(heap_file* hf, unsigned long label, bool log)
     if (!hf) {
         // LCOV_EXCL_START
         printf("heap file - get relationship: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1187,6 +1248,8 @@ find_relationships(heap_file* hf, unsigned long label, bool log)
     printf("heap file - find relationship: No relationship with label %lu in "
            "database!\n",
            label);
+    print_trace();
+
     exit(EXIT_FAILURE);
     // LCOV_EXCL_STOP}
 }
@@ -1198,6 +1261,7 @@ heap_file_swap_log_file(heap_file* hf, const char* log_file_path)
     if (!hf || !log_file_path) {
         // LCOV_EXCL_START
         printf("heap file - swap log file: Invalid Arguments!\n");
+        print_trace();
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1206,6 +1270,7 @@ heap_file_swap_log_file(heap_file* hf, const char* log_file_path)
         // LCOV_EXCL_START
         printf("heap file - swap log file: Error closing file: %s",
                strerror(errno));
+        print_trace();
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -1217,6 +1282,7 @@ heap_file_swap_log_file(heap_file* hf, const char* log_file_path)
         printf("heap file - swap log file: failed to fopen %s: %s\n",
                log_file_path,
                strerror(errno));
+        print_trace();
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

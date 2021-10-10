@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "strace.h"
+
 #define FIBONACCI_HEAP_DECL(typename, T)                                       \
     FIB_HEAP_STRUCTS(typename, T);                                             \
     typename* typename##_create(void);                                         \
@@ -76,7 +78,9 @@
         typename* heap = malloc(sizeof(*heap));                                \
                                                                                \
         if (!heap) {                                                           \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         heap->min       = NULL;                                                \
@@ -136,14 +140,18 @@
     {                                                                          \
         if (!fh) {                                                             \
             printf("fibonacci heap - insert: Invalid Argumentd!\n");           \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         if (key == -DBL_MAX) {                                                 \
             printf("A key of value DBL_MAX is not allowed!"                    \
                    "Please use somthing greater than"                          \
                    "the min value of the type as smallest priority!");         \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         typename##_node* node = malloc(sizeof(*node));                         \
@@ -151,7 +159,9 @@
         if (!node) {                                                           \
             printf("fibonacci heap - fib_node_create: Memory Allocation "      \
                    "failed!\n");                                               \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         node->key    = key;                                                    \
@@ -186,11 +196,15 @@
     {                                                                          \
         if (!fh) {                                                             \
             printf("fibonacci heap - min: Invalid Argumentd!\n");              \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
         if (!fh->min) {                                                        \
             printf("fibonacci_heap: minimum is not set.");                     \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
         return fh->min;                                                        \
     }
@@ -200,7 +214,9 @@
     {                                                                          \
         if (!x || !y) {                                                        \
             printf("fibonacci heap - make_child: Invalid Argumentd!\n");       \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         /* delete y from root list */                                          \
@@ -229,7 +245,9 @@
     {                                                                          \
         if (!fh || !fh->min) {                                                 \
             printf("fibonacci heap - consolidate: Invalid Argumentd!\n");      \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
         unsigned int max_degree =                                              \
               floor(log_golden_ratio_factor * logf((float)fh->num_nodes));     \
@@ -305,7 +323,9 @@
     {                                                                          \
         if (!fh) {                                                             \
             printf("fibonacci heap - consolidate: Invalid Argumentd!\n");      \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         typename##_node* z = fh->min;                                          \
@@ -348,7 +368,9 @@
             fh->num_nodes--;                                                   \
         } else {                                                               \
             printf("fibonacci_heap: minimum is not set.");                     \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
         return z;                                                              \
     }
@@ -358,7 +380,9 @@
     {                                                                          \
         if (!fh1 || !fh2) {                                                    \
             printf("fibonacci heap - union: Invalid Argumentd!\n");            \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         typename* fh = typename##_create();                                    \
@@ -400,7 +424,9 @@
     {                                                                          \
         if (!fh || !node || !parent) {                                         \
             printf("fibonacci heap - cut: Invalid Argumentd!\n");              \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         if (parent->degree == 1) {                                             \
@@ -428,7 +454,9 @@
     {                                                                          \
         if (!fh || !node) {                                                    \
             printf("fibonacci heap - cascading_cut: Invalid Argumentd!\n");    \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         typename##_node* parent;                                               \
@@ -451,14 +479,18 @@
             printf("fib heap - decrease key: Arguments null or previous key "  \
                    "was "                                                      \
                    "larger then new key!\n");                                  \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         if (!delete &&new_key == -DBL_MAX) {                                   \
             printf("-DBL_MAX is reserved as priority!"                         \
                    "Please use somthing greater than"                          \
                    "that as smallest priority!");                              \
-            exit(EXIT_FAILURE);                                                \
+            print_trace();                                                     \
+            \
+exit(EXIT_FAILURE);                                                            \
         }                                                                      \
                                                                                \
         typename##_node* parent;                                               \

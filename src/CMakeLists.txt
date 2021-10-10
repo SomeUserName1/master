@@ -1,3 +1,5 @@
+add_library(strace strace.c)
+
 # Add subdirectories
 add_subdirectory(data-struct/)
 add_subdirectory(io)

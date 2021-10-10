@@ -25,6 +25,7 @@
 #include "disk_file.h"
 #include "page.h"
 #include "physical_database.h"
+#include "strace.h"
 
 page_cache*
 page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
@@ -32,7 +33,9 @@ page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
     if (!pdb) {
         // LCOV_EXCL_START
         printf("page cache - create: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -41,7 +44,9 @@ page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page cache - create: Failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -68,7 +73,9 @@ page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
     if (!data) {
         // LCOV_EXCL_START
         printf("page cache - create: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -83,7 +90,9 @@ page_cache_create(phy_database* pdb, size_t n_frames, const char* log_path)
     if (!log_file) {
         // LCOV_EXCL_START
         printf("heap file - create: Failed to open log file, %d\n", errno);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     pc->log_file = log_file;
@@ -97,7 +106,9 @@ page_cache_destroy(page_cache* pc)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page_cache - destroy: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -127,7 +138,9 @@ page_cache_destroy(page_cache* pc)
     if (fclose(pc->log_file) != 0) {
         // LCOV_EXCL_START
         printf("page cache - destroy: Error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -140,7 +153,9 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
     if (!pc || (fk == catalogue && ft != 0)) {
         // LCOV_EXCL_START
         printf("page cache - pin page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -161,7 +176,9 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
         case invalid: {
             // LCOV_EXCL_START
             printf("page cache - pin page: Invalid kind of file!\n");
-            exit(EXIT_FAILURE);
+            print_trace();
+            \
+exit(EXIT_FAILURE);
             // LCOV_EXCL_STOP
         }
     }
@@ -173,7 +190,9 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
                page_no,
                fk,
                ft);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -219,7 +238,9 @@ pin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
             case invalid: {
                 // LCOV_EXCL_START
                 printf("page cache - pin page: Invalid kind of file!\n");
-                exit(EXIT_FAILURE);
+                print_trace();
+                \
+exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
         }
@@ -245,7 +266,9 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
     if (!pc || !dict_ul_ul_contains(pc->page_map[fk][ft], page_no)) {
         // LCOV_EXCL_START
         printf("page cache - unpin page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -266,7 +289,9 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
         case invalid: {
             // LCOV_EXCL_START
             printf("page cache - pin page: Invalid kind of file!\n");
-            exit(EXIT_FAILURE);
+            print_trace();
+            \
+exit(EXIT_FAILURE);
             // LCOV_EXCL_STOP
         }
     }
@@ -274,7 +299,9 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
     if (page_no >= MAX_PAGE_NO || page_no >= num_pages) {
         // LCOV_EXCL_START
         printf("page cache - pin page: Page Number out of bounds!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -288,7 +315,9 @@ unpin_page(page_cache* pc, size_t page_no, file_kind fk, file_type ft, bool log)
                page_no,
                fk,
                ft);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -312,7 +341,9 @@ evict(page_cache* pc, bool log)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page cache - evict page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -368,7 +399,9 @@ evict(page_cache* pc, bool log)
         printf("page cache - evict: could not find a page to evict, as all "
                "pages "
                "are pinned!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -404,7 +437,9 @@ bulk_evict(page_cache* pc)
               "page cache - bulk evict: could not find a page to evict, as all "
               "pages "
               "are pinned!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -415,7 +450,9 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page cache - flush page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     page* candidate = pc->frames[frame_no];
@@ -425,7 +462,9 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
         printf("page cache - flush page: Page %lu of file %u is pinned!\n",
                candidate->page_no,
                candidate->ft);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -447,7 +486,9 @@ flush_page(page_cache* pc, size_t frame_no, bool log)
             case invalid: {
                 // LCOV_EXCL_START
                 printf("page cache - pin page: Invalid kind of file!\n");
-                exit(EXIT_FAILURE);
+                print_trace();
+                \
+exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
         }
@@ -481,7 +522,9 @@ new_page(page_cache* pc, file_type ft, bool log)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page cache - new page: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -496,7 +539,9 @@ page_cache_swap_log_file(page_cache* pc, const char* log_file_path)
     if (!pc || !log_file_path) {
         // LCOV_EXCL_START
         printf("page cache - swap log file: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -504,7 +549,9 @@ page_cache_swap_log_file(page_cache* pc, const char* log_file_path)
         // LCOV_EXCL_START
         printf("page_cache - swap log file: Error closing file: %s",
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -515,7 +562,9 @@ page_cache_swap_log_file(page_cache* pc, const char* log_file_path)
         printf("page cache - swap log file: failed to fopen %s: %s\n",
                log_file_path,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -526,7 +575,9 @@ page_cache_change_n_frames(page_cache* pc, size_t n_frames)
     if (!pc) {
         // LCOV_EXCL_START
         printf("page cache - swap log file: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -536,7 +587,9 @@ page_cache_change_n_frames(page_cache* pc, size_t n_frames)
         if (pc->frames[i]->pin_count != 0) {
             printf("page cache - change n frames: Can not change the frame "
                    "size if there are still pinned pages!\n");
-            exit(EXIT_FAILURE);
+            print_trace();
+            \
+exit(EXIT_FAILURE);
         }
     }
 
@@ -567,7 +620,8 @@ page_cache_change_n_frames(page_cache* pc, size_t n_frames)
     if (!data) {
         // LCOV_EXCL_START
         printf("page cache - create: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace(); \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

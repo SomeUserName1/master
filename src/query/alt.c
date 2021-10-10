@@ -24,6 +24,7 @@
 #include "query/degree.h"
 #include "query/dijkstra.h"
 #include "query/result_types.h"
+#include "strace.h"
 
 unsigned long
 alt_chose_avg_deg_rand_landmark(heap_file*  hf,
@@ -34,6 +35,8 @@ alt_chose_avg_deg_rand_landmark(heap_file*  hf,
     if (!hf) {
         // LCOV_EXCL_START
         printf("ALT - chose landmarks: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -73,6 +76,8 @@ alt_preprocess(heap_file*    hf,
     if (!hf || !landmark_dists) {
         // LCOV_EXCL_START
         printf("ALT - preprocess: Invalid arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -105,6 +110,8 @@ alt(heap_file*    hf,
     if (!hf || !landmark_dists) {
         // LCOV_EXCL_START
         printf("ALT: Invalid arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

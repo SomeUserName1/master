@@ -22,6 +22,7 @@
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "query/result_types.h"
+#include "strace.h"
 
 traversal_result*
 dfs(heap_file*    hf,
@@ -33,6 +34,8 @@ dfs(heap_file*    hf,
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("dfs: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

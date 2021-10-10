@@ -40,13 +40,6 @@ make
 ```
 Alternatively, Ninja can be used instead of Makefiles. Append ```-GNinja``` to the cmake command and build with ```ninja``` instead of ```make```. Similarly ```ninja test``` needs to be used for tests then.
 
-## Documentation
-To generate the documentation simply run
-```
-doxygen
-```
-from the repository root. This generates LaTeX and HTML documentations in the folders latex and html respectively.
-
 ## Testing
 After building type 
 ```
@@ -65,18 +58,22 @@ firefox coverage/report.html&
 - Sample(s)
 - High level API overview: import, CRUD, get_nodes, expand, queries, reorder
 - How to set buffer size & so on
+- id handling - internal not adjustable to some degree, 
 
-## Profiling
+## Call Graph Profiling
 Build in debug mode and use the following commands to run the executable that you'd like to profile:
 ```
 LD_PRELOAD=libprofiler.so CPUPROFILE=cpu.prof ./<executable>
 pprof ./<executable> cpu.prof
 ```
 
-## Limitations
-- IDs, max, id handling - internal not adjustable to some degree, gaps on page boundaries, no shrink or delete page, no transactions, no concurrency, no query language and processor, no ACID, no properties
-- File limits
-- Neo4J design choices
+## Documentation
+To generate the documentation simply run
+```
+doxygen
+```
+from the repository root. This generates LaTeX and HTML documentations in the folders latex and html respectively.
+Currently only the io and cache modules and a part of the data structures have code comments.
 
 
 ## TODOs
@@ -87,13 +84,11 @@ pprof ./<executable> cpu.prof
     - [ ] access
     - [ ] query
     - [ ] layout
-    - [ ] data-struct
+    - [ ] data-struct (excl. array_list and cbs)
 - [ ] README (WIP)
-- [ ] Presentation
-- [ ] Update SDD
 
 ### Implementation
-- [ ] sample main file
+- [x] sample main file
 - [ ] Benchmark crud, expand, get nodes and compare to Neo4j
 
 ### Future Work

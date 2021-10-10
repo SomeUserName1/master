@@ -19,6 +19,7 @@
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "data-struct/htable.h"
+#include "strace.h"
 
 traversal_result*
 create_traversal_result(unsigned long source_node,
@@ -28,6 +29,8 @@ create_traversal_result(unsigned long source_node,
     if (!traversal_numbers || !parents) {
         // LCOV_EXCL_START
         printf("result types - create traversal result: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -38,6 +41,8 @@ create_traversal_result(unsigned long source_node,
         // LCOV_EXCL_START
         printf("result types - create traversal result: Failed to allocate "
                "memory!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -71,6 +76,8 @@ create_sssp_result(unsigned long source_node,
     if (!distances || !parents) {
         // LCOV_EXCL_START
         printf("result types - create sssp result: Invalid Arguments\n\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -81,6 +88,8 @@ create_sssp_result(unsigned long source_node,
         // LCOV_EXCL_START
         printf("result types - create sssp result: Failed to allocate "
                "memory!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -115,6 +124,8 @@ create_path(unsigned long  source_node_id,
     if (!edges || source_node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("result types - create path: Invalid Arguments\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -125,6 +136,8 @@ create_path(unsigned long  source_node_id,
         // LCOV_EXCL_START
         printf("result types - create path: Failed to allocate "
                "memory!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -161,6 +174,8 @@ construct_path(heap_file*    hf,
         || target_node_id == UNINITIALIZED_LONG || !parents) {
         // LCOV_EXCL_START
         printf("result types - construct path: Invalid arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -201,6 +216,8 @@ path_extract_vertices(path* p, heap_file* hf, bool log)
     if (!hf || !p) {
         // LCOV_EXCL_START
         printf("result types - path extract vertices: Invalid arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

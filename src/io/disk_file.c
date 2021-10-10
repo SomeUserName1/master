@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "constants.h"
+#include "strace.h"
 
 disk_file*
 disk_file_create(char* file_name, FILE* log_file)
@@ -27,7 +28,9 @@ disk_file_create(char* file_name, FILE* log_file)
     if (!file_name || !log_file) {
         // LCOV_EXCL_START
         printf("disk file - create: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -38,7 +41,9 @@ disk_file_create(char* file_name, FILE* log_file)
         printf("disk file - create: Failed to create file %s: %s!\n",
                file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -48,7 +53,9 @@ disk_file_create(char* file_name, FILE* log_file)
               "disk file - create: Failed to close newly created file %s: %s\n",
               file_name,
               strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -61,7 +68,9 @@ disk_file_open(char* file_name, FILE* log_file)
     if (!file_name || !log_file) {
         // LCOV_EXCL_START
         printf("disk file - create: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -71,7 +80,9 @@ disk_file_open(char* file_name, FILE* log_file)
         // LCOV_EXCL_START
         printf("disk file - create: Failed to allocate "
                "memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -84,7 +95,9 @@ disk_file_open(char* file_name, FILE* log_file)
                "%s\n",
                file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     df->f_buf = calloc(PAGE_SIZE << 3, sizeof(char));
@@ -93,7 +106,9 @@ disk_file_open(char* file_name, FILE* log_file)
         // LCOV_EXCL_START
         printf("disk file - create: Failed to allocate "
                "memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -104,7 +119,9 @@ disk_file_open(char* file_name, FILE* log_file)
                "%s: %s\n",
                file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -114,7 +131,9 @@ disk_file_open(char* file_name, FILE* log_file)
                "%s\n",
                file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -126,7 +145,9 @@ disk_file_open(char* file_name, FILE* log_file)
                "%s\n",
                file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
         df->file_size = file_size;
@@ -140,7 +161,9 @@ disk_file_open(char* file_name, FILE* log_file)
         // LCOV_EXCL_START
         printf("disk file - create: No log file was "
                "provided!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -156,7 +179,9 @@ disk_file_destroy(disk_file* df)
         // LCOV_EXCL_START
         printf("disk file - destroy: Invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -180,7 +205,9 @@ disk_file_delete(disk_file* df)
         // LCOV_EXCL_START
         printf("disk file - delete: Invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -212,7 +239,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
         // LCOV_EXCL_START
         printf("disk file - grow: invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -223,7 +252,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
                "Exceeds "
                "max database size\n",
                by_num_pages);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -232,7 +263,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
         printf("disk file - grow: failed to fseek "
                "with errno %d\n",
                errno);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -242,7 +275,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
         // LCOV_EXCL_START
         printf("disk page - grow: Failed to allocate "
                "memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -257,7 +292,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
                res,
                by_num_pages,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -271,7 +308,9 @@ disk_file_grow(disk_file* df, size_t by_num_pages, bool log)
                "file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
         df->file_size = file_size;
@@ -297,7 +336,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
         // LCOV_EXCL_START
         printf("disk file - shrink: invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -309,7 +350,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
                "database would have "
                "less than 0 pages!\n",
                by_num_pages);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -318,7 +361,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
         printf("disk file - flush: flushing "
                "failed: %s!\n",
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -332,7 +377,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
                "of file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -343,7 +390,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
                "truncate the file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     if (fseek(df->file, 0, SEEK_END) == -1) {
@@ -351,7 +400,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
         printf("disk file - shrink: failed to "
                "fseek with errno %d\n",
                errno);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -363,7 +414,9 @@ disk_file_shrink(disk_file* df, size_t by_num_pages, bool log)
                "ftell file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
         df->file_size = file_size;
@@ -399,7 +452,9 @@ write_pages(disk_file*     df,
         // LCOV_EXCL_START
         printf("disk file - write page: "
                "Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -412,7 +467,9 @@ write_pages(disk_file*     df,
                "too large!\n",
                fst_page,
                lst_page);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -424,7 +481,9 @@ write_pages(disk_file*     df,
                "needs to be larger than the "
                "number of the first page to be "
                "read!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -440,7 +499,9 @@ write_pages(disk_file*     df,
                "respective function of the "
                "physical "
                "database.\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -454,7 +515,9 @@ write_pages(disk_file*     df,
                "failed to fseek %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -468,7 +531,9 @@ write_pages(disk_file*     df,
                lst_page,
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
         if (log) {
@@ -491,7 +556,9 @@ disk_file_sync(disk_file* df)
         // LCOV_EXCL_START
         printf("disk file - sync: Invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     int fd = fileno(df->file);
@@ -505,7 +572,9 @@ disk_file_sync(disk_file* df)
                "of file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -516,7 +585,9 @@ disk_file_sync(disk_file* df)
                "of file %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -538,7 +609,9 @@ read_pages(disk_file*     df,
         // LCOV_EXCL_START
         printf("disk file - read pages: "
                "Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -559,7 +632,9 @@ read_pages(disk_file*     df,
                lst_page,
                df->num_pages,
                df->file_size);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -573,7 +648,9 @@ read_pages(disk_file*     df,
                "the number of the first "
                "page to be "
                "read!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -587,7 +664,9 @@ read_pages(disk_file*     df,
                "failed to fseek %s: %s\n",
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     if (fread(buf, PAGE_SIZE, num_pages_read, df->file) != num_pages_read) {
@@ -601,7 +680,9 @@ read_pages(disk_file*     df,
                lst_page,
                df->file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
         if (log) {
@@ -627,7 +708,8 @@ clear_page(disk_file* df, size_t page_no, bool log)
         printf("disk page - clear "
                "page: Failed to "
                "allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace(); \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -642,7 +724,8 @@ disk_file_swap_log_file(disk_file* df, FILE* new_log_file)
     if (!df || !new_log_file) {
         // LCOV_EXCL_START
         printf("disk file - swap_log_file: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace(); \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

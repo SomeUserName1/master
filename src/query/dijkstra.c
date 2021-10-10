@@ -23,6 +23,7 @@
 #include "data-struct/fibonacci_heap.h"
 #include "data-struct/htable.h"
 #include "query/result_types.h"
+#include "strace.h"
 
 sssp_result*
 dijkstra(heap_file*    hf,
@@ -34,6 +35,8 @@ dijkstra(heap_file*    hf,
     if (!hf || source_node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("dijkstra: Invalid Arguemnts!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

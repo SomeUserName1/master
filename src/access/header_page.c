@@ -20,6 +20,7 @@
 #include "constants.h"
 #include "page.h"
 #include "page_cache.h"
+#include "strace.h"
 
 bool
 compare_bits(const unsigned char* ar,
@@ -37,6 +38,8 @@ compare_bits(const unsigned char* ar,
                mask,
                offset,
                n_bits);
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -84,6 +87,8 @@ shift_bit_array(unsigned char* ar, size_t size, long n_bits)
         || n_bits > CHAR_BIT) {
         // LCOV_EXCL_START
         printf("page - shift bit array: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -136,6 +141,8 @@ concat_bit_arrays(unsigned char* first,
     if (!first || !second || n_bits_fst > LONG_MAX || n_bits_snd > LONG_MAX) {
         // LCOV_EXCL_START
         printf("page - concat bit arrays: Invalid Arguemnts!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -149,6 +156,8 @@ concat_bit_arrays(unsigned char* first,
     if (!first) {
         // LCOV_EXCL_START
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -192,6 +201,8 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
         || (split_at_bit / CHAR_BIT) + (split_at_bit % CHAR_BIT != 0) > size) {
         // LCOV_EXCL_START
         printf("page - split bit array: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -215,6 +226,8 @@ split_bit_array(unsigned char* ar, size_t size, size_t split_at_bit)
     if (!ar) {
         // LCOV_EXCL_START
         printf("page - concat_bit_arrays: Failed to allocate memory!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     } else {
@@ -241,6 +254,8 @@ read_bits(page_cache*    pc,
         || n_bits > PAGE_SIZE * CHAR_BIT - 1) {
         // LCOV_EXCL_START
         printf("header page - read bits: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -346,6 +361,8 @@ write_bits(page_cache*    pc,
         || n_bits > PAGE_SIZE * CHAR_BIT - 1 || n_bits < 1 || !data) {
         // LCOV_EXCL_START
         printf("header page - write bits: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -408,6 +425,8 @@ write_bits(page_cache*    pc,
     if (n_bytes_write == 0) {
         // LCOV_EXCL_START
         printf("Unreachable\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

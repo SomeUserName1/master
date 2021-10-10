@@ -23,6 +23,7 @@
 #include "data-struct/fibonacci_heap.h"
 #include "data-struct/htable.h"
 #include "query/result_types.h"
+#include "strace.h"
 
 path*
 a_star(heap_file*    hf,
@@ -38,6 +39,7 @@ a_star(heap_file*    hf,
         // LCOV_EXCL_START
         || target_node_id == UNINITIALIZED_LONG) {
         printf("a-star: Invalid Arguments!\n");
+        print_trace();
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

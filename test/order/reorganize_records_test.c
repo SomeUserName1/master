@@ -560,9 +560,6 @@ test_reorder_relationships(void)
 
     array_list_node* nodes = get_nodes(hf, false);
     for (size_t i = 0; i < hf->n_nodes; ++i) {
-        if (i == 265 || i == 449 || i == 520 || i == 524 || i == 561
-            || i == 578)
-            continue;
         rels = expand(hf, array_list_node_get(nodes, i)->id, BOTH, false);
         printf("finished node %lu\n", i);
         array_list_relationship_destroy(rels);
@@ -729,22 +726,22 @@ test_sort_incidence_array_list(void)
 int
 main(void)
 {
-    //   test_swap_nodes();
-    //   printf("finished test swap nodes\n");
-    //   test_swap_relationships();
-    //   printf("finished test swap relationships\n");
-    //   test_swap_record_pages();
-    //   printf("finished test swap record pages\n");
-    //   test_reorder_nodes();
-    //   printf("finished test reorder nodes\n");
-    //   test_reorder_nodes_by_sequence();
-    //   printf("finished test reorder nodes by sequence\n");
+    test_swap_nodes();
+    printf("finished test swap nodes\n");
+    test_swap_relationships();
+    printf("finished test swap relationships\n");
+    test_swap_record_pages();
+    printf("finished test swap record pages\n");
+    test_reorder_nodes();
+    printf("finished test reorder nodes\n");
+    test_reorder_nodes_by_sequence();
+    printf("finished test reorder nodes by sequence\n");
     test_reorder_relationships();
     printf("finished test reorder relationships\n");
-    //   test_reorder_relationship_by_sequence();
-    //   printf("finished test reorder relationships by sequence\n");
-    //   test_reorder_relationships_by_nodes();
-    //   printf("finished test reorder relationships by nodes\n");
-    //   test_sort_incidence_array_list();
-    //   printf("finished test sort incidence list\n");
+    test_reorder_relationship_by_sequence();
+    printf("finished test reorder relationships by sequence\n");
+    test_reorder_relationships_by_nodes();
+    printf("finished test reorder relationships by nodes\n");
+    test_sort_incidence_array_list();
+    printf("finished test sort incidence list\n");
 }

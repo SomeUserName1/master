@@ -21,6 +21,7 @@
 
 #include "constants.h"
 #include "disk_file.h"
+#include "strace.h"
 
 static phy_database*
 phy_database_create_internal(char*       db_name,
@@ -30,7 +31,9 @@ phy_database_create_internal(char*       db_name,
     if (!db_name || !log_file_name) {
         // LCOV_EXCL_START
         printf("physical database - create/open: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -39,7 +42,9 @@ phy_database_create_internal(char*       db_name,
     if (!phy_db) {
         // LCOV_EXCL_START
         printf("physical database: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -50,7 +55,9 @@ phy_database_create_internal(char*       db_name,
         printf("physical database - create: failed to fopen %s: %s\n",
                log_file_name,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -138,7 +145,9 @@ phy_database_create_internal(char*       db_name,
             // LCOV_EXCL_START
             printf("physical database: failed to open database - Invalid "
                    "header!\n");
-            exit(EXIT_FAILURE);
+            print_trace();
+            \
+exit(EXIT_FAILURE);
             // LCOV_EXCL_STOP
         }
     }
@@ -164,7 +173,9 @@ phy_database_close(phy_database* db)
     if (!db) {
         // LCOV_EXCL_START
         printf("physical database - close: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -186,7 +197,9 @@ phy_database_close(phy_database* db)
     if (fclose(db->log_file) != 0) {
         // LCOV_EXCL_START
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -199,7 +212,9 @@ phy_database_delete(phy_database* db)
     if (!db) {
         // LCOV_EXCL_START
         printf("physical database - delete: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -221,7 +236,9 @@ phy_database_delete(phy_database* db)
     if (fclose(db->log_file) != 0) {
         // LCOV_EXCL_START
         printf("disk file - destroy: Error closing file: %s", strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     free(db);
@@ -318,7 +335,9 @@ allocate_pages(phy_database* db, file_type ft, size_t num_pages, bool log)
     if (!db || (ft != node_ft && ft != relationship_ft)) {
         // LCOV_EXCL_START
         printf("physical database - allocate: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -370,7 +389,9 @@ phy_database_swap_log_file(phy_database* pdb, const char* log_file_path)
     if (!pdb || !log_file_path) {
         // LCOV_EXCL_START
         printf("phy_database - swap log file: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -378,7 +399,9 @@ phy_database_swap_log_file(phy_database* pdb, const char* log_file_path)
         // LCOV_EXCL_START
         printf("disk file - swap log file: Error closing file: %s",
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -389,7 +412,8 @@ phy_database_swap_log_file(phy_database* pdb, const char* log_file_path)
         printf("physical database - swap log file: failed to fopen %s: %s\n",
                log_file_path,
                strerror(errno));
-        exit(EXIT_FAILURE);
+        print_trace(); \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

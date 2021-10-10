@@ -23,16 +23,19 @@
 #include "data-struct/htable.h"
 #include "data-struct/linked_list.h"
 #include "page.h"
+#include "strace.h"
 
-      inline relationship_t*
-      new_relationship()
+inline relationship_t*
+new_relationship()
 {
     relationship_t* rel = malloc(sizeof(*rel));
 
     if (!rel) {
         // LCOV_EXCL_START
         printf("relationship - new: Failed to allocate Memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -46,7 +49,9 @@ relationship_read(relationship_t* record, page* read_from_page)
     if (!record || !read_from_page) {
         // LCOV_EXCL_START
         printf("relationship - read: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -95,7 +100,9 @@ relationship_write(relationship_t* record, page* write_to_page)
     if (!record || !write_to_page) {
         // LCOV_EXCL_START
         printf("relationship - read: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -145,7 +152,9 @@ relationship_clear(relationship_t* record)
     if (!record) {
         // LCOV_EXCL_START
         printf("relationship - copy: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -166,7 +175,9 @@ relationship_copy(const relationship_t* original)
     if (!original) {
         // LCOV_EXCL_START
         printf("relationship - copy: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -175,7 +186,9 @@ relationship_copy(const relationship_t* original)
     if (!copy) {
         // LCOV_EXCL_START
         printf("relationship - copy: Failed to allocate Memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -198,7 +211,9 @@ relationship_equals(const relationship_t* first, const relationship_t* second)
     if (!first || !second) {
         // LCOV_EXCL_START
         printf("relationship - equals: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -220,7 +235,9 @@ relationship_to_string(const relationship_t* record,
     if (!record || !buffer) {
         // LCOV_EXCL_START
         printf("relationship - to string: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -252,7 +269,9 @@ relationship_to_string(const relationship_t* record,
         printf("String length: %lu, Buffer size, %lu\n",
                (size_t)length,
                buffer_size);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -280,7 +299,9 @@ relationship_to_string(const relationship_t* record,
     if (result < 0) {
         // LCOV_EXCL_START
         printf("relationship - to string: Failed to write to buffer!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -291,7 +312,9 @@ relationship_pretty_print(const relationship_t* record)
     if (!record) {
         // LCOV_EXCL_START
         printf("relationship - pretty print: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -321,7 +344,9 @@ rel_free(relationship_t* rel)
     if (!rel) {
         // LCOV_EXCL_START
         printf("relationship - set first target: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

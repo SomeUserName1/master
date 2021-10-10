@@ -5,7 +5,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
 endif()
 
 project(gndb-c  VERSION 0.1
-    DESCRIPTION "A graph native database written in C"
+    DESCRIPTION "A graph database written in C"
     LANGUAGES C)
 
 # Set Compiler
@@ -20,10 +20,11 @@ set(__STDC_WANT_LIB_EXT1__ 1)
 include_directories(include/)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 \
-    -fsanitize=address,undefined -Wall -Wextra -Werror -Wsequence-point \
+    -fsanitize=address,undefined -Wall -Wextra -Wsequence-point \
     -Wcast-align -Wstrict-prototypes -Wstrict-aliasing -fstack-protector \
     -Wformat -Wformat-security -Werror=format-security -ferror-limit=0 \
-    -ftest-coverage -fprofile-arcs")
+    -ftest-coverage -fprofile-arcs -rdynamic -Wno-unused-command-line-argument")
+
 
 set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -ffast-math -fPIC -march=native \
     -mtune=native -m64 -Ofast")

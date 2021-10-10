@@ -26,6 +26,7 @@
 #include "constants.h"
 #include "data-struct/htable.h"
 #include "physical_database.h"
+#include "strace.h"
 
 #define SET_BINARY_MODE(file)
 /* 512 KB Buffer/Chunk size */
@@ -321,6 +322,8 @@ import_from_txt(heap_file*  hf,
     if (!hf || !path) {
         // LCOV_EXCL_START
         printf("snap importer - import from txt: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -341,6 +344,8 @@ import_from_txt(heap_file*  hf,
         // LCOV_EXCL_START
         perror("snap importer - import from txt: Failed to open file to read "
                "from");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -381,6 +386,8 @@ import_from_txt(heap_file*  hf,
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
+                print_trace();
+
                 exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
@@ -390,6 +397,8 @@ import_from_txt(heap_file*  hf,
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
+                print_trace();
+
                 exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
@@ -442,6 +451,8 @@ in_memory_import_from_txt(in_memory_graph* g,
     if (!g || !path) {
         // LCOV_EXCL_START
         printf("snap importer - import from txt: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -462,6 +473,8 @@ in_memory_import_from_txt(in_memory_graph* g,
         // LCOV_EXCL_START
         perror("snap importer - import from txt: Failed to open file to read "
                "from");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -487,6 +500,8 @@ in_memory_import_from_txt(in_memory_graph* g,
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
+                print_trace();
+
                 exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
@@ -496,6 +511,8 @@ in_memory_import_from_txt(in_memory_graph* g,
                 printf("%s\n",
                        "snap importer - import from txt: Failed to read "
                        "input\n");
+                print_trace();
+
                 exit(EXIT_FAILURE);
                 // LCOV_EXCL_STOP
             }
@@ -548,6 +565,8 @@ import(heap_file* hf, bool weighted, dataset_t dataset)
     if (download_dataset(dataset, temp_file_dl) != 0) {
         // LLCOV_EXCL_START
         printf("snap importer - import: Couldn't download dataset!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LLCOV_EXCL_STOP
     }
@@ -555,6 +574,8 @@ import(heap_file* hf, bool weighted, dataset_t dataset)
     if (uncompress_dataset(temp_file_dl, temp_file_unc) != 0) {
         // LLCOV_EXCL_START
         printf("snap importer - import: Couldn't uncompress dataset!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LLCOV_EXCL_STOP
     }

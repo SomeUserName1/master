@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "strace.h"
+
 /*!
  * Generate the necessary declarations for an array list named typename storing
  * elements of type T.
@@ -121,18 +123,24 @@ static const size_t initial_alloc = 128;
     {                                                                          \
         if (!cbs.leq) {                                                        \
             printf("array list - create: Invalid arguments! array list!\n");   \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename* list = calloc(1, sizeof(typename));                          \
                                                                                \
         if (!list) {                                                           \
             printf("Failed to allocate structs for array list!\n");            \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         list->elements = calloc(initial_alloc, sizeof(T));                     \
         if (!list->elements) {                                                 \
             printf("Failed to allocate data array for array list!\n");         \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
@@ -198,6 +206,8 @@ static const size_t initial_alloc = 128;
     {                                                                          \
         if (!l || idx < 0 || idx > l->len) {                                   \
             printf("list - insert: Invalid Arguments!\n");                     \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
@@ -208,6 +218,8 @@ static const size_t initial_alloc = 128;
             if (!realloc_h) {                                                  \
                 free(l->elements);                                             \
                 printf("list - insert: Memory Allocation Failed!\n");          \
+                print_trace();                                                 \
+                                                                               \
                 exit(EXIT_FAILURE);                                            \
             } else {                                                           \
                 l->elements = realloc_h;                                       \
@@ -239,6 +251,8 @@ static const size_t initial_alloc = 128;
     {                                                                          \
         if (!l) {                                                              \
             printf("list - append: Invalid Arguments!\n");                     \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_insert(l, v, l->len);                                       \
@@ -260,6 +274,8 @@ static const size_t initial_alloc = 128;
     {                                                                          \
         if (!l || idx >= l->len) {                                             \
             printf("list - remove or take: Invalid Arguments!\n");             \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
@@ -301,6 +317,8 @@ static const size_t initial_alloc = 128;
     {                                                                          \
         if (!l || !idx) {                                                      \
             printf("list - index_of: Invalid Arguments!\n");                   \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
@@ -328,6 +346,8 @@ static const size_t initial_alloc = 128;
         size_t idx = 0;                                                        \
         if (typename##_index_of(l, elem, &idx) != 0) {                         \
             printf("array list - remove element: Element not in list!\n");     \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename##_remove_internal(l, idx, true);                              \
@@ -360,6 +380,8 @@ static const size_t initial_alloc = 128;
         if (!l) {                                                              \
             printf("list - index_of: Invalid Arguments: List must not be "     \
                    "NULL!\n");                                                 \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
         if (idx >= l->len) {                                                   \
@@ -368,6 +390,8 @@ static const size_t initial_alloc = 128;
                    "%lu \n",                                                   \
                    l->len,                                                     \
                    idx);                                                       \
+            print_trace();                                                     \
+                                                                               \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return l->elements[idx];                                               \

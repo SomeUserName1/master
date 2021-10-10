@@ -22,6 +22,7 @@
 #include "data-struct/cbs.h"
 #include "data-struct/htable.h"
 #include "page.h"
+#include "strace.h"
 
 inline node_t*
 new_node()
@@ -31,7 +32,9 @@ new_node()
     if (!node) {
         // LCOV_EXCL_START
         printf("node - new node: failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -45,7 +48,9 @@ node_free(node_t* node)
     if (!node) {
         // LCOV_EXCL_START
         printf("node - free: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -58,7 +63,9 @@ node_read(node_t* record, page* read_from_page)
     if (!record || !read_from_page || read_from_page->pin_count < 1) {
         // LCOV_EXCL_START
         printf("node - node read: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -75,7 +82,9 @@ node_write(node_t* record, page* write_to_page)
     if (!record || !write_to_page || write_to_page->pin_count < 1) {
         // LCOV_EXCL_START
         printf("node - node write: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -92,7 +101,9 @@ node_clear(node_t* record)
     if (!record) {
         // LCOV_EXCL_START
         printf("node - clear: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -107,7 +118,9 @@ node_copy(const node_t* original)
     if (!original) {
         // LCOV_EXCL_START
         printf("node - copy: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -116,7 +129,9 @@ node_copy(const node_t* original)
     if (!copy) {
         // LCOV_EXCL_START
         printf("node - copy: Failed to allocate memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -133,7 +148,9 @@ node_equals(const node_t* first, const node_t* second)
     if (!first || !second) {
         // LCOV_EXCL_START
         printf("node - equals: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -148,7 +165,9 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
     if (!record || !buffer) {
         // LCOV_EXCL_START
         printf("node - to_string: Invalid Arguments\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -165,7 +184,9 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
         // LCOV_EXCL_START
         printf("Wrote node string representation to a buffer that was too "
                "small!");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -180,7 +201,9 @@ node_to_string(const node_t* record, char* buffer, size_t buffer_size)
     if (result < 0) {
         // LCOV_EXCL_START
         printf("node - node to string: failed to print string to buffer!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 }
@@ -192,7 +215,9 @@ node_pretty_print(const node_t* record)
         // LCOV_EXCL_START
         printf("node - pretty print: NULL pointer argument in pretty print "
                "node!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     printf("Node ID: %lu\n"

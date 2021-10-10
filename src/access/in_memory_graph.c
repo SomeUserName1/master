@@ -18,16 +18,19 @@
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
+#include "strace.h"
 
-      in_memory_graph*
-      in_memory_graph_create(void)
+in_memory_graph*
+in_memory_graph_create(void)
 {
     in_memory_graph* file = (in_memory_graph*)malloc(sizeof(*file));
 
     if (file == NULL) {
         // LCOV_EXCL_START
         printf("in memory graph - create: Failed to alloc memory!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -53,7 +56,9 @@ in_memory_create_node(in_memory_graph* db, unsigned long label)
     if (!db) {
         // LCOV_EXCL_START
         printf("in_memory - create node: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -73,7 +78,9 @@ in_memory_get_node(in_memory_graph* db, unsigned long id)
         // LCOV_EXCL_START
         printf("in_memory: get_node: in memory file is NULL or invalid node "
                "requested!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -86,7 +93,9 @@ in_memory_get_nodes(in_memory_graph* db)
     if (!db) {
         // LCOV_EXCL_START
         printf("in_memory - get_nodes: in memory file is NULL!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -109,7 +118,9 @@ in_memory_get_relationship(in_memory_graph* db, unsigned long id)
         // LCOV_EXCL_START
         printf("in_memory - get_relationship: in memory file is NULL or "
                "invalid relationship requested!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -122,7 +133,9 @@ in_memory_get_relationships(in_memory_graph* db)
     if (!db) {
         // LCOV_EXCL_START
         printf("in_memory - get_relationships: Invalid arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -167,7 +180,9 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
                node_from,
                node_to,
                weight);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
     unsigned long   temp_id;
@@ -186,7 +201,9 @@ in_memory_create_relationship_weighted(in_memory_graph* db,
                "to create does not exist:",
                node_from,
                node_to);
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -293,7 +310,9 @@ in_memory_next_relationship_id(in_memory_graph* db,
     if (db == NULL || rel == NULL || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("in_memory - next_relationship: Arguments must be not NULL!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -325,7 +344,9 @@ in_memory_expand(in_memory_graph* db,
     if (!db) {
         // LCOV_EXCL_START
         printf("in_memory - expand: Arguments must be not NULL!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -334,7 +355,9 @@ in_memory_expand(in_memory_graph* db,
     if (!node || !db) {
         // LCOV_EXCL_START
         printf("in_memory - expand: Arguments must be not NULL!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -378,7 +401,9 @@ in_memory_contains_relationship_from_to(in_memory_graph* db,
     if (!db) {
         // LCOV_EXCL_START
         printf("in_memory - contains relationship: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -395,7 +420,9 @@ in_memory_contains_relationship_from_to(in_memory_graph* db,
     if (!source_node || !target_node) {
         // LCOV_EXCL_START
         printf("in_memory - contains relationship: No such nodes!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

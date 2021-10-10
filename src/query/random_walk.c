@@ -19,6 +19,7 @@
 #include "constants.h"
 #include "data-struct/array_list.h"
 #include "query/result_types.h"
+#include "strace.h"
 
 path*
 random_walk(heap_file*    hf,
@@ -31,6 +32,8 @@ random_walk(heap_file*    hf,
     if (!hf || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("DB is NULL or node id uninitialized");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }

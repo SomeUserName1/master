@@ -7,9 +7,11 @@
  * institutions. Use is subject to license terms. Please refer to the included
  * copyright notice.
  */
+// LCOV_EXCL_START
 #include "access/heap_file.h"
 #include "access/node.h"
 #include "access/relationship.h"
+#include "data-struct/htable.h"
 #include "order/random_order.h"
 #include "order/reorder_records.h"
 #include "page_cache.h"
@@ -133,6 +135,7 @@ main(void)
     traversal_result_destroy(dfs_res);
     path_destroy(alt_res);
     path_destroy(a_star_res);
+    sssp_result_destroy(dijkstra_res);
 
     if (fclose(log_file) != 0) {
         printf("Main: error closing file %s: %s\n",
@@ -226,6 +229,11 @@ main(void)
     traversal_result_destroy(dfs_res);
     path_destroy(alt_res);
     path_destroy(a_star_res);
+    sssp_result_destroy(dijkstra_res);
+
+    for (size_t i = 0; i < n_landmarks; ++i) {
+        dict_ul_d_destroy(landmarks[i]);
+    }
 
     if (fclose(log_file) != 0) {
         printf("Main: error closing file %s: %s\n",
@@ -242,3 +250,5 @@ main(void)
 
     return 0;
 }
+
+// LCOV_EXCL_STOP

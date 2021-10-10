@@ -11,14 +11,16 @@
  * copyright notice.
  */
 #include "order/random_order.h"
-#include "access/heap_file.h"
-#include "access/node.h"
-#include "access/relationship.h"
-#include "data-struct/htable.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "access/heap_file.h"
+#include "access/node.h"
+#include "access/relationship.h"
+#include "data-struct/htable.h"
+#include "strace.h"
 
 dict_ul_ul*
 identity_node_order(heap_file* hf)
@@ -26,7 +28,9 @@ identity_node_order(heap_file* hf)
     if (!hf) {
         // LCOV_EXCL_START
         printf("random orders - identity node order: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -50,7 +54,9 @@ identity_relationship_order(heap_file* hf)
         // LCOV_EXCL_START
         printf("random orders - identity relationship order: Invalid "
                "Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -73,7 +79,9 @@ random_node_order(heap_file* hf)
     if (!hf) {
         // LCOV_EXCL_START
         printf("random order - random node order: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 
@@ -109,7 +117,9 @@ random_relationship_order(heap_file* hf)
         // LCOV_EXCL_START
         printf(
               "random order - random relationship order: Invalid Arguments!\n");
-        exit(EXIT_FAILURE);
+        print_trace();
+        \
+exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
 

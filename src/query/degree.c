@@ -19,6 +19,7 @@
 #include "access/node.h"
 #include "access/relationship.h"
 #include "constants.h"
+#include "strace.h"
 
 size_t
 get_degree(heap_file*    hf,
@@ -30,6 +31,8 @@ get_degree(heap_file*    hf,
     if (!hf || node_id == UNINITIALIZED_LONG) {
         // LCOV_EXCL_START
         printf("get_degree: Invaliud Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -68,6 +71,8 @@ get_avg_degree(heap_file* hf, direction_t direction, bool log, FILE* log_file)
     if (!hf) {
         // LCOV_EXCL_START
         printf("get_degree: Invaliud Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -112,6 +117,8 @@ get_min_degree(heap_file* hf, direction_t direction, bool log, FILE* log_file)
     if (!hf) {
         // LCOV_EXCL_START
         printf("degree - get min degree: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
@@ -140,6 +147,8 @@ get_max_degree(heap_file* hf, direction_t direction, bool log, FILE* log_file)
     if (!hf) {
         // LCOV_EXCL_START
         printf("degree - get max degree: Invalid Arguments!\n");
+        print_trace();
+
         exit(EXIT_FAILURE);
         // LCOV_EXCL_STOP
     }
