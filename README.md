@@ -19,6 +19,7 @@ It consists of the low level components of a database with extended logging with
 - Clang-Tidy & Clang-Format (extended static code analysis and auto formatting)
 - gcovr, llvm-cov (coverage generation and visualization)
 - pprof, graphviz (profiling & visualization)
+- Maven and Neo4J (benchmarks)
 
 
 ## Building
