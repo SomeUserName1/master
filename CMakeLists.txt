@@ -64,6 +64,9 @@ endif()
 message("-- Adding src/")
 add_subdirectory(src/)
 
+message("-- Adding bench/goedb")
+add_subdirectory(bench/goedb)
+
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
     include(CTest)
     message("-- adding tests")

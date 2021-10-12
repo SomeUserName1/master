@@ -736,7 +736,7 @@ delete_relationship(heap_file* hf, unsigned long rel_id, bool log)
               read_relationship(hf, rel->prev_rel_source, log);
 
         relationship_t* next_rel_from =
-              rel->next_rel_target == prev_rel_from->id
+              rel->next_rel_source == prev_rel_from->id
                     ? prev_rel_from
                     : read_relationship(hf, rel->next_rel_source, log);
 
@@ -1148,7 +1148,7 @@ contains_relationship_from_to(heap_file*    hf,
 node_t*
 find_node(heap_file* hf, unsigned long label, bool log)
 {
-    if (!hf || !label) {
+    if (!hf) {
         // LCOV_EXCL_START
         printf("heap files - find node: Invalid Arguments!\n");
         print_trace();

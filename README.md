@@ -5,7 +5,7 @@ The software in this repository provides an evaluation environment to experiment
 It consists of the low level components of a database with extended logging with respect to IO, several traversal-based queries, an importer for certain SNAP datasets and  utilities to change the order of the graph on disk.
 
 ## Architecture \& Source Code Organization
-
+![arch](doc/user_guide/img/overview.png)
 
 ## Dependencies
 #### Libraries
@@ -79,8 +79,6 @@ Currently only the io and cache modules and a part of the data structures have c
 ## TODOs
 ### Documentation 
 - Code Comments
-    - [x] io
-    - [x] cache
     - [ ] access
     - [ ] query
     - [ ] layout
@@ -94,10 +92,11 @@ Currently only the io and cache modules and a part of the data structures have c
 ### Future Work
 #### Basics
   - Deallocate Page (phy_database), delete_page (page_cache)
-  - System Catalog 
-  - Iterator for get nodes and get relationships
   - Bulk ops
+  - Prefetching
+  - Iterator for get nodes and get relationships
   - Properties
+  - System Catalog 
 
 #### Transactions & Queries
   - thread-safe data structures & locks
@@ -105,5 +104,5 @@ Currently only the io and cache modules and a part of the data structures have c
   - Pattern-based/Cypher-like QL & interpreter
 
 #### Advanced
-  - Alternative record layouts (nodes + adj list in same file, dense & sparse matrices)
+  - Hot and cold record layouts (hot: nodes + adj list in same file, dense & sparse matrices, cold: n4j thing)
   - Data Science QL that uses sparse matrices (Hot & Cold or Snapshots)

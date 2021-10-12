@@ -81,12 +81,10 @@ main(void)
 
     array_list_node_destroy(nodes);
 
-    // set the number of steps for random walks
-    const unsigned long n_steps = 10;
-
     // Preprocess the landmarks for alt
     const unsigned long n_landmarks = 3;
     dict_ul_d*          landmarks[3];
+
     alt_preprocess(hf, OUTGOING, n_landmarks, landmarks, false, NULL);
 
     // Create and open a log file to log the accesses before reordering the
@@ -101,15 +99,20 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
-    // Set the buffer size to 2 pages
     page_cache_change_n_frames(pc, 2);
 
     printf("Main: Executing queries.\n");
-
+    // Flush between queries
     traversal_result* bfs_res = bfs(hf, start_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
     traversal_result* dfs_res = dfs(hf, start_id, OUTGOING, true, log_file);
-    sssp_result*      dijkstra_res =
+    flush_all_pages(pc, false);
+
+    sssp_result* dijkstra_res =
           dijkstra(hf, start_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
     path* alt_res = alt(hf,
                         landmarks,
                         n_landmarks,
@@ -118,6 +121,7 @@ main(void)
                         OUTGOING,
                         true,
                         log_file);
+    flush_all_pages(pc, false);
 
     path* a_star_res = a_star(hf,
                               dijkstra_res->distances,
@@ -126,11 +130,9 @@ main(void)
                               OUTGOING,
                               true,
                               log_file);
-    path* rand_walk_res =
-          random_walk(hf, start_id, OUTGOING, n_steps, true, log_file);
+    flush_all_pages(pc, false);
 
     // free the results, close the log_file
-    path_destroy(rand_walk_res);
     traversal_result_destroy(bfs_res);
     traversal_result_destroy(dfs_res);
     path_destroy(alt_res);
@@ -209,10 +211,18 @@ main(void)
 
     printf("Main: Executing queries.\n");
 
-    bfs_res      = bfs(hf, start_id, OUTGOING, true, log_file);
-    dfs_res      = dfs(hf, start_id, OUTGOING, true, log_file);
+    bfs_res = bfs(hf, start_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
+    dfs_res = dfs(hf, start_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
     dijkstra_res = dijkstra(hf, start_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
     alt_res = alt(hf, landmarks, 3, start_id, end_id, OUTGOING, true, log_file);
+    flush_all_pages(pc, false);
+
     a_star_res = a_star(hf,
                         dijkstra_res->distances,
                         start_id,
@@ -220,11 +230,9 @@ main(void)
                         OUTGOING,
                         true,
                         log_file);
-    rand_walk_res =
-          random_walk(hf, start_id, OUTGOING, n_steps, true, log_file);
+    flush_all_pages(pc, false);
 
     // free the results, close the log_file
-    path_destroy(rand_walk_res);
     traversal_result_destroy(bfs_res);
     traversal_result_destroy(dfs_res);
     path_destroy(alt_res);
