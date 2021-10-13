@@ -6,10 +6,11 @@ To build and execute the benchmark run ```mvn clean compile exec:java``` from th
 Build the whole system as instructed in the main README. From the build directory then execute ```./bench/goedb/benchmark```.
 
 ## Comments
-Neo4J requires all operations to be wrapped in a trasaction. For insertions and deletion it maintains full text indices. 
+Neo4J requires all operations to be wrapped in a trasaction.
+For insertions and deletion it maintains full text indices for labels and relationship types.
 This comparison does not match 1:1. 
 In Neo4J one can find Nodes by labels, which is what I've used for reads, since I don't know exactly how they handle their internal IDs and how that is put together.
-This is done by an Index on Label thanks to Lucene.
+This is done by an Index on Label using Lucene.
 The find nodes function of the goedb is linear in runtime. 
 I've used read_nodes for the benchmark as I know about how IDs are composed. 
 I.e. the comparison is not really fair, due to a lack of time for either a) reading through Neo4Js internal APIs or to b) some how index the labels in goedb.

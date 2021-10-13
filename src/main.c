@@ -175,8 +175,12 @@ main(void)
 
     unsigned long* seq =
           malloc(get_no_nodes(EMAIL_EU_CORE) * sizeof(unsigned long));
+    node_t* node;
     for (size_t i = 0; i < get_no_nodes(EMAIL_EU_CORE); ++i) {
         fscanf(seq_file, "%lu\n", &seq[i]);
+        node   = find_node(hf, seq[i], false);
+        seq[i] = node->id;
+        free(node);
     }
 
     // dict_ul_ul* order = random_order(hf);

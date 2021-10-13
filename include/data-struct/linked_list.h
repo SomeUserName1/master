@@ -40,7 +40,8 @@
 
 #define STACK_DECL(typename, T)                                                \
     LINKED_LIST_DECL_BASE(typename, T)                                         \
-    T typename##_pop(typename* ll);
+    T typename##_pop(typename* ll);                                            \
+    void typename##_push(typename* ll, T elem);
 
 #define QUEUE_DECL(typename, T)                                                \
     LINKED_LIST_DECL_BASE(typename, T)                                         \
@@ -67,7 +68,8 @@
 
 #define STACK_IMPL(typename, T)                                                \
     LINKED_LIST_IMPL_BASE(typename, T)                                         \
-    STACK_POP(typename, T)
+    STACK_POP(typename, T)                                                     \
+    STACK_PUSH(typename, T)
 
 #define QUEUE_IMPL(typename, T)                                                \
     LINKED_LIST_IMPL_BASE(typename, T)                                         \
@@ -110,8 +112,8 @@
             printf("linked list - create: You must specify an equality "       \
                    "function for the elements!\n");                            \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         typename* ll;                                                          \
         ll = calloc(1, sizeof(*ll));                                           \
@@ -119,8 +121,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("linked list - create: Failed to allocate memory!\n");      \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         ll->len  = 0;                                                          \
@@ -138,8 +140,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("linked list - size: Invalid argument!\n");                 \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return ll->len;                                                        \
     }
@@ -150,8 +152,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("linked list - destroy: Invalid argument!\n");              \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* cur = ll->head;                                       \
@@ -175,8 +177,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("Linked list - append: invalid argument!\n");               \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* node = calloc(1, sizeof(*node));                      \
@@ -184,8 +186,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!node) {                                                           \
             printf("Linked list - append: Failed to allocate memory!\n");      \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         if (ll->cbs.llcopy) {                                                  \
             elem = ll->cbs.llcopy(elem);                                       \
@@ -223,8 +225,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("Linked list - insert: Invalid arguments!");                \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* new = calloc(1, sizeof(*new));                        \
@@ -232,8 +234,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!new) {                                                            \
             printf("Linked list - insert: Failed to allocate memory!\n");      \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         if (ll->cbs.llcopy) {                                                  \
@@ -256,8 +258,8 @@ exit(EXIT_FAILURE);                                                            \
             free(new);                                                         \
             printf("linked list - insert: Index out of bounds!\n");            \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         if (idx != 0 && idx != ll->len) {                                      \
@@ -298,8 +300,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll || idx >= ll->len) {                                           \
             printf("Linked list - remove internal: Invalid arguemnts!\n");     \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         if (ll->len == 1 && idx == 0) {                                        \
@@ -362,8 +364,8 @@ exit(EXIT_FAILURE);                                                            \
         if (typename##_index_of(ll, elem, &idx) <= -1) {                       \
             printf("Linked List - remove elem: Element not in the list!\n");   \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
         return typename##_remove_internal(ll, idx, true);                      \
     }
@@ -374,8 +376,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll || !idx) {                                                     \
             printf("linked list - index of: invalid arguments!\n");            \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* cur = ll->head;                                       \
@@ -402,8 +404,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll || idx >= ll->len) {                                           \
             printf("Linked List - get: Invalid Arguments!\n");                 \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* cur = ll->head;                                       \
@@ -437,8 +439,8 @@ exit(EXIT_FAILURE);                                                            \
         if (!ll) {                                                             \
             printf("linked list - index of: invalid arguments!\n");            \
             print_trace();                                                     \
-            \
-exit(EXIT_FAILURE);                                                            \
+                                                                               \
+            exit(EXIT_FAILURE);                                                \
         }                                                                      \
                                                                                \
         typename##_node* cur = ll->tail;                                       \
@@ -473,6 +475,9 @@ exit(EXIT_FAILURE);                                                            \
                                                                                \
         return result;                                                         \
     }
+
+#define STACK_PUSH(typename, T)                                                \
+    void typename##_push(typename* ll, T elem) { typename##_append(ll, elem); }
 
 LINKED_LIST_DECL(llist_ul, unsigned long);
 
