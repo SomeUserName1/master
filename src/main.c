@@ -104,16 +104,10 @@ main(void)
     printf("Main: Executing queries.\n");
     // Flush between queries
     traversal_result* bfs_res = bfs(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
     traversal_result* dfs_res = dfs(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
-    sssp_result* dijkstra_res =
+    sssp_result*      dijkstra_res =
           dijkstra(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
-    path* alt_res = alt(hf,
+    path* alt_res    = alt(hf,
                         landmarks,
                         n_landmarks,
                         start_id,
@@ -121,8 +115,6 @@ main(void)
                         OUTGOING,
                         true,
                         log_file);
-    flush_all_pages(pc, false);
-
     path* a_star_res = a_star(hf,
                               dijkstra_res->distances,
                               start_id,
@@ -130,7 +122,6 @@ main(void)
                               OUTGOING,
                               true,
                               log_file);
-    flush_all_pages(pc, false);
 
     // free the results, close the log_file
     traversal_result_destroy(bfs_res);
@@ -161,34 +152,38 @@ main(void)
     page_cache_change_n_frames(pc, kib_to_gib);
 
     printf("Main: Reordering the graph on disk.\n");
-    system("python "
-           "/home/someusername/sync/workspace/uni/master/scripts/"
-           "modularity_order.py");
-    FILE* seq_file =
-          fopen("/home/someusername/workspace_local/node_seq.txt", "r");
-    if (!seq_file) {
-        printf("Main: Error opening file %s, %s\n",
-               "node_seq.txt",
-               strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+    //    system("python "
+    //           "/home/someusername/sync/workspace/uni/master/scripts/"
+    //           "modularity_order.py");
+    //    FILE* seq_file =
+    //          fopen("/home/someusername/workspace_local/node_seq.txt", "r");
+    //    if (!seq_file) {
+    //        printf("Main: Error opening file %s, %s\n",
+    //               "node_seq.txt",
+    //               strerror(errno));
+    //        exit(EXIT_FAILURE);
+    //    }
+    //
+    //    unsigned long* seq =
+    //          malloc(get_no_nodes(EMAIL_EU_CORE) * sizeof(unsigned long));
+    //    node_t* node;
+    //    for (size_t i = 0; i < get_no_nodes(EMAIL_EU_CORE); ++i) {
+    //        fscanf(seq_file, "%lu\n", &seq[i]);
+    //        node   = find_node(hf, seq[i], false);
+    //        seq[i] = node->id;
+    //        free(node);
+    //    }
+    //    reorder_nodes_by_sequence(hf, seq, true);
+    //    reorder_relationships_by_nodes(hf, true);
 
-    unsigned long* seq =
-          malloc(get_no_nodes(EMAIL_EU_CORE) * sizeof(unsigned long));
-    node_t* node;
-    for (size_t i = 0; i < get_no_nodes(EMAIL_EU_CORE); ++i) {
-        fscanf(seq_file, "%lu\n", &seq[i]);
-        node   = find_node(hf, seq[i], false);
-        seq[i] = node->id;
-        free(node);
-    }
+    dict_ul_ul* node_order = random_node_order(hf);
+    dict_ul_ul* rel_order  = random_relationship_order(hf);
+    reorder_nodes(hf, node_order, true);
+    reorder_relationships(hf, rel_order, true);
 
-    // dict_ul_ul* order = random_order(hf);
-    reorder_nodes_by_sequence(hf, seq, true);
-    reorder_relationships_by_nodes(hf, true);
     sort_incidence_list(hf, true);
 
-    free(seq);
+    //    free(seq);
 
     // swap the log files to capture the queries after reordering
     log_name_pdb   = "pdb_after.log";
@@ -215,18 +210,10 @@ main(void)
 
     printf("Main: Executing queries.\n");
 
-    bfs_res = bfs(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
-    dfs_res = dfs(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
+    bfs_res      = bfs(hf, start_id, OUTGOING, true, log_file);
+    dfs_res      = dfs(hf, start_id, OUTGOING, true, log_file);
     dijkstra_res = dijkstra(hf, start_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
     alt_res = alt(hf, landmarks, 3, start_id, end_id, OUTGOING, true, log_file);
-    flush_all_pages(pc, false);
-
     a_star_res = a_star(hf,
                         dijkstra_res->distances,
                         start_id,
@@ -234,7 +221,6 @@ main(void)
                         OUTGOING,
                         true,
                         log_file);
-    flush_all_pages(pc, false);
 
     // free the results, close the log_file
     traversal_result_destroy(bfs_res);

@@ -68,8 +68,7 @@
 
 #define STACK_IMPL(typename, T)                                                \
     LINKED_LIST_IMPL_BASE(typename, T)                                         \
-    STACK_POP(typename, T)                                                     \
-    STACK_PUSH(typename, T)
+    STACK_POP(typename, T)
 
 #define QUEUE_IMPL(typename, T)                                                \
     LINKED_LIST_IMPL_BASE(typename, T)                                         \
@@ -475,9 +474,6 @@
                                                                                \
         return result;                                                         \
     }
-
-#define STACK_PUSH(typename, T)                                                \
-    void typename##_push(typename* ll, T elem) { typename##_append(ll, elem); }
 
 LINKED_LIST_DECL(llist_ul, unsigned long);
 

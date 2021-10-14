@@ -4,8 +4,13 @@
 The software in this repository provides an evaluation environment to experiment with the order of the graph as it is stored on disk.  
 It consists of the low level components of a database with extended logging with respect to IO, several traversal-based queries, an importer for certain SNAP datasets and  utilities to change the order of the graph on disk.
 
-## Architecture \& Source Code Organization
-![arch](doc/user_guide/img/overview.png)
+## Architecture
+Additional documentation on the architecture can be found in doc/specification.
+![arch](doc/specification/img/overview.png)
+
+Additional documentation on the record format can be found in doc/neo4j\_records. The record format does not exactly match (e.g. properties are not supported by this database) but the incidence list is the same.
+![ex](doc/neo4jstorage/img/04_example/example_structs.png)
+
 
 ## Dependencies
 #### Libraries
