@@ -75,9 +75,12 @@ main(void)
     array_list_node* nodes = get_nodes(hf, false);
 
     // Chose a random start node and end node for the queries
-    unsigned long start_id =
-          array_list_node_get(nodes, rand() % hf->n_nodes)->id;
-    unsigned long end_id = array_list_node_get(nodes, rand() % hf->n_nodes)->id;
+    node_t*       start_node = array_list_node_get(nodes, rand() % hf->n_nodes);
+    node_t*       end_node   = array_list_node_get(nodes, rand() % hf->n_nodes);
+    unsigned long start_id   = start_node->id;
+    unsigned long end_id     = end_node->id;
+    unsigned long start_label = start_node->label;
+    unsigned long end_label   = end_node->label;
 
     array_list_node_destroy(nodes);
 
@@ -152,38 +155,44 @@ main(void)
     page_cache_change_n_frames(pc, kib_to_gib);
 
     printf("Main: Reordering the graph on disk.\n");
-    //    system("python "
-    //           "/home/someusername/sync/workspace/uni/master/scripts/"
-    //           "modularity_order.py");
-    //    FILE* seq_file =
-    //          fopen("/home/someusername/workspace_local/node_seq.txt", "r");
-    //    if (!seq_file) {
-    //        printf("Main: Error opening file %s, %s\n",
-    //               "node_seq.txt",
-    //               strerror(errno));
-    //        exit(EXIT_FAILURE);
-    //    }
-    //
-    //    unsigned long* seq =
-    //          malloc(get_no_nodes(EMAIL_EU_CORE) * sizeof(unsigned long));
-    //    node_t* node;
-    //    for (size_t i = 0; i < get_no_nodes(EMAIL_EU_CORE); ++i) {
-    //        fscanf(seq_file, "%lu\n", &seq[i]);
-    //        node   = find_node(hf, seq[i], false);
-    //        seq[i] = node->id;
-    //        free(node);
-    //    }
-    //    reorder_nodes_by_sequence(hf, seq, true);
-    //    reorder_relationships_by_nodes(hf, true);
+    system("python "
+           "/home/someusername/sync/workspace/uni/master/scripts/"
+           "modularity_order.py");
+    FILE* seq_file =
+          fopen("/home/someusername/workspace_local/node_seq.txt", "r");
+    if (!seq_file) {
+        printf("Main: Error opening file %s, %s\n",
+               "node_seq.txt",
+               strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
-    dict_ul_ul* node_order = random_node_order(hf);
-    dict_ul_ul* rel_order  = random_relationship_order(hf);
-    reorder_nodes(hf, node_order, true);
-    reorder_relationships(hf, rel_order, true);
+    unsigned long* seq =
+          malloc(get_no_nodes(EMAIL_EU_CORE) * sizeof(unsigned long));
+    node_t* node;
+    for (size_t i = 0; i < get_no_nodes(EMAIL_EU_CORE); ++i) {
+        fscanf(seq_file, "%lu\n", &seq[i]);
+        node   = find_node(hf, seq[i], false);
+        seq[i] = node->id;
+        free(node);
+    }
+    reorder_nodes_by_sequence(hf, seq, true);
+    free(seq);
 
+    reorder_relationships_by_nodes(hf, true);
     sort_incidence_list(hf, true);
 
-    //    free(seq);
+    start_node = find_node(hf, start_label, false);
+    end_node   = find_node(hf, end_label, false);
+    start_id   = start_node->id;
+    end_id     = end_node->id;
+    free(start_node);
+    free(end_node);
+
+    for (size_t i = 0; i < n_landmarks; ++i) {
+        dict_ul_d_destroy(landmarks[i]);
+    }
+    alt_preprocess(hf, OUTGOING, n_landmarks, landmarks, false, NULL);
 
     // swap the log files to capture the queries after reordering
     log_name_pdb   = "pdb_after.log";

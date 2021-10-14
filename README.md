@@ -9,7 +9,7 @@ Additional documentation on the architecture can be found in doc/specification.
 ![arch](doc/specification/img/overview.png)
 
 Additional documentation on the record format can be found in doc/neo4j\_records. The record format does not exactly match (e.g. properties are not supported by this database) but the incidence list is the same.
-![ex](doc/neo4jstorage/img/04_example/example_structs.png)
+![ex](doc/neo4jstorage/img/04_example/example_structs_no_props.png)
 
 
 ## Dependencies
