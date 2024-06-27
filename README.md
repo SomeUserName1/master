@@ -1,8 +1,8 @@
 # Graph Order Evaluation Database
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/db98dfa832514fecb1829fd2aab68728)](https://www.codacy.com/gh/SomeUserName1/master/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SomeUserName1/master&amp;utm_campaign=Badge_Grade)  [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SomeUserName1/master.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SomeUserName1/master/context:cpp) [![codecov](https://codecov.io/gh/SomeUserName1/master/branch/main/graph/badge.svg?token=YIBICJOF1R)](https://codecov.io/gh/SomeUserName1/master) 
 
-The software in this repository provides an evaluation environment to experiment with the order of the graph as it is stored on disk.  
-It consists of the low level components of a database with extended logging with respect to IO, several traversal-based queries, an importer for certain SNAP datasets and  utilities to change the order of the graph on disk.
+This repo contains the low level components of a graph database with extended logging with respect to IO, several traversal-based queries, an importer for certain SNAP datasets and  utilities to change the order of the graph on disk.
+It was written during a master thesis in computer science, to evaluate the effect of graph order on IO op amount and sequential access when responding to traversal-based queries.
 
 ## Architecture
 Additional documentation on the architecture can be found in doc/specification.
@@ -64,10 +64,30 @@ firefox coverage/report.html&
 Nodes need to be accessed by the label that corresponds to the id of the nodes and relationships in the dataset. 
 The ids of the database correspond to their location on disk and are thus not neccessarily consecutive and change when a record is moved.
 
+A sample main file for running the queries on the unordered graph, ordering the graph and rerunning the queries can be found in src/main.c.
+
+
+## Call Graph Profiling
+Build in debug mode and use the following commands to run the executable that you'd like to profile:
+```
+LD_PRELOAD=libprofiler.so CPUPROFILE=cpu.prof ./<executable>
+pprof ./<executable> cpu.prof
+```
+
+## Documentation
+To generate the documentation simply run
+```
+doxygen
+```
+from the repository root. This generates LaTeX and HTML documentations in the folders latex and html respectively.
+Currently only the io and cache modules and a part of the data structures have code comments.
+
+A brief overview of the undocumented parts is laid out below.
+
 The most important functions for evaluating the order of the graph on disk are the following ones ordered by module.
 
-### data-struct
-There is also a Fibonacci heap in the data structures, but it is only used to implement dijkstra. 
+### data-struct  
+There is also a Fibonacci heap in the data structures, but it is only used to implement dijkstra.  
 #### List-based: array\_list, linked list, linked list-based queue, linked list-based stack
 Currently implemented instances are: array_list_ul, array_list_l, array_list_node, array_list_relationship, linked_list_ul, queue_ul, stack_ul. There are also inm_alist_node, inm_alist_rel which are used for in memory graphs, which are used for in memory graphs and provide direct access to the nodes stored in a dict_ul_node and dict_ul_rel in main memory.
 
@@ -152,26 +172,6 @@ the log flag control the logging at all levels. If it is set to true, the phy_da
 reorder nodes/relationships by sequence: Given a heap file and an unsigned long array that carries record ids (again each id must be unique) and a log flag, it reorders the database such that the srecords are stored in the prescribed sequence.
 - reorder_relationships_by_nodes: Given a heap_file* and the log flag, it arranges the relationships such that the outgoing relationships of a node are grouped together. The groups are ordered by the same sequence as the nodes.
 - sort incidence list: Sorts the incidence lists of the relationships such that the relationship with the lowest id appears first and so on. Shall avoid jumping back and forth when traversing the incidence list.
-
-
-
-A sample main file for running the queries on the unordered graph, ordering the graph and rerunning the queries can be found in src/main.c.
-
-
-## Call Graph Profiling
-Build in debug mode and use the following commands to run the executable that you'd like to profile:
-```
-LD_PRELOAD=libprofiler.so CPUPROFILE=cpu.prof ./<executable>
-pprof ./<executable> cpu.prof
-```
-
-## Documentation
-To generate the documentation simply run
-```
-doxygen
-```
-from the repository root. This generates LaTeX and HTML documentations in the folders latex and html respectively.
-Currently only the io and cache modules and a part of the data structures have code comments.
 
 
 ## TODOs
